@@ -191,7 +191,9 @@ export function InputPanel({
 
       {/* Ticker — auto-fetch */}
       <div className="space-y-1">
-        <label className="text-sm font-medium text-gray-700">Ticker giełdowy</label>
+        <label className="text-sm font-medium text-gray-700">
+          Ticker giełdowy <span className="text-red-500">*</span>
+        </label>
         <div className="flex gap-2 items-center">
           <div className="relative flex-1">
             <input
@@ -232,7 +234,9 @@ export function InputPanel({
 
       {/* Shares */}
       <div className="space-y-1">
-        <label className="text-sm font-medium text-gray-700">Liczba akcji</label>
+        <label className="text-sm font-medium text-gray-700">
+          Liczba akcji <span className="text-red-500">*</span>
+        </label>
         <input
           type="number"
           min={0}
@@ -304,7 +308,7 @@ export function InputPanel({
       {/* Price USD */}
       <div className="space-y-1">
         <label className="text-sm font-medium text-gray-700">
-          Aktualna cena akcji (USD)
+          Aktualna cena akcji (USD) <span className="text-red-500">*</span>
           {assetData && <span className="ml-1 text-xs text-gray-400">· auto z Twelve Data</span>}
         </label>
         <input
@@ -321,7 +325,7 @@ export function InputPanel({
       {/* FX Rate */}
       <div className="space-y-1">
         <label className="text-sm font-medium text-gray-700">
-          Kurs USD/PLN
+          Kurs USD/PLN <span className="text-red-500">*</span>
           {fxData && !fxLoading && <span className="ml-1 text-xs text-gray-400">· auto z NBP</span>}
           {fxLoading && <span className="ml-1 text-xs text-gray-400">· ładowanie NBP…</span>}
         </label>
@@ -372,7 +376,7 @@ export function InputPanel({
         /* WIBOR 3M — savings */
         <div className="space-y-1">
           <label className="text-sm font-medium text-gray-700">
-            Oprocentowanie konta oszczędnościowego
+            Oprocentowanie konta oszczędnościowego <span className="text-red-500">*</span>
             <span className="ml-1 text-xs font-normal text-gray-500">(% w skali roku)</span>
           </label>
           <input
@@ -577,21 +581,32 @@ export function InputPanel({
         <input
           type="range"
           min={1}
-          max={144}
+          max={benchmarkType === 'savings' ? 60 : 144}
           step={1}
           value={horizonMonths}
           onChange={(e) => onHorizonChange(Number(e.target.value))}
           className="w-full accent-blue-600"
         />
-        <div className="flex justify-between text-xs text-gray-400">
-          <span>1m</span>
-          <span>1r</span>
-          <span>2r</span>
-          <span>3r</span>
-          <span>5r</span>
-          <span>10r</span>
-          <span>12r</span>
-        </div>
+        {benchmarkType === 'savings' ? (
+          <div className="flex justify-between text-xs text-gray-400">
+            <span>1m</span>
+            <span>6m</span>
+            <span>1r</span>
+            <span>2r</span>
+            <span>3r</span>
+            <span>5r</span>
+          </div>
+        ) : (
+          <div className="flex justify-between text-xs text-gray-400">
+            <span>1m</span>
+            <span>1r</span>
+            <span>2r</span>
+            <span>3r</span>
+            <span>5r</span>
+            <span>10r</span>
+            <span>12r</span>
+          </div>
+        )}
       </div>
     </div>
   );

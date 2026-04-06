@@ -6,7 +6,23 @@ interface VerdictBannerProps {
   results: ScenarioResult[];
 }
 
-const SCENARIO_LABEL: Record<string, string> = { bear: 'Bear', base: 'Base', bull: 'Bull' };
+const SCENARIO_STYLE = {
+  bear: {
+    bg: 'bg-red-50',
+    border: 'border-red-200',
+    badge: 'bg-red-100 text-red-700 border border-red-200',
+  },
+  base: {
+    bg: 'bg-amber-50',
+    border: 'border-amber-200',
+    badge: 'bg-amber-100 text-amber-700 border border-amber-200',
+  },
+  bull: {
+    bg: 'bg-green-50',
+    border: 'border-green-200',
+    badge: 'bg-green-100 text-green-700 border border-green-200',
+  },
+};
 
 export function VerdictBanner({ results }: VerdictBannerProps) {
   const bmLabel = results[0]?.benchmarkLabel ?? 'Konto';
@@ -16,58 +32,47 @@ export function VerdictBanner({ results }: VerdictBannerProps) {
       <h2 className="text-lg font-semibold text-gray-800">Wyniki — co się bardziej opłaca?</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {results.map((r) => {
+          const style = SCENARIO_STYLE[r.key] ?? SCENARIO_STYLE.base;
           const stockWins = r.stockBeatsBenchmark;
-          const winnerLabel = stockWins ? 'Akcje' : bmLabel;
-          const loserLabel = stockWins ? bmLabel : 'Akcje';
-          const winnerValue = stockWins ? r.stockNetEndValuePLN : r.benchmarkEndValuePLN;
-          const loserValue = stockWins ? r.benchmarkEndValuePLN : r.stockNetEndValuePLN;
 
           return (
             <div
               key={r.key}
-              className="bg-white border-2 border-gray-200 rounded-2xl p-5 space-y-3"
+              className={`${style.bg} ${style.border} border-2 rounded-2xl p-5 space-y-3`}
             >
-              <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
-                {SCENARIO_LABEL[r.key] ?? r.label}
+              {/* Scenario badge */}
+              <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full ${style.badge}`}>
+                {r.key.charAt(0).toUpperCase() + r.key.slice(1)}
               </span>
 
-              {/* Winner */}
-              <div className="flex items-center gap-2">
-                <Trophy size={22} className="text-amber-400 shrink-0" />
-                <span className="text-xl font-bold text-gray-800">{winnerLabel} wygrywa</span>
-              </div>
-              <div className="text-base font-semibold text-gray-700">
-                o {fmtPLN(Math.abs(r.differencePLN))}
-              </div>
+              {/* Two-column comparison */}
+              <div className="grid grid-cols-2 gap-2">
+                {/* Akcje column */}
+                <div className={`rounded-xl p-3 text-center space-y-1 ${stockWins ? 'bg-white shadow-sm ring-2 ring-amber-300' : 'bg-white/60'}`}>
+                  <div className="flex items-center justify-center gap-1 text-xs font-bold text-blue-700 uppercase tracking-wide">
+                    {stockWins && <Trophy size={11} className="text-amber-400" />}
+                    Akcje
+                  </div>
+                  <div className="text-base font-bold text-gray-800">{fmtPLN(r.stockNetEndValuePLN)}</div>
+                  <div className="text-xs font-medium text-blue-600">{fmtDiffPct(r.stockReturnNet)}</div>
+                </div>
 
-              {/* Comparison rows */}
-              <div className="space-y-1.5 pt-2 border-t border-gray-100">
-                <div className="flex justify-between text-sm font-semibold text-gray-800">
-                  <span className="flex items-center gap-1">
-                    <Trophy size={11} className="text-amber-400" />
-                    {winnerLabel} (netto)
-                  </span>
-                  <span>{fmtPLN(winnerValue)}</span>
-                </div>
-                <div className="flex justify-between text-sm text-gray-500">
-                  <span>{loserLabel} (netto)</span>
-                  <span>{fmtPLN(loserValue)}</span>
-                </div>
-                <div className="flex justify-between text-xs text-gray-400 pt-1 border-t border-gray-50">
-                  <span>Zysk akcje</span>
-                  <span className="font-medium text-blue-600">{fmtDiffPct(r.stockReturnNet)}</span>
-                </div>
-                <div className="flex justify-between text-xs text-gray-400">
-                  <span>Zysk {bmLabel.toLowerCase()}</span>
-                  <span className="font-medium text-purple-600">
+                {/* Benchmark column */}
+                <div className={`rounded-xl p-3 text-center space-y-1 ${!stockWins ? 'bg-white shadow-sm ring-2 ring-amber-300' : 'bg-white/60'}`}>
+                  <div className="flex items-center justify-center gap-1 text-xs font-bold text-purple-700 uppercase tracking-wide">
+                    {!stockWins && <Trophy size={11} className="text-amber-400" />}
+                    {bmLabel}
+                  </div>
+                  <div className="text-base font-bold text-gray-800">{fmtPLN(r.benchmarkEndValuePLN)}</div>
+                  <div className="text-xs font-medium text-purple-600">
                     {r.benchmarkReturnNet >= 0 ? '+' : ''}{r.benchmarkReturnNet.toFixed(2)}%
-                  </span>
+                  </div>
                 </div>
               </div>
 
               {/* Difference callout */}
-              <div className="text-xs font-medium rounded-lg px-3 py-2 text-center bg-gray-50 border border-gray-100 text-gray-700">
-                Różnica: {fmtDiff(r.differencePLN)} ({fmtDiffPct(r.differencePercent)})
+              <div className="text-xs font-medium rounded-lg px-3 py-2 text-center bg-white/70 border border-white text-gray-700">
+                Różnica: <strong>{fmtDiff(r.differencePLN)}</strong> ({fmtDiffPct(r.differencePercent)})
               </div>
             </div>
           );

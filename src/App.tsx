@@ -87,6 +87,13 @@ function App() {
     [],
   );
 
+  const handleBenchmarkTypeChange = useCallback((v: BenchmarkType) => {
+    setBenchmarkType(v);
+    if (v === 'savings') {
+      setHorizonMonths((prev) => Math.min(prev, 60));
+    }
+  }, []);
+
   const handleApplySuggested = useCallback(() => {
     if (suggestedScenarios) {
       setScenarios(suggestedScenarios);
@@ -167,7 +174,7 @@ function App() {
             onFxRateChange={setCurrentFxRate}
             onWiborChange={setWibor3m}
             onHorizonChange={setHorizonMonths}
-            onBenchmarkTypeChange={setBenchmarkType}
+            onBenchmarkTypeChange={handleBenchmarkTypeChange}
             onBondFirstYearRateChange={setBondFirstYearRate}
             onBondPenaltyChange={setBondPenalty}
             onBondRateTypeChange={setBondRateType}
