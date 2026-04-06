@@ -45,18 +45,30 @@ async function fetchViaProxy(
   }
 }
 
-async function fetchYahoo(chartUrl: string, signal?: AbortSignal): Promise<Response> {
-  // Race all proxies — first one with valid JSON wins
+async function fetchYahooOnce(chartUrl: string, signal?: AbortSignal): Promise<Response> {
   const promises = CORS_PROXY_FACTORIES.map((makeUrl) =>
-    fetchViaProxy(makeUrl(chartUrl), 10_000, signal),
+    fetchViaProxy(makeUrl(chartUrl), 12_000, signal),
   );
 
+  return Promise.any(promises);
+}
+
+async function fetchYahoo(chartUrl: string, signal?: AbortSignal): Promise<Response> {
+  // First attempt — all proxies may be cold (DNS, serverless startup).
+  // If all fail, wait briefly and retry once — connections will be warm.
   try {
-    return await Promise.any(promises);
+    return await fetchYahooOnce(chartUrl, signal);
   } catch {
-    throw new Error(
-      'Nie udało się pobrać danych giełdowych. Serwery proxy mogą być chwilowo niedostępne — spróbuj ponownie za chwilę lub wpisz cenę ręcznie.',
-    );
+    // All proxies failed. Wait for DNS/connections to settle and retry.
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    if (signal?.aborted) throw new Error('Aborted');
+    try {
+      return await fetchYahooOnce(chartUrl, signal);
+    } catch {
+      throw new Error(
+        'Nie udało się pobrać danych giełdowych. Serwery proxy mogą być chwilowo niedostępne — spróbuj ponownie za chwilę lub wpisz cenę ręcznie.',
+      );
+    }
   }
 }
 
