@@ -7,16 +7,28 @@ export interface ScenarioParams {
 
 export type Scenarios = Record<ScenarioKey, ScenarioParams>;
 
+export type BenchmarkType = 'savings' | 'bonds';
+
+export interface BondPreset {
+  id: string;
+  name: string;
+  maturityMonths: number;
+  annualRate: number; // in %, e.g. 5.75
+  earlyRedemptionPenalty: number; // in % of principal
+  description: string;
+}
+
 export interface ScenarioResult {
   key: ScenarioKey;
   label: string;
   currentValuePLN: number;
   stockRawEndValuePLN: number;
   stockNetEndValuePLN: number;
-  savingsEndValuePLN: number;
-  stockBeatsSavings: boolean;
+  benchmarkEndValuePLN: number;
+  stockBeatsBenchmark: boolean;
   differencePLN: number;
   differencePercent: number;
   stockReturnNet: number;
-  savingsReturnNet: number;
+  benchmarkReturnNet: number;
+  benchmarkLabel: string;
 }

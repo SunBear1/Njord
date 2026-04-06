@@ -34,7 +34,7 @@ export function MethodologyPanel() {
 
           {/* 2. Konto oszczędnościowe */}
           <section className="space-y-1">
-            <h3 className="font-semibold text-slate-900">2. Konto oszczędnościowe (po sprzedaży)</h3>
+            <h3 className="font-semibold text-slate-900">2a. Konto oszczędnościowe</h3>
             <div className="bg-white border border-slate-200 rounded-lg p-3 font-mono text-xs space-y-1">
               <div>Stopa miesięczna = Oprocentowanie roczne ÷ 12</div>
               <div>Wartość brutto = Kapitał × (1 + stopa miesięczna)<sup>n miesięcy</sup></div>
@@ -44,8 +44,27 @@ export function MethodologyPanel() {
             </div>
             <p className="text-xs text-slate-600">
               Zakładamy kapitalizację miesięczną. Podatek Belki (19%) jest naliczany od
-              wypracowanych odsetek. Kapitał nie jest opodatkowany — od niego pobrano już
-              podatek przy sprzedaży akcji (jeśli był zysk, patrz: założenia).
+              wypracowanych odsetek.
+            </p>
+          </section>
+
+          {/* 2b. Obligacje skarbowe */}
+          <section className="space-y-1">
+            <h3 className="font-semibold text-slate-900">2b. Obligacje skarbowe</h3>
+            <div className="bg-white border border-slate-200 rounded-lg p-3 font-mono text-xs space-y-1">
+              <div>Dla okresu ≤ 12 mies. (proste odsetki):</div>
+              <div className="pl-4">Wartość brutto = Kapitał × (1 + stopa roczna × miesiące ÷ 12)</div>
+              <div>Dla okresu &gt; 12 mies. (kapitalizacja roczna):</div>
+              <div className="pl-4">Wartość brutto = Kapitał × (1 + stopa roczna)<sup>pełne lata</sup> × (1 + stopa × reszta÷12)</div>
+              <div>Odsetki netto = (Wartość brutto − Kapitał) × (1 − 0,19)</div>
+              <div>Kara za wcześniejszy wykup (jeśli dotyczy) = Kapitał × kara%</div>
+              <div className="font-semibold">Wartość końcowa = Kapitał + Odsetki netto − Kara</div>
+            </div>
+            <p className="text-xs text-slate-600">
+              Obligacje stosują kapitalizację roczną (nie miesięczną). Kara za wcześniejszy wykup
+              obowiązuje gdy horyzont jest krótszy niż zapadalność obligacji (np. 0,70% dla DOS/COI,
+              2% dla EDO). Dla obligacji indeksowanych inflacją (COI, EDO) używamy podanej stopy
+              jako przybliżenia — rzeczywista stopa po 1. roku zależy od CPI.
             </p>
           </section>
 

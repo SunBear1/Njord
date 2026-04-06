@@ -46,11 +46,30 @@ async function fetchViaProxy(
 }
 
 async function fetchYahooOnce(chartUrl: string, signal?: AbortSignal): Promise<Response> {
+  // Shared controller: cancels ALL proxies once one succeeds (or if outer signal fires).
+  // Without this, losing Promise.any promises keep connections alive for 12s,
+  // causing rate-limiting on subsequent ticker changes.
+  const raceController = new AbortController();
+  if (signal) {
+    if (signal.aborted) {
+      raceController.abort();
+    } else {
+      signal.addEventListener('abort', () => raceController.abort(), { once: true });
+    }
+  }
+
   const promises = CORS_PROXY_FACTORIES.map((makeUrl) =>
-    fetchViaProxy(makeUrl(chartUrl), 12_000, signal),
+    fetchViaProxy(makeUrl(chartUrl), 12_000, raceController.signal),
   );
 
-  return Promise.any(promises);
+  try {
+    const result = await Promise.any(promises);
+    raceController.abort(); // cancel losing proxies immediately
+    return result;
+  } catch (err) {
+    raceController.abort();
+    throw err;
+  }
 }
 
 async function fetchYahoo(chartUrl: string, signal?: AbortSignal): Promise<Response> {

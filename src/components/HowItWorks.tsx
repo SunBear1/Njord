@@ -21,7 +21,8 @@ export function HowItWorks() {
         <div className="px-5 py-4 border-t border-blue-200 text-sm text-blue-900 space-y-3">
           <p>
             <strong>Njord</strong> porównuje, co bardziej się opłaca: trzymać akcje spółki
-            (wyceniane w USD) czy sprzedać je i wpłacić środki na konto oszczędnościowe w PLN.
+            (wyceniane w USD) czy sprzedać je i wpłacić środki na konto oszczędnościowe
+            w PLN lub zainwestować w obligacje skarbowe.
           </p>
           <ol className="list-decimal list-inside space-y-2">
             <li>
@@ -30,8 +31,8 @@ export function HowItWorks() {
               kurs USD/PLN z NBP oraz historyczną zmienność.
             </li>
             <li>
-              <strong>Uzupełnij dane</strong>: liczbę posiadanych akcji, oprocentowanie WIBOR 3M
-              i horyzont czasowy (ile miesięcy chcesz porównywać).
+              <strong>Uzupełnij dane</strong>: liczbę posiadanych akcji, wybierz benchmark
+              (konto oszczędnościowe lub obligacje skarbowe) i horyzont czasowy.
             </li>
             <li>
               <strong>Dostosuj scenariusze</strong> Bear/Base/Bull — możesz zaakceptować

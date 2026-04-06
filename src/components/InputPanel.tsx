@@ -2,7 +2,16 @@ import { useState, useEffect, useRef } from 'react';
 import { Loader2, AlertCircle, CheckCircle2, RefreshCw, Calculator } from 'lucide-react';
 import type { AssetData } from '../types/asset';
 import type { FxData } from '../providers/nbpProvider';
+import type { BenchmarkType, BondPreset } from '../types/scenario';
 import { fmtUSD, fmtNum } from '../utils/formatting';
+
+const BOND_PRESETS: BondPreset[] = [
+  { id: 'OTS', name: 'OTS (3-miesięczne)', maturityMonths: 3, annualRate: 5.75, earlyRedemptionPenalty: 0, description: 'Stała stopa, 3 miesiące' },
+  { id: 'DOS', name: 'DOS (2-letnie)', maturityMonths: 24, annualRate: 5.50, earlyRedemptionPenalty: 0.7, description: 'Stała stopa, 2 lata' },
+  { id: 'TOZ', name: 'TOZ (3-letnie)', maturityMonths: 36, annualRate: 5.80, earlyRedemptionPenalty: 0.7, description: 'Zmiennoprocentowe (WIBOR 6M), 3 lata' },
+  { id: 'COI', name: 'COI (4-letnie)', maturityMonths: 48, annualRate: 6.55, earlyRedemptionPenalty: 0.7, description: 'Indeksowane inflacją, 4 lata' },
+  { id: 'EDO', name: 'EDO (10-letnie)', maturityMonths: 120, annualRate: 6.80, earlyRedemptionPenalty: 2.0, description: 'Indeksowane inflacją, 10 lat' },
+];
 
 interface InputPanelProps {
   onFetchAsset: (ticker: string) => void;
@@ -17,12 +26,18 @@ interface InputPanelProps {
   currentFxRate: number;
   wibor3m: number;
   horizonMonths: number;
+  benchmarkType: BenchmarkType;
+  bondRate: number;
+  bondPenalty: number;
   onTickerChange: (v: string) => void;
   onSharesChange: (v: number) => void;
   onPriceChange: (v: number) => void;
   onFxRateChange: (v: number) => void;
   onWiborChange: (v: number) => void;
   onHorizonChange: (v: number) => void;
+  onBenchmarkTypeChange: (v: BenchmarkType) => void;
+  onBondRateChange: (v: number) => void;
+  onBondPenaltyChange: (v: number) => void;
 }
 
 export function InputPanel({
@@ -38,17 +53,26 @@ export function InputPanel({
   currentFxRate,
   wibor3m,
   horizonMonths,
+  benchmarkType,
+  bondRate,
+  bondPenalty,
   onTickerChange,
   onSharesChange,
   onPriceChange,
   onFxRateChange,
   onWiborChange,
   onHorizonChange,
+  onBenchmarkTypeChange,
+  onBondRateChange,
+  onBondPenaltyChange,
 }: InputPanelProps) {
   const [localTicker, setLocalTicker] = useState(ticker);
   const [wiborStr, setWiborStr] = useState(wibor3m > 0 ? String(wibor3m) : '');
   const [showValueCalc, setShowValueCalc] = useState(false);
   const [totalValueStr, setTotalValueStr] = useState('');
+  const [selectedBondId, setSelectedBondId] = useState(BOND_PRESETS[0].id);
+  const [bondRateStr, setBondRateStr] = useState(bondRate > 0 ? String(bondRate) : String(BOND_PRESETS[0].annualRate));
+  const [bondPenaltyStr, setBondPenaltyStr] = useState(String(bondPenalty));
   const isFirstRender = useRef(true);
 
   // Auto-fetch with 800ms debounce, minimum 1 character
@@ -236,33 +260,147 @@ export function InputPanel({
         )}
       </div>
 
-      {/* WIBOR 3M */}
-      <div className="space-y-1">
-        <label className="text-sm font-medium text-gray-700">
-          Oprocentowanie konta oszczędnościowego
-          <span className="ml-1 text-xs font-normal text-gray-500">(% w skali roku)</span>
-        </label>
-        <input
-          type="number"
-          min={0}
-          max={50}
-          step={0.01}
-          value={wiborStr}
-          onChange={(e) => handleWiborChange(e.target.value)}
-          placeholder="np. 5.82"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        {monthlyRate !== null && (
-          <p className="text-xs text-blue-600">
-            ≈ {monthlyRate.toFixed(3)}% miesięcznie ({(monthlyRate / 100 + 1).toFixed(5)}× co miesiąc)
-          </p>
-        )}
-        {!monthlyRate && (
-          <p className="text-xs text-gray-400">
-            Sprawdź aktualny WIBOR 3M — podaj oprocentowanie swojego konta w skali roku.
-          </p>
-        )}
+      {/* Benchmark selector */}
+      <div className="space-y-3">
+        <label className="text-sm font-medium text-gray-700">Porównaj z:</label>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => onBenchmarkTypeChange('savings')}
+            className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
+              benchmarkType === 'savings'
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            Konto oszczędnościowe
+          </button>
+          <button
+            type="button"
+            onClick={() => onBenchmarkTypeChange('bonds')}
+            className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
+              benchmarkType === 'bonds'
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            Obligacje skarbowe
+          </button>
+        </div>
       </div>
+
+      {benchmarkType === 'savings' ? (
+        /* WIBOR 3M — savings */
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-gray-700">
+            Oprocentowanie konta oszczędnościowego
+            <span className="ml-1 text-xs font-normal text-gray-500">(% w skali roku)</span>
+          </label>
+          <input
+            type="number"
+            min={0}
+            max={50}
+            step={0.01}
+            value={wiborStr}
+            onChange={(e) => handleWiborChange(e.target.value)}
+            placeholder="np. 5.82"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {monthlyRate !== null && (
+            <p className="text-xs text-blue-600">
+              ≈ {monthlyRate.toFixed(3)}% miesięcznie ({(monthlyRate / 100 + 1).toFixed(5)}× co miesiąc)
+            </p>
+          )}
+          {!monthlyRate && (
+            <p className="text-xs text-gray-400">
+              Sprawdź aktualny WIBOR 3M — podaj oprocentowanie swojego konta w skali roku.
+            </p>
+          )}
+        </div>
+      ) : (
+        /* Bonds */
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <label className="text-sm font-medium text-gray-700">Typ obligacji</label>
+            <select
+              value={selectedBondId}
+              onChange={(e) => {
+                setSelectedBondId(e.target.value);
+                const preset = BOND_PRESETS.find((b) => b.id === e.target.value);
+                if (preset) {
+                  onBondRateChange(preset.annualRate);
+                  onBondPenaltyChange(
+                    horizonMonths < preset.maturityMonths ? preset.earlyRedemptionPenalty : 0,
+                  );
+                  setBondRateStr(String(preset.annualRate));
+                  setBondPenaltyStr(
+                    horizonMonths < preset.maturityMonths ? String(preset.earlyRedemptionPenalty) : '0',
+                  );
+                }
+              }}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {BOND_PRESETS.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name} — {b.annualRate}% · {b.description}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">
+                Oprocentowanie
+                <span className="ml-1 text-xs font-normal text-gray-500">(% rocznie)</span>
+              </label>
+              <input
+                type="number"
+                min={0}
+                max={50}
+                step={0.01}
+                value={bondRateStr}
+                onChange={(e) => {
+                  setBondRateStr(e.target.value);
+                  onBondRateChange(parseFloat(e.target.value) || 0);
+                }}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-sm font-medium text-gray-700">
+                Kara za wcz. wykup
+                <span className="ml-1 text-xs font-normal text-gray-500">(% kapitału)</span>
+              </label>
+              <input
+                type="number"
+                min={0}
+                max={10}
+                step={0.01}
+                value={bondPenaltyStr}
+                onChange={(e) => {
+                  setBondPenaltyStr(e.target.value);
+                  onBondPenaltyChange(parseFloat(e.target.value) || 0);
+                }}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          {(() => {
+            const preset = BOND_PRESETS.find((b) => b.id === selectedBondId);
+            if (!preset) return null;
+            const earlyExit = horizonMonths < preset.maturityMonths;
+            return (
+              <div className={`text-xs rounded-lg p-2.5 ${earlyExit ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'}`}>
+                {earlyExit
+                  ? `Horyzont (${horizonMonths} mies.) < zapadalność ${preset.name} (${preset.maturityMonths} mies.) — kara za wcześniejszy wykup: ${preset.earlyRedemptionPenalty}% kapitału.`
+                  : `Horyzont pokrywa okres zapadalności obligacji — brak kary za wykup.`}
+              </div>
+            );
+          })()}
+        </div>
+      )}
 
       {/* Horizon Slider */}
       <div className="space-y-2">

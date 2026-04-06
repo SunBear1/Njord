@@ -16,7 +16,7 @@ import {
   calcHeatmap,
 } from './utils/calculations';
 import { DEFAULT_HORIZON_MONTHS } from './utils/assetConfig';
-import type { Scenarios, ScenarioKey } from './types/scenario';
+import type { Scenarios, ScenarioKey, BenchmarkType } from './types/scenario';
 import { Anchor } from 'lucide-react';
 
 const DEFAULT_SCENARIOS: Scenarios = {
@@ -31,6 +31,9 @@ function App() {
   const [currentPriceUSD, setCurrentPriceUSD] = useState(0);
   const [currentFxRate, setCurrentFxRate] = useState(0);
   const [wibor3m, setWibor3m] = useState(0);
+  const [benchmarkType, setBenchmarkType] = useState<BenchmarkType>('savings');
+  const [bondRate, setBondRate] = useState(5.75);
+  const [bondPenalty, setBondPenalty] = useState(0);
   const [horizonMonths, setHorizonMonths] = useState(DEFAULT_HORIZON_MONTHS);
   const [scenarios, setScenarios] = useState<Scenarios>(DEFAULT_SCENARIOS);
   const [scenarioEditKey, setScenarioEditKey] = useState(0);
@@ -76,9 +79,13 @@ function App() {
     currentFxRate,
     wibor3mPercent: wibor3m,
     horizonMonths,
+    benchmarkType,
+    bondRatePercent: bondRate,
+    bondPenaltyPercent: bondPenalty,
   };
 
-  const canCalc = shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && horizonMonths > 0 && wibor3m > 0;
+  const benchmarkReady = benchmarkType === 'savings' ? wibor3m > 0 : bondRate > 0;
+  const canCalc = shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && horizonMonths > 0 && benchmarkReady;
 
   const results = canCalc ? calcAllScenarios(calcInputs, scenarios) : null;
   const timeline = canCalc ? calcTimeline(calcInputs, scenarios) : null;
@@ -91,7 +98,7 @@ function App() {
           <Anchor size={28} className="text-blue-400" />
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Njord</h1>
-            <p className="text-sm text-slate-400">Kalkulator: akcje vs. konto oszczędnościowe</p>
+            <p className="text-sm text-slate-400">Kalkulator: akcje vs. konto oszczędnościowe / obligacje skarbowe</p>
           </div>
         </div>
       </header>
@@ -113,12 +120,18 @@ function App() {
             currentFxRate={currentFxRate}
             wibor3m={wibor3m}
             horizonMonths={horizonMonths}
+            benchmarkType={benchmarkType}
+            bondRate={bondRate}
+            bondPenalty={bondPenalty}
             onTickerChange={setTicker}
             onSharesChange={setShares}
             onPriceChange={setCurrentPriceUSD}
             onFxRateChange={setCurrentFxRate}
             onWiborChange={setWibor3m}
             onHorizonChange={setHorizonMonths}
+            onBenchmarkTypeChange={setBenchmarkType}
+            onBondRateChange={setBondRate}
+            onBondPenaltyChange={setBondPenalty}
           />
           <ScenarioEditor
             key={scenarioEditKey}
@@ -135,7 +148,7 @@ function App() {
         {!canCalc && (
           <div className="bg-white rounded-xl border border-dashed border-gray-300 p-10 text-center text-gray-400 space-y-2">
             <p className="text-lg">Uzupełnij dane wejściowe, aby zobaczyć wyniki</p>
-            <p className="text-sm">Wpisz ticker, liczbę akcji i oprocentowanie konta oszczędnościowego.</p>
+            <p className="text-sm">Wpisz ticker, liczbę akcji i oprocentowanie {benchmarkType === 'bonds' ? 'obligacji' : 'konta oszczędnościowego'}.</p>
           </div>
         )}
 
@@ -148,13 +161,15 @@ function App() {
                 <TimelineChart
                   data={timeline}
                   currentValuePLN={results[0]?.currentValuePLN ?? 0}
+                  benchmarkLabel={results[0]?.benchmarkLabel ?? 'Konto'}
                 />
               )}
             </div>
             {heatmap && (
               <BreakevenChart
                 cells={heatmap}
-                savingsEndValuePLN={results[0]?.savingsEndValuePLN ?? 0}
+                benchmarkEndValuePLN={results[0]?.benchmarkEndValuePLN ?? 0}
+                benchmarkLabel={results[0]?.benchmarkLabel ?? 'Konto'}
               />
             )}
           </>

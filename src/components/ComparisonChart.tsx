@@ -20,24 +20,27 @@ interface ComparisonChartProps {
 const fmtTooltip = (value: ValueType | undefined) => fmtPLN(Number(value ?? 0));
 
 export function ComparisonChart({ results }: ComparisonChartProps) {
+  const bmLabel = results[0]?.benchmarkLabel ?? 'Konto';
+
   const data = [
     {
       name: 'Bear',
       'Akcje (netto)': Math.round(results[0]?.stockNetEndValuePLN ?? 0),
-      'Konto (netto)': Math.round(results[0]?.savingsEndValuePLN ?? 0),
+      [`${bmLabel} (netto)`]: Math.round(results[0]?.benchmarkEndValuePLN ?? 0),
     },
     {
       name: 'Base',
       'Akcje (netto)': Math.round(results[1]?.stockNetEndValuePLN ?? 0),
-      'Konto (netto)': Math.round(results[1]?.savingsEndValuePLN ?? 0),
+      [`${bmLabel} (netto)`]: Math.round(results[1]?.benchmarkEndValuePLN ?? 0),
     },
     {
       name: 'Bull',
       'Akcje (netto)': Math.round(results[2]?.stockNetEndValuePLN ?? 0),
-      'Konto (netto)': Math.round(results[2]?.savingsEndValuePLN ?? 0),
+      [`${bmLabel} (netto)`]: Math.round(results[2]?.benchmarkEndValuePLN ?? 0),
     },
   ];
 
+  const bmKey = `${bmLabel} (netto)`;
   const currentValue = results[0]?.currentValuePLN ?? 0;
 
   return (
@@ -53,7 +56,7 @@ export function ComparisonChart({ results }: ComparisonChartProps) {
           <Legend />
           <ReferenceLine y={currentValue} stroke="#94a3b8" strokeDasharray="5 5" label={{ value: 'Wartość dziś', fontSize: 11, fill: '#94a3b8' }} />
           <Bar dataKey="Akcje (netto)" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-          <Bar dataKey="Konto (netto)" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+          <Bar dataKey={bmKey} fill="#8b5cf6" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

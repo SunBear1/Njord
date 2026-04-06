@@ -3,10 +3,11 @@ import { fmtPLN } from '../utils/formatting';
 
 interface BreakevenChartProps {
   cells: HeatmapCell[];
-  savingsEndValuePLN: number;
+  benchmarkEndValuePLN: number;
+  benchmarkLabel: string;
 }
 
-export function BreakevenChart({ cells, savingsEndValuePLN }: BreakevenChartProps) {
+export function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: BreakevenChartProps) {
   const deltaStockValues = [...new Set(cells.map((c) => c.deltaStock))].sort((a, b) => b - a);
   const deltaFxValues = [...new Set(cells.map((c) => c.deltaFx))].sort((a, b) => a - b);
 
@@ -16,8 +17,8 @@ export function BreakevenChart({ cells, savingsEndValuePLN }: BreakevenChartProp
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">
       <h3 className="text-base font-semibold text-gray-800">Break-even — mapa rentowności</h3>
       <p className="text-xs text-gray-500">
-        Zielone komórki = akcje biją konto oszczędnościowe (netto). Konto docelowe:{' '}
-        <strong>{fmtPLN(savingsEndValuePLN)}</strong>.
+        Zielone komórki = akcje biją {benchmarkLabel.toLowerCase()} (netto). {benchmarkLabel} docelowe:{' '}
+        <strong>{fmtPLN(benchmarkEndValuePLN)}</strong>.
       </p>
 
       <div className="overflow-x-auto">
@@ -43,19 +44,19 @@ export function BreakevenChart({ cells, savingsEndValuePLN }: BreakevenChartProp
                 {deltaFxValues.map((df) => {
                   const cell = cellMap.get(`${ds},${df}`);
                   if (!cell) return <td key={df} className="p-1" />;
-                  const { beatsSavings, stockNetEnd } = cell;
-                  const diff = stockNetEnd - savingsEndValuePLN;
+                  const { beatsBenchmark, stockNetEnd } = cell;
+                  const diff = stockNetEnd - benchmarkEndValuePLN;
                   return (
                     <td
                       key={df}
                       title={`Akcje: ${fmtPLN(stockNetEnd)} | Różnica: ${diff >= 0 ? '+' : ''}${fmtPLN(diff)}`}
                       className={`p-1 text-center rounded cursor-default transition-colors ${
-                        beatsSavings
+                        beatsBenchmark
                           ? 'bg-green-100 text-green-800 font-medium'
                           : 'bg-red-100 text-red-800'
                       }`}
                     >
-                      {beatsSavings ? '✓' : '✗'}
+                      {beatsBenchmark ? '✓' : '✗'}
                     </td>
                   );
                 })}
@@ -72,7 +73,7 @@ export function BreakevenChart({ cells, savingsEndValuePLN }: BreakevenChartProp
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-4 h-4 rounded bg-red-100 border border-red-200" />
-          Konto lepsze (✗)
+          {benchmarkLabel} lepsze (✗)
         </span>
         <span className="text-gray-400">Najedź kursorem na komórkę, by zobaczyć wartość</span>
       </div>

@@ -1,4 +1,4 @@
-import type { ScenarioKey, ScenarioParams, ScenarioResult, Scenarios } from '../types/scenario';
+import type { ScenarioKey, ScenarioParams, ScenarioResult, Scenarios, BenchmarkType } from '../types/scenario';
 
 const BELKA_TAX = 0.19;
 
@@ -6,8 +6,14 @@ export interface CalcInputs {
   shares: number;
   currentPriceUSD: number;
   currentFxRate: number;
-  wibor3mPercent: number; // e.g. 5.82 for 5.82%
   horizonMonths: number;
+  // Benchmark
+  benchmarkType: BenchmarkType;
+  // Savings fields
+  wibor3mPercent: number; // e.g. 5.82 for 5.82%
+  // Bond fields
+  bondRatePercent: number;
+  bondPenaltyPercent: number;
 }
 
 export function calcCurrentValuePLN(inputs: CalcInputs): number {
@@ -22,6 +28,40 @@ export function calcSavingsEndValue(inputs: CalcInputs): number {
   const grossInterest = grossEndValue - currentValuePLN;
   const netInterest = grossInterest * (1 - BELKA_TAX);
   return currentValuePLN + netInterest;
+}
+
+export function calcBondEndValue(inputs: CalcInputs): number {
+  const { bondRatePercent, bondPenaltyPercent, horizonMonths } = inputs;
+  const currentValuePLN = calcCurrentValuePLN(inputs);
+  const annualRate = bondRatePercent / 100;
+  const years = horizonMonths / 12;
+
+  // Bonds: annual capitalization. For < 12 months, simple interest.
+  let grossEndValue: number;
+  if (horizonMonths <= 12) {
+    grossEndValue = currentValuePLN * (1 + annualRate * years);
+  } else {
+    const fullYears = Math.floor(years);
+    const remainingMonths = horizonMonths - fullYears * 12;
+    const afterFullYears = currentValuePLN * Math.pow(1 + annualRate, fullYears);
+    grossEndValue = afterFullYears * (1 + annualRate * remainingMonths / 12);
+  }
+
+  const grossInterest = grossEndValue - currentValuePLN;
+  const netInterest = grossInterest * (1 - BELKA_TAX);
+  const penalty = currentValuePLN * (bondPenaltyPercent / 100);
+
+  return currentValuePLN + netInterest - penalty;
+}
+
+export function calcBenchmarkEndValue(inputs: CalcInputs): number {
+  return inputs.benchmarkType === 'bonds'
+    ? calcBondEndValue(inputs)
+    : calcSavingsEndValue(inputs);
+}
+
+function benchmarkLabel(type: BenchmarkType): string {
+  return type === 'bonds' ? 'Obligacje' : 'Konto';
 }
 
 export function calcStockScenario(
@@ -47,15 +87,16 @@ export function calcStockScenario(
 
 export function calcAllScenarios(inputs: CalcInputs, scenarios: Scenarios): ScenarioResult[] {
   const currentValuePLN = calcCurrentValuePLN(inputs);
-  const savingsEndValuePLN = calcSavingsEndValue(inputs);
-  const savingsReturnNet = ((savingsEndValuePLN - currentValuePLN) / currentValuePLN) * 100;
+  const bmEndValue = calcBenchmarkEndValue(inputs);
+  const bmReturn = ((bmEndValue - currentValuePLN) / currentValuePLN) * 100;
+  const bmLabel = benchmarkLabel(inputs.benchmarkType);
 
   const labels: Record<ScenarioKey, string> = { bear: 'Bear', base: 'Base', bull: 'Bull' };
 
   return (['bear', 'base', 'bull'] as ScenarioKey[]).map((key) => {
     const { rawEndValue, netEndValue } = calcStockScenario(inputs, scenarios[key]);
-    const stockBeatsSavings = netEndValue > savingsEndValuePLN;
-    const differencePLN = netEndValue - savingsEndValuePLN;
+    const stockBeatsBenchmark = netEndValue > bmEndValue;
+    const differencePLN = netEndValue - bmEndValue;
     const differencePercent = (differencePLN / currentValuePLN) * 100;
     const stockReturnNet = ((netEndValue - currentValuePLN) / currentValuePLN) * 100;
 
@@ -65,12 +106,13 @@ export function calcAllScenarios(inputs: CalcInputs, scenarios: Scenarios): Scen
       currentValuePLN,
       stockRawEndValuePLN: rawEndValue,
       stockNetEndValuePLN: netEndValue,
-      savingsEndValuePLN,
-      stockBeatsSavings,
+      benchmarkEndValuePLN: bmEndValue,
+      stockBeatsBenchmark,
       differencePLN,
       differencePercent,
       stockReturnNet,
-      savingsReturnNet,
+      benchmarkReturnNet: bmReturn,
+      benchmarkLabel: bmLabel,
     };
   });
 }
@@ -78,7 +120,7 @@ export function calcAllScenarios(inputs: CalcInputs, scenarios: Scenarios): Scen
 /** Generate timeline data: for each month from 0 to horizonMonths */
 export interface TimelinePoint {
   month: number;
-  savings: number;
+  benchmark: number;
   bear: number;
   base: number;
   bull: number;
@@ -89,23 +131,40 @@ export function calcTimeline(inputs: CalcInputs, scenarios: Scenarios): Timeline
   const points: TimelinePoint[] = [];
 
   for (let m = 0; m <= inputs.horizonMonths; m++) {
-    const monthlyRate = inputs.wibor3mPercent / 100 / 12;
-    const grossEnd = currentValuePLN * Math.pow(1 + monthlyRate, m);
-    const savings = currentValuePLN + (grossEnd - currentValuePLN) * (1 - BELKA_TAX);
+    // Benchmark at month m
+    const bmInputs = { ...inputs, horizonMonths: m };
+    let benchmarkVal: number;
+    if (inputs.benchmarkType === 'bonds') {
+      const annualRate = inputs.bondRatePercent / 100;
+      const years = m / 12;
+      let gross: number;
+      if (m <= 12) {
+        gross = currentValuePLN * (1 + annualRate * years);
+      } else {
+        const fy = Math.floor(years);
+        const rm = m - fy * 12;
+        gross = currentValuePLN * Math.pow(1 + annualRate, fy) * (1 + annualRate * rm / 12);
+      }
+      const penalty = m < inputs.horizonMonths ? currentValuePLN * (inputs.bondPenaltyPercent / 100) : 0;
+      benchmarkVal = currentValuePLN + (gross - currentValuePLN) * (1 - BELKA_TAX) - penalty;
+    } else {
+      const monthlyRate = inputs.wibor3mPercent / 100 / 12;
+      const grossEnd = currentValuePLN * Math.pow(1 + monthlyRate, m);
+      benchmarkVal = currentValuePLN + (grossEnd - currentValuePLN) * (1 - BELKA_TAX);
+    }
 
     const calcAt = (params: ScenarioParams) => {
-      // Scale the scenario deltas linearly to the current month fraction
       const fraction = m / inputs.horizonMonths;
       const scaledParams: ScenarioParams = {
         deltaStock: params.deltaStock * fraction,
         deltaFx: params.deltaFx * fraction,
       };
-      return calcStockScenario({ ...inputs, horizonMonths: m }, scaledParams).netEndValue;
+      return calcStockScenario(bmInputs, scaledParams).netEndValue;
     };
 
     points.push({
       month: m,
-      savings,
+      benchmark: benchmarkVal,
       bear: calcAt(scenarios.bear),
       base: calcAt(scenarios.base),
       bull: calcAt(scenarios.bull),
@@ -120,11 +179,11 @@ export interface HeatmapCell {
   deltaStock: number;
   deltaFx: number;
   stockNetEnd: number;
-  beatsSavings: boolean;
+  beatsBenchmark: boolean;
 }
 
 export function calcHeatmap(inputs: CalcInputs, range = 20, step = 4): HeatmapCell[] {
-  const savingsEnd = calcSavingsEndValue(inputs);
+  const bmEnd = calcBenchmarkEndValue(inputs);
   const cells: HeatmapCell[] = [];
   for (let ds = -range; ds <= range; ds += step) {
     for (let df = -range; df <= range; df += step) {
@@ -133,7 +192,7 @@ export function calcHeatmap(inputs: CalcInputs, range = 20, step = 4): HeatmapCe
         deltaStock: ds,
         deltaFx: df,
         stockNetEnd: netEndValue,
-        beatsSavings: netEndValue > savingsEnd,
+        beatsBenchmark: netEndValue > bmEnd,
       });
     }
   }
