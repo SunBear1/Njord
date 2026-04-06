@@ -18,7 +18,6 @@ import {
 } from './utils/calculations';
 import { DEFAULT_HORIZON_MONTHS } from './utils/assetConfig';
 import type { Scenarios, ScenarioKey, BenchmarkType, BondRateType } from './types/scenario';
-import { Anchor } from 'lucide-react';
 
 const DEFAULT_SCENARIOS: Scenarios = {
   bear: { deltaStock: -10, deltaFx: -5 },
@@ -131,7 +130,22 @@ function App() {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-gradient-to-r from-slate-800 to-slate-900 text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-5 flex items-center gap-3">
-          <Anchor size={28} className="text-blue-400" />
+          {/* Viking drakkar inline icon */}
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="36" height="36" aria-hidden="true">
+            <rect x="30.5" y="10" width="2.5" height="22" rx="1" fill="#e2e8f0"/>
+            <path d="M33 11 L46 20 L33 30 Z" fill="#3b82f6"/>
+            <path d="M33 11 L39.5 15.5 L39.5 25.5 L33 30 Z" fill="#60a5fa"/>
+            <path d="M10 34 Q18 30 33 30 Q48 30 52 34 Q48 43 33 45 Q18 43 10 34 Z" fill="#1d4ed8"/>
+            <path d="M10 34 Q18 32 33 32 Q48 32 52 34" fill="none" stroke="#60a5fa" stroke-width="1.2"/>
+            <path d="M52 34 L60 28 L58 33 L62 31 L58 37 L54 38 Z" fill="#3b82f6"/>
+            <circle cx="60" cy="28" r="1.2" fill="#fbbf24"/>
+            <path d="M10 34 C8 32 6 34 8 37 C9 39 11 38 10 36" fill="#3b82f6"/>
+            <line x1="18" y1="39" x2="16" y2="48" stroke="#93c5fd" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="26" y1="41" x2="24" y2="50" stroke="#93c5fd" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="38" y1="41" x2="40" y2="50" stroke="#93c5fd" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="46" y1="39" x2="48" y2="48" stroke="#93c5fd" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M8 52 Q18 49 28 52 Q38 55 48 52 Q54 50 58 52" stroke="#60a5fa" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+          </svg>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Njord</h1>
             <p className="text-sm text-slate-400">Kalkulator: akcje vs. konto oszczędnościowe / obligacje skarbowe</p>
