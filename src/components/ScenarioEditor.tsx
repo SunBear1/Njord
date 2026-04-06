@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
-import { Wand2 } from 'lucide-react';
+import { Wand2, Info } from 'lucide-react';
 import type { Scenarios, ScenarioKey } from '../types/scenario';
+import type { VolatilityStats } from '../hooks/useHistoricalVolatility';
 
 interface ScenarioEditorProps {
   scenarios: Scenarios;
@@ -9,14 +10,15 @@ interface ScenarioEditorProps {
   onApplySuggested: () => void;
   currentPriceUSD: number;
   currentFxRate: number;
+  volatilityStats: VolatilityStats | null;
 }
 
 type InputMode = 'pct' | 'fixed';
 
-const SCENARIO_CONFIG: { key: ScenarioKey; label: string; emoji: string; bg: string; border: string; text: string }[] = [
-  { key: 'bear', label: 'Bear', emoji: '🐻', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700' },
-  { key: 'base', label: 'Base', emoji: '⚖️', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700' },
-  { key: 'bull', label: 'Bull', emoji: '🐂', bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700' },
+const SCENARIO_CONFIG: { key: ScenarioKey; label: string; bg: string; border: string; text: string }[] = [
+  { key: 'bear', label: 'Bear', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700' },
+  { key: 'base', label: 'Base', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700' },
+  { key: 'bull', label: 'Bull', bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700' },
 ];
 
 function initValues(s: Scenarios) {
@@ -51,6 +53,7 @@ export function ScenarioEditor({
   onApplySuggested,
   currentPriceUSD,
   currentFxRate,
+  volatilityStats,
 }: ScenarioEditorProps) {
   const [stockMode, setStockMode] = useState<InputMode>('pct');
   const [fxMode, setFxMode] = useState<InputMode>('pct');
@@ -117,7 +120,7 @@ export function ScenarioEditor({
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-800">🎯 Scenariusze</h2>
+        <h2 className="text-lg font-semibold text-gray-800">Scenariusze</h2>
         {suggestedScenarios && (
           <button
             onClick={onApplySuggested}
@@ -128,6 +131,28 @@ export function ScenarioEditor({
           </button>
         )}
       </div>
+
+      {volatilityStats && (
+        <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3 text-xs text-indigo-800 space-y-1">
+          <div className="flex items-center gap-1.5 font-medium">
+            <Info size={13} />
+            Analiza historyczna (~90 dni)
+          </div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-indigo-700">
+            <span>Zmienność akcji: <strong>{volatilityStats.stockSigmaAnnual.toFixed(1)}%</strong> rocznie</span>
+            <span>Zmienność USD/PLN: <strong>{volatilityStats.fxSigmaAnnual.toFixed(1)}%</strong> rocznie</span>
+            <span>Korelacja: <strong>{volatilityStats.correlation.toFixed(2)}</strong></span>
+            <span>Trend akcji: <strong>{volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%</strong>/rok</span>
+          </div>
+          <p className="text-indigo-500 pt-0.5">
+            {volatilityStats.correlation < -0.1
+              ? 'Ujemna korelacja — gdy akcje spadają, dolar zwykle się umacnia wobec PLN (częściowo amortyzuje straty).'
+              : volatilityStats.correlation > 0.1
+              ? 'Dodatnia korelacja — zmiany kursu USD/PLN wzmacniają efekt zmian akcji.'
+              : 'Niska korelacja — ruchy akcji i kursu walutowego są w dużej mierze niezależne.'}
+          </p>
+        </div>
+      )}
 
       {/* Column mode toggles */}
       <div className="grid grid-cols-3 gap-3">
@@ -142,9 +167,9 @@ export function ScenarioEditor({
           </div>
         </div>
 
-        {SCENARIO_CONFIG.map(({ key, label, emoji, bg, border, text }) => (
+        {SCENARIO_CONFIG.map(({ key, label, bg, border, text }) => (
           <div key={key} className={`${bg} ${border} border rounded-lg p-3 space-y-3`}>
-            <div className={`text-sm font-semibold ${text}`}>{emoji} {label}</div>
+            <div className={`text-sm font-semibold ${text}`}>{label}</div>
 
             <div className="space-y-1">
               <label className="text-xs text-gray-500">

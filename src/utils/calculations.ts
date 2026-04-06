@@ -50,7 +50,7 @@ export function calcAllScenarios(inputs: CalcInputs, scenarios: Scenarios): Scen
   const savingsEndValuePLN = calcSavingsEndValue(inputs);
   const savingsReturnNet = ((savingsEndValuePLN - currentValuePLN) / currentValuePLN) * 100;
 
-  const labels: Record<ScenarioKey, string> = { bear: 'Bear 🐻', base: 'Base ⚖️', bull: 'Bull 🐂' };
+  const labels: Record<ScenarioKey, string> = { bear: 'Bear', base: 'Base', bull: 'Bull' };
 
   return (['bear', 'base', 'bull'] as ScenarioKey[]).map((key) => {
     const { rawEndValue, netEndValue } = calcStockScenario(inputs, scenarios[key]);

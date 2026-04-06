@@ -14,7 +14,7 @@ export function BreakevenChart({ cells, savingsEndValuePLN }: BreakevenChartProp
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">
-      <h3 className="text-base font-semibold text-gray-800">🗺️ Break-even — mapa rentowności</h3>
+      <h3 className="text-base font-semibold text-gray-800">Break-even — mapa rentowności</h3>
       <p className="text-xs text-gray-500">
         Zielone komórki = akcje biją konto oszczędnościowe (netto). Konto docelowe:{' '}
         <strong>{fmtPLN(savingsEndValuePLN)}</strong>.

@@ -6,6 +6,7 @@ import { VerdictBanner } from './components/VerdictBanner';
 import { ComparisonChart } from './components/ComparisonChart';
 import { TimelineChart } from './components/TimelineChart';
 import { BreakevenChart } from './components/BreakevenChart';
+import { MethodologyPanel } from './components/MethodologyPanel';
 import { useAssetData } from './hooks/useAssetData';
 import { useFxData } from './hooks/useFxData';
 import { useHistoricalVolatility } from './hooks/useHistoricalVolatility';
@@ -42,7 +43,7 @@ function App() {
       setCurrentFxRate(data.currentRate);
     }
   });
-  const { suggestedScenarios } = useHistoricalVolatility(
+  const { suggestedScenarios, stats: volatilityStats } = useHistoricalVolatility(
     assetData?.historicalPrices ?? null,
     fxData?.historicalRates ?? null,
     horizonMonths,
@@ -127,12 +128,13 @@ function App() {
             onApplySuggested={handleApplySuggested}
             currentPriceUSD={currentPriceUSD}
             currentFxRate={currentFxRate}
+            volatilityStats={volatilityStats}
           />
         </div>
 
         {!canCalc && (
           <div className="bg-white rounded-xl border border-dashed border-gray-300 p-10 text-center text-gray-400 space-y-2">
-            <p className="text-lg">👆 Uzupełnij dane wejściowe, aby zobaczyć wyniki</p>
+            <p className="text-lg">Uzupełnij dane wejściowe, aby zobaczyć wyniki</p>
             <p className="text-sm">Wpisz ticker, liczbę akcji i oprocentowanie konta oszczędnościowego.</p>
           </div>
         )}
@@ -157,6 +159,8 @@ function App() {
             )}
           </>
         )}
+
+        <MethodologyPanel />
       </main>
 
       <footer className="border-t border-gray-200 mt-10 py-5 text-center text-xs text-gray-400">

@@ -22,17 +22,17 @@ const fmtTooltip = (value: ValueType | undefined) => fmtPLN(Number(value ?? 0));
 export function ComparisonChart({ results }: ComparisonChartProps) {
   const data = [
     {
-      name: 'Bear 🐻',
+      name: 'Bear',
       'Akcje (netto)': Math.round(results[0]?.stockNetEndValuePLN ?? 0),
       'Konto (netto)': Math.round(results[0]?.savingsEndValuePLN ?? 0),
     },
     {
-      name: 'Base ⚖️',
+      name: 'Base',
       'Akcje (netto)': Math.round(results[1]?.stockNetEndValuePLN ?? 0),
       'Konto (netto)': Math.round(results[1]?.savingsEndValuePLN ?? 0),
     },
     {
-      name: 'Bull 🐂',
+      name: 'Bull',
       'Akcje (netto)': Math.round(results[2]?.stockNetEndValuePLN ?? 0),
       'Konto (netto)': Math.round(results[2]?.savingsEndValuePLN ?? 0),
     },
@@ -42,7 +42,7 @@ export function ComparisonChart({ results }: ComparisonChartProps) {
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">
-      <h3 className="text-base font-semibold text-gray-800">📊 Wartość końcowa — porównanie</h3>
+      <h3 className="text-base font-semibold text-gray-800">Wartość końcowa — porównanie</h3>
       <p className="text-xs text-gray-500">Wartość po uwzględnieniu podatku Belki (19%)</p>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data} barCategoryGap="25%">

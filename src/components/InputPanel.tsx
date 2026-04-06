@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, AlertCircle, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle2, RefreshCw, Calculator } from 'lucide-react';
 import type { AssetData } from '../types/asset';
 import type { FxData } from '../providers/nbpProvider';
 import { fmtUSD, fmtNum } from '../utils/formatting';
@@ -47,6 +47,8 @@ export function InputPanel({
 }: InputPanelProps) {
   const [localTicker, setLocalTicker] = useState(ticker);
   const [wiborStr, setWiborStr] = useState(wibor3m > 0 ? String(wibor3m) : '');
+  const [showValueCalc, setShowValueCalc] = useState(false);
+  const [totalValueStr, setTotalValueStr] = useState('');
   const isFirstRender = useRef(true);
 
   // Auto-fetch with 800ms debounce, minimum 1 character
@@ -82,7 +84,7 @@ export function InputPanel({
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-5">
-      <h2 className="text-lg font-semibold text-gray-800">📊 Dane wejściowe</h2>
+      <h2 className="text-lg font-semibold text-gray-800">Dane wejściowe</h2>
 
       {/* Ticker — auto-fetch */}
       <div className="space-y-1">
@@ -137,6 +139,63 @@ export function InputPanel({
           placeholder="np. 50"
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+        <button
+          type="button"
+          onClick={() => setShowValueCalc((v) => !v)}
+          className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors"
+        >
+          <Calculator size={12} />
+          {showValueCalc ? 'Ukryj kalkulator' : 'Nie wiesz ile masz akcji, ale znasz wartość?'}
+        </button>
+        {showValueCalc && (
+          <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 space-y-2">
+            <p className="text-xs text-blue-700">
+              Wpisz całkowitą wartość portfela w USD — obliczymy liczbę akcji.
+            </p>
+            <div className="flex gap-2 items-end">
+              <div className="flex-1 space-y-1">
+                <label className="text-xs text-blue-600">Wartość portfela (USD)</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={totalValueStr}
+                  onChange={(e) => setTotalValueStr(e.target.value)}
+                  placeholder="np. 5000.00"
+                  className="w-full border border-blue-200 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                />
+              </div>
+              <button
+                type="button"
+                disabled={!currentPriceUSD || !totalValueStr}
+                onClick={() => {
+                  const val = parseFloat(totalValueStr);
+                  if (val > 0 && currentPriceUSD > 0) {
+                    const computed = Math.floor(val / currentPriceUSD);
+                    onSharesChange(computed);
+                    setShowValueCalc(false);
+                    setTotalValueStr('');
+                  }
+                }}
+                className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-40 transition-colors"
+              >
+                Przelicz
+              </button>
+            </div>
+            {currentPriceUSD > 0 && totalValueStr && parseFloat(totalValueStr) > 0 && (
+              <p className="text-xs text-blue-600">
+                {fmtUSD(parseFloat(totalValueStr))} ÷ {fmtUSD(currentPriceUSD)} ≈{' '}
+                <strong>{Math.floor(parseFloat(totalValueStr) / currentPriceUSD)} akcji</strong>
+                {' '}(zaokrąglone w dół)
+              </p>
+            )}
+            {!currentPriceUSD && (
+              <p className="text-xs text-amber-600">
+                Najpierw wpisz ticker, aby pobrać cenę akcji.
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Price USD */}

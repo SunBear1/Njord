@@ -23,7 +23,7 @@ const fmtTooltip = (value: ValueType | undefined) => fmtPLN(Number(value ?? 0));
 export function TimelineChart({ data, currentValuePLN }: TimelineChartProps) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">
-      <h3 className="text-base font-semibold text-gray-800">📈 Wartość w czasie</h3>
+      <h3 className="text-base font-semibold text-gray-800">Wartość w czasie</h3>
       <p className="text-xs text-gray-500">Prognozowana wartość portfela przez cały horyzont (netto po Belce)</p>
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data}>
@@ -41,10 +41,10 @@ export function TimelineChart({ data, currentValuePLN }: TimelineChartProps) {
           />
           <Legend />
           <ReferenceLine y={currentValuePLN} stroke="#94a3b8" strokeDasharray="4 4" />
-          <Line type="monotone" dataKey="savings" name="Konto 🏦" stroke="#8b5cf6" strokeWidth={2} dot={false} />
-          <Line type="monotone" dataKey="bear" name="Bear 🐻" stroke="#ef4444" strokeWidth={2} dot={false} strokeDasharray="5 3" />
-          <Line type="monotone" dataKey="base" name="Base ⚖️" stroke="#f59e0b" strokeWidth={2} dot={false} />
-          <Line type="monotone" dataKey="bull" name="Bull 🐂" stroke="#22c55e" strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="savings" name="Konto" stroke="#8b5cf6" strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="bear" name="Bear" stroke="#ef4444" strokeWidth={2} dot={false} strokeDasharray="5 3" />
+          <Line type="monotone" dataKey="base" name="Base" stroke="#f59e0b" strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="bull" name="Bull" stroke="#22c55e" strokeWidth={2} dot={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>

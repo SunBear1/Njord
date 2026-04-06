@@ -26,8 +26,7 @@ export function HowItWorks() {
           <ol className="list-decimal list-inside space-y-2">
             <li>
               <strong>Wpisz ticker</strong> (np. <code className="bg-blue-100 px-1 rounded">AAPL</code>,{' '}
-              <code className="bg-blue-100 px-1 rounded">NVDA</code>) i kliknij{' '}
-              <em>Pobierz dane</em> — aplikacja automatycznie pobierze aktualny kurs akcji,
+              <code className="bg-blue-100 px-1 rounded">NVDA</code>) — aplikacja automatycznie pobierze aktualny kurs akcji,
               kurs USD/PLN z NBP oraz historyczną zmienność.
             </li>
             <li>

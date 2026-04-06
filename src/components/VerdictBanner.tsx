@@ -7,15 +7,15 @@ interface VerdictBannerProps {
 }
 
 const SCENARIO_STYLE = {
-  bear: { bg: 'bg-red-50', border: 'border-red-200', label: 'Bear 🐻', badgeColor: 'bg-red-100 text-red-700' },
-  base: { bg: 'bg-amber-50', border: 'border-amber-200', label: 'Base ⚖️', badgeColor: 'bg-amber-100 text-amber-700' },
-  bull: { bg: 'bg-green-50', border: 'border-green-200', label: 'Bull 🐂', badgeColor: 'bg-green-100 text-green-700' },
+  bear: { bg: 'bg-red-50', border: 'border-red-200', label: 'Bear', badgeColor: 'bg-red-100 text-red-700' },
+  base: { bg: 'bg-amber-50', border: 'border-amber-200', label: 'Base', badgeColor: 'bg-amber-100 text-amber-700' },
+  bull: { bg: 'bg-green-50', border: 'border-green-200', label: 'Bull', badgeColor: 'bg-green-100 text-green-700' },
 };
 
 export function VerdictBanner({ results }: VerdictBannerProps) {
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-semibold text-gray-800">🏆 Wyniki — co się bardziej opłaca?</h2>
+      <h2 className="text-lg font-semibold text-gray-800">Wyniki — co się bardziej opłaca?</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {results.map((r) => {
           const style = SCENARIO_STYLE[r.key];
@@ -52,11 +52,11 @@ export function VerdictBanner({ results }: VerdictBannerProps) {
               {/* Mini comparison */}
               <div className="space-y-1.5 pt-2 border-t border-current border-opacity-10">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">📈 Akcje (netto)</span>
+                  <span className="text-gray-600">Akcje (netto)</span>
                   <span className="font-medium">{fmtPLN(r.stockNetEndValuePLN)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">🏦 Konto (netto)</span>
+                  <span className="text-gray-600">Konto (netto)</span>
                   <span className="font-medium">{fmtPLN(r.savingsEndValuePLN)}</span>
                 </div>
                 <div className="flex justify-between text-xs text-gray-500 pt-1">
