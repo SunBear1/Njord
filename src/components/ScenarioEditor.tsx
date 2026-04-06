@@ -16,9 +16,9 @@ interface ScenarioEditorProps {
 type InputMode = 'pct' | 'fixed';
 
 const SCENARIO_CONFIG: { key: ScenarioKey; label: string; accent: string; badge: string }[] = [
-  { key: 'bear', label: 'Bear 🐻', accent: 'border-red-300',   badge: 'bg-red-50 text-red-700 border border-red-200' },
-  { key: 'base', label: 'Base —',  accent: 'border-amber-300', badge: 'bg-amber-50 text-amber-700 border border-amber-200' },
-  { key: 'bull', label: 'Bull 🚀', accent: 'border-green-300', badge: 'bg-green-50 text-green-700 border border-green-200' },
+  { key: 'bear', label: 'Bear', accent: 'border-slate-300',  badge: 'bg-slate-50 text-slate-700 border border-slate-200' },
+  { key: 'base', label: 'Base', accent: 'border-amber-300', badge: 'bg-amber-50 text-amber-700 border border-amber-200' },
+  { key: 'bull', label: 'Bull', accent: 'border-blue-300',  badge: 'bg-blue-50 text-blue-700 border border-blue-200' },
 ];
 
 function initValues(s: Scenarios) {
