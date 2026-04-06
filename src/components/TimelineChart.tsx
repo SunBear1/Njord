@@ -27,13 +27,13 @@ export function TimelineChart({ data, currentValuePLN, benchmarkLabel }: Timelin
       <h3 className="text-base font-semibold text-gray-800">Wartość w czasie</h3>
       <p className="text-xs text-gray-500">Prognozowana wartość portfela przez cały horyzont (netto po Belce)</p>
       <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={data}>
+        <LineChart data={data} margin={{ top: 5, right: 5, bottom: 24, left: 10 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis
             dataKey="month"
             tickFormatter={(v) => `${v}m`}
             tick={{ fontSize: 12 }}
-            label={{ value: 'Miesiące', position: 'insideBottom', offset: -5, fontSize: 12, fill: '#6b7280' }}
+            label={{ value: 'Miesiące', position: 'insideBottomRight', offset: 0, fontSize: 11, fill: '#9ca3af' }}
           />
           <YAxis tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 12 }} />
           <Tooltip

@@ -34,11 +34,11 @@ function ModeToggle({ mode, onToggle, labelA, labelB }: { mode: InputMode; onTog
   return (
     <button
       onClick={onToggle}
-      className="inline-flex rounded border border-gray-200 overflow-hidden text-xs font-medium shrink-0"
+      className="flex w-full rounded border border-gray-200 overflow-hidden text-xs font-medium"
       title="Przełącz tryb wpisywania"
     >
-      <span className={`px-1.5 py-0.5 ${mode === 'pct' ? 'bg-blue-600 text-white' : 'bg-white text-gray-400 hover:bg-gray-50'}`}>{labelA}</span>
-      <span className={`px-1.5 py-0.5 ${mode === 'fixed' ? 'bg-blue-600 text-white' : 'bg-white text-gray-400 hover:bg-gray-50'}`}>{labelB}</span>
+      <span className={`flex-1 text-center py-0.5 ${mode === 'pct' ? 'bg-blue-600 text-white' : 'bg-white text-gray-400 hover:bg-gray-50'}`}>{labelA}</span>
+      <span className={`flex-1 text-center py-0.5 ${mode === 'fixed' ? 'bg-blue-600 text-white' : 'bg-white text-gray-400 hover:bg-gray-50'}`}>{labelB}</span>
     </button>
   );
 }
@@ -159,22 +159,38 @@ export function ScenarioEditor({
 
           {statsOpen && (
             <div className="px-3 py-2.5 bg-white border-t border-indigo-100 text-xs text-gray-600 space-y-2">
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                <div>Zmienność akcji: <strong className="text-gray-800">{volatilityStats.stockSigmaAnnual.toFixed(1)}%</strong>/rok</div>
-                <div>Zmienność USD/PLN: <strong className="text-gray-800">{volatilityStats.fxSigmaAnnual.toFixed(1)}%</strong>/rok</div>
-                <div>Korelacja (ρ): <strong className="text-gray-800">{volatilityStats.correlation.toFixed(2)}</strong></div>
-                <div>Trend (info): <strong className={volatilityStats.stockMeanAnnual >= 0 ? 'text-green-700' : 'text-red-600'}>{volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%</strong>/rok</div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                <div>
+                  <strong className="text-gray-700">σ (sigma)</strong> — zmienność akcji:{' '}
+                  <strong className="text-gray-800">{volatilityStats.stockSigmaAnnual.toFixed(1)}%</strong>/rok.{' '}
+                  <span className="text-gray-400">Im wyższe σ, tym szersze widełki Bear–Bull.</span>
+                </div>
+                <div>
+                  <strong className="text-gray-700">σ FX</strong> — zmienność USD/PLN:{' '}
+                  <strong className="text-gray-800">{volatilityStats.fxSigmaAnnual.toFixed(1)}%</strong>/rok.
+                </div>
+                <div>
+                  <strong className="text-gray-700">ρ (rho)</strong> — korelacja akcji z USD/PLN:{' '}
+                  <strong className="text-gray-800">{volatilityStats.correlation.toFixed(2)}</strong>.{' '}
+                  <span className="text-gray-400">Zakres od −1 do +1.</span>
+                </div>
+                <div>
+                  <strong className="text-gray-700">trend</strong> — historyczna średnia stopa zwrotu akcji:{' '}
+                  <strong className={volatilityStats.stockMeanAnnual >= 0 ? 'text-green-700' : 'text-red-600'}>{volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%</strong>/rok.{' '}
+                  <span className="text-gray-400">Tylko informacyjnie — zbyt niepewny do prognoz.</span>
+                </div>
               </div>
-              <p className="text-gray-500 leading-relaxed">
+              <p className="text-gray-500 leading-relaxed border-t pt-1.5">
                 {volatilityStats.correlation < -0.1
-                  ? '📉 Ujemna korelacja — gdy akcje spadają, dolar zwykle się umacnia (amortyzuje straty).'
+                  ? '📉 Ujemna korelacja (ρ < 0) — gdy akcje spadają, dolar zwykle się umacnia. To częściowo amortyzuje straty w PLN.'
                   : volatilityStats.correlation > 0.1
-                  ? '📈 Dodatnia korelacja — zmiany USD/PLN wzmacniają efekt zmian akcji.'
-                  : '➡️ Niska korelacja — akcje i kurs walutowy zachowują się niezależnie.'}
+                  ? '📈 Dodatnia korelacja (ρ > 0) — wzrost/spadek akcji idzie w parze ze wzrostem/spadkiem dolara. Efekty się wzmacniają.'
+                  : '➡️ Niska korelacja (ρ ≈ 0) — akcje i kurs USD/PLN zachowują się niezależnie od siebie.'}
               </p>
               <p className="text-gray-400 border-t pt-1.5 leading-relaxed">
-                <strong className="text-gray-500">Bear/Bull</strong> = percentyle 5%/95% (log-normalny, zerowy dryf).{' '}
-                <strong className="text-gray-500">Base</strong> = 0% — trend powyżej jest zbyt niepewny do prognozowania (błąd std. ±30–50 pp/rok); wpisz go ręcznie jeśli chcesz.
+                <strong className="text-gray-500">Bear / Bull</strong> = scenariusze p5% / p95% z modelu log-normalnego (zerowy dryf, korekta Itô).
+                Oznaczają przedziały, które akcja przekracza tylko w 5% najgorszych/najlepszych przypadków w horyzoncie inwestycji.{' '}
+                <strong className="text-gray-500">Base = 0%</strong> — neutralny punkt wyjścia; wpisz ręcznie jeśli masz własną prognozę.
               </p>
             </div>
           )}
