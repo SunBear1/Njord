@@ -19,7 +19,7 @@ export async function fetchAssetData(
   }
 
   if (data.code === 429) {
-    throw new Error('Przekroczono limit zapytań API. Spróbuj ponownie za chwilę.');
+    throw new Error('RATE_LIMIT');
   }
 
   if (data.status === 'error') {
