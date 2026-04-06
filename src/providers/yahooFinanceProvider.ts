@@ -2,17 +2,33 @@ import type { AssetData, HistoricalPrice } from '../types/asset';
 
 const YF_BASE = 'https://query1.finance.yahoo.com';
 
-async function fetchWithCors(url: string): Promise<Response> {
+async function fetchWithCors(url: string, timeoutMs = 7000): Promise<Response> {
+  const tryFetch = async (target: string): Promise<Response> => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(target, { signal: controller.signal });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res;
+    } catch (err) {
+      clearTimeout(timer);
+      throw err;
+    }
+  };
+
   try {
-    const res = await fetch(url, { mode: 'cors' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res;
-  } catch {
-    // Fallback to CORS proxy
-    const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(url)}`;
-    const res = await fetch(proxyUrl);
-    if (!res.ok) throw new Error(`Proxy HTTP ${res.status}`);
-    return res;
+    return await tryFetch(url);
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error('Timeout — serwer Yahoo Finance nie odpowiada');
+    }
+    // Fallback: CORS proxy
+    try {
+      return await tryFetch(`https://corsproxy.io/?url=${encodeURIComponent(url)}`);
+    } catch {
+      throw new Error('Nie można pobrać danych (CORS). Wpisz cenę akcji ręcznie.');
+    }
   }
 }
 
@@ -22,7 +38,7 @@ export async function fetchAssetData(ticker: string): Promise<AssetData> {
   const data = await res.json();
 
   if (!data.chart?.result?.[0]) {
-    throw new Error(`Nie znaleziono danych dla tickera: ${ticker}`);
+    throw new Error(`Nie znaleziono tickera: ${ticker}`);
   }
 
   const result = data.chart.result[0];

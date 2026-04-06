@@ -1,3 +1,4 @@
+import { useState, useEffect, useCallback } from 'react';
 import { Wand2 } from 'lucide-react';
 import type { Scenarios, ScenarioKey } from '../types/scenario';
 
@@ -6,7 +7,12 @@ interface ScenarioEditorProps {
   onChange: (key: ScenarioKey, field: 'deltaStock' | 'deltaFx', value: number) => void;
   suggestedScenarios: Scenarios | null;
   onApplySuggested: () => void;
+  editKey: number;
+  currentPriceUSD: number;
+  currentFxRate: number;
 }
+
+type InputMode = 'pct' | 'fixed';
 
 const SCENARIO_CONFIG: { key: ScenarioKey; label: string; emoji: string; bg: string; border: string; text: string }[] = [
   { key: 'bear', label: 'Bear', emoji: '🐻', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700' },
@@ -14,33 +20,109 @@ const SCENARIO_CONFIG: { key: ScenarioKey; label: string; emoji: string; bg: str
   { key: 'bull', label: 'Bull', emoji: '🐂', bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700' },
 ];
 
-function NumInput({
-  value,
-  onChange,
-  label,
-}: {
-  value: number;
-  onChange: (v: number) => void;
-  label: string;
-}) {
+function initValues(s: Scenarios) {
+  return {
+    bear: { stock: String(parseFloat(s.bear.deltaStock.toFixed(2))), fx: String(parseFloat(s.bear.deltaFx.toFixed(4))) },
+    base: { stock: String(parseFloat(s.base.deltaStock.toFixed(2))), fx: String(parseFloat(s.base.deltaFx.toFixed(4))) },
+    bull: { stock: String(parseFloat(s.bull.deltaStock.toFixed(2))), fx: String(parseFloat(s.bull.deltaFx.toFixed(4))) },
+  };
+}
+
+function ModeToggle({ mode, onToggle, labelA, labelB }: { mode: InputMode; onToggle: () => void; labelA: string; labelB: string }) {
   return (
-    <div className="space-y-1">
-      <label className="text-xs text-gray-500">{label}</label>
-      <div className="flex items-center gap-1">
-        <input
-          type="number"
-          step={0.1}
-          value={parseFloat(value.toFixed(2))}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <span className="text-sm text-gray-500">%</span>
-      </div>
-    </div>
+    <button
+      onClick={onToggle}
+      className="inline-flex rounded-md border border-gray-200 overflow-hidden text-xs font-medium"
+      title="Przełącz tryb wpisywania"
+    >
+      <span className={`px-2 py-0.5 ${mode === 'pct' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>
+        {labelA}
+      </span>
+      <span className={`px-2 py-0.5 ${mode === 'fixed' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>
+        {labelB}
+      </span>
+    </button>
   );
 }
 
-export function ScenarioEditor({ scenarios, onChange, suggestedScenarios, onApplySuggested }: ScenarioEditorProps) {
+export function ScenarioEditor({
+  scenarios,
+  onChange,
+  suggestedScenarios,
+  onApplySuggested,
+  editKey,
+  currentPriceUSD,
+  currentFxRate,
+}: ScenarioEditorProps) {
+  const [stockMode, setStockMode] = useState<InputMode>('pct');
+  const [fxMode, setFxMode] = useState<InputMode>('pct');
+  const [localValues, setLocalValues] = useState(() => initValues(scenarios));
+
+  // Sync when editKey changes (e.g. "apply suggested" clicked)
+  useEffect(() => {
+    setLocalValues(initValues(scenarios));
+    setStockMode('pct');
+    setFxMode('pct');
+  }, [editKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const toDelta = useCallback((raw: string, mode: InputMode, currentVal: number): number => {
+    const n = parseFloat(raw);
+    if (isNaN(n)) return 0;
+    if (mode === 'pct') return n;
+    return currentVal > 0 ? (n / currentVal - 1) * 100 : 0;
+  }, []);
+
+  const handleStockChange = (key: ScenarioKey, raw: string) => {
+    setLocalValues(prev => ({ ...prev, [key]: { ...prev[key], stock: raw } }));
+    onChange(key, 'deltaStock', toDelta(raw, stockMode, currentPriceUSD));
+  };
+
+  const handleFxChange = (key: ScenarioKey, raw: string) => {
+    setLocalValues(prev => ({ ...prev, [key]: { ...prev[key], fx: raw } }));
+    onChange(key, 'deltaFx', toDelta(raw, fxMode, currentFxRate));
+  };
+
+  const toggleStockMode = () => {
+    const next: InputMode = stockMode === 'pct' ? 'fixed' : 'pct';
+    const updated = { ...localValues };
+    (Object.keys(updated) as ScenarioKey[]).forEach(key => {
+      const cur = localValues[key].stock;
+      if (next === 'fixed' && currentPriceUSD > 0) {
+        const pct = parseFloat(cur) || 0;
+        updated[key] = { ...updated[key], stock: (currentPriceUSD * (1 + pct / 100)).toFixed(2) };
+      } else if (next === 'pct' && currentPriceUSD > 0) {
+        const price = parseFloat(cur) || currentPriceUSD;
+        const delta = (price / currentPriceUSD - 1) * 100;
+        updated[key] = { ...updated[key], stock: delta.toFixed(2) };
+        onChange(key, 'deltaStock', delta);
+      }
+    });
+    setLocalValues(updated);
+    setStockMode(next);
+  };
+
+  const toggleFxMode = () => {
+    const next: InputMode = fxMode === 'pct' ? 'fixed' : 'pct';
+    const updated = { ...localValues };
+    (Object.keys(updated) as ScenarioKey[]).forEach(key => {
+      const cur = localValues[key].fx;
+      if (next === 'fixed' && currentFxRate > 0) {
+        const pct = parseFloat(cur) || 0;
+        updated[key] = { ...updated[key], fx: (currentFxRate * (1 + pct / 100)).toFixed(4) };
+      } else if (next === 'pct' && currentFxRate > 0) {
+        const rate = parseFloat(cur) || currentFxRate;
+        const delta = (rate / currentFxRate - 1) * 100;
+        updated[key] = { ...updated[key], fx: delta.toFixed(2) };
+        onChange(key, 'deltaFx', delta);
+      }
+    });
+    setLocalValues(updated);
+    setFxMode(next);
+  };
+
+  const stockUnit = stockMode === 'pct' ? '%' : 'USD';
+  const fxUnit = fxMode === 'pct' ? '%' : 'PLN';
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
       <div className="flex items-center justify-between">
@@ -56,35 +138,89 @@ export function ScenarioEditor({ scenarios, onChange, suggestedScenarios, onAppl
         )}
       </div>
 
-      <p className="text-xs text-gray-500">
-        Wpisz prognozowaną zmianę ceny akcji i kursu USD/PLN dla każdego scenariusza.
-        {suggestedScenarios && ' Kliknij „Zastosuj z historii" aby użyć wartości obliczonych z historycznej zmienności.'}
-      </p>
-
+      {/* Column mode toggles */}
       <div className="grid grid-cols-3 gap-3">
+        <div className="col-span-3 grid grid-cols-2 gap-3 pb-1 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500 font-medium">Zmiana akcji:</span>
+            <ModeToggle mode={stockMode} onToggle={toggleStockMode} labelA="%" labelB="USD" />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500 font-medium">Zmiana USD/PLN:</span>
+            <ModeToggle mode={fxMode} onToggle={toggleFxMode} labelA="%" labelB="PLN" />
+          </div>
+        </div>
+
         {SCENARIO_CONFIG.map(({ key, label, emoji, bg, border, text }) => (
           <div key={key} className={`${bg} ${border} border rounded-lg p-3 space-y-3`}>
-            <div className={`text-sm font-semibold ${text}`}>
-              {emoji} {label}
+            <div className={`text-sm font-semibold ${text}`}>{emoji} {label}</div>
+
+            <div className="space-y-1">
+              <label className="text-xs text-gray-500">
+                Cena akcji ({stockUnit})
+                {stockMode === 'pct' && <span className="text-gray-400"> zmiana</span>}
+              </label>
+              <div className="flex items-center gap-1">
+                <input
+                  type="number"
+                  step={stockMode === 'pct' ? 0.1 : 0.01}
+                  value={localValues[key].stock}
+                  onChange={(e) => handleStockChange(key, e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                  placeholder={stockMode === 'pct' ? 'np. -10' : 'np. 180.00'}
+                  className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <span className="text-xs text-gray-500 w-7 shrink-0">{stockUnit}</span>
+              </div>
             </div>
-            <NumInput
-              label="Zmiana akcji"
-              value={scenarios[key].deltaStock}
-              onChange={(v) => onChange(key, 'deltaStock', v)}
-            />
-            <NumInput
-              label="Zmiana USD/PLN"
-              value={scenarios[key].deltaFx}
-              onChange={(v) => onChange(key, 'deltaFx', v)}
-            />
+
+            <div className="space-y-1">
+              <label className="text-xs text-gray-500">
+                Kurs USD/PLN ({fxUnit})
+                {fxMode === 'pct' && <span className="text-gray-400"> zmiana</span>}
+              </label>
+              <div className="flex items-center gap-1">
+                <input
+                  type="number"
+                  step={fxMode === 'pct' ? 0.1 : 0.0001}
+                  value={localValues[key].fx}
+                  onChange={(e) => handleFxChange(key, e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                  placeholder={fxMode === 'pct' ? 'np. -5' : 'np. 4.1200'}
+                  className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <span className="text-xs text-gray-500 w-7 shrink-0">{fxUnit}</span>
+              </div>
+            </div>
+
+            {/* Live preview of effective % when in fixed mode */}
+            {(stockMode === 'fixed' || fxMode === 'fixed') && (
+              <div className="text-xs text-gray-400 space-y-0.5 pt-1 border-t border-current border-opacity-10">
+                {stockMode === 'fixed' && currentPriceUSD > 0 && (
+                  <div>
+                    Δ akcje: {(() => {
+                      const d = toDelta(localValues[key].stock, 'fixed', currentPriceUSD);
+                      return `${d >= 0 ? '+' : ''}${d.toFixed(2)}%`;
+                    })()}
+                  </div>
+                )}
+                {fxMode === 'fixed' && currentFxRate > 0 && (
+                  <div>
+                    Δ USD/PLN: {(() => {
+                      const d = toDelta(localValues[key].fx, 'fixed', currentFxRate);
+                      return `${d >= 0 ? '+' : ''}${d.toFixed(2)}%`;
+                    })()}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>
 
       <div className="text-xs text-gray-400 bg-gray-50 rounded-lg p-3">
-        <strong>Bear:</strong> pesymistyczny (akcje i kurs walutowy spadają) ·{' '}
-        <strong>Base:</strong> neutralny (brak zmian) ·{' '}
-        <strong>Bull:</strong> optymistyczny (akcje i kurs walutowy rosną)
+        <strong>%</strong> — zmiana procentowa względem wartości dziś ·{' '}
+        <strong>USD/PLN</strong> — docelowa wartość bezwzględna (np. 4.1200 PLN za dolara)
       </div>
     </div>
   );

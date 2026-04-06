@@ -14,7 +14,7 @@ import {
   calcTimeline,
   calcHeatmap,
 } from './utils/calculations';
-import { DEFAULT_WIBOR_3M, DEFAULT_HORIZON_MONTHS } from './utils/assetConfig';
+import { DEFAULT_HORIZON_MONTHS } from './utils/assetConfig';
 import type { Scenarios, ScenarioKey } from './types/scenario';
 import { Anchor } from 'lucide-react';
 
@@ -29,9 +29,10 @@ function App() {
   const [shares, setShares] = useState(0);
   const [currentPriceUSD, setCurrentPriceUSD] = useState(0);
   const [currentFxRate, setCurrentFxRate] = useState(0);
-  const [wibor3m, setWibor3m] = useState(DEFAULT_WIBOR_3M);
+  const [wibor3m, setWibor3m] = useState(0);
   const [horizonMonths, setHorizonMonths] = useState(DEFAULT_HORIZON_MONTHS);
   const [scenarios, setScenarios] = useState<Scenarios>(DEFAULT_SCENARIOS);
+  const [scenarioEditKey, setScenarioEditKey] = useState(0);
 
   const { assetData, isLoading: assetLoading, error: assetError, fetchData } = useAssetData();
   const { fxData, isLoading: fxLoading } = useFxData();
@@ -61,7 +62,10 @@ function App() {
   );
 
   const handleApplySuggested = useCallback(() => {
-    if (suggestedScenarios) setScenarios(suggestedScenarios);
+    if (suggestedScenarios) {
+      setScenarios(suggestedScenarios);
+      setScenarioEditKey((k) => k + 1);
+    }
   }, [suggestedScenarios]);
 
   const calcInputs = {
@@ -72,7 +76,7 @@ function App() {
     horizonMonths,
   };
 
-  const canCalc = shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && horizonMonths > 0;
+  const canCalc = shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && horizonMonths > 0 && wibor3m > 0;
 
   const results = canCalc ? calcAllScenarios(calcInputs, scenarios) : null;
   const timeline = canCalc ? calcTimeline(calcInputs, scenarios) : null;
@@ -119,13 +123,16 @@ function App() {
             onChange={handleScenarioChange}
             suggestedScenarios={suggestedScenarios}
             onApplySuggested={handleApplySuggested}
+            editKey={scenarioEditKey}
+            currentPriceUSD={currentPriceUSD}
+            currentFxRate={currentFxRate}
           />
         </div>
 
         {!canCalc && (
           <div className="bg-white rounded-xl border border-dashed border-gray-300 p-10 text-center text-gray-400 space-y-2">
             <p className="text-lg">👆 Uzupełnij dane wejściowe, aby zobaczyć wyniki</p>
-            <p className="text-sm">Wpisz ticker i liczbę akcji, a reszta wypełni się automatycznie.</p>
+            <p className="text-sm">Wpisz ticker, liczbę akcji i oprocentowanie konta oszczędnościowego.</p>
           </div>
         )}
 
