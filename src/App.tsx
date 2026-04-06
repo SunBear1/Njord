@@ -9,6 +9,7 @@ import { BreakevenChart } from './components/BreakevenChart';
 import { MethodologyPanel } from './components/MethodologyPanel';
 import { useAssetData } from './hooks/useAssetData';
 import { useFxData } from './hooks/useFxData';
+import { useInflationData } from './hooks/useInflationData';
 import { useHistoricalVolatility } from './hooks/useHistoricalVolatility';
 import {
   calcAllScenarios,
@@ -16,7 +17,7 @@ import {
   calcHeatmap,
 } from './utils/calculations';
 import { DEFAULT_HORIZON_MONTHS } from './utils/assetConfig';
-import type { Scenarios, ScenarioKey, BenchmarkType } from './types/scenario';
+import type { Scenarios, ScenarioKey, BenchmarkType, BondRateType } from './types/scenario';
 import { Anchor } from 'lucide-react';
 
 const DEFAULT_SCENARIOS: Scenarios = {
@@ -36,12 +37,17 @@ function App() {
   const [currentFxRate, setCurrentFxRate] = useState(0);
   const [wibor3m, setWibor3m] = useState(0);
   const [benchmarkType, setBenchmarkType] = useState<BenchmarkType>('savings');
-  const [bondRate, setBondRate] = useState(5.75);
+  const [bondFirstYearRate, setBondFirstYearRate] = useState(2.00);
   const [bondPenalty, setBondPenalty] = useState(0);
+  const [bondRateType, setBondRateType] = useState<BondRateType>('fixed');
+  const [bondMargin, setBondMargin] = useState(0);
+  const [inflationRate, setInflationRate] = useState(0);
+  const [nbpRefRate, setNbpRefRate] = useState(0);
   const [horizonMonths, setHorizonMonths] = useState(DEFAULT_HORIZON_MONTHS);
   const [scenarios, setScenarios] = useState<Scenarios>(DEFAULT_SCENARIOS);
   const [scenarioEditKey, setScenarioEditKey] = useState(0);
   const fxAutoFilled = useRef(false);
+  const inflationAutoFilled = useRef(false);
 
   const handleApiKeyChange = useCallback((key: string) => {
     setApiKey(key);
@@ -53,6 +59,12 @@ function App() {
     if (!fxAutoFilled.current) {
       fxAutoFilled.current = true;
       setCurrentFxRate(data.currentRate);
+    }
+  });
+  const { data: inflationData, isLoading: inflationLoading } = useInflationData((d) => {
+    if (!inflationAutoFilled.current) {
+      inflationAutoFilled.current = true;
+      setInflationRate(d.rate);
     }
   });
   const { suggestedScenarios, stats: volatilityStats } = useHistoricalVolatility(
@@ -82,6 +94,13 @@ function App() {
     }
   }, [suggestedScenarios]);
 
+  // Compute effective bond rate based on type + external data
+  const computedEffectiveRate = bondRateType === 'fixed'
+    ? bondFirstYearRate
+    : bondRateType === 'reference'
+      ? nbpRefRate + bondMargin
+      : inflationRate + bondMargin;
+
   const calcInputs = {
     shares,
     currentPriceUSD,
@@ -89,11 +108,12 @@ function App() {
     wibor3mPercent: wibor3m,
     horizonMonths,
     benchmarkType,
-    bondRatePercent: bondRate,
+    bondFirstYearRate,
+    bondEffectiveRate: computedEffectiveRate,
     bondPenaltyPercent: bondPenalty,
   };
 
-  const benchmarkReady = benchmarkType === 'savings' ? wibor3m > 0 : bondRate > 0;
+  const benchmarkReady = benchmarkType === 'savings' ? wibor3m > 0 : bondFirstYearRate > 0;
   const canCalc = shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && horizonMonths > 0 && benchmarkReady;
 
   const results = canCalc ? calcAllScenarios(calcInputs, scenarios) : null;
@@ -131,8 +151,15 @@ function App() {
             wibor3m={wibor3m}
             horizonMonths={horizonMonths}
             benchmarkType={benchmarkType}
-            bondRate={bondRate}
+            bondFirstYearRate={bondFirstYearRate}
+            bondEffectiveRate={computedEffectiveRate}
             bondPenalty={bondPenalty}
+            bondRateType={bondRateType}
+            bondMargin={bondMargin}
+            inflationRate={inflationRate}
+            inflationData={inflationData}
+            inflationLoading={inflationLoading}
+            nbpRefRate={nbpRefRate}
             onTickerChange={setTicker}
             onApiKeyChange={handleApiKeyChange}
             onSharesChange={setShares}
@@ -141,8 +168,12 @@ function App() {
             onWiborChange={setWibor3m}
             onHorizonChange={setHorizonMonths}
             onBenchmarkTypeChange={setBenchmarkType}
-            onBondRateChange={setBondRate}
+            onBondFirstYearRateChange={setBondFirstYearRate}
             onBondPenaltyChange={setBondPenalty}
+            onBondRateTypeChange={setBondRateType}
+            onBondMarginChange={setBondMargin}
+            onInflationRateChange={setInflationRate}
+            onNbpRefRateChange={setNbpRefRate}
           />
           <ScenarioEditor
             key={scenarioEditKey}

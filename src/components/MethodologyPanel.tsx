@@ -52,19 +52,24 @@ export function MethodologyPanel() {
           <section className="space-y-1">
             <h3 className="font-semibold text-slate-900">2b. Obligacje skarbowe</h3>
             <div className="bg-white border border-slate-200 rounded-lg p-3 font-mono text-xs space-y-1">
-              <div>Dla okresu ≤ 12 mies. (proste odsetki):</div>
-              <div className="pl-4">Wartość brutto = Kapitał × (1 + stopa roczna × miesiące ÷ 12)</div>
-              <div>Dla okresu &gt; 12 mies. (kapitalizacja roczna):</div>
-              <div className="pl-4">Wartość brutto = Kapitał × (1 + stopa roczna)<sup>pełne lata</sup> × (1 + stopa × reszta÷12)</div>
-              <div>Odsetki netto = (Wartość brutto − Kapitał) × (1 − 0,19)</div>
+              <div className="font-semibold">Obliczanie rok po roku:</div>
+              <div className="pl-4">Rok 1: Wartość × (1 + stopa 1. roku)</div>
+              <div className="pl-4">Rok 2+: Wartość × (1 + stopa efektywna) za każdy pełny rok</div>
+              <div className="pl-4">Niepełny rok: Wartość × (1 + stopa × miesiące ÷ 12)</div>
+              <div className="pt-1">Stopa efektywna zależy od typu obligacji:</div>
+              <div className="pl-4">Stałoprocentowe (OTS, TOS): stopa = stała przez cały okres</div>
+              <div className="pl-4">Zmiennoprocentowe (ROR, DOR): stopa = stopa ref. NBP + marża</div>
+              <div className="pl-4">Indeksowane inflacją (COI, EDO, ROS, ROD): stopa = inflacja + marża</div>
+              <div className="pt-1">Odsetki netto = (Wartość końcowa − Kapitał) × (1 − 0,19)</div>
               <div>Kara za wcześniejszy wykup (jeśli dotyczy) = Kapitał × kara%</div>
               <div className="font-semibold">Wartość końcowa = Kapitał + Odsetki netto − Kara</div>
             </div>
             <p className="text-xs text-slate-600">
-              Obligacje stosują kapitalizację roczną (nie miesięczną). Kara za wcześniejszy wykup
-              obowiązuje gdy horyzont jest krótszy niż zapadalność obligacji (np. 0,70% dla DOS/COI,
-              2% dla EDO). Dla obligacji indeksowanych inflacją (COI, EDO) używamy podanej stopy
-              jako przybliżenia — rzeczywista stopa po 1. roku zależy od CPI.
+              Obligacje stosują kapitalizację roczną. Kara za wcześniejszy wykup obowiązuje
+              gdy horyzont &lt; zapadalność. Obligacje indeksowane inflacją (COI, EDO, ROS, ROD)
+              mają stałą stopę w 1. roku, potem inflacja + marża. Inflacja pobierana automatycznie
+              z ECB (HICP dla Polski). Obligacje ROS i ROD to obligacje rodzinne (program 800+).
+              Stawki odpowiadają aktualnej ofercie z obligacjeskarbowe.pl — mogą się zmieniać co miesiąc.
             </p>
           </section>
 
@@ -124,7 +129,7 @@ export function MethodologyPanel() {
             <p className="text-xs text-slate-600">
               Siatka 11×11 kombinacji (Δ ceny akcji × Δ kursu USD/PLN) od −20% do +20%.
               Dla każdej kombinacji obliczamy wartość końcową akcji (po podatku) i porównujemy
-              z wartością konta oszczędnościowego. Zielone komórki = akcje biją konto.
+              z wartością benchmarku (konto lub obligacje). Zielone komórki = akcje biją benchmark.
             </p>
           </section>
 

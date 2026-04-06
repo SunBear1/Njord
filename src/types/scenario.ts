@@ -9,13 +9,18 @@ export type Scenarios = Record<ScenarioKey, ScenarioParams>;
 
 export type BenchmarkType = 'savings' | 'bonds';
 
+export type BondRateType = 'fixed' | 'reference' | 'inflation';
+
 export interface BondPreset {
   id: string;
   name: string;
   maturityMonths: number;
-  annualRate: number; // in %, e.g. 5.75
+  rateType: BondRateType;
+  firstYearRate: number;          // % for first year/period (promotional)
+  margin: number;                 // added to base rate (NBP ref or inflation) for years 2+
   earlyRedemptionPenalty: number; // in % of principal
   description: string;
+  isFamily?: boolean;             // 800+ beneficiaries only
 }
 
 export interface ScenarioResult {

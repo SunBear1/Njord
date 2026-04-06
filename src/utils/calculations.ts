@@ -11,8 +11,9 @@ export interface CalcInputs {
   benchmarkType: BenchmarkType;
   // Savings fields
   wibor3mPercent: number; // e.g. 5.82 for 5.82%
-  // Bond fields
-  bondRatePercent: number;
+  // Bond fields — variable-rate support
+  bondFirstYearRate: number;  // % for first year/period
+  bondEffectiveRate: number;  // % for subsequent years (pre-computed from type + inflation/ref)
   bondPenaltyPercent: number;
 }
 
@@ -30,23 +31,35 @@ export function calcSavingsEndValue(inputs: CalcInputs): number {
   return currentValuePLN + netInterest;
 }
 
-export function calcBondEndValue(inputs: CalcInputs): number {
-  const { bondRatePercent, bondPenaltyPercent, horizonMonths } = inputs;
-  const currentValuePLN = calcCurrentValuePLN(inputs);
-  const annualRate = bondRatePercent / 100;
-  const years = horizonMonths / 12;
+/** Year-by-year bond compounding with different first-year vs subsequent rates */
+function bondGrossValue(principal: number, firstYearRate: number, effectiveRate: number, months: number): number {
+  let value = principal;
+  let remaining = months;
+  let year = 1;
 
-  // Bonds: annual capitalization. For < 12 months, simple interest.
-  let grossEndValue: number;
-  if (horizonMonths <= 12) {
-    grossEndValue = currentValuePLN * (1 + annualRate * years);
-  } else {
-    const fullYears = Math.floor(years);
-    const remainingMonths = horizonMonths - fullYears * 12;
-    const afterFullYears = currentValuePLN * Math.pow(1 + annualRate, fullYears);
-    grossEndValue = afterFullYears * (1 + annualRate * remainingMonths / 12);
+  while (remaining > 0) {
+    const rate = (year === 1 ? firstYearRate : effectiveRate) / 100;
+    const monthsThisYear = Math.min(remaining, 12);
+
+    if (monthsThisYear === 12) {
+      value *= (1 + rate);
+    } else {
+      // Partial year — simple interest for the remainder
+      value *= (1 + rate * monthsThisYear / 12);
+    }
+
+    remaining -= monthsThisYear;
+    year++;
   }
 
+  return value;
+}
+
+export function calcBondEndValue(inputs: CalcInputs): number {
+  const { bondFirstYearRate, bondEffectiveRate, bondPenaltyPercent, horizonMonths } = inputs;
+  const currentValuePLN = calcCurrentValuePLN(inputs);
+
+  const grossEndValue = bondGrossValue(currentValuePLN, bondFirstYearRate, bondEffectiveRate, horizonMonths);
   const grossInterest = grossEndValue - currentValuePLN;
   const netInterest = grossInterest * (1 - BELKA_TAX);
   const penalty = currentValuePLN * (bondPenaltyPercent / 100);
@@ -135,18 +148,9 @@ export function calcTimeline(inputs: CalcInputs, scenarios: Scenarios): Timeline
     const bmInputs = { ...inputs, horizonMonths: m };
     let benchmarkVal: number;
     if (inputs.benchmarkType === 'bonds') {
-      const annualRate = inputs.bondRatePercent / 100;
-      const years = m / 12;
-      let gross: number;
-      if (m <= 12) {
-        gross = currentValuePLN * (1 + annualRate * years);
-      } else {
-        const fy = Math.floor(years);
-        const rm = m - fy * 12;
-        gross = currentValuePLN * Math.pow(1 + annualRate, fy) * (1 + annualRate * rm / 12);
-      }
+      const grossEnd = bondGrossValue(currentValuePLN, inputs.bondFirstYearRate, inputs.bondEffectiveRate, m);
       const penalty = m < inputs.horizonMonths ? currentValuePLN * (inputs.bondPenaltyPercent / 100) : 0;
-      benchmarkVal = currentValuePLN + (gross - currentValuePLN) * (1 - BELKA_TAX) - penalty;
+      benchmarkVal = currentValuePLN + (grossEnd - currentValuePLN) * (1 - BELKA_TAX) - penalty;
     } else {
       const monthlyRate = inputs.wibor3mPercent / 100 / 12;
       const grossEnd = currentValuePLN * Math.pow(1 + monthlyRate, m);
