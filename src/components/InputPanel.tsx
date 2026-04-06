@@ -21,6 +21,7 @@ interface InputPanelProps {
   fxData: FxData | null;
   fxLoading: boolean;
   ticker: string;
+  apiKey: string;
   shares: number;
   currentPriceUSD: number;
   currentFxRate: number;
@@ -30,6 +31,7 @@ interface InputPanelProps {
   bondRate: number;
   bondPenalty: number;
   onTickerChange: (v: string) => void;
+  onApiKeyChange: (v: string) => void;
   onSharesChange: (v: number) => void;
   onPriceChange: (v: number) => void;
   onFxRateChange: (v: number) => void;
@@ -48,6 +50,7 @@ export function InputPanel({
   fxData,
   fxLoading,
   ticker,
+  apiKey,
   shares,
   currentPriceUSD,
   currentFxRate,
@@ -57,6 +60,7 @@ export function InputPanel({
   bondRate,
   bondPenalty,
   onTickerChange,
+  onApiKeyChange,
   onSharesChange,
   onPriceChange,
   onFxRateChange,
@@ -75,24 +79,24 @@ export function InputPanel({
   const [bondPenaltyStr, setBondPenaltyStr] = useState(String(bondPenalty));
   const isFirstRender = useRef(true);
 
-  // Auto-fetch with 800ms debounce, minimum 1 character
+  // Auto-fetch with 800ms debounce, requires ticker + API key
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
     }
     const trimmed = localTicker.trim().toUpperCase();
-    if (trimmed.length < 1) return;
+    if (trimmed.length < 1 || !apiKey.trim()) return;
     const timer = setTimeout(() => {
       onTickerChange(trimmed);
       onFetchAsset(trimmed);
     }, 800);
     return () => clearTimeout(timer);
-  }, [localTicker]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [localTicker, apiKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleManualRefetch = () => {
     const trimmed = localTicker.trim().toUpperCase();
-    if (trimmed) {
+    if (trimmed && apiKey.trim()) {
       onTickerChange(trimmed);
       onFetchAsset(trimmed);
     }
@@ -109,6 +113,38 @@ export function InputPanel({
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-5">
       <h2 className="text-lg font-semibold text-gray-800">Dane wejściowe</h2>
+
+      {/* API Key */}
+      <div className="space-y-1">
+        <label className="text-sm font-medium text-gray-700">
+          Klucz API Twelve Data
+          <span className="ml-1 text-xs font-normal text-gray-500">(darmowy)</span>
+        </label>
+        <input
+          type="password"
+          value={apiKey}
+          onChange={(e) => onApiKeyChange(e.target.value.trim())}
+          placeholder="Wklej swój klucz API…"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+        />
+        {!apiKey && (
+          <p className="text-xs text-gray-400">
+            Darmowe konto:{' '}
+            <a
+              href="https://twelvedata.com/pricing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline hover:text-blue-800"
+            >
+              twelvedata.com/pricing
+            </a>
+            {' '}→ 800 zapytań/dzień. Klucz jest zapisywany w przeglądarce.
+          </p>
+        )}
+        {apiKey && (
+          <p className="text-xs text-green-600">Klucz zapisany w przeglądarce.</p>
+        )}
+      </div>
 
       {/* Ticker — auto-fetch */}
       <div className="space-y-1">
@@ -128,7 +164,7 @@ export function InputPanel({
           </div>
           <button
             onClick={handleManualRefetch}
-            disabled={assetLoading || !localTicker.trim()}
+            disabled={assetLoading || !localTicker.trim() || !apiKey.trim()}
             title="Odśwież dane"
             className="p-2 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-40 transition-colors"
           >
@@ -226,7 +262,7 @@ export function InputPanel({
       <div className="space-y-1">
         <label className="text-sm font-medium text-gray-700">
           Aktualna cena akcji (USD)
-          {assetData && <span className="ml-1 text-xs text-gray-400">· auto z Yahoo Finance</span>}
+          {assetData && <span className="ml-1 text-xs text-gray-400">· auto z Twelve Data</span>}
         </label>
         <input
           type="number"

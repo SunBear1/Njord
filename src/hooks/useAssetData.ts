@@ -1,12 +1,12 @@
 import { useState, useCallback, useRef } from 'react';
-import { fetchAssetData } from '../providers/yahooFinanceProvider';
+import { fetchAssetData } from '../providers/twelveDataProvider';
 import type { AssetData } from '../types/asset';
 
 interface UseAssetDataReturn {
   assetData: AssetData | null;
   isLoading: boolean;
   error: string | null;
-  fetchData: (ticker: string) => Promise<AssetData | null>;
+  fetchData: (ticker: string, apiKey: string) => Promise<AssetData | null>;
 }
 
 export function useAssetData(): UseAssetDataReturn {
@@ -15,8 +15,8 @@ export function useAssetData(): UseAssetDataReturn {
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  const fetchData = useCallback(async (ticker: string): Promise<AssetData | null> => {
-    if (!ticker.trim()) return null;
+  const fetchData = useCallback(async (ticker: string, apiKey: string): Promise<AssetData | null> => {
+    if (!ticker.trim() || !apiKey.trim()) return null;
 
     // Cancel any in-flight request
     abortRef.current?.abort();
@@ -26,7 +26,7 @@ export function useAssetData(): UseAssetDataReturn {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await fetchAssetData(ticker.toUpperCase().trim(), controller.signal);
+      const data = await fetchAssetData(ticker.toUpperCase().trim(), apiKey.trim(), controller.signal);
       if (controller.signal.aborted) return null;
       setAssetData(data);
       return data;

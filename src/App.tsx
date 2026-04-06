@@ -25,8 +25,11 @@ const DEFAULT_SCENARIOS: Scenarios = {
   bull: { deltaStock: 10, deltaFx: 5 },
 };
 
+const STORAGE_KEY_API = 'njord_twelve_data_api_key';
+
 function App() {
   const [ticker, setTicker] = useState('');
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem(STORAGE_KEY_API) || '');
   const [shares, setShares] = useState(0);
   const [currentPriceUSD, setCurrentPriceUSD] = useState(0);
   const [currentFxRate, setCurrentFxRate] = useState(0);
@@ -38,6 +41,11 @@ function App() {
   const [scenarios, setScenarios] = useState<Scenarios>(DEFAULT_SCENARIOS);
   const [scenarioEditKey, setScenarioEditKey] = useState(0);
   const fxAutoFilled = useRef(false);
+
+  const handleApiKeyChange = useCallback((key: string) => {
+    setApiKey(key);
+    localStorage.setItem(STORAGE_KEY_API, key);
+  }, []);
 
   const { assetData, isLoading: assetLoading, error: assetError, fetchData: fetchAsset } = useAssetData();
   const { fxData, isLoading: fxLoading } = useFxData((data) => {
@@ -53,11 +61,11 @@ function App() {
   );
 
   const fetchData = useCallback(async (ticker: string) => {
-    const data = await fetchAsset(ticker);
+    const data = await fetchAsset(ticker, apiKey);
     if (data?.asset.currentPrice) {
       setCurrentPriceUSD(data.asset.currentPrice);
     }
-  }, [fetchAsset]);
+  }, [fetchAsset, apiKey]);
 
   const handleScenarioChange = useCallback(
     (key: ScenarioKey, field: 'deltaStock' | 'deltaFx', value: number) => {
@@ -115,6 +123,7 @@ function App() {
             fxData={fxData}
             fxLoading={fxLoading}
             ticker={ticker}
+            apiKey={apiKey}
             shares={shares}
             currentPriceUSD={currentPriceUSD}
             currentFxRate={currentFxRate}
@@ -124,6 +133,7 @@ function App() {
             bondRate={bondRate}
             bondPenalty={bondPenalty}
             onTickerChange={setTicker}
+            onApiKeyChange={handleApiKeyChange}
             onSharesChange={setShares}
             onPriceChange={setCurrentPriceUSD}
             onFxRateChange={setCurrentFxRate}
