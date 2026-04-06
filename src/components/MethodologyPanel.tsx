@@ -99,20 +99,20 @@ export function MethodologyPanel() {
             <h3 className="font-semibold text-slate-900">4. Sugestie z danych historycznych</h3>
             <div className="bg-white border border-slate-200 rounded-lg p-3 font-mono text-xs space-y-1">
               <div>σ dzienne = odchylenie standardowe dziennych stóp zwrotu (~1 rok danych)</div>
-              <div>σ roczne = σ dzienne × √252</div>
-              <div>σ horyzont = σ roczne × √(miesiące ÷ 12)</div>
+              <div>σ roczne = σ dzienne × √252 &nbsp;|&nbsp; T = horyzont w latach</div>
               <div>ρ = korelacja Pearsona (stopy zwrotu akcji vs. USD/PLN)</div>
-              <div className="pt-1">Bear: Δ akcji = −σ<sub>horyzont</sub>, Δ FX = <strong>−ρ</strong> × σ<sub>FX horyzont</sub></div>
-              <div>Base: Δ akcji = średnia stopa zwrotu (~1 rok), Δ FX = średnia</div>
-              <div>Bull: Δ akcji = +σ<sub>horyzont</sub>, Δ FX = +ρ × σ<sub>FX horyzont</sub></div>
+              <div className="pt-1 font-semibold">Bear/Bull — percentyle 5%/95% rozkładu log-normalnego (zerowy dryf):</div>
+              <div className="pl-4">Bear (p5):  exp(−1,645·σ·√T − σ²/2·T) − 1</div>
+              <div className="pl-4">Bull (p95): exp(+1,645·σ·√T − σ²/2·T) − 1</div>
+              <div className="pl-4">Δ FX Bear = −ρ × |FX p95|, &nbsp;Δ FX Bull = +ρ × |FX p95|</div>
+              <div className="pt-1">Base: Δ akcji = 0%, Δ FX = 0% (neutralny punkt startowy)</div>
             </div>
             <p className="text-xs text-slate-600">
-              Korelacja (ρ) sprawia, że scenariusze są realistyczne. Np. jeśli historycznie
-              gdy akcje spadały, dolar umacniał się wobec PLN (ujemna ρ), to w scenariuszu
-              Bear kurs USD/PLN wzrośnie (−ρ × σ_FX {'>'} 0), co częściowo amortyzuje straty.
-              Scenariusz Base bazuje na średnim trendzie z ~1 roku — estymacja jest mało precyzyjna
-              (duży błąd standardowy przy krótkich historycznie), dlatego traktuj go jako
-              orientacyjny punkt startowy.
+              Rozkład log-normalny unika błędów arytmetycznego skalowania (np. "−150%") przy długich horyzontach.
+              Zerowy dryf w Bear/Bull sprawia, że scenariusze nie zakładają powtórzenia ostatniego trendu —
+              historyczna średnia przy ~1 roku danych ma błąd standardowy ±30–50 pp rocznie.
+              Trend akcji wyświetlany jest jako informacja. Korelacja ρ: przy ujemnej ρ spadek akcji
+              idzie w parze z umocnieniem dolara, co amortyzuje stratę (Δ FX Bear {'>'} 0).
             </p>
           </section>
 

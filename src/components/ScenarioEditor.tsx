@@ -142,7 +142,13 @@ export function ScenarioEditor({
             <span>Zmienność akcji: <strong>{volatilityStats.stockSigmaAnnual.toFixed(1)}%</strong> rocznie</span>
             <span>Zmienność USD/PLN: <strong>{volatilityStats.fxSigmaAnnual.toFixed(1)}%</strong> rocznie</span>
             <span>Korelacja: <strong>{volatilityStats.correlation.toFixed(2)}</strong></span>
-            <span>Trend akcji: <strong>{volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%</strong>/rok</span>
+            <span>
+              Trend akcji (info):{' '}
+              <strong className={volatilityStats.stockMeanAnnual >= 0 ? 'text-green-700' : 'text-red-700'}>
+                {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%
+              </strong>
+              /rok
+            </span>
           </div>
           <p className="text-indigo-500 pt-0.5">
             {volatilityStats.correlation < -0.1
@@ -150,6 +156,9 @@ export function ScenarioEditor({
               : volatilityStats.correlation > 0.1
               ? 'Dodatnia korelacja — zmiany kursu USD/PLN wzmacniają efekt zmian akcji.'
               : 'Niska korelacja — ruchy akcji i kursu walutowego są w dużej mierze niezależne.'}
+          </p>
+          <p className="text-indigo-400 border-t border-indigo-100 pt-1">
+            Bear/Bull = percentyle 5%/95% rozkładu log-normalnego (zerowy dryf). Base = 0% — trend powyżej jest zbyt niepewny by go prognozować; uwzględnij go ręcznie jeśli uważasz za stosowne.
           </p>
         </div>
       )}

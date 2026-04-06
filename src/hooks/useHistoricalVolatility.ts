@@ -76,26 +76,33 @@ export function useHistoricalVolatility(
     const stockMeanAnnual = mean(stockReturns) * 252 * 100;
     const fxMeanAnnual = mean(fxReturns) * 252 * 100;
 
-    // Scale to horizon
-    const horizonScale = Math.sqrt(horizonMonths / 12);
-    const stockH = stockSigmaAnnual * horizonScale;
-    const fxH = fxSigmaAnnual * horizonScale;
+    const T = horizonMonths / 12;
+    const stockSigma = stockSigmaAnnual / 100; // decimal
+    const fxSigma = fxSigmaAnnual / 100;
 
-    // Scale mean to horizon (linear for short periods)
-    const stockMeanH = stockMeanAnnual * (horizonMonths / 12);
-    const fxMeanH = fxMeanAnnual * (horizonMonths / 12);
+    // Log-normal p5/p95 with zero drift (conservative, avoids projecting noisy recent trend).
+    // ln(P_T/P_0) ~ N(-σ²/2·T, σ²·T)  [zero-drift GBM with Itô correction]
+    // p5  (Bear): exp(-1.645·σ·√T - σ²/2·T) - 1
+    // p95 (Bull): exp(+1.645·σ·√T - σ²/2·T) - 1
+    const itoAdj = (s: number) => -(s * s) / 2 * T;
+    const stockBearPct = (Math.exp(-1.645 * stockSigma * Math.sqrt(T) + itoAdj(stockSigma)) - 1) * 100;
+    const stockBullPct = (Math.exp(+1.645 * stockSigma * Math.sqrt(T) + itoAdj(stockSigma)) - 1) * 100;
 
-    // Correlation-aware FX deltas:
-    // Bear: stock at -σ → E[ΔFX | ΔS = -σ_S] = -ρ × σ_FX (negative sign!)
-    // Bull: stock at +σ → E[ΔFX | ΔS = +σ_S] = +ρ × σ_FX
-    // With ρ<0: Bear FX goes up (USD strengthens, amortises loss). Bull FX goes down.
-    const fxBearDelta = -rho * fxH;
-    const fxBullDelta = rho * fxH;
+    // FX magnitude: p95 of log-normal (symmetric ±)
+    const fxMagPct = (Math.exp(1.645 * fxSigma * Math.sqrt(T) + itoAdj(fxSigma)) - 1) * 100;
 
+    // Correlation-adjusted FX deltas (same sign convention as fixed Bug F):
+    // Bear: stock falls → E[ΔFXR] = -ρ · fxMag
+    // Bull: stock rises → E[ΔFXR] = +ρ · fxMag
+    const fxBearDelta = -rho * fxMagPct;
+    const fxBullDelta = +rho * fxMagPct;
+
+    // Base: zero drift for both (historical mean is too noisy over ~1 year to reliably project).
+    // The trend (stockMeanAnnual) is shown as info in the UI — user can incorporate it manually.
     const suggestedScenarios: Scenarios = {
-      bear: { deltaStock: -stockH, deltaFx: fxBearDelta },
-      base: { deltaStock: stockMeanH, deltaFx: fxMeanH },
-      bull: { deltaStock: stockH, deltaFx: fxBullDelta },
+      bear: { deltaStock: stockBearPct, deltaFx: fxBearDelta },
+      base: { deltaStock: 0, deltaFx: 0 },
+      bull: { deltaStock: stockBullPct, deltaFx: fxBullDelta },
     };
 
     const stats: VolatilityStats = {
@@ -104,7 +111,7 @@ export function useHistoricalVolatility(
       correlation: rho,
       stockMeanAnnual,
       fxMeanAnnual,
-      horizonScale,
+      horizonScale: Math.sqrt(T),
     };
 
     return { stats, suggestedScenarios };
