@@ -26,10 +26,11 @@ const DEFAULT_SCENARIOS: Scenarios = {
 };
 
 const STORAGE_KEY_API = 'njord_twelve_data_api_key';
+const BUILT_IN_KEY = import.meta.env.VITE_TWELVE_DATA_API_KEY || '';
 
 function App() {
   const [ticker, setTicker] = useState('');
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem(STORAGE_KEY_API) || '');
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem(STORAGE_KEY_API) || BUILT_IN_KEY);
   const [shares, setShares] = useState(0);
   const [currentPriceUSD, setCurrentPriceUSD] = useState(0);
   const [currentFxRate, setCurrentFxRate] = useState(0);

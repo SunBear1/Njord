@@ -77,6 +77,7 @@ export function InputPanel({
   const [selectedBondId, setSelectedBondId] = useState(BOND_PRESETS[0].id);
   const [bondRateStr, setBondRateStr] = useState(bondRate > 0 ? String(bondRate) : String(BOND_PRESETS[0].annualRate));
   const [bondPenaltyStr, setBondPenaltyStr] = useState(String(bondPenalty));
+  const [showApiKeyField, setShowApiKeyField] = useState(false);
   const isFirstRender = useRef(true);
 
   // Auto-fetch with 800ms debounce, requires ticker + API key
@@ -114,37 +115,47 @@ export function InputPanel({
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-5">
       <h2 className="text-lg font-semibold text-gray-800">Dane wejściowe</h2>
 
-      {/* API Key */}
-      <div className="space-y-1">
-        <label className="text-sm font-medium text-gray-700">
-          Klucz API Twelve Data
-          <span className="ml-1 text-xs font-normal text-gray-500">(darmowy)</span>
-        </label>
-        <input
-          type="password"
-          value={apiKey}
-          onChange={(e) => onApiKeyChange(e.target.value.trim())}
-          placeholder="Wklej swój klucz API…"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
-        />
-        {!apiKey && (
-          <p className="text-xs text-gray-400">
-            Darmowe konto:{' '}
-            <a
-              href="https://twelvedata.com/pricing"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 underline hover:text-blue-800"
-            >
-              twelvedata.com/pricing
-            </a>
-            {' '}→ 800 zapytań/dzień. Klucz jest zapisywany w przeglądarce.
-          </p>
-        )}
-        {apiKey && (
-          <p className="text-xs text-green-600">Klucz zapisany w przeglądarce.</p>
-        )}
-      </div>
+      {/* API Key — hidden when built-in key exists, expandable for override */}
+      {!apiKey || showApiKeyField ? (
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-gray-700">
+            Klucz API Twelve Data
+            <span className="ml-1 text-xs font-normal text-gray-500">(darmowy)</span>
+          </label>
+          <input
+            type="password"
+            value={apiKey}
+            onChange={(e) => onApiKeyChange(e.target.value.trim())}
+            placeholder="Wklej swój klucz API…"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+          />
+          {!apiKey && (
+            <p className="text-xs text-gray-400">
+              Darmowe konto:{' '}
+              <a
+                href="https://twelvedata.com/pricing"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline hover:text-blue-800"
+              >
+                twelvedata.com/pricing
+              </a>
+              {' '}→ 800 zapytań/dzień. Klucz jest zapisywany w przeglądarce.
+            </p>
+          )}
+          {apiKey && (
+            <p className="text-xs text-green-600">Klucz zapisany w przeglądarce.</p>
+          )}
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setShowApiKeyField(true)}
+          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          Zmień klucz API Twelve Data…
+        </button>
+      )}
 
       {/* Ticker — auto-fetch */}
       <div className="space-y-1">
