@@ -9,7 +9,7 @@ import { BreakevenChart } from './components/BreakevenChart';
 import { MethodologyPanel } from './components/MethodologyPanel';
 import { useAssetData } from './hooks/useAssetData';
 import { useFxData } from './hooks/useFxData';
-import { useInflationData } from './hooks/useInflationData';
+import { useCpiGus } from './hooks/useCpiGus';
 import { useHistoricalVolatility } from './hooks/useHistoricalVolatility';
 import {
   calcAllScenarios,
@@ -61,7 +61,7 @@ function App() {
       setCurrentFxRate(data.currentRate);
     }
   });
-  const { data: inflationData, isLoading: inflationLoading } = useInflationData((d) => {
+  const { data: inflationData, isLoading: inflationLoading } = useCpiGus((d) => {
     if (!inflationAutoFilled.current) {
       inflationAutoFilled.current = true;
       setInflationRate(d.rate);

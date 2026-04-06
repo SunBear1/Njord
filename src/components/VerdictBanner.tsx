@@ -69,7 +69,9 @@ export function VerdictBanner({ results }: VerdictBannerProps) {
                 </div>
                 <div className="flex justify-between text-xs text-gray-500">
                   <span>Zysk {bmLabel.toLowerCase()}</span>
-                  <span className="text-blue-600">+{r.benchmarkReturnNet.toFixed(2)}%</span>
+                  <span className={r.benchmarkReturnNet >= 0 ? 'text-blue-600' : 'text-red-600'}>
+                    {r.benchmarkReturnNet >= 0 ? '+' : ''}{r.benchmarkReturnNet.toFixed(2)}%
+                  </span>
                 </div>
               </div>
 

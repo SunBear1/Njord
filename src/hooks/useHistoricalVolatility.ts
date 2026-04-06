@@ -86,9 +86,11 @@ export function useHistoricalVolatility(
     const fxMeanH = fxMeanAnnual * (horizonMonths / 12);
 
     // Correlation-aware FX deltas:
-    // When stock moves ±1σ, expected FX co-movement = ρ × σ_fx
-    const fxBearDelta = rho * fxH; // if ρ<0, FX goes UP when stock goes DOWN
-    const fxBullDelta = rho * fxH; // if ρ<0, FX goes DOWN when stock goes UP
+    // Bear: stock at -σ → E[ΔFX | ΔS = -σ_S] = -ρ × σ_FX (negative sign!)
+    // Bull: stock at +σ → E[ΔFX | ΔS = +σ_S] = +ρ × σ_FX
+    // With ρ<0: Bear FX goes up (USD strengthens, amortises loss). Bull FX goes down.
+    const fxBearDelta = -rho * fxH;
+    const fxBullDelta = rho * fxH;
 
     const suggestedScenarios: Scenarios = {
       bear: { deltaStock: -stockH, deltaFx: fxBearDelta },

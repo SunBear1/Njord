@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, AlertCircle, CheckCircle2, RefreshCw, Calculator, Info } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle2, RefreshCw, Calculator, Info, ExternalLink } from 'lucide-react';
 import type { AssetData } from '../types/asset';
 import type { FxData } from '../providers/nbpProvider';
-import type { InflationData } from '../hooks/useInflationData';
+import type { CpiData } from '../hooks/useCpiGus';
 import type { BenchmarkType, BondPreset, BondRateType } from '../types/scenario';
 import { fmtUSD, fmtNum } from '../utils/formatting';
 
@@ -38,7 +38,7 @@ interface InputPanelProps {
   bondRateType: BondRateType;
   bondMargin: number;
   inflationRate: number;
-  inflationData: InflationData | null;
+  inflationData: CpiData | null;
   inflationLoading: boolean;
   nbpRefRate: number;
   onTickerChange: (v: string) => void;
@@ -114,6 +114,17 @@ export function InputPanel({
     onBondPenaltyChange(penalty);
     setBondPenaltyStr(String(penalty));
   };
+
+  // Re-evaluate penalty whenever horizon changes (Bug B fix)
+  useEffect(() => {
+    if (benchmarkType !== 'bonds') return;
+    const preset = BOND_PRESETS.find((b) => b.id === selectedBondId);
+    if (!preset) return;
+    const earlyExit = horizonMonths < preset.maturityMonths;
+    const penalty = earlyExit ? preset.earlyRedemptionPenalty : 0;
+    onBondPenaltyChange(penalty);
+    setBondPenaltyStr(String(penalty));
+  }, [horizonMonths, selectedBondId, benchmarkType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-fetch with 800ms debounce, requires ticker + API key
   useEffect(() => {
@@ -438,7 +449,7 @@ export function InputPanel({
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">
-                          Inflacja (HICP)
+                          Inflacja CPI (GUS)
                           {inflationData && (
                             <span className="ml-1 text-gray-400">· {inflationData.period}</span>
                           )}
@@ -471,7 +482,18 @@ export function InputPanel({
                         <span className="font-medium">{bondMargin.toFixed(2)}%</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Stopa referencyjna NBP:</span>
+                        <span className="text-gray-600 flex items-center gap-1">
+                          Stopa referencyjna NBP:
+                          <a
+                            href="https://www.nbp.pl/polityka-pieniezna/instrumenty/stopy-procentowe.aspx"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Sprawdź aktualną stopę NBP"
+                            className="text-blue-500 hover:text-blue-700"
+                          >
+                            <ExternalLink size={11} />
+                          </a>
+                        </span>
                         <input
                           type="number"
                           min={0}
@@ -545,24 +567,30 @@ export function InputPanel({
         <label className="text-sm font-medium text-gray-700">
           Horyzont czasowy:{' '}
           <span className="text-blue-600 font-semibold">
-            {horizonMonths} {horizonMonths === 1 ? 'miesiąc' : horizonMonths < 5 ? 'miesiące' : 'miesięcy'}
+            {horizonMonths <= 11
+              ? `${horizonMonths} ${horizonMonths === 1 ? 'miesiąc' : horizonMonths < 5 ? 'miesiące' : 'miesięcy'}`
+              : horizonMonths % 12 === 0
+                ? `${horizonMonths / 12} ${horizonMonths / 12 === 1 ? 'rok' : horizonMonths / 12 < 5 ? 'lata' : 'lat'}`
+                : `${Math.floor(horizonMonths / 12)} l. ${horizonMonths % 12} mies.`}
           </span>
         </label>
         <input
           type="range"
           min={1}
-          max={24}
+          max={144}
           step={1}
           value={horizonMonths}
           onChange={(e) => onHorizonChange(Number(e.target.value))}
           className="w-full accent-blue-600"
         />
         <div className="flex justify-between text-xs text-gray-400">
-          <span>1</span>
-          <span>6</span>
-          <span>12</span>
-          <span>18</span>
-          <span>24 mies.</span>
+          <span>1m</span>
+          <span>1r</span>
+          <span>2r</span>
+          <span>3r</span>
+          <span>5r</span>
+          <span>10r</span>
+          <span>12r</span>
         </div>
       </div>
     </div>

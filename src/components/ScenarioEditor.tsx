@@ -136,7 +136,7 @@ export function ScenarioEditor({
         <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3 text-xs text-indigo-800 space-y-1">
           <div className="flex items-center gap-1.5 font-medium">
             <Info size={13} />
-            Analiza historyczna (~90 dni)
+            Analiza historyczna (~1 rok)
           </div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-indigo-700">
             <span>Zmienność akcji: <strong>{volatilityStats.stockSigmaAnnual.toFixed(1)}%</strong> rocznie</span>

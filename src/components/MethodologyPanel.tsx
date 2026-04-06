@@ -60,15 +60,17 @@ export function MethodologyPanel() {
               <div className="pl-4">Stałoprocentowe (OTS, TOS): stopa = stała przez cały okres</div>
               <div className="pl-4">Zmiennoprocentowe (ROR, DOR): stopa = stopa ref. NBP + marża</div>
               <div className="pl-4">Indeksowane inflacją (COI, EDO, ROS, ROD): stopa = inflacja + marża</div>
-              <div className="pt-1">Odsetki netto = (Wartość końcowa − Kapitał) × (1 − 0,19)</div>
-              <div>Kara za wcześniejszy wykup (jeśli dotyczy) = Kapitał × kara%</div>
-              <div className="font-semibold">Wartość końcowa = Kapitał + Odsetki netto − Kara</div>
+              <div className="pt-1">Kara za wcześniejszy wykup odejmana PRZED naliczeniem podatku:</div>
+              <div className="pl-4">Kwota efektywna = Wartość brutto − Kara</div>
+              <div className="pl-4">Jeśli zysk (kwota ef. &gt; kapitał): podatek = (kwota ef. − kapitał) × 19%</div>
+              <div className="pl-4">Jeśli strata (kwota ef. ≤ kapitał): brak podatku</div>
+              <div className="font-semibold">Wartość końcowa = Kwota efektywna − podatek (jeśli dotyczy)</div>
             </div>
             <p className="text-xs text-slate-600">
               Obligacje stosują kapitalizację roczną. Kara za wcześniejszy wykup obowiązuje
               gdy horyzont &lt; zapadalność. Obligacje indeksowane inflacją (COI, EDO, ROS, ROD)
-              mają stałą stopę w 1. roku, potem inflacja + marża. Inflacja pobierana automatycznie
-              z ECB (HICP dla Polski). Obligacje ROS i ROD to obligacje rodzinne (program 800+).
+              mają stałą stopę w 1. roku, potem inflacja CPI + marża. Inflacja pobierana automatycznie
+              z GUS BDL (oficjalny polski CPI). Obligacje ROS i ROD to obligacje rodzinne (program 800+).
               Stawki odpowiadają aktualnej ofercie z obligacjeskarbowe.pl — mogą się zmieniać co miesiąc.
             </p>
           </section>
@@ -96,19 +98,21 @@ export function MethodologyPanel() {
           <section className="space-y-1">
             <h3 className="font-semibold text-slate-900">4. Sugestie z danych historycznych</h3>
             <div className="bg-white border border-slate-200 rounded-lg p-3 font-mono text-xs space-y-1">
-              <div>σ dzienne = odchylenie standardowe dziennych stóp zwrotu</div>
+              <div>σ dzienne = odchylenie standardowe dziennych stóp zwrotu (~1 rok danych)</div>
               <div>σ roczne = σ dzienne × √252</div>
               <div>σ horyzont = σ roczne × √(miesiące ÷ 12)</div>
               <div>ρ = korelacja Pearsona (stopy zwrotu akcji vs. USD/PLN)</div>
-              <div className="pt-1">Bear: Δ akcji = −σ<sub>horyzont</sub>, Δ FX = ρ × σ<sub>FX horyzont</sub></div>
-              <div>Base: Δ akcji = średnia stopa zwrotu, Δ FX = średnia</div>
-              <div>Bull: Δ akcji = +σ<sub>horyzont</sub>, Δ FX = ρ × σ<sub>FX horyzont</sub></div>
+              <div className="pt-1">Bear: Δ akcji = −σ<sub>horyzont</sub>, Δ FX = <strong>−ρ</strong> × σ<sub>FX horyzont</sub></div>
+              <div>Base: Δ akcji = średnia stopa zwrotu (~1 rok), Δ FX = średnia</div>
+              <div>Bull: Δ akcji = +σ<sub>horyzont</sub>, Δ FX = +ρ × σ<sub>FX horyzont</sub></div>
             </div>
             <p className="text-xs text-slate-600">
               Korelacja (ρ) sprawia, że scenariusze są realistyczne. Np. jeśli historycznie
-              gdy akcje spadały, dolar umacniał się wobec PLN (ujemna korelacja), to w scenariuszu
-              Bear kurs USD/PLN wzrośnie (co częściowo amortyzuje straty). Scenariusz Base
-              bazuje na średnim trendzie, nie na zerowej zmianie.
+              gdy akcje spadały, dolar umacniał się wobec PLN (ujemna ρ), to w scenariuszu
+              Bear kurs USD/PLN wzrośnie (−ρ × σ_FX {'>'} 0), co częściowo amortyzuje straty.
+              Scenariusz Base bazuje na średnim trendzie z ~1 roku — estymacja jest mało precyzyjna
+              (duży błąd standardowy przy krótkich historycznie), dlatego traktuj go jako
+              orientacyjny punkt startowy.
             </p>
           </section>
 
@@ -119,7 +123,7 @@ export function MethodologyPanel() {
               Scenariuszowe zmiany cen (Δ akcji, Δ FX) są skalowane liniowo do każdego miesiąca.
               Np. jeśli w scenariuszu Bull Δ akcji = +15% na 6 miesięcy, to po 3 miesiącach
               przyjmujemy +7,5%. Jest to przybliżenie — rzeczywiste zwroty kumulują się
-              geometrycznie, ale dla krótkich horyzontów (1–24 mies.) różnica jest minimalna.
+              geometrycznie, ale różnica jest minimalna dla krótkich i średnich horyzontów.
             </p>
           </section>
 
@@ -155,7 +159,7 @@ export function MethodologyPanel() {
                 <strong>Brak dywidend</strong> — nie uwzględniamy wypłat z akcji
               </li>
               <li>
-                <strong>Dane historyczne (~90 dni)</strong> — zmienność i korelacja mogą się
+                <strong>Dane historyczne (~1 rok)</strong> — zmienność i korelacja mogą się
                 zmieniać; przeszłość nie gwarantuje przyszłości
               </li>
             </ul>

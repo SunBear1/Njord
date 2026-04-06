@@ -7,7 +7,7 @@ export async function fetchAssetData(
   apiKey: string,
   signal?: AbortSignal,
 ): Promise<AssetData> {
-  const url = `${BASE_URL}/time_series?symbol=${encodeURIComponent(ticker)}&interval=1day&outputsize=90&apikey=${encodeURIComponent(apiKey)}`;
+  const url = `${BASE_URL}/time_series?symbol=${encodeURIComponent(ticker)}&interval=1day&outputsize=252&apikey=${encodeURIComponent(apiKey)}`;
 
   const res = await fetch(url, { signal });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);

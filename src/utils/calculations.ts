@@ -60,11 +60,15 @@ export function calcBondEndValue(inputs: CalcInputs): number {
   const currentValuePLN = calcCurrentValuePLN(inputs);
 
   const grossEndValue = bondGrossValue(currentValuePLN, bondFirstYearRate, bondEffectiveRate, horizonMonths);
-  const grossInterest = grossEndValue - currentValuePLN;
-  const netInterest = grossInterest * (1 - BELKA_TAX);
   const penalty = currentValuePLN * (bondPenaltyPercent / 100);
-
-  return currentValuePLN + netInterest - penalty;
+  // Penalty reduces payout before tax is computed
+  const effectiveGross = grossEndValue - penalty;
+  if (effectiveGross > currentValuePLN) {
+    const netInterest = (effectiveGross - currentValuePLN) * (1 - BELKA_TAX);
+    return currentValuePLN + netInterest;
+  }
+  // Loss after penalty — no tax
+  return effectiveGross;
 }
 
 export function calcBenchmarkEndValue(inputs: CalcInputs): number {
@@ -150,7 +154,10 @@ export function calcTimeline(inputs: CalcInputs, scenarios: Scenarios): Timeline
     if (inputs.benchmarkType === 'bonds') {
       const grossEnd = bondGrossValue(currentValuePLN, inputs.bondFirstYearRate, inputs.bondEffectiveRate, m);
       const penalty = m < inputs.horizonMonths ? currentValuePLN * (inputs.bondPenaltyPercent / 100) : 0;
-      benchmarkVal = currentValuePLN + (grossEnd - currentValuePLN) * (1 - BELKA_TAX) - penalty;
+      const effectiveGross = grossEnd - penalty;
+      benchmarkVal = effectiveGross > currentValuePLN
+        ? currentValuePLN + (effectiveGross - currentValuePLN) * (1 - BELKA_TAX)
+        : effectiveGross;
     } else {
       const monthlyRate = inputs.wibor3mPercent / 100 / 12;
       const grossEnd = currentValuePLN * Math.pow(1 + monthlyRate, m);
