@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { fetchAssetData } from '../providers/yahooFinanceProvider';
 import type { AssetData } from '../types/asset';
 
@@ -6,34 +6,41 @@ interface UseAssetDataReturn {
   assetData: AssetData | null;
   isLoading: boolean;
   error: string | null;
-  fetchData: (ticker: string) => Promise<void>;
-  clearData: () => void;
+  fetchData: (ticker: string) => Promise<AssetData | null>;
 }
 
 export function useAssetData(): UseAssetDataReturn {
   const [assetData, setAssetData] = useState<AssetData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
-  const fetchData = useCallback(async (ticker: string) => {
-    if (!ticker.trim()) return;
+  const fetchData = useCallback(async (ticker: string): Promise<AssetData | null> => {
+    if (!ticker.trim()) return null;
+
+    // Cancel any in-flight request
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setIsLoading(true);
     setError(null);
     try {
-      const data = await fetchAssetData(ticker.toUpperCase().trim());
+      const data = await fetchAssetData(ticker.toUpperCase().trim(), controller.signal);
+      if (controller.signal.aborted) return null;
       setAssetData(data);
+      return data;
     } catch (err) {
+      if (controller.signal.aborted) return null;
       setError(err instanceof Error ? err.message : 'Nieznany błąd');
       setAssetData(null);
+      return null;
     } finally {
-      setIsLoading(false);
+      if (!controller.signal.aborted) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
-  const clearData = useCallback(() => {
-    setAssetData(null);
-    setError(null);
-  }, []);
-
-  return { assetData, isLoading, error, fetchData, clearData };
+  return { assetData, isLoading, error, fetchData };
 }

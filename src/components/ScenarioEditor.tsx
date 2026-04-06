@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Wand2 } from 'lucide-react';
 import type { Scenarios, ScenarioKey } from '../types/scenario';
 
@@ -7,7 +7,6 @@ interface ScenarioEditorProps {
   onChange: (key: ScenarioKey, field: 'deltaStock' | 'deltaFx', value: number) => void;
   suggestedScenarios: Scenarios | null;
   onApplySuggested: () => void;
-  editKey: number;
   currentPriceUSD: number;
   currentFxRate: number;
 }
@@ -50,20 +49,12 @@ export function ScenarioEditor({
   onChange,
   suggestedScenarios,
   onApplySuggested,
-  editKey,
   currentPriceUSD,
   currentFxRate,
 }: ScenarioEditorProps) {
   const [stockMode, setStockMode] = useState<InputMode>('pct');
   const [fxMode, setFxMode] = useState<InputMode>('pct');
   const [localValues, setLocalValues] = useState(() => initValues(scenarios));
-
-  // Sync when editKey changes (e.g. "apply suggested" clicked)
-  useEffect(() => {
-    setLocalValues(initValues(scenarios));
-    setStockMode('pct');
-    setFxMode('pct');
-  }, [editKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toDelta = useCallback((raw: string, mode: InputMode, currentVal: number): number => {
     const n = parseFloat(raw);

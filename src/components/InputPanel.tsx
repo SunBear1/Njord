@@ -49,14 +49,14 @@ export function InputPanel({
   const [wiborStr, setWiborStr] = useState(wibor3m > 0 ? String(wibor3m) : '');
   const isFirstRender = useRef(true);
 
-  // Auto-fetch with 800ms debounce
+  // Auto-fetch with 800ms debounce, minimum 1 character
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
     }
     const trimmed = localTicker.trim().toUpperCase();
-    if (!trimmed) return;
+    if (trimmed.length < 1) return;
     const timer = setTimeout(() => {
       onTickerChange(trimmed);
       onFetchAsset(trimmed);

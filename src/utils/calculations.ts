@@ -45,14 +45,6 @@ export function calcStockScenario(
   return { rawEndValue, netEndValue };
 }
 
-export function calcBreakevenMultiplier(inputs: CalcInputs): number {
-  const currentValuePLN = calcCurrentValuePLN(inputs);
-  const savingsEnd = calcSavingsEndValue(inputs);
-  // Need: currentValuePLN + (multiplier * currentValuePLN - currentValuePLN) * 0.81 = savingsEnd
-  // multiplier = 1 + (savingsEnd/currentValuePLN - 1) / 0.81
-  return 1 + (savingsEnd / currentValuePLN - 1) / (1 - BELKA_TAX);
-}
-
 export function calcAllScenarios(inputs: CalcInputs, scenarios: Scenarios): ScenarioResult[] {
   const currentValuePLN = calcCurrentValuePLN(inputs);
   const savingsEndValuePLN = calcSavingsEndValue(inputs);

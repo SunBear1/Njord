@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { HowItWorks } from './components/HowItWorks';
 import { InputPanel } from './components/InputPanel';
 import { ScenarioEditor } from './components/ScenarioEditor';
@@ -33,26 +33,27 @@ function App() {
   const [horizonMonths, setHorizonMonths] = useState(DEFAULT_HORIZON_MONTHS);
   const [scenarios, setScenarios] = useState<Scenarios>(DEFAULT_SCENARIOS);
   const [scenarioEditKey, setScenarioEditKey] = useState(0);
+  const fxAutoFilled = useRef(false);
 
-  const { assetData, isLoading: assetLoading, error: assetError, fetchData } = useAssetData();
-  const { fxData, isLoading: fxLoading } = useFxData();
+  const { assetData, isLoading: assetLoading, error: assetError, fetchData: fetchAsset } = useAssetData();
+  const { fxData, isLoading: fxLoading } = useFxData((data) => {
+    if (!fxAutoFilled.current) {
+      fxAutoFilled.current = true;
+      setCurrentFxRate(data.currentRate);
+    }
+  });
   const { suggestedScenarios } = useHistoricalVolatility(
     assetData?.historicalPrices ?? null,
     fxData?.historicalRates ?? null,
     horizonMonths,
   );
 
-  useEffect(() => {
-    if (assetData?.asset.currentPrice) {
-      setCurrentPriceUSD(assetData.asset.currentPrice);
+  const fetchData = useCallback(async (ticker: string) => {
+    const data = await fetchAsset(ticker);
+    if (data?.asset.currentPrice) {
+      setCurrentPriceUSD(data.asset.currentPrice);
     }
-  }, [assetData]);
-
-  useEffect(() => {
-    if (fxData?.currentRate && currentFxRate === 0) {
-      setCurrentFxRate(fxData.currentRate);
-    }
-  }, [fxData, currentFxRate]);
+  }, [fetchAsset]);
 
   const handleScenarioChange = useCallback(
     (key: ScenarioKey, field: 'deltaStock' | 'deltaFx', value: number) => {
@@ -119,11 +120,11 @@ function App() {
             onHorizonChange={setHorizonMonths}
           />
           <ScenarioEditor
+            key={scenarioEditKey}
             scenarios={scenarios}
             onChange={handleScenarioChange}
             suggestedScenarios={suggestedScenarios}
             onApplySuggested={handleApplySuggested}
-            editKey={scenarioEditKey}
             currentPriceUSD={currentPriceUSD}
             currentFxRate={currentFxRate}
           />
