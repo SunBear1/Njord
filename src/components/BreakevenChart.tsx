@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { HeatmapCell } from '../utils/calculations';
 import { fmtPLN } from '../utils/formatting';
 
@@ -8,10 +9,18 @@ interface BreakevenChartProps {
 }
 
 export function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: BreakevenChartProps) {
-  const deltaStockValues = [...new Set(cells.map((c) => c.deltaStock))].sort((a, b) => b - a);
-  const deltaFxValues = [...new Set(cells.map((c) => c.deltaFx))].sort((a, b) => a - b);
-
-  const cellMap = new Map(cells.map((c) => [`${c.deltaStock},${c.deltaFx}`, c]));
+  const deltaStockValues = useMemo(
+    () => [...new Set(cells.map((c) => c.deltaStock))].sort((a, b) => b - a),
+    [cells],
+  );
+  const deltaFxValues = useMemo(
+    () => [...new Set(cells.map((c) => c.deltaFx))].sort((a, b) => a - b),
+    [cells],
+  );
+  const cellMap = useMemo(
+    () => new Map(cells.map((c) => [`${c.deltaStock},${c.deltaFx}`, c])),
+    [cells],
+  );
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">

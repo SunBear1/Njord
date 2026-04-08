@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { HowItWorks } from './components/HowItWorks';
 import { InputPanel } from './components/InputPanel';
 import { ScenarioEditor } from './components/ScenarioEditor';
@@ -27,6 +27,9 @@ const DEFAULT_SCENARIOS: Scenarios = {
 
 const STORAGE_KEY_API = 'njord_twelve_data_api_key';
 const BUILT_IN_KEY = import.meta.env.VITE_TWELVE_DATA_API_KEY || '';
+
+const ROOT_STYLE = { backgroundColor: 'var(--color-bg-primary)' } as const;
+const FOOTER_STYLE = { borderTop: '1px solid var(--color-border)', color: 'var(--color-text-faint)' } as const;
 
 function App() {
   const [ticker, setTicker] = useState('');
@@ -117,7 +120,7 @@ function App() {
       ? nbpRefRate + bondMargin
       : inflationRate + bondMargin;
 
-  const calcInputs = {
+  const calcInputs = useMemo(() => ({
     shares,
     currentPriceUSD,
     currentFxRate,
@@ -128,17 +131,17 @@ function App() {
     bondEffectiveRate: computedEffectiveRate,
     bondPenaltyPercent: bondPenalty,
     inflationRate,
-  };
+  }), [shares, currentPriceUSD, currentFxRate, wibor3m, horizonMonths, benchmarkType, bondFirstYearRate, computedEffectiveRate, bondPenalty, inflationRate]);
 
   const benchmarkReady = benchmarkType === 'savings' ? wibor3m > 0 : bondFirstYearRate > 0;
   const canCalc = shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && horizonMonths > 0 && benchmarkReady;
 
-  const results = canCalc ? calcAllScenarios(calcInputs, scenarios) : null;
-  const timeline = canCalc ? calcTimeline(calcInputs, scenarios) : null;
-  const heatmap = canCalc ? calcHeatmap(calcInputs) : null;
+  const results = useMemo(() => canCalc ? calcAllScenarios(calcInputs, scenarios) : null, [canCalc, calcInputs, scenarios]);
+  const timeline = useMemo(() => canCalc ? calcTimeline(calcInputs, scenarios) : null, [canCalc, calcInputs, scenarios]);
+  const heatmap = useMemo(() => canCalc ? calcHeatmap(calcInputs) : null, [canCalc, calcInputs]);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
+    <div className="min-h-screen" style={ROOT_STYLE}>
       <header className="bg-gradient-to-r from-slate-800 to-slate-900 text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-5 flex items-center gap-3">
           {/* Viking drakkar inline icon */}
@@ -253,7 +256,7 @@ function App() {
         <MethodologyPanel />
       </main>
 
-      <footer className="mt-10 py-5 text-center text-xs" style={{ borderTop: '1px solid var(--color-border)', color: 'var(--color-text-faint)' }}>
+      <footer className="mt-10 py-5 text-center text-xs" style={FOOTER_STYLE}>
         Njord — wyłącznie do celów edukacyjnych. Nie stanowi doradztwa inwestycyjnego.
       </footer>
     </div>

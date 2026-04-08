@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   LineChart,
   Line,
@@ -23,13 +24,15 @@ interface TimelineChartProps {
 const fmtTooltip = (value: ValueType | undefined) => fmtPLN(Number(value ?? 0));
 
 export function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate }: TimelineChartProps) {
-  // Add purchasing power line if inflation data is available
-  const chartData = inflationRate > 0
-    ? data.map((point) => ({
-        ...point,
-        purchasingPower: currentValuePLN / Math.pow(1 + inflationRate / 100, point.month / 12),
-      }))
-    : data;
+  const chartData = useMemo(() =>
+    inflationRate > 0
+      ? data.map((point) => ({
+          ...point,
+          purchasingPower: currentValuePLN / Math.pow(1 + inflationRate / 100, point.month / 12),
+        }))
+      : data,
+    [data, inflationRate, currentValuePLN],
+  );
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">
