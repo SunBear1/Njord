@@ -140,13 +140,17 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 
 ## Conventions
 
-- **UI language:** Polish (labels, error messages, descriptions)
+- **UI language:** Polish (labels, error messages, descriptions) — this is the ONLY place Polish is used
+- **Code language:** English (variable names, function names, comments, type names)
+- **Commit messages:** English, following [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`)
+- **Documentation:** English (README.md, AGENTS.md, code comments, JSDoc)
 - **Styling:** Tailwind CSS v4 only (utility classes); no CSS modules or styled-components. Semantic color tokens are defined in `src/index.css` via `@theme` — use them when available, add new ones when needed.
 - **Components:** Functional with hooks; no classes; props explicitly typed via interfaces
 - **No routing** — single-page application
 - **No tests** — no test framework configured (vitest, jest)
 - **Base path:** `/Njord/` (vite.config.ts) — required for GitHub Pages
 - **Deploy:** Automatic on `main` push via `.github/workflows/deploy.yml`
+- **Agent docs:** `AGENTS.md` at repo root — this is the standard location for GitHub Copilot and other AI agents. For monorepo subprojects, nested `AGENTS.md` files can be placed in subdirectories.
 
 ---
 
@@ -202,6 +206,14 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 ## Future planned features
 
 - **ETFs as benchmark** — third option alongside savings and bonds
-- **Dark theme** — light/dark toggle with localStorage persistence
-- **Multiple investment indicators** — advanced metrics from historical data
-- **Historical suggested scenarios auto-applied by default** — already implemented
+- **Dark theme** — light/dark toggle with localStorage persistence; CSS custom properties already extracted in `index.css`, commented-out dark values ready
+- **Multiple investment indicators** — Sharpe ratio, max drawdown, VaR, Sortino from historical data
+- **Dividend support** — incorporate stock dividend yields into return calculations
+
+## Notes for AI agents
+
+- Historical volatility scenarios are auto-applied on first data load (via `useEffect` + `scenariosAutoApplied` ref in `App.tsx`). The "Przywróć z historii" button restores them after manual edits.
+- Inflation impact is shown as real returns (Fisher formula) alongside nominal values. The orange warning banner appears only when `inflationRate > 0`.
+- The purchasing power line on the timeline chart is a dashed orange line showing value erosion from inflation.
+- `wibor3m` state variable in `App.tsx` represents the savings account interest rate (not the raw WIBOR 3M index). Help text in the UI clarifies this.
+- All financial calculations are pure functions in `calculations.ts` — easy to unit test if a test framework is added later.
