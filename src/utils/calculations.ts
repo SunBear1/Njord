@@ -10,7 +10,7 @@ export interface CalcInputs {
   // Benchmark
   benchmarkType: BenchmarkType;
   // Savings fields
-  wibor3mPercent: number; // e.g. 5.82 for 5.82%
+  wibor3mPercent: number; // annual savings account rate (%). Historic name; WIBOR 3M ended in 2025.
   // Bond fields — variable-rate support
   bondFirstYearRate: number;  // % for first year/period
   bondEffectiveRate: number;  // % for subsequent years (pre-computed from type + inflation/ref)
@@ -179,9 +179,11 @@ export function calcTimeline(inputs: CalcInputs, scenarios: Scenarios): Timeline
 
     const calcAt = (params: ScenarioParams) => {
       const fraction = m / inputs.horizonMonths;
+      // Geometric interpolation: stock prices follow multiplicative (log-normal) dynamics,
+      // so the correct partial-horizon delta is geometric, not linear.
       const scaledParams: ScenarioParams = {
-        deltaStock: params.deltaStock * fraction,
-        deltaFx: params.deltaFx * fraction,
+        deltaStock: (Math.pow(1 + params.deltaStock / 100, fraction) - 1) * 100,
+        deltaFx:    (Math.pow(1 + params.deltaFx    / 100, fraction) - 1) * 100,
       };
       return calcStockScenario(bmInputs, scaledParams).netEndValue;
     };

@@ -11,6 +11,7 @@ interface VerdictBannerProps {
   currentInflationRate: number;
   inflationSource?: string;
   cpiPeriod?: string;
+  inflationStale?: boolean;
   horizonMonths: number;
 }
 
@@ -32,7 +33,7 @@ const SCENARIO_STYLE = {
   },
 };
 
-export function VerdictBanner({ results, inflationRate, currentInflationRate, inflationSource, cpiPeriod, horizonMonths }: VerdictBannerProps) {
+export function VerdictBanner({ results, inflationRate, currentInflationRate, inflationSource, cpiPeriod, inflationStale, horizonMonths }: VerdictBannerProps) {
   const bmLabel = results[0]?.benchmarkLabel ?? 'Konto';
   const hasInflation = inflationRate > 0;
   const horizonYears = horizonMonths / 12;
@@ -128,6 +129,11 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
                 <strong>{inflationRate.toFixed(1)}% śr. rocznie</strong>{' '}
                 (zbieżność bieżącej stawki do celu NBP {NBP_TARGET}%).
               </p>
+              {inflationStale && (
+                <p className="text-amber-700 text-xs font-medium">
+                  ⚠ Dane inflacyjne mogą być nieaktualne (starsze niż 6 miesięcy). Sprawdź Eurostat lub NBP.
+                </p>
+              )}
               <p className="text-orange-700/80 text-xs">
                 Skumulowana inflacja w horyzoncie:{' '}
                 <strong>{results[0]?.inflationTotalPercent.toFixed(1)}%</strong>.{' '}

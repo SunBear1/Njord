@@ -100,7 +100,6 @@ export function InputPanel({
   const [showValueCalc, setShowValueCalc] = useState(false);
   const [totalValueStr, setTotalValueStr] = useState('');
   const [selectedBondId, setSelectedBondId] = useState(BOND_PRESETS[0].id);
-  const [bondPenaltyStr, setBondPenaltyStr] = useState(String(bondPenalty));
   const isFirstRender = useRef(true);
   const rateLimited = assetError === 'RATE_LIMIT';
 
@@ -112,7 +111,6 @@ export function InputPanel({
     const earlyExit = horizonMonths < preset.maturityMonths;
     const penalty = earlyExit ? preset.earlyRedemptionPenalty : 0;
     onBondPenaltyChange(penalty);
-    setBondPenaltyStr(String(penalty));
   };
 
   // Re-evaluate penalty whenever horizon changes (Bug B fix)
@@ -123,7 +121,6 @@ export function InputPanel({
     const earlyExit = horizonMonths < preset.maturityMonths;
     const penalty = earlyExit ? preset.earlyRedemptionPenalty : 0;
     onBondPenaltyChange(penalty);
-    setBondPenaltyStr(String(penalty));
   }, [horizonMonths, selectedBondId, benchmarkType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-fetch with 800ms debounce, requires ticker + API key
@@ -571,9 +568,8 @@ export function InputPanel({
                       min={0}
                       max={10}
                       step={0.01}
-                      value={bondPenaltyStr}
+                      value={bondPenalty}
                       onChange={(e) => {
-                        setBondPenaltyStr(e.target.value);
                         onBondPenaltyChange(parseFloat(e.target.value) || 0);
                       }}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"

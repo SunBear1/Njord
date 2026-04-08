@@ -51,6 +51,8 @@ export interface RegimeInfo {
   currentState: number;
   /** 'bear' or 'bull' label for the current state */
   currentRegimeLabel: 'bear' | 'bull';
+  /** Posterior probability of the current state (0–1), e.g. 0.78 = "78% confidence" */
+  posteriorProbability: number;
   /** Expected duration of each state in trading days */
   expectedDurations: number[];
   /** Per-state annualized mean return (%) */
@@ -349,6 +351,7 @@ export function detectCurrentRegime(obs: number[], model: HmmModel): RegimeInfo 
   return {
     currentState,
     currentRegimeLabel: currentState === 0 ? 'bear' : 'bull',
+    posteriorProbability: posterior[currentState],
     expectedDurations,
     stateMeansAnnual,
     stateSigmasAnnual,

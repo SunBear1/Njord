@@ -4,6 +4,7 @@ export interface InflationData {
   currentRate: number;  // latest monthly YoY % (e.g. 2.5)
   period: string;       // e.g. "2025-12"
   source: string;       // "Eurostat HICP" or "NBP target (fallback)"
+  isStale?: boolean;    // true when data is older than 6 months
 }
 
 // ECB HICP (ICP dataset) — Poland, all items, annual rate of change, monthly
@@ -29,6 +30,17 @@ function parseCsvRow(csv: string): { rate: number; period: string } | null {
 
   if (isNaN(rate) || !period) return null;
   return { rate, period };
+}
+
+/** Returns true if the period (YYYY-MM) is older than 6 months from today. */
+function isStaleData(period: string): boolean {
+  if (!period) return false;
+  const [year, month] = period.split('-').map(Number);
+  if (!year || !month) return false;
+  const dataDate = new Date(year, month - 1, 1);
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+  return dataDate < sixMonthsAgo;
 }
 
 export function useInflationData(onData?: (d: InflationData) => void) {
@@ -58,6 +70,7 @@ export function useInflationData(onData?: (d: InflationData) => void) {
           currentRate: parsed.rate,
           period: parsed.period,
           source: 'Eurostat HICP',
+          isStale: isStaleData(parsed.period),
         };
         setData(result);
         callbackRef.current?.(result);

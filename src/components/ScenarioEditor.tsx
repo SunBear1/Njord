@@ -158,6 +158,7 @@ export function ScenarioEditor({
                       : 'bg-red-50 text-red-700 border-red-200'
                   }`}>
                     HMM: {volatilityStats.regime.currentRegimeLabel}
+                    {' '}({Math.round(volatilityStats.regime.posteriorProbability * 100)}%)
                   </span>
                 )}
                 <span className="bg-white rounded px-1.5 py-0.5 border border-indigo-100">
@@ -216,7 +217,8 @@ export function ScenarioEditor({
                     {volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState].toFixed(0)}%,
                     śr. czas trwania ~{volatilityStats.regime.expectedDurations[volatilityStats.regime.currentState].toFixed(0)} sesji).{' '}
                     <strong className="text-gray-500">Bear / Bull</strong> = p5% / p95% z {'\u00A0'}3 000 ścieżek Monte Carlo z przejściami reżimów.{' '}
-                    <strong className="text-gray-500">Base = mediana</strong> (p50%) symulacji.
+                    <strong className="text-gray-500">Base = mediana</strong> (p50%) symulacji.{' '}
+                    <em className="text-amber-700">Pewność modelu HMM: {Math.round(volatilityStats.regime.posteriorProbability * 100)}% — dane z ~1 roku, co jest krótkim horyzontem dla modeli reżimowych.</em>
                   </>
                 ) : (
                   <>

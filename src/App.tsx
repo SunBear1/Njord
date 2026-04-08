@@ -47,11 +47,11 @@ function App() {
   const [inflationRate, setInflationRate] = useState(0);
   const [nbpRefRate, setNbpRefRate] = useState(0);
   const [horizonMonths, setHorizonMonths] = useState(DEFAULT_HORIZON_MONTHS);
-  const [scenarios, setScenarios] = useState<Scenarios>(DEFAULT_SCENARIOS);
+  // null = use HMM suggestions when available; non-null = user has manually overridden
+  const [userScenarios, setUserScenarios] = useState<Scenarios | null>(null);
   const [scenarioEditKey, setScenarioEditKey] = useState(0);
   const fxAutoFilled = useRef(false);
   const inflationAutoFilled = useRef(false);
-  const scenariosAutoApplied = useRef(false);
 
   const handleApiKeyChange = useCallback((key: string) => {
     setApiKey(key);
@@ -86,9 +86,12 @@ function App() {
 
   const handleScenarioChange = useCallback(
     (key: ScenarioKey, field: 'deltaStock' | 'deltaFx', value: number) => {
-      setScenarios((prev) => ({ ...prev, [key]: { ...prev[key], [field]: value } }));
+      setUserScenarios((prev) => {
+        const base = prev ?? suggestedScenarios ?? DEFAULT_SCENARIOS;
+        return { ...base, [key]: { ...base[key], [field]: value } };
+      });
     },
-    [],
+    [suggestedScenarios],
   );
 
   const handleBenchmarkTypeChange = useCallback((v: BenchmarkType) => {
@@ -100,32 +103,39 @@ function App() {
 
   const handleApplySuggested = useCallback(() => {
     if (suggestedScenarios) {
-      setScenarios(suggestedScenarios);
+      setUserScenarios(suggestedScenarios);
       setScenarioEditKey((k) => k + 1);
     }
   }, [suggestedScenarios]);
 
-  // Auto-apply suggested scenarios on first load
+  // Derive active scenarios: user overrides take precedence over HMM suggestions
+  const scenarios = userScenarios ?? suggestedScenarios ?? DEFAULT_SCENARIOS;
+
+  // Auto-apply HMM suggestions once on first arrival — remount ScenarioEditor via key.
+  // The ref guard ensures this runs exactly once; eslint-disable is intentional here.
+  const suggestedAppliedRef = useRef(false);
   useEffect(() => {
-    if (suggestedScenarios && !scenariosAutoApplied.current) {
-      scenariosAutoApplied.current = true;
-      setScenarios(suggestedScenarios);
+    if (suggestedScenarios && !suggestedAppliedRef.current) {
+      suggestedAppliedRef.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setScenarioEditKey((k) => k + 1);
     }
   }, [suggestedScenarios]);
-
-  // Compute effective bond rate based on type + external data
-  const computedEffectiveRate = bondRateType === 'fixed'
-    ? bondFirstYearRate
-    : bondRateType === 'reference'
-      ? nbpRefRate + bondMargin
-      : inflationRate + bondMargin;
 
   // Blended inflation rate: mean-reversion from current rate toward NBP target (2.5%)
   const effectiveInflation = useMemo(
     () => inflationRate > 0 ? blendedInflationRate(inflationRate, horizonMonths) : 0,
     [inflationRate, horizonMonths],
   );
+
+  // Compute effective bond rate based on type + external data.
+  // Inflation-linked bonds use the blended projected rate (not the raw current reading)
+  // to stay consistent with how real returns are calculated.
+  const computedEffectiveRate = bondRateType === 'fixed'
+    ? bondFirstYearRate
+    : bondRateType === 'reference'
+      ? nbpRefRate + bondMargin
+      : effectiveInflation + bondMargin;
 
   const calcInputs = useMemo(() => ({
     shares,
@@ -244,6 +254,7 @@ function App() {
               currentInflationRate={inflationRate}
               inflationSource={inflationData?.source}
               cpiPeriod={inflationData?.period}
+              inflationStale={inflationData?.isStale}
               horizonMonths={horizonMonths}
             />
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
