@@ -11,6 +11,8 @@ interface ScenarioEditorProps {
   currentPriceUSD: number;
   currentFxRate: number;
   volatilityStats: VolatilityStats | null;
+  /** Horizontal compact layout when rendered full-width (InputPanel collapsed) */
+  compact?: boolean;
 }
 
 type InputMode = 'pct' | 'fixed';
@@ -51,6 +53,7 @@ export function ScenarioEditor({
   currentPriceUSD,
   currentFxRate,
   volatilityStats,
+  compact,
 }: ScenarioEditorProps) {
   const [stockMode, setStockMode] = useState<InputMode>('pct');
   const [fxMode, setFxMode] = useState<InputMode>('pct');
@@ -114,11 +117,11 @@ export function ScenarioEditor({
 
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
+    <div className={`bg-white rounded-xl border border-gray-200 shadow-sm ${compact ? 'px-4 py-3' : 'p-5'} space-y-3`}>
 
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-800">Scenariusze</h2>
+        <h2 className={`font-semibold text-gray-800 ${compact ? 'text-base' : 'text-lg'}`}>Scenariusze</h2>
         {suggestedScenarios && (
           <button
             onClick={onApplySuggested}
@@ -130,7 +133,7 @@ export function ScenarioEditor({
         )}
       </div>
 
-      {suggestedScenarios && (
+      {!compact && suggestedScenarios && (
         <p className="text-xs text-gray-400">
           {volatilityStats?.regime
             ? 'Scenariusze z modelu HMM + Monte Carlo na historycznych danych. Base = cena bez zmian. Możesz edytować.'
@@ -138,8 +141,8 @@ export function ScenarioEditor({
         </p>
       )}
 
-      {/* Analysis card — compact, collapsible */}
-      {volatilityStats && (
+      {/* Analysis card — compact, collapsible (hidden in compact mode) */}
+      {!compact && volatilityStats && (
         <div className="border border-indigo-100 rounded-lg overflow-hidden">
           <button
             onClick={() => setStatsOpen(o => !o)}
@@ -326,10 +329,12 @@ export function ScenarioEditor({
       </div>
 
       {/* Legend */}
-      <p className="text-xs text-gray-400 bg-gray-50 rounded-lg px-3 py-2 leading-relaxed">
-        <strong className="text-gray-500">%</strong> — zmiana względem wartości dziś &nbsp;·&nbsp;{' '}
-        <strong className="text-gray-500">USD / PLN</strong> — wartość docelowa bezwzględna (np. 4,12 PLN za dolara)
-      </p>
+      {!compact && (
+        <p className="text-xs text-gray-400 bg-gray-50 rounded-lg px-3 py-2 leading-relaxed">
+          <strong className="text-gray-500">%</strong> — zmiana względem wartości dziś &nbsp;·&nbsp;{' '}
+          <strong className="text-gray-500">USD / PLN</strong> — wartość docelowa bezwzględna (np. 4,12 PLN za dolara)
+        </p>
+      )}
     </div>
   );
 }
