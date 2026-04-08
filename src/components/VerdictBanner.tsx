@@ -1,9 +1,10 @@
 import type { ScenarioResult } from '../types/scenario';
 import { fmtPLN, fmtDiff, fmtDiffPct } from '../utils/formatting';
-import { Trophy, Info } from 'lucide-react';
+import { Trophy, Info, TrendingDown } from 'lucide-react';
 
 interface VerdictBannerProps {
   results: ScenarioResult[];
+  inflationRate: number;
 }
 
 const SCENARIO_STYLE = {
@@ -24,7 +25,7 @@ const SCENARIO_STYLE = {
   },
 };
 
-export function VerdictBanner({ results }: VerdictBannerProps) {
+export function VerdictBanner({ results, inflationRate }: VerdictBannerProps) {
   const bmLabel = results[0]?.benchmarkLabel ?? 'Konto';
 
   return (
@@ -55,6 +56,11 @@ export function VerdictBanner({ results }: VerdictBannerProps) {
                   </div>
                   <div className="text-base font-bold text-gray-800">{fmtPLN(r.stockNetEndValuePLN)}</div>
                   <div className="text-xs font-medium text-blue-600">{fmtDiffPct(r.stockReturnNet)}</div>
+                  {inflationRate > 0 && (
+                    <div className="text-[10px] text-gray-400">
+                      realnie {r.stockRealReturnNet >= 0 ? '+' : ''}{r.stockRealReturnNet.toFixed(2)}%
+                    </div>
+                  )}
                 </div>
 
                 {/* Benchmark column */}
@@ -67,6 +73,11 @@ export function VerdictBanner({ results }: VerdictBannerProps) {
                   <div className="text-xs font-medium text-purple-600">
                     {r.benchmarkReturnNet >= 0 ? '+' : ''}{r.benchmarkReturnNet.toFixed(2)}%
                   </div>
+                  {inflationRate > 0 && (
+                    <div className="text-[10px] text-gray-400">
+                      realnie {r.benchmarkRealReturnNet >= 0 ? '+' : ''}{r.benchmarkRealReturnNet.toFixed(2)}%
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -79,6 +90,21 @@ export function VerdictBanner({ results }: VerdictBannerProps) {
         })}
       </div>
 
+      {/* Inflation warning */}
+      {inflationRate > 0 && (
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm text-orange-800">
+          <div className="flex items-start gap-2">
+            <TrendingDown size={16} className="mt-0.5 flex-shrink-0 text-orange-500" />
+            <p>
+              <strong>Inflacja ({inflationRate.toFixed(1)}% rocznie)</strong> obniża realną wartość zysku.{' '}
+              Przy skumulowanej inflacji{' '}
+              <strong>{results[0]?.inflationTotalPercent.toFixed(1)}%</strong>{' '}
+              w wybranym horyzoncie, nominalne zyski są wyższe niż realne — uwzględnij to w decyzji.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Summary note */}
       <div className="bg-white border border-gray-200 rounded-xl p-4 text-sm text-gray-600">
         <div className="flex items-start gap-2">
@@ -88,6 +114,7 @@ export function VerdictBanner({ results }: VerdictBannerProps) {
             <strong className="text-gray-900">{fmtPLN(results[0]?.currentValuePLN ?? 0)}</strong>.{' '}
             Porównanie uwzględnia podatek Belki (19%) od zysku zarówno z akcji, jak i z{' '}
             {bmLabel === 'Obligacje' ? 'obligacji' : 'konta oszczędnościowego'}.
+            {inflationRate > 0 && ' Wartości realne (po uwzględnieniu inflacji) wyświetlane są mniejszym drukiem.'}
           </p>
         </div>
       </div>

@@ -45,7 +45,8 @@ export function HowItWorks() {
           </ol>
           <div className="bg-blue-100 rounded-lg p-3 text-xs">
             <strong>Uwaga:</strong> Kalkulator uwzględnia podatek Belki (19%) zarówno od zysku
-            z akcji, jak i od odsetek z konta oszczędnościowego. Nie uwzględnia prowizji
+            z akcji, jak i od odsetek z konta oszczędnościowego / obligacji. Wpływ inflacji na realną
+            wartość zysku wyświetlany jest osobno. Nie uwzględnia prowizji
             maklerskich ani różnic kursowych przy wymianie walut.
           </div>
         </div>

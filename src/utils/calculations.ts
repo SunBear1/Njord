@@ -15,6 +15,8 @@ export interface CalcInputs {
   bondFirstYearRate: number;  // % for first year/period
   bondEffectiveRate: number;  // % for subsequent years (pre-computed from type + inflation/ref)
   bondPenaltyPercent: number;
+  // Inflation
+  inflationRate: number; // annual CPI % (e.g. 3.6 for 3.6%)
 }
 
 export function calcCurrentValuePLN(inputs: CalcInputs): number {
@@ -108,6 +110,10 @@ export function calcAllScenarios(inputs: CalcInputs, scenarios: Scenarios): Scen
   const bmReturn = ((bmEndValue - currentValuePLN) / currentValuePLN) * 100;
   const bmLabel = benchmarkLabel(inputs.benchmarkType);
 
+  // Cumulative inflation over the horizon (compound)
+  const years = inputs.horizonMonths / 12;
+  const inflationTotalPercent = (Math.pow(1 + inputs.inflationRate / 100, years) - 1) * 100;
+
   const labels: Record<ScenarioKey, string> = { bear: 'Bear', base: 'Base', bull: 'Bull' };
 
   return (['bear', 'base', 'bull'] as ScenarioKey[]).map((key) => {
@@ -116,6 +122,10 @@ export function calcAllScenarios(inputs: CalcInputs, scenarios: Scenarios): Scen
     const differencePLN = netEndValue - bmEndValue;
     const differencePercent = (differencePLN / currentValuePLN) * 100;
     const stockReturnNet = ((netEndValue - currentValuePLN) / currentValuePLN) * 100;
+
+    // Real returns: Fisher approximation for small values, exact for larger
+    const stockRealReturnNet = ((1 + stockReturnNet / 100) / (1 + inflationTotalPercent / 100) - 1) * 100;
+    const benchmarkRealReturnNet = ((1 + bmReturn / 100) / (1 + inflationTotalPercent / 100) - 1) * 100;
 
     return {
       key,
@@ -130,6 +140,9 @@ export function calcAllScenarios(inputs: CalcInputs, scenarios: Scenarios): Scen
       stockReturnNet,
       benchmarkReturnNet: bmReturn,
       benchmarkLabel: bmLabel,
+      stockRealReturnNet,
+      benchmarkRealReturnNet,
+      inflationTotalPercent,
     };
   });
 }

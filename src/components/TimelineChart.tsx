@@ -17,17 +17,29 @@ interface TimelineChartProps {
   data: TimelinePoint[];
   currentValuePLN: number;
   benchmarkLabel: string;
+  inflationRate: number;
 }
 
 const fmtTooltip = (value: ValueType | undefined) => fmtPLN(Number(value ?? 0));
 
-export function TimelineChart({ data, currentValuePLN, benchmarkLabel }: TimelineChartProps) {
+export function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate }: TimelineChartProps) {
+  // Add purchasing power line if inflation data is available
+  const chartData = inflationRate > 0
+    ? data.map((point) => ({
+        ...point,
+        purchasingPower: currentValuePLN / Math.pow(1 + inflationRate / 100, point.month / 12),
+      }))
+    : data;
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">
       <h3 className="text-base font-semibold text-gray-800">Wartość w czasie</h3>
-      <p className="text-xs text-gray-500">Prognozowana wartość portfela przez cały horyzont (netto po Belce)</p>
+      <p className="text-xs text-gray-500">
+        Prognozowana wartość portfela przez cały horyzont (netto po Belce)
+        {inflationRate > 0 && '. Linia „Siła nabywcza" pokazuje erozję wartości pieniądza przez inflację.'}
+      </p>
       <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={data} margin={{ top: 5, right: 5, bottom: 24, left: 10 }}>
+        <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 24, left: 10 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis
             dataKey="month"
@@ -46,6 +58,9 @@ export function TimelineChart({ data, currentValuePLN, benchmarkLabel }: Timelin
           <Line type="monotone" dataKey="bear" name="Bear" stroke="#ef4444" strokeWidth={2} dot={false} strokeDasharray="5 3" />
           <Line type="monotone" dataKey="base" name="Base" stroke="#f59e0b" strokeWidth={2} dot={false} />
           <Line type="monotone" dataKey="bull" name="Bull" stroke="#22c55e" strokeWidth={2} dot={false} />
+          {inflationRate > 0 && (
+            <Line type="monotone" dataKey="purchasingPower" name="Siła nabywcza" stroke="#f97316" strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
+          )}
         </LineChart>
       </ResponsiveContainer>
     </div>

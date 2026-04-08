@@ -36,4 +36,8 @@ export interface ScenarioResult {
   stockReturnNet: number;
   benchmarkReturnNet: number;
   benchmarkLabel: string;
+  // Inflation-adjusted (real) returns
+  stockRealReturnNet: number;
+  benchmarkRealReturnNet: number;
+  inflationTotalPercent: number; // cumulative inflation over horizon
 }

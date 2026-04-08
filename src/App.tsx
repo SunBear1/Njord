@@ -117,6 +117,7 @@ function App() {
     bondFirstYearRate,
     bondEffectiveRate: computedEffectiveRate,
     bondPenaltyPercent: bondPenalty,
+    inflationRate,
   };
 
   const benchmarkReady = benchmarkType === 'savings' ? wibor3m > 0 : bondFirstYearRate > 0;
@@ -217,7 +218,7 @@ function App() {
 
         {results && (
           <>
-            <VerdictBanner results={results} />
+            <VerdictBanner results={results} inflationRate={inflationRate} />
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               <ComparisonChart results={results} />
               {timeline && (
@@ -225,6 +226,7 @@ function App() {
                   data={timeline}
                   currentValuePLN={results[0]?.currentValuePLN ?? 0}
                   benchmarkLabel={results[0]?.benchmarkLabel ?? 'Konto'}
+                  inflationRate={inflationRate}
                 />
               )}
             </div>

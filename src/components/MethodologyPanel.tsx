@@ -138,6 +138,19 @@ export function MethodologyPanel() {
           </section>
 
           {/* Założenia */}
+          {/* 7. Korekta o inflację */}
+          <section className="space-y-1">
+            <h3 className="font-semibold text-slate-900">7. Korekta o inflację (zwrot realny)</h3>
+            <div className="bg-white border border-slate-200 rounded-lg p-3 font-mono text-xs">
+              Inflacja<sub>skumulowana</sub> = (1 + r<sub>CPI</sub>)<sup>T</sup> − 1<br />
+              Zwrot<sub>realny</sub> = (1 + Zwrot<sub>nominalny</sub>) / (1 + Inflacja<sub>skumulowana</sub>) − 1
+            </div>
+            <p className="text-xs text-slate-600">
+              Stosujemy dokładny wzór Fishera. Stopa inflacji pochodzi z danych GUS (CPI rok do roku).
+              Zwrot realny pokazuje, ile faktycznie zyskujesz po uwzględnieniu spadku siły nabywczej pieniądza.
+            </p>
+          </section>
+
           <section className="bg-amber-50 border border-amber-100 rounded-lg p-3 space-y-1">
             <h3 className="font-semibold text-amber-900">Założenia i ograniczenia</h3>
             <ul className="list-disc list-inside text-xs text-amber-800 space-y-1">
@@ -157,6 +170,10 @@ export function MethodologyPanel() {
               </li>
               <li>
                 <strong>Brak dywidend</strong> — nie uwzględniamy wypłat z akcji
+              </li>
+              <li>
+                <strong>Inflacja stała</strong> — zakładamy stałą roczną stopę CPI z ostatniego odczytu GUS;
+                rzeczywista inflacja może się zmieniać
               </li>
               <li>
                 <strong>Dane historyczne (~1 rok)</strong> — zmienność i korelacja mogą się
