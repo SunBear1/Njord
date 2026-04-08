@@ -231,7 +231,12 @@ function App() {
 
         {results && (
           <>
-            <VerdictBanner results={results} inflationRate={inflationRate} />
+            <VerdictBanner
+              results={results}
+              inflationRate={inflationRate}
+              cpiPeriod={inflationData?.period}
+              horizonMonths={horizonMonths}
+            />
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               <ComparisonChart results={results} />
               {timeline && (

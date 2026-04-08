@@ -5,6 +5,8 @@ import { Trophy, Info, TrendingDown } from 'lucide-react';
 interface VerdictBannerProps {
   results: ScenarioResult[];
   inflationRate: number;
+  cpiPeriod?: string;
+  horizonMonths: number;
 }
 
 const SCENARIO_STYLE = {
@@ -25,9 +27,11 @@ const SCENARIO_STYLE = {
   },
 };
 
-export function VerdictBanner({ results, inflationRate }: VerdictBannerProps) {
+export function VerdictBanner({ results, inflationRate, cpiPeriod, horizonMonths }: VerdictBannerProps) {
   const bmLabel = results[0]?.benchmarkLabel ?? 'Konto';
   const hasInflation = inflationRate > 0;
+  const horizonYears = horizonMonths / 12;
+  const isLongHorizon = horizonMonths > 24;
 
   return (
     <div className="space-y-3">
@@ -111,12 +115,21 @@ export function VerdictBanner({ results, inflationRate }: VerdictBannerProps) {
         <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm text-orange-800">
           <div className="flex items-start gap-2">
             <TrendingDown size={16} className="mt-0.5 flex-shrink-0 text-orange-500" aria-hidden="true" />
-            <p>
-              <strong>Inflacja ({inflationRate.toFixed(1)}% rocznie)</strong> obniża realną wartość zysku.{' '}
-              Przy skumulowanej inflacji{' '}
-              <strong>{results[0]?.inflationTotalPercent.toFixed(1)}%</strong>{' '}
-              w wybranym horyzoncie, nominalne zyski są wyższe niż realne — uwzględnij to w decyzji.
-            </p>
+            <div className="space-y-1">
+              <p>
+                <strong>Inflacja ({inflationRate.toFixed(1)}% rocznie{cpiPeriod ? `, dane GUS za ${cpiPeriod} r.` : ''})</strong>{' '}
+                obniża realną wartość zysku.{' '}
+                Przy skumulowanej inflacji{' '}
+                <strong>{results[0]?.inflationTotalPercent.toFixed(1)}%</strong>{' '}
+                w wybranym horyzoncie ({horizonYears.toFixed(horizonYears % 1 === 0 ? 0 : 1)} l.), nominalne zyski są wyższe niż realne.
+              </p>
+              <p className="text-orange-700/80 text-xs">
+                ⚠ Przyjmujemy stałą inflację {inflationRate.toFixed(1)}% przez cały horyzont — to uproszczenie.
+                {isLongHorizon
+                  ? ' Przy dłuższym horyzoncie rzeczywista inflacja może się znacząco różnić od obecnej. Traktuj wartości realne jako orientacyjne, nie prognozę.'
+                  : ' Przy krótkim horyzoncie to rozsądne przybliżenie.'}
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -130,7 +143,9 @@ export function VerdictBanner({ results, inflationRate }: VerdictBannerProps) {
             <strong className="text-gray-900">{fmtPLN(results[0]?.currentValuePLN ?? 0)}</strong>.{' '}
             Porównanie uwzględnia podatek Belki (19%) od zysku zarówno z akcji, jak i z{' '}
             {bmLabel === 'Obligacje' ? 'obligacji' : 'konta oszczędnościowego'}.
-            {hasInflation && ' Wartości realne (po uwzględnieniu inflacji) wyświetlane są mniejszym drukiem.'}
+            {hasInflation
+              ? ` Inflacja (${inflationRate.toFixed(1)}% r/r${cpiPeriod ? `, GUS ${cpiPeriod}` : ''}) jest uwzględniona — wartości realne pokazane pomarańczowym drukiem.`
+              : ' Dane o inflacji nie zostały jeszcze załadowane — wartości podane są nominalne.'}
           </p>
         </div>
       </div>
