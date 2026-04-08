@@ -587,26 +587,49 @@ export function InputPanel({
           onChange={(e) => onHorizonChange(Number(e.target.value))}
           className="w-full accent-blue-600"
         />
-        {benchmarkType === 'savings' ? (
-          <div className="flex justify-between text-xs text-gray-400">
-            <span>1m</span>
-            <span>6m</span>
-            <span>1r</span>
-            <span>2r</span>
-            <span>3r</span>
-            <span>5r</span>
-          </div>
-        ) : (
-          <div className="flex justify-between text-xs text-gray-400">
-            <span>1m</span>
-            <span>1r</span>
-            <span>2r</span>
-            <span>3r</span>
-            <span>5r</span>
-            <span>10r</span>
-            <span>12r</span>
-          </div>
-        )}
+        {(() => {
+          const sliderMin = 1;
+          const sliderMax = benchmarkType === 'savings' ? 60 : 144;
+          const ticks = benchmarkType === 'savings'
+            ? [
+                { label: '1m',  months: 1 },
+                { label: '6m',  months: 6 },
+                { label: '1r',  months: 12 },
+                { label: '2r',  months: 24 },
+                { label: '3r',  months: 36 },
+                { label: '5r',  months: 60 },
+              ]
+            : [
+                { label: '1m',  months: 1 },
+                { label: '1r',  months: 12 },
+                { label: '2r',  months: 24 },
+                { label: '3r',  months: 36 },
+                { label: '5r',  months: 60 },
+                { label: '10r', months: 120 },
+                { label: '12r', months: 144 },
+              ];
+          return (
+            <div className="relative h-4">
+              {ticks.map(({ label, months }, i) => {
+                const pct = ((months - sliderMin) / (sliderMax - sliderMin)) * 100;
+                const isFirst = i === 0;
+                const isLast = i === ticks.length - 1;
+                return (
+                  <span
+                    key={label}
+                    className="absolute text-xs text-gray-400"
+                    style={{
+                      left: `${pct}%`,
+                      transform: isFirst ? 'none' : isLast ? 'translateX(-100%)' : 'translateX(-50%)',
+                    }}
+                  >
+                    {label}
+                  </span>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
