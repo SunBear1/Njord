@@ -192,94 +192,77 @@ function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-4 space-y-4">
-        {/*
-          Two-pane layout: on lg+ each column scrolls independently,
-          keeping ScenarioEditor + results always in view alongside InputPanel.
-          On mobile: single column stacked normally.
-        */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-          {/* LEFT pane — InputPanel, independent scroll on lg+ */}
-          <div className="lg:h-[calc(100vh-5.5rem)] lg:overflow-y-auto lg:pr-2">
-            <InputPanel
-              onFetchAsset={fetchData}
-              assetData={assetData}
-              assetLoading={assetLoading}
-              assetError={assetError}
-              fxData={fxData}
-              fxLoading={fxLoading}
-              ticker={ticker}
-              apiKey={apiKey}
-              shares={shares}
-              currentPriceUSD={currentPriceUSD}
-              currentFxRate={currentFxRate}
-              wibor3m={wibor3m}
-              effectiveSavingsRate={effectiveSavingsRate}
-              horizonMonths={horizonMonths}
-              benchmarkType={benchmarkType}
-              bondFirstYearRate={bondFirstYearRate}
-              bondEffectiveRate={computedEffectiveRate}
-              bondPenalty={bondPenalty}
-              bondRateType={bondRateType}
-              bondMargin={bondMargin}
-              inflationRate={inflationRate}
-              inflationData={inflationData}
-              inflationLoading={inflationLoading}
-              nbpRefRate={nbpRefRate}
-              onTickerChange={setTicker}
-              onApiKeyChange={handleApiKeyChange}
-              onSharesChange={setShares}
-              onPriceChange={setCurrentPriceUSD}
-              onFxRateChange={setCurrentFxRate}
-              onWiborChange={setWibor3m}
-              onHorizonChange={setHorizonMonths}
-              onBenchmarkTypeChange={handleBenchmarkTypeChange}
-              onBondFirstYearRateChange={setBondFirstYearRate}
-              onBondPenaltyChange={setBondPenalty}
-              onBondRateTypeChange={setBondRateType}
-              onBondMarginChange={setBondMargin}
-              onInflationRateChange={setInflationRate}
-              onNbpRefRateChange={setNbpRefRate}
-            />
-          </div>
-
-          {/* RIGHT pane — ScenarioEditor + Results, independent scroll on lg+ */}
-          <div className="lg:h-[calc(100vh-5.5rem)] lg:overflow-y-auto lg:pr-2 space-y-4">
-            <ScenarioEditor
-              key={scenarioEditKey}
-              scenarios={scenarios}
-              onChange={handleScenarioChange}
-              suggestedScenarios={suggestedScenarios}
-              onApplySuggested={handleApplySuggested}
-              currentPriceUSD={currentPriceUSD}
-              currentFxRate={currentFxRate}
-              volatilityStats={volatilityStats}
-            />
-
-            {!canCalc && (
-              <div className="bg-white rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-400 space-y-1">
-                <p className="font-medium">Uzupełnij dane wejściowe</p>
-                <p className="text-sm">Wpisz ticker, liczbę akcji i oprocentowanie {benchmarkType === 'bonds' ? 'obligacji' : 'konta oszczędnościowego'}.</p>
-              </div>
-            )}
-
-            {results && (
-              <VerdictBanner
-                results={results}
-                inflationRate={effectiveInflation}
-                currentInflationRate={inflationRate}
-                inflationSource={inflationData?.source}
-                cpiPeriod={inflationData?.period}
-                inflationStale={inflationData?.isStale}
-                horizonMonths={horizonMonths}
-              />
-            )}
-          </div>
+          <InputPanel
+            onFetchAsset={fetchData}
+            assetData={assetData}
+            assetLoading={assetLoading}
+            assetError={assetError}
+            fxData={fxData}
+            fxLoading={fxLoading}
+            ticker={ticker}
+            apiKey={apiKey}
+            shares={shares}
+            currentPriceUSD={currentPriceUSD}
+            currentFxRate={currentFxRate}
+            wibor3m={wibor3m}
+            effectiveSavingsRate={effectiveSavingsRate}
+            horizonMonths={horizonMonths}
+            benchmarkType={benchmarkType}
+            bondFirstYearRate={bondFirstYearRate}
+            bondEffectiveRate={computedEffectiveRate}
+            bondPenalty={bondPenalty}
+            bondRateType={bondRateType}
+            bondMargin={bondMargin}
+            inflationRate={inflationRate}
+            inflationData={inflationData}
+            inflationLoading={inflationLoading}
+            nbpRefRate={nbpRefRate}
+            onTickerChange={setTicker}
+            onApiKeyChange={handleApiKeyChange}
+            onSharesChange={setShares}
+            onPriceChange={setCurrentPriceUSD}
+            onFxRateChange={setCurrentFxRate}
+            onWiborChange={setWibor3m}
+            onHorizonChange={setHorizonMonths}
+            onBenchmarkTypeChange={handleBenchmarkTypeChange}
+            onBondFirstYearRateChange={setBondFirstYearRate}
+            onBondPenaltyChange={setBondPenalty}
+            onBondRateTypeChange={setBondRateType}
+            onBondMarginChange={setBondMargin}
+            onInflationRateChange={setInflationRate}
+            onNbpRefRateChange={setNbpRefRate}
+          />
+          <ScenarioEditor
+            key={scenarioEditKey}
+            scenarios={scenarios}
+            onChange={handleScenarioChange}
+            suggestedScenarios={suggestedScenarios}
+            onApplySuggested={handleApplySuggested}
+            currentPriceUSD={currentPriceUSD}
+            currentFxRate={currentFxRate}
+            volatilityStats={volatilityStats}
+          />
         </div>
 
-        {/* Charts — full width below both panes */}
+        {!canCalc && (
+          <div className="bg-white rounded-xl border border-dashed border-gray-300 p-10 text-center text-gray-400 space-y-2">
+            <p className="text-lg">Uzupełnij dane wejściowe, aby zobaczyć wyniki</p>
+            <p className="text-sm">Wpisz ticker, liczbę akcji i oprocentowanie {benchmarkType === 'bonds' ? 'obligacji' : 'konta oszczędnościowego'}.</p>
+          </div>
+        )}
+
         {results && (
           <>
+            <VerdictBanner
+              results={results}
+              inflationRate={effectiveInflation}
+              currentInflationRate={inflationRate}
+              inflationSource={inflationData?.source}
+              cpiPeriod={inflationData?.period}
+              inflationStale={inflationData?.isStale}
+              horizonMonths={horizonMonths}
+            />
             <ComparisonChart results={results} />
             {timeline && (
               <TimelineChart
