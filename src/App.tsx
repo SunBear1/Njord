@@ -9,13 +9,14 @@ import { BreakevenChart } from './components/BreakevenChart';
 import { MethodologyPanel } from './components/MethodologyPanel';
 import { useAssetData } from './hooks/useAssetData';
 import { useFxData } from './hooks/useFxData';
-import { useCpiGus } from './hooks/useCpiGus';
+import { useInflationData } from './hooks/useInflationData';
 import { useHistoricalVolatility } from './hooks/useHistoricalVolatility';
 import {
   calcAllScenarios,
   calcTimeline,
   calcHeatmap,
 } from './utils/calculations';
+import { blendedInflationRate } from './utils/inflationProjection';
 import { DEFAULT_HORIZON_MONTHS } from './utils/assetConfig';
 import type { Scenarios, ScenarioKey, BenchmarkType, BondRateType } from './types/scenario';
 
@@ -64,10 +65,10 @@ function App() {
       setCurrentFxRate(data.currentRate);
     }
   });
-  const { data: inflationData, isLoading: inflationLoading } = useCpiGus((d) => {
+  const { data: inflationData, isLoading: inflationLoading } = useInflationData((d) => {
     if (!inflationAutoFilled.current) {
       inflationAutoFilled.current = true;
-      setInflationRate(d.rate);
+      setInflationRate(d.currentRate);
     }
   });
   const { suggestedScenarios, stats: volatilityStats } = useHistoricalVolatility(
@@ -120,6 +121,12 @@ function App() {
       ? nbpRefRate + bondMargin
       : inflationRate + bondMargin;
 
+  // Blended inflation rate: mean-reversion from current rate toward NBP target (2.5%)
+  const effectiveInflation = useMemo(
+    () => inflationRate > 0 ? blendedInflationRate(inflationRate, horizonMonths) : 0,
+    [inflationRate, horizonMonths],
+  );
+
   const calcInputs = useMemo(() => ({
     shares,
     currentPriceUSD,
@@ -130,8 +137,8 @@ function App() {
     bondFirstYearRate,
     bondEffectiveRate: computedEffectiveRate,
     bondPenaltyPercent: bondPenalty,
-    inflationRate,
-  }), [shares, currentPriceUSD, currentFxRate, wibor3m, horizonMonths, benchmarkType, bondFirstYearRate, computedEffectiveRate, bondPenalty, inflationRate]);
+    inflationRate: effectiveInflation,
+  }), [shares, currentPriceUSD, currentFxRate, wibor3m, horizonMonths, benchmarkType, bondFirstYearRate, computedEffectiveRate, bondPenalty, effectiveInflation]);
 
   const benchmarkReady = benchmarkType === 'savings' ? wibor3m > 0 : bondFirstYearRate > 0;
   const canCalc = shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && horizonMonths > 0 && benchmarkReady;
@@ -233,7 +240,9 @@ function App() {
           <>
             <VerdictBanner
               results={results}
-              inflationRate={inflationRate}
+              inflationRate={effectiveInflation}
+              currentInflationRate={inflationRate}
+              inflationSource={inflationData?.source}
               cpiPeriod={inflationData?.period}
               horizonMonths={horizonMonths}
             />
@@ -244,7 +253,7 @@ function App() {
                   data={timeline}
                   currentValuePLN={results[0]?.currentValuePLN ?? 0}
                   benchmarkLabel={results[0]?.benchmarkLabel ?? 'Konto'}
-                  inflationRate={inflationRate}
+                  inflationRate={effectiveInflation}
                 />
               )}
             </div>

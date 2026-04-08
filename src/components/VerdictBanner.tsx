@@ -1,10 +1,15 @@
 import type { ScenarioResult } from '../types/scenario';
 import { fmtPLN, fmtDiff, fmtDiffPct } from '../utils/formatting';
 import { Trophy, Info, TrendingDown } from 'lucide-react';
+import { NBP_TARGET } from '../utils/inflationProjection';
 
 interface VerdictBannerProps {
   results: ScenarioResult[];
+  /** Blended effective annual inflation rate used in calculations */
   inflationRate: number;
+  /** Current observed monthly inflation rate (for display) */
+  currentInflationRate: number;
+  inflationSource?: string;
   cpiPeriod?: string;
   horizonMonths: number;
 }
@@ -27,11 +32,10 @@ const SCENARIO_STYLE = {
   },
 };
 
-export function VerdictBanner({ results, inflationRate, cpiPeriod, horizonMonths }: VerdictBannerProps) {
+export function VerdictBanner({ results, inflationRate, currentInflationRate, inflationSource, cpiPeriod, horizonMonths }: VerdictBannerProps) {
   const bmLabel = results[0]?.benchmarkLabel ?? 'Konto';
   const hasInflation = inflationRate > 0;
   const horizonYears = horizonMonths / 12;
-  const isLongHorizon = horizonMonths > 24;
 
   return (
     <div className="space-y-3">
@@ -40,7 +44,7 @@ export function VerdictBanner({ results, inflationRate, cpiPeriod, horizonMonths
         {hasInflation && (
           <span className="inline-flex items-center gap-1 text-xs font-medium bg-orange-100 text-orange-700 border border-orange-200 px-2 py-0.5 rounded-full">
             <TrendingDown size={11} aria-hidden="true" />
-            z uwzgl. inflacji {inflationRate.toFixed(1)}% r/r
+            inflacja {inflationRate.toFixed(1)}% śr./rok
           </span>
         )}
       </div>
@@ -117,17 +121,18 @@ export function VerdictBanner({ results, inflationRate, cpiPeriod, horizonMonths
             <TrendingDown size={16} className="mt-0.5 flex-shrink-0 text-orange-500" aria-hidden="true" />
             <div className="space-y-1">
               <p>
-                <strong>Inflacja ({inflationRate.toFixed(1)}% rocznie{cpiPeriod ? `, dane GUS za ${cpiPeriod} r.` : ''})</strong>{' '}
-                obniża realną wartość zysku.{' '}
-                Przy skumulowanej inflacji{' '}
-                <strong>{results[0]?.inflationTotalPercent.toFixed(1)}%</strong>{' '}
-                w wybranym horyzoncie ({horizonYears.toFixed(horizonYears % 1 === 0 ? 0 : 1)} l.), nominalne zyski są wyższe niż realne.
+                <strong>Inflacja obniża realną wartość zysku.</strong>{' '}
+                Aktualna: <strong>{currentInflationRate.toFixed(1)}% r/r</strong>
+                {cpiPeriod ? ` (${inflationSource}, ${cpiPeriod})` : ''}.{' '}
+                Prognoza dla Twojego horyzontu ({horizonYears.toFixed(horizonYears % 1 === 0 ? 0 : 1)} l.):{' '}
+                <strong>{inflationRate.toFixed(1)}% śr. rocznie</strong>{' '}
+                (zbieżność bieżącej stawki do celu NBP {NBP_TARGET}%).
               </p>
               <p className="text-orange-700/80 text-xs">
-                ⚠ Przyjmujemy stałą inflację {inflationRate.toFixed(1)}% przez cały horyzont — to uproszczenie.
-                {isLongHorizon
-                  ? ' Przy dłuższym horyzoncie rzeczywista inflacja może się znacząco różnić od obecnej. Traktuj wartości realne jako orientacyjne, nie prognozę.'
-                  : ' Przy krótkim horyzoncie to rozsądne przybliżenie.'}
+                Skumulowana inflacja w horyzoncie:{' '}
+                <strong>{results[0]?.inflationTotalPercent.toFixed(1)}%</strong>.{' '}
+                Model zakłada stopniowy powrót inflacji do celu NBP ({NBP_TARGET}%)
+                — to standardowe przybliżenie makroekonomiczne, nie prognoza.
               </p>
             </div>
           </div>
@@ -144,7 +149,7 @@ export function VerdictBanner({ results, inflationRate, cpiPeriod, horizonMonths
             Porównanie uwzględnia podatek Belki (19%) od zysku zarówno z akcji, jak i z{' '}
             {bmLabel === 'Obligacje' ? 'obligacji' : 'konta oszczędnościowego'}.
             {hasInflation
-              ? ` Inflacja (${inflationRate.toFixed(1)}% r/r${cpiPeriod ? `, GUS ${cpiPeriod}` : ''}) jest uwzględniona — wartości realne pokazane pomarańczowym drukiem.`
+              ? ` Inflacja uwzględniona: ${inflationRate.toFixed(1)}% śr. rocznie (bieżąca ${currentInflationRate.toFixed(1)}% → cel NBP ${NBP_TARGET}%). Wartości realne pokazane pomarańczowym drukiem.`
               : ' Dane o inflacji nie zostały jeszcze załadowane — wartości podane są nominalne.'}
           </p>
         </div>

@@ -150,7 +150,11 @@ export function MethodologyPanel() {
               Zwrot<sub>realny</sub> = (1 + Zwrot<sub>nominalny</sub>) / (1 + Inflacja<sub>skumulowana</sub>) − 1
             </div>
             <p className="text-xs text-gray-600">
-              Stosujemy dokładny wzór Fishera. Stopa inflacji pochodzi z danych GUS (CPI rok do roku).
+              Stosujemy dokładny wzór Fishera. Stopa inflacji pochodzi z danych Eurostat (HICP, miesięczne).
+              Zamiast stałej stawki na cały horyzont, używamy modelu <strong>mean-reversion</strong>:{' '}
+              <code className="bg-gray-100 px-1 rounded text-[11px]">rate(t) = 2,5% + (r₀ − 2,5%) × e<sup>−t/18</sup></code>{' '}
+              — bieżąca inflacja stopniowo powraca do celu NBP (2,5%).
+              Obliczona jest efektywna średnia roczna stawka dla konkretnego horyzontu.
               Zwrot realny pokazuje, ile faktycznie zyskujesz po uwzględnieniu spadku siły nabywczej pieniądza.
             </p>
           </section>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Loader2, AlertCircle, CheckCircle2, RefreshCw, Calculator, Info, ExternalLink, TrendingDown } from 'lucide-react';
 import type { AssetData } from '../types/asset';
 import type { FxData } from '../providers/nbpProvider';
-import type { CpiData } from '../hooks/useCpiGus';
+import type { InflationData } from '../hooks/useInflationData';
 import type { BenchmarkType, BondPreset, BondRateType } from '../types/scenario';
 import { fmtUSD, fmtNum } from '../utils/formatting';
 
@@ -38,7 +38,7 @@ interface InputPanelProps {
   bondRateType: BondRateType;
   bondMargin: number;
   inflationRate: number;
-  inflationData: CpiData | null;
+  inflationData: InflationData | null;
   inflationLoading: boolean;
   nbpRefRate: number;
   onTickerChange: (v: string) => void;
@@ -418,7 +418,7 @@ export function InputPanel({
             <div className="flex items-start gap-1.5 mt-1 bg-orange-50 border border-orange-200 rounded-lg px-2.5 py-2 text-xs text-orange-700">
               <TrendingDown size={13} className="mt-0.5 flex-shrink-0" aria-hidden="true" />
               <span>
-                <strong>Inflacja CPI: {inflationRate.toFixed(1)}% r/r (GUS)</strong> — kalkulowane są realne zwroty.
+                <strong>Inflacja HICP: {inflationRate.toFixed(1)}% r/r ({inflationData?.source ?? 'Eurostat'})</strong> — kalkulowane są realne zwroty.
                 {wibor3m > 0 && inflationRate >= wibor3m && (
                   <span className="block mt-0.5 font-medium">
                     Uwaga: oprocentowanie ({wibor3m.toFixed(2)}%) niższe od inflacji — realna stopa ujemna.
@@ -485,8 +485,8 @@ export function InputPanel({
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600">
-                          Inflacja CPI (GUS)
-                          {inflationData && (
+                          Inflacja HICP ({inflationData?.source ?? 'Eurostat'})
+                          {inflationData?.period && (
                             <span className="ml-1 text-gray-400">· {inflationData.period}</span>
                           )}
                           {inflationLoading && (
