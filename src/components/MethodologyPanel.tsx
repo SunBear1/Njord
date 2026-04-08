@@ -70,7 +70,7 @@ export function MethodologyPanel() {
               Obligacje stosują kapitalizację roczną. Kara za wcześniejszy wykup obowiązuje
               gdy horyzont &lt; zapadalność. Obligacje indeksowane inflacją (COI, EDO, ROS, ROD)
               mają stałą stopę w 1. roku, potem inflacja CPI + marża. Inflacja pobierana automatycznie
-              z GUS BDL (oficjalny polski CPI). Obligacje ROS i ROD to obligacje rodzinne (program 800+).
+              z Eurostat HICP (miesięczna, rok do roku). Obligacje ROS i ROD to obligacje rodzinne (program 800+).
               Stawki odpowiadają aktualnej ofercie z obligacjeskarbowe.pl — mogą się zmieniać co miesiąc.
             </p>
           </section>
@@ -180,8 +180,8 @@ export function MethodologyPanel() {
                 <strong>Brak dywidend</strong> — nie uwzględniamy wypłat z akcji
               </li>
               <li>
-                <strong>Inflacja stała</strong> — zakładamy stałą roczną stopę CPI z ostatniego odczytu GUS;
-                rzeczywista inflacja może się zmieniać
+                <strong>Inflacja — model mean-reversion</strong> — prognozujemy zbieżność bieżącej
+                stawki HICP do celu NBP (2,5%); to przybliżenie, nie prognoza
               </li>
               <li>
                 <strong>Dane historyczne (~1 rok)</strong> — zmienność i korelacja mogą się
