@@ -15,6 +15,8 @@ export interface CalcInputs {
   bondFirstYearRate: number;  // % for first year/period
   bondEffectiveRate: number;  // % for subsequent years (pre-computed from type + inflation/ref)
   bondPenaltyPercent: number;
+  bondCouponFrequency: number; // coupon payments/year: 0=capitalized at maturity, 1=annual, 12=monthly
+  bondReinvestmentRate: number; // annual % for reinvesting coupon payments (typically savings rate)
   // Inflation
   inflationRate: number; // annual CPI % (e.g. 3.6 for 3.6%)
 }
@@ -33,7 +35,8 @@ export function calcSavingsEndValue(inputs: CalcInputs): number {
   return currentValuePLN + netInterest;
 }
 
-/** Year-by-year bond compounding with different first-year vs subsequent rates */
+/** Year-by-year bond compounding with different first-year vs subsequent rates.
+ *  Used for capitalized-at-maturity bonds: OTS, TOS, EDO, ROS, ROD. */
 function bondGrossValue(principal: number, firstYearRate: number, effectiveRate: number, months: number): number {
   let value = principal;
   let remaining = months;
@@ -57,19 +60,65 @@ function bondGrossValue(principal: number, firstYearRate: number, effectiveRate:
   return value;
 }
 
-export function calcBondEndValue(inputs: CalcInputs): number {
-  const { bondFirstYearRate, bondEffectiveRate, bondPenaltyPercent, horizonMonths } = inputs;
-  const currentValuePLN = calcCurrentValuePLN(inputs);
+/**
+ * Coupon bond calculation: ROR/DOR (monthly), COI (annual).
+ * Coupons are taxed at 19% per payout, then reinvested at the savings rate.
+ * Principal stays flat — coupons don't compound on bond principal.
+ * Returns total end value = principal + sum of reinvested net coupons.
+ */
+function bondCouponEndValue(
+  principal: number,
+  firstYearRate: number,
+  effectiveRate: number,
+  months: number,
+  couponFrequency: number,
+  reinvestmentRatePercent: number,
+): number {
+  const couponIntervalMonths = 12 / couponFrequency;
+  const monthlyReinvRate = reinvestmentRatePercent / 100 / 12;
+  let totalReinvested = 0;
 
-  const grossEndValue = bondGrossValue(currentValuePLN, bondFirstYearRate, bondEffectiveRate, horizonMonths);
+  for (let m = couponIntervalMonths; m <= months; m += couponIntervalMonths) {
+    const year = Math.ceil(m / 12);
+    const rate = (year === 1 ? firstYearRate : effectiveRate) / 100;
+
+    const grossCoupon = principal * rate * (couponIntervalMonths / 12);
+    const netCoupon = grossCoupon * (1 - BELKA_TAX);
+
+    // Reinvest net coupon at savings rate for remaining months
+    const remainingMonths = months - m;
+    const reinvestedGross = netCoupon * Math.pow(1 + monthlyReinvRate, remainingMonths);
+    // Belka on reinvestment gains
+    const reinvestGain = reinvestedGross - netCoupon;
+    const netReinvested = netCoupon + (reinvestGain > 0 ? reinvestGain * (1 - BELKA_TAX) : reinvestGain);
+
+    totalReinvested += netReinvested;
+  }
+
+  return principal + totalReinvested;
+}
+
+export function calcBondEndValue(inputs: CalcInputs): number {
+  const { bondFirstYearRate, bondEffectiveRate, bondPenaltyPercent, bondCouponFrequency, bondReinvestmentRate, horizonMonths } = inputs;
+  const currentValuePLN = calcCurrentValuePLN(inputs);
   const penalty = currentValuePLN * (bondPenaltyPercent / 100);
-  // Penalty reduces payout before tax is computed
+
+  if (bondCouponFrequency > 0) {
+    // Coupon bond: coupons already taxed per-payout inside bondCouponEndValue
+    const endValue = bondCouponEndValue(
+      currentValuePLN, bondFirstYearRate, bondEffectiveRate,
+      horizonMonths, bondCouponFrequency, bondReinvestmentRate,
+    );
+    return endValue - penalty;
+  }
+
+  // Capitalized bond: tax on total gain at end
+  const grossEndValue = bondGrossValue(currentValuePLN, bondFirstYearRate, bondEffectiveRate, horizonMonths);
   const effectiveGross = grossEndValue - penalty;
   if (effectiveGross > currentValuePLN) {
     const netInterest = (effectiveGross - currentValuePLN) * (1 - BELKA_TAX);
     return currentValuePLN + netInterest;
   }
-  // Loss after penalty — no tax
   return effectiveGross;
 }
 
@@ -165,12 +214,23 @@ export function calcTimeline(inputs: CalcInputs, scenarios: Scenarios): Timeline
     const bmInputs = { ...inputs, horizonMonths: m };
     let benchmarkVal: number;
     if (inputs.benchmarkType === 'bonds') {
-      const grossEnd = bondGrossValue(currentValuePLN, inputs.bondFirstYearRate, inputs.bondEffectiveRate, m);
       const penalty = m < inputs.horizonMonths ? currentValuePLN * (inputs.bondPenaltyPercent / 100) : 0;
-      const effectiveGross = grossEnd - penalty;
-      benchmarkVal = effectiveGross > currentValuePLN
-        ? currentValuePLN + (effectiveGross - currentValuePLN) * (1 - BELKA_TAX)
-        : effectiveGross;
+
+      if (inputs.bondCouponFrequency > 0) {
+        // Coupon bond: use coupon model (tax already handled per-coupon)
+        const endValue = bondCouponEndValue(
+          currentValuePLN, inputs.bondFirstYearRate, inputs.bondEffectiveRate,
+          m, inputs.bondCouponFrequency, inputs.bondReinvestmentRate,
+        );
+        benchmarkVal = endValue - penalty;
+      } else {
+        // Capitalized bond: tax on total gain at end
+        const grossEnd = bondGrossValue(currentValuePLN, inputs.bondFirstYearRate, inputs.bondEffectiveRate, m);
+        const effectiveGross = grossEnd - penalty;
+        benchmarkVal = effectiveGross > currentValuePLN
+          ? currentValuePLN + (effectiveGross - currentValuePLN) * (1 - BELKA_TAX)
+          : effectiveGross;
+      }
     } else {
       const monthlyRate = inputs.wibor3mPercent / 100 / 12;
       const grossEnd = currentValuePLN * Math.pow(1 + monthlyRate, m);

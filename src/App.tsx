@@ -44,6 +44,7 @@ function App() {
   const [bondPenalty, setBondPenalty] = useState(0);
   const [bondRateType, setBondRateType] = useState<BondRateType>('fixed');
   const [bondMargin, setBondMargin] = useState(0);
+  const [bondCouponFrequency, setBondCouponFrequency] = useState(0);
   const [inflationRate, setInflationRate] = useState(0);
   const [nbpRefRate, setNbpRefRate] = useState(0);
   const [horizonMonths, setHorizonMonths] = useState(DEFAULT_HORIZON_MONTHS);
@@ -154,8 +155,10 @@ function App() {
     bondFirstYearRate,
     bondEffectiveRate: computedEffectiveRate,
     bondPenaltyPercent: bondPenalty,
+    bondCouponFrequency,
+    bondReinvestmentRate: effectiveSavingsRate,
     inflationRate: effectiveInflation,
-  }), [shares, currentPriceUSD, currentFxRate, wibor3m, horizonMonths, benchmarkType, bondFirstYearRate, computedEffectiveRate, bondPenalty, effectiveInflation, effectiveSavingsRate]);
+  }), [shares, currentPriceUSD, currentFxRate, wibor3m, horizonMonths, benchmarkType, bondFirstYearRate, computedEffectiveRate, bondPenalty, bondCouponFrequency, effectiveInflation, effectiveSavingsRate]);
 
   const benchmarkReady = benchmarkType === 'savings' ? wibor3m > 0 : bondFirstYearRate > 0;
   const canCalc = shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && horizonMonths > 0 && benchmarkReady;
@@ -237,6 +240,7 @@ function App() {
               onBondPenaltyChange={setBondPenalty}
               onBondRateTypeChange={setBondRateType}
               onBondMarginChange={setBondMargin}
+              onBondCouponFrequencyChange={setBondCouponFrequency}
               onInflationRateChange={setInflationRate}
               onNbpRefRateChange={setNbpRefRate}
             />
@@ -294,6 +298,7 @@ function App() {
                 onBondPenaltyChange={setBondPenalty}
                 onBondRateTypeChange={setBondRateType}
                 onBondMarginChange={setBondMargin}
+                onBondCouponFrequencyChange={setBondCouponFrequency}
                 onInflationRateChange={setInflationRate}
                 onNbpRefRateChange={setNbpRefRate}
               />

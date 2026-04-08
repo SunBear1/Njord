@@ -17,10 +17,10 @@ interface ScenarioEditorProps {
 
 type InputMode = 'pct' | 'fixed';
 
-const SCENARIO_CONFIG: { key: ScenarioKey; label: string; icon: string; accent: string; badge: string; colBg: string }[] = [
-  { key: 'bear', label: 'Bear',  icon: '📉', accent: 'border-red-300',   badge: 'bg-red-50 text-red-700 border border-red-200',     colBg: 'bg-red-50/40' },
-  { key: 'base', label: 'Base',  icon: '⚖️',  accent: 'border-amber-300', badge: 'bg-amber-50 text-amber-700 border border-amber-200', colBg: 'bg-amber-50/40' },
-  { key: 'bull', label: 'Bull',  icon: '📈', accent: 'border-green-300', badge: 'bg-green-50 text-green-700 border border-green-200', colBg: 'bg-green-50/40' },
+const SCENARIO_CONFIG: { key: ScenarioKey; label: string; accent: string; badge: string; colBg: string }[] = [
+  { key: 'bear', label: 'Bear',  accent: 'border-red-300',   badge: 'bg-red-50 text-red-700 border border-red-200',     colBg: 'bg-red-50/40' },
+  { key: 'base', label: 'Base',  accent: 'border-amber-300', badge: 'bg-amber-50 text-amber-700 border border-amber-200', colBg: 'bg-amber-50/40' },
+  { key: 'bull', label: 'Bull',  accent: 'border-green-300', badge: 'bg-green-50 text-green-700 border border-green-200', colBg: 'bg-green-50/40' },
 ];
 
 function initValues(s: Scenarios) {
@@ -258,11 +258,11 @@ export function ScenarioEditor({
       {/* Table layout: rows = fields, columns = scenarios */}
       <div className="space-y-2">
         {/* Column headers */}
-        <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center">
+        <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-2">
           <div />
-          {SCENARIO_CONFIG.map(({ key, label, icon, badge, colBg }) => (
+          {SCENARIO_CONFIG.map(({ key, label, badge, colBg }) => (
             <div key={key} className={`text-center text-xs font-bold px-2 py-1.5 rounded-t-lg ${badge} ${colBg}`}>
-              <span className="mr-1">{icon}</span>{label}
+              {label}
             </div>
           ))}
         </div>

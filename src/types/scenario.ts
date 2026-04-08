@@ -19,6 +19,7 @@ export interface BondPreset {
   firstYearRate: number;          // % for first year/period (promotional)
   margin: number;                 // added to base rate (NBP ref or inflation) for years 2+
   earlyRedemptionPenalty: number; // in % of principal
+  couponFrequency: number;        // coupon payments/year: 0=capitalized at maturity, 1=annual, 12=monthly
   description: string;
   isFamily?: boolean;             // 800+ beneficiaries only
 }

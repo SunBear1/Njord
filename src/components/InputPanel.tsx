@@ -8,14 +8,14 @@ import { fmtUSD, fmtNum } from '../utils/formatting';
 import { Tooltip } from './Tooltip';
 
 const BOND_PRESETS: BondPreset[] = [
-  { id: 'OTS', name: 'OTS (3-mies.)',     maturityMonths: 3,   rateType: 'fixed',     firstYearRate: 2.00, margin: 0,    earlyRedemptionPenalty: 0,    description: 'Stałoprocentowe, 3 miesiące' },
-  { id: 'ROR', name: 'ROR (roczne)',       maturityMonths: 12,  rateType: 'reference', firstYearRate: 4.00, margin: 0,    earlyRedemptionPenalty: 0.50, description: 'Zmiennoprocentowe, stopa ref. NBP' },
-  { id: 'DOR', name: 'DOR (2-letnie)',     maturityMonths: 24,  rateType: 'reference', firstYearRate: 4.15, margin: 0.15, earlyRedemptionPenalty: 0.70, description: 'Zmiennoprocentowe, stopa ref. NBP + 0,15%' },
-  { id: 'TOS', name: 'TOS (3-letnie)',     maturityMonths: 36,  rateType: 'fixed',     firstYearRate: 4.40, margin: 0,    earlyRedemptionPenalty: 0.70, description: 'Stałoprocentowe, 3 lata' },
-  { id: 'COI', name: 'COI (4-letnie)',     maturityMonths: 48,  rateType: 'inflation', firstYearRate: 4.75, margin: 1.50, earlyRedemptionPenalty: 0.70, description: 'Inflacja + 1,50% marży' },
-  { id: 'EDO', name: 'EDO (10-letnie)',    maturityMonths: 120, rateType: 'inflation', firstYearRate: 5.35, margin: 2.00, earlyRedemptionPenalty: 2.00, description: 'Inflacja + 2,00% marży' },
-  { id: 'ROS', name: 'ROS (6-letnie)',     maturityMonths: 72,  rateType: 'inflation', firstYearRate: 5.00, margin: 2.00, earlyRedemptionPenalty: 2.00, description: 'Rodzinne, inflacja + 2,00%', isFamily: true },
-  { id: 'ROD', name: 'ROD (12-letnie)',    maturityMonths: 144, rateType: 'inflation', firstYearRate: 5.60, margin: 2.50, earlyRedemptionPenalty: 2.00, description: 'Rodzinne, inflacja + 2,50%', isFamily: true },
+  { id: 'OTS', name: 'OTS (3-mies.)',     maturityMonths: 3,   rateType: 'fixed',     firstYearRate: 2.00, margin: 0,    earlyRedemptionPenalty: 0,    couponFrequency: 0,  description: 'Stałoprocentowe, 3 miesiące' },
+  { id: 'ROR', name: 'ROR (roczne)',       maturityMonths: 12,  rateType: 'reference', firstYearRate: 4.00, margin: 0,    earlyRedemptionPenalty: 0.50, couponFrequency: 12, description: 'Zmiennoprocentowe, stopa ref. NBP' },
+  { id: 'DOR', name: 'DOR (2-letnie)',     maturityMonths: 24,  rateType: 'reference', firstYearRate: 4.15, margin: 0.15, earlyRedemptionPenalty: 0.70, couponFrequency: 12, description: 'Zmiennoprocentowe, stopa ref. NBP + 0,15%' },
+  { id: 'TOS', name: 'TOS (3-letnie)',     maturityMonths: 36,  rateType: 'fixed',     firstYearRate: 4.40, margin: 0,    earlyRedemptionPenalty: 0.70, couponFrequency: 0,  description: 'Stałoprocentowe, 3 lata' },
+  { id: 'COI', name: 'COI (4-letnie)',     maturityMonths: 48,  rateType: 'inflation', firstYearRate: 4.75, margin: 1.50, earlyRedemptionPenalty: 0.70, couponFrequency: 1,  description: 'Inflacja + 1,50% marży' },
+  { id: 'EDO', name: 'EDO (10-letnie)',    maturityMonths: 120, rateType: 'inflation', firstYearRate: 5.35, margin: 2.00, earlyRedemptionPenalty: 2.00, couponFrequency: 0,  description: 'Inflacja + 2,00% marży' },
+  { id: 'ROS', name: 'ROS (6-letnie)',     maturityMonths: 72,  rateType: 'inflation', firstYearRate: 5.00, margin: 2.00, earlyRedemptionPenalty: 2.00, couponFrequency: 0,  description: 'Rodzinne, inflacja + 2,00%', isFamily: true },
+  { id: 'ROD', name: 'ROD (12-letnie)',    maturityMonths: 144, rateType: 'inflation', firstYearRate: 5.60, margin: 2.50, earlyRedemptionPenalty: 2.00, couponFrequency: 0,  description: 'Rodzinne, inflacja + 2,50%', isFamily: true },
 ];
 
 interface InputPanelProps {
@@ -59,6 +59,7 @@ interface InputPanelProps {
   onBondPenaltyChange: (v: number) => void;
   onBondRateTypeChange: (v: BondRateType) => void;
   onBondMarginChange: (v: number) => void;
+  onBondCouponFrequencyChange: (v: number) => void;
   onInflationRateChange: (v: number) => void;
   onNbpRefRateChange: (v: number) => void;
 }
@@ -101,6 +102,7 @@ export function InputPanel({
   onBondPenaltyChange,
   onBondRateTypeChange,
   onBondMarginChange,
+  onBondCouponFrequencyChange,
   onInflationRateChange,
   onNbpRefRateChange,
 }: InputPanelProps) {
@@ -117,6 +119,7 @@ export function InputPanel({
     onBondFirstYearRateChange(preset.firstYearRate);
     onBondRateTypeChange(preset.rateType);
     onBondMarginChange(preset.margin);
+    onBondCouponFrequencyChange(preset.couponFrequency);
     const earlyExit = horizonMonths < preset.maturityMonths;
     const penalty = earlyExit ? preset.earlyRedemptionPenalty : 0;
     onBondPenaltyChange(penalty);
@@ -464,7 +467,7 @@ export function InputPanel({
               content={
                 <span className="space-y-1 block">
                   {monthlyRate !== null && (
-                    <span className="block">≈ {monthlyRate.toFixed(3)}% miesięcznie (mnożnik ×{(monthlyRate / 100 + 1).toFixed(5)}).</span>
+                    <span className="block">{'\u2248'} {monthlyRate.toFixed(3)}% miesięcznie (mnożnik {'\u00d7'}{(monthlyRate / 100 + 1).toFixed(5)}). Założono kapitalizację miesięczną.</span>
                   )}
                   {effectiveSavingsRate > 0 && wibor3m > 0 && Math.abs(effectiveSavingsRate - wibor3m) > 0.05 ? (
                     <span className="block">Konta oszczędnościowe śledzą stopy NBP. Kalkulator zakłada stopniowy spadek z {wibor3m.toFixed(2)}% do ok. 3,0% w ciągu {Math.round(horizonMonths / 12 * 10) / 10} {horizonMonths >= 24 ? 'lat' : 'roku'}. Efektywna stopa: {effectiveSavingsRate.toFixed(2)}%.</span>
@@ -561,7 +564,7 @@ export function InputPanel({
                           {inflationLoading && <span className="text-gray-400">· ładowanie…</span>}
                           {inflationData && !inflationLoading && (
                             <Tooltip
-                              content={`Źródło: ${inflationData.source}${inflationData.period ? ` (${inflationData.period})` : ''}. Używana do wyliczenia oprocentowania obligacji inflacyjnych. Możesz edytować ręcznie.`}
+                              content={`Źródło: ${inflationData.source}${inflationData.period ? ` (${inflationData.period})` : ''}. Obligacje indeksowane inflacją w rzeczywistości stosują odczyt CPI sprzed 2-3 miesięcy, nie bieżącą projekcję — przy stabilnej inflacji różnica jest minimalna.`}
                               side="bottom"
                             />
                           )}
