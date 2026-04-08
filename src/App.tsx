@@ -111,7 +111,7 @@ function App() {
 
   const handleApplyModelScenarios = useCallback((s: Scenarios) => {
     setUserScenarios(s);
-    setScenarioEditKey((k) => k + 1);
+    // No key increment — preserve ScenarioEditor local state (mode, activeModelId)
   }, []);
 
   // Derive active scenarios: user overrides take precedence over HMM suggestions

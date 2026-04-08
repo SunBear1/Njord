@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Wand2, Info, ChevronDown, ChevronUp, Star, Loader2, HelpCircle } from 'lucide-react';
 import type { Scenarios, ScenarioKey } from '../types/scenario';
 import type { VolatilityStats } from '../hooks/useHistoricalVolatility';
@@ -86,6 +86,17 @@ export function ScenarioEditor({
   const [localValues, setLocalValues] = useState(() => initValues(scenarios));
   const [statsOpen, setStatsOpen] = useState(false);
   const [activeModelId, setActiveModelId] = useState<string | null>(null);
+
+  // Sync localValues when scenarios change externally (model switch, apply suggested)
+  // without remounting the component (preserves stockMode/fxMode/activeModelId)
+  const prevScenariosRef = useRef(scenarios);
+  useEffect(() => {
+    if (scenarios !== prevScenariosRef.current) {
+      prevScenariosRef.current = scenarios;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLocalValues(initValues(scenarios));
+    }
+  }, [scenarios]);
 
   const toDelta = useCallback((raw: string, mode: InputMode, currentVal: number): number => {
     const n = parseFloat(raw);
@@ -242,27 +253,65 @@ export function ScenarioEditor({
                 ? `${Math.round(m.coverageScore * 100)}%`
                 : null;
               return (
-                <button
+                <Tooltip
                   key={m.id}
-                  onClick={() => {
-                    setActiveModelId(m.id);
-                    const s = volatilityStats.modelScenarios[m.id];
-                    if (s) onApplyModelScenarios(s);
-                  }}
-                  title={`${m.description}${coverage ? ` · Coverage: ${coverage}` : ''}`}
-                  className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border transition-colors ${
-                    isActive
-                      ? 'bg-indigo-600 text-white border-indigo-600'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-700'
-                  }`}
+                  side="bottom"
+                  width="w-64"
+                  content={
+                    <span>
+                      <strong>{m.name}</strong>
+                      {isRecommended && <span className="text-amber-300"> (rekomendowany)</span>}
+                      <br />
+                      {m.description}
+                      {coverage && (
+                        <>
+                          <br />
+                          <span className="text-gray-300">Coverage: {coverage} — jak dobrze model przewiduje dane historyczne (cel: 90%).</span>
+                        </>
+                      )}
+                      {isRecommended && (
+                        <>
+                          <br />
+                          <span className="text-amber-200">Wybrany automatycznie jako najlepiej dopasowany do danych.</span>
+                        </>
+                      )}
+                    </span>
+                  }
                 >
-                  {isRecommended && <Star size={10} className={isActive ? 'text-amber-300' : 'text-amber-400'} />}
-                  {m.name}
-                  {coverage && <span className={`text-[10px] ${isActive ? 'text-indigo-200' : 'text-gray-400'}`}>{coverage}</span>}
-                </button>
+                  <button
+                    onClick={() => {
+                      setActiveModelId(m.id);
+                      const s = volatilityStats.modelScenarios[m.id];
+                      if (s) onApplyModelScenarios(s);
+                    }}
+                    className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                      isActive
+                        ? 'bg-indigo-600 text-white border-indigo-600'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-700'
+                    }`}
+                  >
+                    {isRecommended && <Star size={10} className={isActive ? 'text-amber-300' : 'text-amber-400'} />}
+                    {m.name}
+                    {coverage && <span className={`text-[10px] ${isActive ? 'text-indigo-200' : 'text-gray-400'}`}>{coverage}</span>}
+                  </button>
+                </Tooltip>
               );
             })}
-            <span className="text-[10px] text-gray-400 ml-1">{'\u2605'} = rekomendowany</span>
+            <Tooltip
+              side="bottom"
+              width="w-72"
+              content={
+                <span>
+                  Aplikacja uruchamia 3 modele predykcyjne i automatycznie wybiera najlepszy:<br /><br />
+                  <strong>Bootstrap</strong> — losuje bloki historycznych zwrotów, zero założeń<br />
+                  <strong>GARCH</strong> — modeluje zmienną zmienność (vol clustering)<br />
+                  <strong>HMM</strong> — rozpoznaje fazy rynku (bull/bear)<br /><br />
+                  {'\u2605'} = model z najlepszym dopasowaniem do danych (coverage najbliższy 90%)
+                </span>
+              }
+            >
+              <HelpCircle size={13} className="text-gray-300 cursor-help hover:text-gray-500 transition-colors" />
+            </Tooltip>
           </div>
         );
       })()}
@@ -309,9 +358,11 @@ export function ScenarioEditor({
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">{stockUnit}</span>
                   </div>
                   {stockMode === 'fixed' && currentPriceUSD > 0 && (
-                    <div className={`text-[11px] text-center ${stockDelta >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                    <span className={`inline-block text-[10px] rounded-full px-1.5 py-0.5 mx-auto ${
+                      stockDelta >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
+                    }`}>
                       {stockDelta >= 0 ? '+' : ''}{stockDelta.toFixed(1)}%
-                    </div>
+                    </span>
                   )}
                 </div>
 
@@ -331,9 +382,11 @@ export function ScenarioEditor({
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">{fxUnit}</span>
                   </div>
                   {fxMode === 'fixed' && currentFxRate > 0 && (
-                    <div className={`text-[11px] text-center ${fxDelta >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                    <span className={`inline-block text-[10px] rounded-full px-1.5 py-0.5 mx-auto ${
+                      fxDelta >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
+                    }`}>
                       {fxDelta >= 0 ? '+' : ''}{fxDelta.toFixed(1)}%
-                    </div>
+                    </span>
                   )}
                 </div>
               </div>
