@@ -27,10 +27,19 @@ const SCENARIO_STYLE = {
 
 export function VerdictBanner({ results, inflationRate }: VerdictBannerProps) {
   const bmLabel = results[0]?.benchmarkLabel ?? 'Konto';
+  const hasInflation = inflationRate > 0;
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-semibold text-gray-800">Wyniki — co się bardziej opłaca?</h2>
+      <div className="flex items-center gap-3 flex-wrap">
+        <h2 className="text-lg font-semibold text-gray-800">Wyniki — co się bardziej opłaca?</h2>
+        {hasInflation && (
+          <span className="inline-flex items-center gap-1 text-xs font-medium bg-orange-100 text-orange-700 border border-orange-200 px-2 py-0.5 rounded-full">
+            <TrendingDown size={11} aria-hidden="true" />
+            z uwzgl. inflacji {inflationRate.toFixed(1)}% r/r
+          </span>
+        )}
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {results.map((r) => {
           const style = SCENARIO_STYLE[r.key] ?? SCENARIO_STYLE.base;
@@ -56,8 +65,8 @@ export function VerdictBanner({ results, inflationRate }: VerdictBannerProps) {
                   </div>
                   <div className="text-base font-bold text-gray-800">{fmtPLN(r.stockNetEndValuePLN)}</div>
                   <div className="text-xs font-medium text-blue-600">{fmtDiffPct(r.stockReturnNet)}</div>
-                  {inflationRate > 0 && (
-                    <div className="text-[10px] text-gray-400">
+                  {hasInflation && (
+                    <div className="text-[10px] text-orange-600 font-medium">
                       realnie {r.stockRealReturnNet >= 0 ? '+' : ''}{r.stockRealReturnNet.toFixed(2)}%
                     </div>
                   )}
@@ -73,8 +82,8 @@ export function VerdictBanner({ results, inflationRate }: VerdictBannerProps) {
                   <div className="text-xs font-medium text-purple-600">
                     {r.benchmarkReturnNet >= 0 ? '+' : ''}{r.benchmarkReturnNet.toFixed(2)}%
                   </div>
-                  {inflationRate > 0 && (
-                    <div className="text-[10px] text-gray-400">
+                  {hasInflation && (
+                    <div className="text-[10px] text-orange-600 font-medium">
                       realnie {r.benchmarkRealReturnNet >= 0 ? '+' : ''}{r.benchmarkRealReturnNet.toFixed(2)}%
                     </div>
                   )}
@@ -85,13 +94,20 @@ export function VerdictBanner({ results, inflationRate }: VerdictBannerProps) {
               <div className="text-xs font-medium rounded-lg px-3 py-2 text-center bg-white/70 border border-white text-gray-700">
                 Różnica: <strong>{fmtDiff(r.differencePLN)}</strong> ({fmtDiffPct(r.differencePercent)})
               </div>
+
+              {/* Per-card inflation note */}
+              {hasInflation && (
+                <p className="text-[10px] text-center text-orange-600/80 leading-snug">
+                  Wartości nominalne · realnie po inflacji ({inflationRate.toFixed(1)}%) wyróżnione kolorem
+                </p>
+              )}
             </div>
           );
         })}
       </div>
 
       {/* Inflation warning */}
-      {inflationRate > 0 && (
+      {hasInflation && (
         <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm text-orange-800">
           <div className="flex items-start gap-2">
             <TrendingDown size={16} className="mt-0.5 flex-shrink-0 text-orange-500" aria-hidden="true" />
@@ -114,7 +130,7 @@ export function VerdictBanner({ results, inflationRate }: VerdictBannerProps) {
             <strong className="text-gray-900">{fmtPLN(results[0]?.currentValuePLN ?? 0)}</strong>.{' '}
             Porównanie uwzględnia podatek Belki (19%) od zysku zarówno z akcji, jak i z{' '}
             {bmLabel === 'Obligacje' ? 'obligacji' : 'konta oszczędnościowego'}.
-            {inflationRate > 0 && ' Wartości realne (po uwzględnieniu inflacji) wyświetlane są mniejszym drukiem.'}
+            {hasInflation && ' Wartości realne (po uwzględnieniu inflacji) wyświetlane są mniejszym drukiem.'}
           </p>
         </div>
       </div>
