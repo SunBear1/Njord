@@ -373,7 +373,7 @@ export function InputPanel({
       </div>
 
       {benchmarkType === 'savings' ? (
-        /* WIBOR 3M — savings */
+        /* Savings account rate */
         <div className="space-y-1">
           <label className="text-sm font-medium text-gray-700">
             Oprocentowanie konta oszczędnościowego <span className="text-red-500">*</span>
@@ -396,7 +396,7 @@ export function InputPanel({
           )}
           {!monthlyRate && (
             <p className="text-xs text-gray-400">
-              Sprawdź aktualny WIBOR 3M — podaj oprocentowanie swojego konta w skali roku.
+              Podaj oprocentowanie konta oszczędnościowego w skali roku (z regulaminu banku).
             </p>
           )}
         </div>

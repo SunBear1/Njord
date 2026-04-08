@@ -29,5 +29,4 @@ export const ASSET_CONFIG: Record<AssetType, AssetConfig> = {
   },
 };
 
-export const DEFAULT_WIBOR_3M = 5.82; // %
 export const DEFAULT_HORIZON_MONTHS = 12;
