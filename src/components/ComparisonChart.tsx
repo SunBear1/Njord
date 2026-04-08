@@ -46,10 +46,6 @@ export function ComparisonChart({ results }: ComparisonChartProps) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">
       <h3 className="text-base font-semibold text-gray-800">Wartość końcowa — porównanie</h3>
-      <p className="text-xs text-gray-500">
-        Wartości nominalne po uwzględnieniu podatku Belki (19%).
-        Realne zwroty (po inflacji) widoczne w kartach powyżej.
-      </p>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data} barCategoryGap="25%">
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />

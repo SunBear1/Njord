@@ -37,10 +37,11 @@ export function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflation
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">
       <h3 className="text-base font-semibold text-gray-800">Wartość w czasie</h3>
-      <p className="text-xs text-gray-500">
-        Prognozowana wartość portfela przez cały horyzont (netto po podatku Belki).
-        {inflationRate > 0 && ' Szara linia przerywana „Siła nabywcza" pokazuje, ile warta jest dziś kwota wyjściowa, jeśli uwzględnić inflację.'}
-      </p>
+      {inflationRate > 0 && (
+        <p className="text-xs text-gray-500">
+          Szara linia przerywana „Siła nabywcza" — wartość wyjściowa skorygowana o inflację ({inflationRate.toFixed(1)}% śr./rok).
+        </p>
+      )}
       <ResponsiveContainer width="100%" height={420}>
         <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 24, left: 10 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />

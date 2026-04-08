@@ -191,10 +191,8 @@ function App() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-        <HowItWorks />
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <main className="max-w-7xl mx-auto px-4 py-4 space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <InputPanel
             onFetchAsset={fetchData}
             assetData={assetData}
@@ -285,6 +283,7 @@ function App() {
         )}
 
         <MethodologyPanel />
+        <HowItWorks />
       </main>
 
       <footer className="mt-10 py-5 text-center text-xs" style={FOOTER_STYLE}>

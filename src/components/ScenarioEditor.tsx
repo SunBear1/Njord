@@ -131,10 +131,10 @@ export function ScenarioEditor({
       </div>
 
       {suggestedScenarios && (
-        <p className="text-xs text-indigo-600 bg-indigo-50 rounded-lg px-3 py-1.5">
+        <p className="text-xs text-gray-400">
           {volatilityStats?.regime
-            ? 'Scenariusze Bear i Bull wyznaczone modelem HMM + Monte Carlo. Base = cena bez zmian (punkt neutralny).'
-            : 'Scenariusze Bear i Bull wyznaczone statystycznie z historii. Base = cena bez zmian. Możesz je edytować.'}
+            ? 'Scenariusze z modelu HMM + Monte Carlo na historycznych danych. Base = cena bez zmian. Możesz edytować.'
+            : 'Scenariusze statystyczne z historycznych danych. Base = cena bez zmian. Możesz edytować.'}
         </p>
       )}
 

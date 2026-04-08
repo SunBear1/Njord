@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, AlertCircle, CheckCircle2, RefreshCw, Calculator, Info, ExternalLink, TrendingDown } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle2, RefreshCw, Calculator, ExternalLink, Info } from 'lucide-react';
 import type { AssetData } from '../types/asset';
 import type { FxData } from '../providers/nbpProvider';
 import type { InflationData } from '../hooks/useInflationData';
 import type { BenchmarkType, BondPreset, BondRateType } from '../types/scenario';
 import { fmtUSD, fmtNum } from '../utils/formatting';
+import { Tooltip } from './Tooltip';
 
 const BOND_PRESETS: BondPreset[] = [
   { id: 'OTS', name: 'OTS (3-mies.)',     maturityMonths: 3,   rateType: 'fixed',     firstYearRate: 2.00, margin: 0,    earlyRedemptionPenalty: 0,    description: 'Stałoprocentowe, 3 miesiące' },
@@ -191,9 +192,11 @@ export function InputPanel({
 
       {/* Ticker — auto-fetch */}
       <div className="space-y-1">
-        <label htmlFor="ticker-input" className="text-sm font-medium text-gray-700">
+        <label htmlFor="ticker-input" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
           Ticker giełdowy <span className="text-red-500">*</span>
+          <Tooltip content="Wpisz symbol giełdowy (np. AAPL, NVDA, VOO). Cena i kurs USD/PLN pobiorą się automatycznie." />
         </label>
+        <p className="text-xs text-gray-400">Zacznij pisać — dane pobiorą się automatycznie.</p>
         <div className="flex gap-2 items-center">
           <div className="relative flex-1">
             <input
@@ -219,7 +222,6 @@ export function InputPanel({
             <RefreshCw size={15} aria-hidden="true" />
           </button>
         </div>
-        <p className="text-xs text-gray-400">Dane pobierają się automatycznie po wpisaniu tickera.</p>
 
         {assetError && !rateLimited && (
           <p className="flex items-start gap-1.5 text-xs text-red-600 mt-1">
@@ -313,9 +315,11 @@ export function InputPanel({
 
       {/* Price USD */}
       <div className="space-y-1">
-        <label htmlFor="price-usd" className="text-sm font-medium text-gray-700">
+        <label htmlFor="price-usd" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
           Aktualna cena akcji (USD) <span className="text-red-500">*</span>
-          {assetData && <span className="ml-1 text-xs text-gray-400">· auto z Twelve Data</span>}
+          {assetData && (
+            <Tooltip content="Cena pobrana automatycznie z Twelve Data. Możesz ją edytować ręcznie." />
+          )}
         </label>
         <input
           id="price-usd"
@@ -333,10 +337,12 @@ export function InputPanel({
 
       {/* FX Rate */}
       <div className="space-y-1">
-        <label htmlFor="fx-rate" className="text-sm font-medium text-gray-700">
+        <label htmlFor="fx-rate" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
           Kurs USD/PLN <span className="text-red-500">*</span>
-          {fxData && !fxLoading && <span className="ml-1 text-xs text-gray-400">· auto z NBP</span>}
-          {fxLoading && <span className="ml-1 text-xs text-gray-400">· ładowanie NBP…</span>}
+          {fxData && !fxLoading && (
+            <Tooltip content={`Kurs NBP: ${fmtNum(fxData.currentRate)} PLN/USD, pobierany automatycznie. Możesz wpisać własną wartość.`} />
+          )}
+          {fxLoading && <span className="ml-1 text-xs text-gray-400">ładowanie…</span>}
         </label>
         <input
           id="fx-rate"
@@ -350,9 +356,6 @@ export function InputPanel({
           placeholder="np. 4.1500"
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        {fxData && (
-          <p className="text-xs text-gray-500">NBP: {fmtNum(fxData.currentRate)} PLN/USD</p>
-        )}
       </div>
 
       {/* Benchmark selector */}
@@ -387,9 +390,18 @@ export function InputPanel({
       {benchmarkType === 'savings' ? (
         /* Savings account rate */
         <div className="space-y-1">
-          <label htmlFor="savings-rate" className="text-sm font-medium text-gray-700">
+          <label htmlFor="savings-rate" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
             Oprocentowanie konta oszczędnościowego <span className="text-red-500">*</span>
-            <span className="ml-1 text-xs font-normal text-gray-500">(% w skali roku)</span>
+            <span className="text-xs font-normal text-gray-500">(% rocznie)</span>
+            {monthlyRate !== null && (
+              <Tooltip content={`Odpowiada ${monthlyRate.toFixed(3)}% miesięcznie (mnożnik ×${(monthlyRate / 100 + 1).toFixed(5)} co miesiąc). Podaj wartość z regulaminu banku.`} />
+            )}
+            {effectiveSavingsRate > 0 && wibor3m > 0 && Math.abs(effectiveSavingsRate - wibor3m) > 0.05 && (
+              <Tooltip
+                content={`Konta oszczędnościowe śledzą stopy NBP. Kalkulator zakłada stopniowy spadek z ${wibor3m.toFixed(2)}% do ok. 3,0% w horyzoncie ${Math.round(horizonMonths / 12 * 10) / 10} ${horizonMonths >= 24 ? 'lat' : 'roku'}. Efektywna stopa: ${effectiveSavingsRate.toFixed(2)}%.`}
+                width="w-72"
+              />
+            )}
           </label>
           <input
             id="savings-rate"
@@ -404,38 +416,15 @@ export function InputPanel({
             placeholder="np. 5.82"
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          {monthlyRate !== null && (
-            <p className="text-xs text-blue-600">
-              ≈ {monthlyRate.toFixed(3)}% miesięcznie ({(monthlyRate / 100 + 1).toFixed(5)}× co miesiąc)
-            </p>
-          )}
           {!monthlyRate && (
             <p className="text-xs text-gray-400">
-              Podaj oprocentowanie konta oszczędnościowego w skali roku (z regulaminu banku).
+              Podaj oprocentowanie z regulaminu banku w skali roku.
             </p>
           )}
-          {inflationRate > 0 && (
-            <div className="flex items-start gap-1.5 mt-1 bg-orange-50 border border-orange-200 rounded-lg px-2.5 py-2 text-xs text-orange-700">
-              <TrendingDown size={13} className="mt-0.5 flex-shrink-0" aria-hidden="true" />
-              <span>
-                <strong>Inflacja CPI: {inflationRate.toFixed(1)}% r/r ({inflationData?.source ?? 'Eurostat'})</strong> — kalkulowane są realne zwroty.
-                {wibor3m > 0 && inflationRate >= wibor3m && (
-                  <span className="block mt-0.5 font-medium">
-                    Uwaga: oprocentowanie ({wibor3m.toFixed(2)}%) niższe od inflacji — realna stopa ujemna.
-                  </span>
-                )}
-              </span>
-            </div>
-          )}
-          {effectiveSavingsRate > 0 && wibor3m > 0 && Math.abs(effectiveSavingsRate - wibor3m) > 0.05 && (
-            <div className="flex items-start gap-1.5 mt-1 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-2 text-xs text-blue-700">
-              <Info size={13} className="mt-0.5 flex-shrink-0" aria-hidden="true" />
-              <span>
-                <strong>Zmienne oprocentowanie:</strong> konta oszczędnościowe śledzą stopy NBP.
-                Kalkulator zakłada stopniowy spadek z {wibor3m.toFixed(2)}% do ok. 3,0% przez {Math.round(horizonMonths/12 * 10) / 10} {horizonMonths >= 24 ? 'lata' : 'rok'}.
-                Efektywna średnia stopa w horyzoncie: <strong>{effectiveSavingsRate.toFixed(2)}%</strong>.
-              </span>
-            </div>
+          {inflationRate > 0 && wibor3m > 0 && inflationRate >= wibor3m && (
+            <p className="text-xs text-amber-600 font-medium">
+              ⚠ Oprocentowanie ({wibor3m.toFixed(2)}%) niższe od inflacji — realna stopa ujemna.
+            </p>
           )}
         </div>
       ) : (
@@ -494,13 +483,14 @@ export function InputPanel({
                         <span className="font-medium">{bondMargin.toFixed(2)}%</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-600">
-                          Inflacja CPI ({inflationData?.source ?? 'Eurostat'})
-                          {inflationData?.period && (
-                            <span className="ml-1 text-gray-400">· {inflationData.period}</span>
-                          )}
-                          {inflationLoading && (
-                            <span className="ml-1 text-gray-400">· ładowanie…</span>
+                        <span className="text-gray-600 flex items-center gap-1">
+                          Inflacja CPI
+                          {inflationLoading && <span className="text-gray-400">· ładowanie…</span>}
+                          {inflationData && !inflationLoading && (
+                            <Tooltip
+                              content={`Źródło: ${inflationData.source}${inflationData.period ? ` (${inflationData.period})` : ''}. Używana do wyliczenia oprocentowania obligacji inflacyjnych. Możesz edytować ręcznie.`}
+                              side="bottom"
+                            />
                           )}
                           :
                         </span>
