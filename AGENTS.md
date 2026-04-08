@@ -1,171 +1,207 @@
 # AGENTS.md — Njord
 
-Instrukcje dla agentów AI pracujących z tym repozytorium.
+Instructions for AI agents working with this repository.
 
-## Przeglad projektu
+## Project overview
 
-**Njord** to aplikacja React/TypeScript SPA (Single Page Application) do porownywania zysku z portfela akcji (notowanych w USD) z zyskiem z polskich instrumentow oszczednosciowych: konta oszczednosciowego lub obligacji skarbowych. Wszystkie obliczenia odbywaja sie w przegladarce — brak backendu.
+**Njord** is a React/TypeScript SPA (Single Page Application) that compares holding a USD-denominated stock portfolio against Polish savings instruments: savings accounts or government bonds (obligacje skarbowe). All computations run in the browser — no backend.
 
 - **Live demo:** https://sunbear1.github.io/Njord/
-- **Jezyk UI:** polski
-- **Waluta bazowa:** PLN (przeliczenie z USD przez kurs NBP)
+- **UI language:** Polish
+- **Base currency:** PLN (converted from USD via NBP exchange rate)
 
 ---
 
-## Stos technologiczny
+## Tech stack
 
-| Narzedzie | Wersja | Rola |
-|-----------|--------|------|
+| Tool | Version | Role |
+|------|---------|------|
 | React | 19 | UI framework |
-| TypeScript | 6 | jezyk |
-| Vite | 8 | bundler + dev server |
-| Tailwind CSS | v4 | stylowanie (utility-first) |
-| Recharts | 3 | wykresy |
-| Lucide React | 1 | ikony |
+| TypeScript | 6 | Language |
+| Vite | 8 | Bundler + dev server |
+| Tailwind CSS | v4 | Styling (utility-first) |
+| Recharts | 3 | Charts |
+| Lucide React | 1 | Icons |
 
 ---
 
-## Komendy
+## Commands
 
 ```bash
 npm run dev      # dev server -> http://localhost:5173/Njord/
 npm run build    # tsc -b && vite build
 npm run lint     # ESLint
-npm run preview  # podglad buildu produkcyjnego
+npm run preview  # preview production build
 ```
 
-Aby zbudowac z kluczem API:
+Build with API key:
 ```bash
 VITE_TWELVE_DATA_API_KEY=xxx npm run build
 ```
 
 ---
 
-## Struktura plikow
+## File structure
 
 ```
 src/
-|-- App.tsx                   # glowny komponent, caly stan aplikacji
-|-- components/
-|   |-- InputPanel.tsx        # lewy panel: ticker, akcje, kurs, benchmark, suwak horyzontu
-|   |-- ScenarioEditor.tsx    # edytor 3 scenariuszy (bear/base/bull) + sugestie z historycznej zmiennosci
-|   |-- VerdictBanner.tsx     # podsumowanie wynikow (ktore scenariusze bija benchmark)
-|   |-- ComparisonChart.tsx   # wykres slupkowy: akcje vs benchmark
-|   |-- TimelineChart.tsx     # wykres liniowy: wartosc portfela w czasie
-|   |-- BreakevenChart.tsx    # heatmapa: akcje x FX -- gdzie akcje bija benchmark
-|   |-- MethodologyPanel.tsx  # opis metodologii obliczen
-|   `-- HowItWorks.tsx        # instrukcja uzytkowania
-|-- hooks/
-|   |-- useAssetData.ts       # fetchowanie danych gieldowych (Twelve Data API)
-|   |-- useFxData.ts          # kurs PLN/USD z NBP API (auto-refresh)
-|   |-- useCpiGus.ts          # inflacja HICP z ECB API (auto-fetch na starcie)
-|   `-- useHistoricalVolatility.ts  # historyczna zmiennosc z danych gieldowych + FX
-|-- providers/
-|   |-- twelveDataProvider.ts # fetch time_series z Twelve Data, 252 dni historii
-|   `-- nbpProvider.ts        # fetch kurs USD/PLN z api.nbp.pl
-|-- utils/
-|   |-- calculations.ts       # cala logika finansowa (pure functions)
-|   |-- assetConfig.ts        # stale (DEFAULT_HORIZON_MONTHS = 12)
-|   `-- formatting.ts         # formatowanie liczb (fmtUSD, fmtNum)
-`-- types/
-    |-- scenario.ts           # typy: ScenarioKey, BenchmarkType, BondPreset, ScenarioResult
-    `-- asset.ts              # typy: AssetData, HistoricalPrice
+├── App.tsx                       # Root component, all app state lives here
+├── components/
+│   ├── InputPanel.tsx            # Left panel: ticker, shares, FX, benchmark selector, horizon slider
+│   ├── ScenarioEditor.tsx        # 3-scenario editor (bear/base/bull) + historical volatility suggestions
+│   ├── VerdictBanner.tsx         # Results summary (which scenarios beat the benchmark)
+│   ├── ComparisonChart.tsx       # Bar chart: stocks vs benchmark end value
+│   ├── TimelineChart.tsx         # Line chart: portfolio value over time
+│   ├── BreakevenChart.tsx        # Heatmap: stock delta × FX delta — where stocks beat benchmark
+│   ├── MethodologyPanel.tsx      # Calculation methodology explanation
+│   └── HowItWorks.tsx           # User guide / how-to
+├── hooks/
+│   ├── useAssetData.ts           # Fetch stock data (Twelve Data API)
+│   ├── useFxData.ts              # PLN/USD rate from NBP API (auto-refresh)
+│   ├── useCpiGus.ts              # CPI inflation from GUS BDL API (auto-fetch on mount)
+│   └── useHistoricalVolatility.ts # Historical volatility from stock + FX data
+├── providers/
+│   ├── twelveDataProvider.ts     # Twelve Data time_series fetch, 252 trading days of history
+│   └── nbpProvider.ts            # NBP USD/PLN exchange rate fetch
+├── utils/
+│   ├── calculations.ts           # All financial logic (pure functions)
+│   ├── assetConfig.ts            # Constants (DEFAULT_HORIZON_MONTHS = 12)
+│   └── formatting.ts             # Number formatting (fmtUSD, fmtPLN, fmtNum)
+└── types/
+    ├── scenario.ts               # ScenarioKey, BenchmarkType, BondPreset, ScenarioResult
+    └── asset.ts                  # AssetData, HistoricalPrice
 ```
 
 ---
 
-## Zewnetrzne API
+## External APIs
 
-| API | URL | Cel | CORS |
-|-----|-----|-----|------|
-| Twelve Data | `https://api.twelvedata.com/time_series` | ceny akcji, 252 sesji | tak (wymaga klucza) |
-| NBP | `https://api.nbp.pl/api/exchangerates/...` | kurs USD/PLN | tak (bezklucza) |
-| ECB HICP | `https://data-api.ecb.europa.eu/service/data/ICP/M.PL.N.000000.4.ANR` | inflacja PL | tak (bezklucza) |
+| API | URL | Purpose | CORS | Auth |
+|-----|-----|---------|------|------|
+| Twelve Data | `api.twelvedata.com/time_series` | Stock prices, 252 sessions | Yes | API key required |
+| NBP | `api.nbp.pl/api/exchangerates/...` | USD/PLN rate | Yes | None |
+| GUS BDL | `bdl.stat.gov.pl/api/v1/data/by-variable/217230` | Polish CPI inflation | Yes | None |
 
-**Twelve Data free tier:** 800 req/dzien, 8/min. Klucz uzytkownika przechowywany w `localStorage` pod kluczem `njord_twelve_data_api_key`. Mozna tez ustawic klucz wbudowany przez `VITE_TWELVE_DATA_API_KEY`.
-
----
-
-## Logika obliczen (`src/utils/calculations.ts`)
-
-- **Podatek Belki:** 19% od zysku (stala `BELKA_TAX = 0.19`)
-- **Konto oszczednosciowe:** kapitalizacja miesieczna: `(1 + r/12)^n`
-- **Obligacje:** rok-po-roku, rozny procent za rok 1 vs lata 2+; kara za wczesny wykup potraca sie od brutto przed podatkiem
-- **Akcje:** `shares * priceUSD * fxRate`; zysk/strata po podatku Belki; scenariusze skaluja delta liniowo w czasie dla wykresu timeline
-- **Heatmapa:** siatka deltaStock x deltaFx (-20% do +20%, krok 4%)
+**Twelve Data free tier:** 800 req/day, 8/min. User's key stored in `localStorage` under `njord_twelve_data_api_key`. Built-in key via `VITE_TWELVE_DATA_API_KEY` env var.
 
 ---
 
-## Typy obligacji skarbowych
+## Calculation logic (`src/utils/calculations.ts`)
 
-8 presetow zdefiniowanych w `src/components/InputPanel.tsx` (stala `BOND_PRESETS`):
+- **Belka tax:** 19% on profit (constant `BELKA_TAX = 0.19`)
+- **Savings account:** Monthly compounding: `(1 + r/12)^n`, tax on gross interest
+- **Bonds:** Year-by-year compounding; different rate for year 1 vs years 2+; early redemption penalty subtracted before tax
+- **Stocks:** `shares × priceUSD × fxRate`; profit/loss after Belka tax; scenarios scale deltas linearly over time for timeline chart
+- **Heatmap:** Grid of deltaStock × deltaFx (−20% to +20%, step 4%)
+- **Inflation impact:** Real return computed via Fisher approximation (`realReturn ≈ nominalReturn − inflation`). Displayed alongside nominal values in results UI.
 
-| id | Nazwa | Zapadalnosc | Typ oprocentowania | Rok 1 | Marza |
-|----|-------|-------------|-------------------|-------|-------|
-| OTS | 3-mies. | 3 mies. | fixed | 2.00% | 0 |
-| ROR | Roczne | 12 mies. | reference (NBP) | 4.00% | 0 |
-| DOR | 2-letnie | 24 mies. | reference (NBP) | 4.15% | 0.15% |
-| TOS | 3-letnie | 36 mies. | fixed | 4.40% | 0 |
-| COI | 4-letnie | 48 mies. | inflation | 4.75% | 1.50% |
-| EDO | 10-letnie | 120 mies. | inflation | 5.35% | 2.00% |
-| ROS | 6-letnie (rodzinne) | 72 mies. | inflation | 5.00% | 2.00% |
-| ROD | 12-letnie (rodzinne) | 144 mies. | inflation | 5.60% | 2.50% |
+---
+
+## Bond presets
+
+8 presets defined in `src/components/InputPanel.tsx` (constant `BOND_PRESETS`):
+
+| ID | Name | Maturity | Rate type | Year 1 | Margin |
+|----|------|----------|-----------|--------|--------|
+| OTS | 3-month | 3 mo | fixed | 2.00% | 0 |
+| ROR | Annual | 12 mo | reference (NBP) | 4.00% | 0 |
+| DOR | 2-year | 24 mo | reference (NBP) | 4.15% | 0.15% |
+| TOS | 3-year | 36 mo | fixed | 4.40% | 0 |
+| COI | 4-year | 48 mo | inflation | 4.75% | 1.50% |
+| EDO | 10-year | 120 mo | inflation | 5.35% | 2.00% |
+| ROS | 6-year (family) | 72 mo | inflation | 5.00% | 2.00% |
+| ROD | 12-year (family) | 144 mo | inflation | 5.60% | 2.50% |
 
 `BondRateType`: `fixed` | `reference` | `inflation`
 
-Efektywna stopa dla lat 2+:
-- `fixed` -> `bondFirstYearRate` (bez zmiany)
-- `reference` -> `nbpRefRate + margin`
-- `inflation` -> `inflationRate + margin`
+Effective rate for years 2+:
+- `fixed` → `bondFirstYearRate` (unchanged)
+- `reference` → `nbpRefRate + margin`
+- `inflation` → `inflationRate + margin`
 
 ---
 
-## Stan aplikacji (App.tsx)
+## App state (App.tsx)
 
-Caly stan jest w `App.tsx` i przekazywany do komponentow przez props. Brak globalnego store (Redux/Zustand). Kluczowe stany:
+All state lives in `App.tsx` and is passed to components via props. No global store (Redux/Zustand). Key state:
 
-| Stan | Typ | Opis |
-|------|-----|------|
-| `horizonMonths` | `number` | 1-144, default 12; max 60 dla trybu savings |
-| `benchmarkType` | `BenchmarkType` | `'savings'` lub `'bonds'` |
-| `scenarios` | `Scenarios` | bear/base/bull: deltaStock + deltaFx w % |
-| `wibor3m` | `number` | oprocentowanie konta w % rocznie |
-| `bondFirstYearRate` | `number` | % za rok 1 obligacji |
-| `bondPenalty` | `number` | kara za wczesny wykup w % kapitalu |
-| `inflationRate` | `number` | inflacja HICP w % rocznie (auto-fetch) |
-| `nbpRefRate` | `number` | stopa referencyjna NBP w % |
-
----
-
-## Wazne konwencje
-
-- **Jezyk UI:** polski (etykiety, komunikaty bledow, opisy)
-- **Stylowanie:** wylacznie Tailwind CSS v4 (utility classes); brak CSS modules ani styled-components
-- **Komponenty:** funkcyjne z hookami; brak klas; props jawnie typowane przez interfejsy
-- **Brak routingu** — aplikacja jednoekranowa
-- **Brak testow** — brak konfiguracji testowej (vitest, jest)
-- **Base path:** `/Njord/` (vite.config.ts) — wymagane dla GitHub Pages
-- **Deploy:** automatyczny na `main` push przez `.github/workflows/deploy.yml`
+| State | Type | Description |
+|-------|------|-------------|
+| `horizonMonths` | `number` | 1–144, default 12; max 60 for savings mode |
+| `benchmarkType` | `BenchmarkType` | `'savings'` or `'bonds'` |
+| `scenarios` | `Scenarios` | bear/base/bull: deltaStock + deltaFx in % |
+| `wibor3m` | `number` | Savings account interest rate, % annual |
+| `bondFirstYearRate` | `number` | Bond year-1 rate in % |
+| `bondPenalty` | `number` | Early redemption penalty, % of principal |
+| `inflationRate` | `number` | CPI inflation, % annual (auto-fetched from GUS) |
+| `nbpRefRate` | `number` | NBP reference rate in % |
 
 ---
 
-## Typowe zadania
+## Conventions
 
-### Dodanie nowego typu obligacji
-1. Dodaj obiekt do tablicy `BOND_PRESETS` w `src/components/InputPanel.tsx`
-2. Upewnij sie, ze `rateType` jest jednym z `'fixed' | 'reference' | 'inflation'`
-3. Sprawdz czy `maturityMonths <= 144` (max suwaka dla bonds)
+- **UI language:** Polish (labels, error messages, descriptions)
+- **Styling:** Tailwind CSS v4 only (utility classes); no CSS modules or styled-components. Semantic color tokens are defined in `src/index.css` via `@theme` — use them when available, add new ones when needed.
+- **Components:** Functional with hooks; no classes; props explicitly typed via interfaces
+- **No routing** — single-page application
+- **No tests** — no test framework configured (vitest, jest)
+- **Base path:** `/Njord/` (vite.config.ts) — required for GitHub Pages
+- **Deploy:** Automatic on `main` push via `.github/workflows/deploy.yml`
 
-### Zmiana zakresu suwaka horyzontu
-- `src/components/InputPanel.tsx` linia ~584: `max={benchmarkType === 'savings' ? 60 : 144}`
-- `src/App.tsx` linia ~92: clampowanie przy przelaczeniu na savings
-- Ticki suwaka sa absolutnie pozycjonowane — aktualizuj tez tablice `TICKS_SAVINGS` / `TICKS_MAIN`
+---
 
-### Zmiana logiki obliczen
-- Wylacznie `src/utils/calculations.ts` — pure functions, brak side effects
-- Sprawdz `calcAllScenarios`, `calcTimeline`, `calcHeatmap`
+## Common tasks
 
-### Dodanie nowego wykresu
-- Utwórz komponent w `src/components/`
-- Dane z `calcTimeline`/`calcHeatmap`/`calcAllScenarios` — przekaz przez props z App.tsx
-- Uzyj Recharts (patrz istniejace komponenty jako przyklad)
+### Adding a new bond type
+1. Add object to `BOND_PRESETS` array in `src/components/InputPanel.tsx`
+2. Ensure `rateType` is one of `'fixed' | 'reference' | 'inflation'`
+3. Verify `maturityMonths <= 144` (slider max for bonds mode)
+
+### Changing horizon slider range
+- `src/components/InputPanel.tsx` line ~584: `max={benchmarkType === 'savings' ? 60 : 144}`
+- `src/App.tsx` line ~92: clamping on savings mode switch
+- Slider ticks are absolutely positioned — update tick arrays accordingly
+
+### Changing calculation logic
+- Only `src/utils/calculations.ts` — pure functions, no side effects
+- Key functions: `calcAllScenarios`, `calcTimeline`, `calcHeatmap`
+
+### Adding a new chart
+- Create component in `src/components/`
+- Data from `calcTimeline`/`calcHeatmap`/`calcAllScenarios` — pass via props from App.tsx
+- Use Recharts (see existing chart components as examples)
+
+---
+
+## Extensibility notes
+
+### Adding a new benchmark type (e.g., ETF)
+1. Extend `BenchmarkType` in `src/types/scenario.ts`: `'savings' | 'bonds' | 'etf'`
+2. Add a new calculation function in `src/utils/calculations.ts` (e.g., `calcETFEndValue`)
+3. Extend `calcBenchmarkEndValue()` with the new branch
+4. Add ETF-specific UI inputs in `src/components/InputPanel.tsx` (expense ratio, etc.)
+5. Add third button in benchmark selector (`InputPanel.tsx`, line ~349)
+6. Handle new state variables in `App.tsx`
+7. Layout (2-col grid) does not need changes — it accommodates new benchmark types well
+
+### Preparing for dark theme
+- **Current state:** 120+ hardcoded Tailwind color classes across all components
+- **index.css** has semantic tokens in `@theme {}` — add new semantic variables here
+- **Migration path:** Replace hardcoded classes with CSS variable references. Start with major surfaces (App.tsx header/footer, card backgrounds), then progressively migrate smaller components.
+- Chart colors in Recharts components need to become dynamic props instead of hardcoded hex values.
+
+### Adding investment metrics/indicators
+- Current model: 3 scenarios (Bear/Base/Bull) with deltaStock + deltaFx — simple but flexible
+- To add metrics like Sharpe ratio, max drawdown, VaR, Sortino:
+  - Extend `useHistoricalVolatility` hook to compute additional statistics
+  - Add new display section in UI (below ScenarioEditor or as separate component)
+  - Keep calculations in pure functions within `utils/`
+
+---
+
+## Future planned features
+
+- **ETFs as benchmark** — third option alongside savings and bonds
+- **Dark theme** — light/dark toggle with localStorage persistence
+- **Multiple investment indicators** — advanced metrics from historical data
+- **Historical suggested scenarios auto-applied by default** — already implemented
