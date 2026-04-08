@@ -2,12 +2,12 @@ import { useMemo } from 'react';
 import type { HistoricalPrice } from '../types/asset';
 import type { FxRate } from '../providers/nbpProvider';
 import type { Scenarios } from '../types/scenario';
-import {
-  fitGaussianHmm,
-  detectCurrentRegime,
-  regimeConditionedMonteCarlo,
-  type RegimeInfo,
-} from '../utils/hmm';
+import type { RegimeInfo } from '../utils/hmm';
+import type { ModelResults, PredictionResult } from '../utils/models/types';
+import { bootstrapPredict } from '../utils/models/bootstrap';
+import { garchPredict } from '../utils/models/garch';
+import { hmmPredict } from '../utils/models/hmmModel';
+import { selectBestModel } from '../utils/models/modelSelector';
 
 export interface VolatilityStats {
   stockSigmaAnnual: number; // annualized σ in %
@@ -17,6 +17,10 @@ export interface VolatilityStats {
   fxMeanAnnual: number;
   horizonScale: number; // √(months/12)
   regime: RegimeInfo | null;
+  /** Multi-model predictions + recommendation */
+  models: ModelResults | null;
+  /** Pre-computed scenarios per model id (for tab switching) */
+  modelScenarios: Record<string, Scenarios>;
 }
 
 export interface VolatilityResult {
@@ -75,6 +79,16 @@ function dataSeed(prices: number[]): number {
   return Math.abs(h);
 }
 
+/** Convert a PredictionResult's percentiles into Scenarios with FX correlation */
+function toScenarios(pred: PredictionResult, rho: number, fxMagPct: number): Scenarios {
+  const [p5, , , , p95] = pred.percentiles;
+  return {
+    bear: { deltaStock: p5, deltaFx: -rho * fxMagPct },
+    base: { deltaStock: 0, deltaFx: 0 },
+    bull: { deltaStock: p95, deltaFx: +rho * fxMagPct },
+  };
+}
+
 export function useHistoricalVolatility(
   stockHistory: HistoricalPrice[] | null,
   fxHistory: FxRate[] | null,
@@ -104,45 +118,42 @@ export function useHistoricalVolatility(
     const T = horizonMonths / 12;
     const fxSigma = fxSigmaAnnual / 100;
 
-    // Attempt HMM regime detection on log-returns
     const stockLogRet = logReturns(stockPrices);
     const seed = dataSeed(stockPrices);
-    const hmmModel = fitGaussianHmm(stockLogRet, 2, seed);
+    const horizonDays = Math.round(horizonMonths * 21);
 
-    let regime: RegimeInfo | null = null;
-    let suggestedScenarios: Scenarios;
+    // FX magnitude for scenario construction (shared by all models)
+    const fxMagPct = (Math.exp(1.645 * fxSigma * Math.sqrt(T) + (-(fxSigma * fxSigma) / 2) * T) - 1) * 100;
 
-    if (hmmModel) {
-      // HMM succeeded — use regime-conditioned Monte Carlo
-      regime = detectCurrentRegime(stockLogRet, hmmModel);
+    // Run all three models
+    const bootstrapResult = bootstrapPredict(stockLogRet, horizonDays, seed);
+    const garchResult = garchPredict(stockLogRet, horizonDays, seed + 10);
+    const hmmResult = hmmPredict(stockLogRet, horizonDays, seed);
 
-      const horizonDays = Math.round(horizonMonths * 21); // ~21 trading days/month
-      const mc = regimeConditionedMonteCarlo(hmmModel, regime.currentState, horizonDays, 3000, seed + 1);
+    const allPredictions = [bootstrapResult, garchResult, hmmResult.prediction];
 
-      const [p5, , , , p95] = mc.percentiles;
+    // Model selection via out-of-sample backtest
+    const scoring = selectBestModel(stockLogRet, horizonDays, seed, allPredictions);
+    const recommended = scoring.scored[scoring.recommendedIndex];
 
-      // FX: correlation-adjusted magnitude (same approach as before)
-      const fxMagPct = (Math.exp(1.645 * fxSigma * Math.sqrt(T) + (-(fxSigma * fxSigma) / 2) * T) - 1) * 100;
+    const modelResults: ModelResults = {
+      models: scoring.scored,
+      recommended,
+      scoring,
+    };
 
-      suggestedScenarios = {
-        bear: { deltaStock: p5, deltaFx: -rho * fxMagPct },
-        base: { deltaStock: 0, deltaFx: 0 },
-        bull: { deltaStock: p95, deltaFx: +rho * fxMagPct },
-      };
-    } else {
-      // Fallback: original log-normal p5/p95 approach
-      const stockSigma = stockSigmaAnnual / 100;
-      const itoAdj = (s: number) => -(s * s) / 2 * T;
-      const stockBearPct = (Math.exp(-1.645 * stockSigma * Math.sqrt(T) + itoAdj(stockSigma)) - 1) * 100;
-      const stockBullPct = (Math.exp(+1.645 * stockSigma * Math.sqrt(T) + itoAdj(stockSigma)) - 1) * 100;
-      const fxMagPct = (Math.exp(1.645 * fxSigma * Math.sqrt(T) + (-(fxSigma * fxSigma) / 2) * T) - 1) * 100;
-
-      suggestedScenarios = {
-        bear: { deltaStock: stockBearPct, deltaFx: -rho * fxMagPct },
-        base: { deltaStock: 0, deltaFx: 0 },
-        bull: { deltaStock: stockBullPct, deltaFx: +rho * fxMagPct },
-      };
+    // Pre-compute scenarios for each model (for tab switching in UI)
+    const modelScenarios: Record<string, Scenarios> = {};
+    for (const pred of scoring.scored) {
+      if (pred.confidence > 0) {
+        modelScenarios[pred.id] = toScenarios(pred, rho, fxMagPct);
+      }
     }
+
+    // Use recommended model's percentiles for suggested scenarios
+    const suggestedScenarios = recommended.confidence > 0
+      ? toScenarios(recommended, rho, fxMagPct)
+      : toScenarios(bootstrapResult, rho, fxMagPct); // fallback to bootstrap
 
     const stats: VolatilityStats = {
       stockSigmaAnnual,
@@ -151,7 +162,9 @@ export function useHistoricalVolatility(
       stockMeanAnnual,
       fxMeanAnnual,
       horizonScale: Math.sqrt(T),
-      regime,
+      regime: hmmResult.regime,
+      models: modelResults,
+      modelScenarios,
     };
 
     return { stats, suggestedScenarios };

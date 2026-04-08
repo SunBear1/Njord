@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Wand2, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { Wand2, Info, ChevronDown, ChevronUp, Star } from 'lucide-react';
 import type { Scenarios, ScenarioKey } from '../types/scenario';
 import type { VolatilityStats } from '../hooks/useHistoricalVolatility';
 
@@ -8,6 +8,7 @@ interface ScenarioEditorProps {
   onChange: (key: ScenarioKey, field: 'deltaStock' | 'deltaFx', value: number) => void;
   suggestedScenarios: Scenarios | null;
   onApplySuggested: () => void;
+  onApplyModelScenarios: (s: Scenarios) => void;
   currentPriceUSD: number;
   currentFxRate: number;
   volatilityStats: VolatilityStats | null;
@@ -50,6 +51,7 @@ export function ScenarioEditor({
   onChange,
   suggestedScenarios,
   onApplySuggested,
+  onApplyModelScenarios,
   currentPriceUSD,
   currentFxRate,
   volatilityStats,
@@ -59,6 +61,7 @@ export function ScenarioEditor({
   const [fxMode, setFxMode] = useState<InputMode>('pct');
   const [localValues, setLocalValues] = useState(() => initValues(scenarios));
   const [statsOpen, setStatsOpen] = useState(false);
+  const [activeModelId, setActiveModelId] = useState<string | null>(null);
 
   const toDelta = useCallback((raw: string, mode: InputMode, currentVal: number): number => {
     const n = parseFloat(raw);
@@ -133,11 +136,49 @@ export function ScenarioEditor({
         )}
       </div>
 
-      {!compact && suggestedScenarios && (
+      {/* Model tabs — switch between Bootstrap / GARCH / HMM */}
+      {volatilityStats?.models && volatilityStats.models.models.length > 1 && (() => {
+        const { models, recommended, scoring } = volatilityStats.models;
+        const availableModels = models.filter(m => m.confidence > 0);
+        if (availableModels.length < 2) return null;
+        const currentId = activeModelId ?? recommended.id;
+        return (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {availableModels.map(m => {
+              const isRecommended = m.id === recommended.id;
+              const isActive = m.id === currentId;
+              const coverage = scoring && m.coverageScore != null
+                ? `${Math.round(m.coverageScore * 100)}%`
+                : null;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => {
+                    setActiveModelId(m.id);
+                    const s = volatilityStats.modelScenarios[m.id];
+                    if (s) onApplyModelScenarios(s);
+                  }}
+                  title={`${m.description}${coverage ? ` · Coverage: ${coverage}` : ''}`}
+                  className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                    isActive
+                      ? 'bg-indigo-600 text-white border-indigo-600'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-700'
+                  }`}
+                >
+                  {isRecommended && <Star size={10} className={isActive ? 'text-amber-300' : 'text-amber-400'} />}
+                  {m.name}
+                  {coverage && <span className={`text-[10px] ${isActive ? 'text-indigo-200' : 'text-gray-400'}`}>{coverage}</span>}
+                </button>
+              );
+            })}
+            <span className="text-[10px] text-gray-400 ml-1">★ = rekomendowany</span>
+          </div>
+        );
+      })()}
+
+      {!compact && suggestedScenarios && !volatilityStats?.models && (
         <p className="text-xs text-gray-400">
-          {volatilityStats?.regime
-            ? 'Scenariusze z modelu HMM + Monte Carlo na historycznych danych. Base = cena bez zmian. Możesz edytować.'
-            : 'Scenariusze statystyczne z historycznych danych. Base = cena bez zmian. Możesz edytować.'}
+          Scenariusze statystyczne z historycznych danych. Base = cena bez zmian. Możesz edytować.
         </p>
       )}
 
@@ -151,7 +192,7 @@ export function ScenarioEditor({
             <div className="flex flex-col gap-1.5 items-start">
               <span className="flex items-center gap-1.5 font-medium">
                 <Info size={12} />
-                Analiza historyczna (~2 lata danych)
+                Analiza historyczna (~2 lata danych{volatilityStats.models ? `, ${volatilityStats.models.models.filter(m => m.confidence > 0).length} modele` : ''})
               </span>
               <span className="flex gap-1.5 flex-wrap">
                 {volatilityStats.regime && (

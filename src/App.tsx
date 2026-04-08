@@ -109,6 +109,11 @@ function App() {
     }
   }, [suggestedScenarios]);
 
+  const handleApplyModelScenarios = useCallback((s: Scenarios) => {
+    setUserScenarios(s);
+    setScenarioEditKey((k) => k + 1);
+  }, []);
+
   // Derive active scenarios: user overrides take precedence over HMM suggestions
   const scenarios = userScenarios ?? suggestedScenarios ?? DEFAULT_SCENARIOS;
 
@@ -250,6 +255,7 @@ function App() {
               onChange={handleScenarioChange}
               suggestedScenarios={suggestedScenarios}
               onApplySuggested={handleApplySuggested}
+              onApplyModelScenarios={handleApplyModelScenarios}
               currentPriceUSD={currentPriceUSD}
               currentFxRate={currentFxRate}
               volatilityStats={volatilityStats}
@@ -308,6 +314,7 @@ function App() {
                 onChange={handleScenarioChange}
                 suggestedScenarios={suggestedScenarios}
                 onApplySuggested={handleApplySuggested}
+                onApplyModelScenarios={handleApplyModelScenarios}
                 currentPriceUSD={currentPriceUSD}
                 currentFxRate={currentFxRate}
                 volatilityStats={volatilityStats}
