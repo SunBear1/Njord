@@ -11,10 +11,10 @@ export function MethodologyPanel() {
         className="w-full flex items-center justify-between px-5 py-3 text-slate-800 font-medium hover:bg-slate-100 transition-colors"
       >
         <span className="flex items-center gap-2">
-          <BookOpen size={18} />
+          <BookOpen size={18} aria-hidden="true" />
           Jak obliczamy wyniki? (metodologia)
         </span>
-        {open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+        {open ? <ChevronUp size={18} aria-hidden="true" /> : <ChevronDown size={18} aria-hidden="true" />}
       </button>
 
       {open && (

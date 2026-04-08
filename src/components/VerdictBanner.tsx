@@ -51,7 +51,7 @@ export function VerdictBanner({ results, inflationRate }: VerdictBannerProps) {
                 {/* Akcje column */}
                 <div className={`rounded-xl p-3 text-center space-y-1 ${stockWins ? 'bg-white shadow-sm ring-2 ring-amber-300' : 'bg-white/60'}`}>
                   <div className="flex items-center justify-center gap-1 text-xs font-bold text-blue-700 uppercase tracking-wide">
-                    {stockWins && <Trophy size={11} className="text-amber-400" />}
+                    {stockWins && <Trophy size={11} className="text-amber-400" aria-hidden="true" />}
                     Akcje
                   </div>
                   <div className="text-base font-bold text-gray-800">{fmtPLN(r.stockNetEndValuePLN)}</div>
@@ -66,7 +66,7 @@ export function VerdictBanner({ results, inflationRate }: VerdictBannerProps) {
                 {/* Benchmark column */}
                 <div className={`rounded-xl p-3 text-center space-y-1 ${!stockWins ? 'bg-white shadow-sm ring-2 ring-amber-300' : 'bg-white/60'}`}>
                   <div className="flex items-center justify-center gap-1 text-xs font-bold text-purple-700 uppercase tracking-wide">
-                    {!stockWins && <Trophy size={11} className="text-amber-400" />}
+                    {!stockWins && <Trophy size={11} className="text-amber-400" aria-hidden="true" />}
                     {bmLabel}
                   </div>
                   <div className="text-base font-bold text-gray-800">{fmtPLN(r.benchmarkEndValuePLN)}</div>
@@ -94,7 +94,7 @@ export function VerdictBanner({ results, inflationRate }: VerdictBannerProps) {
       {inflationRate > 0 && (
         <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 text-sm text-orange-800">
           <div className="flex items-start gap-2">
-            <TrendingDown size={16} className="mt-0.5 flex-shrink-0 text-orange-500" />
+            <TrendingDown size={16} className="mt-0.5 flex-shrink-0 text-orange-500" aria-hidden="true" />
             <p>
               <strong>Inflacja ({inflationRate.toFixed(1)}% rocznie)</strong> obniża realną wartość zysku.{' '}
               Przy skumulowanej inflacji{' '}
@@ -108,7 +108,7 @@ export function VerdictBanner({ results, inflationRate }: VerdictBannerProps) {
       {/* Summary note */}
       <div className="bg-white border border-gray-200 rounded-xl p-4 text-sm text-gray-600">
         <div className="flex items-start gap-2">
-          <Info size={16} className="mt-0.5 flex-shrink-0 text-gray-400" />
+          <Info size={16} className="mt-0.5 flex-shrink-0 text-gray-400" aria-hidden="true" />
           <p>
             Aktualnie posiadasz akcje o wartości{' '}
             <strong className="text-gray-900">{fmtPLN(results[0]?.currentValuePLN ?? 0)}</strong>.{' '}

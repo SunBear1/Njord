@@ -38,7 +38,7 @@ export function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: 
                 Akcje ↓ / USD/PLN →
               </th>
               {deltaFxValues.map((df) => (
-                <th key={df} className="p-1 font-medium text-gray-600 text-center min-w-[52px]">
+                <th key={df} className="p-1 font-medium text-gray-600 text-center min-w-[52px] tabular-nums">
                   {df > 0 ? '+' : ''}{df}%
                 </th>
               ))}
@@ -47,7 +47,7 @@ export function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: 
           <tbody>
             {deltaStockValues.map((ds) => (
               <tr key={ds}>
-                <td className="p-1 font-medium text-gray-600 text-right pr-2">
+                <td className="p-1 font-medium text-gray-600 text-right pr-2 tabular-nums">
                   {ds > 0 ? '+' : ''}{ds}%
                 </td>
                 {deltaFxValues.map((df) => {

@@ -191,12 +191,15 @@ export function InputPanel({
 
       {/* Ticker — auto-fetch */}
       <div className="space-y-1">
-        <label className="text-sm font-medium text-gray-700">
+        <label htmlFor="ticker-input" className="text-sm font-medium text-gray-700">
           Ticker giełdowy <span className="text-red-500">*</span>
         </label>
         <div className="flex gap-2 items-center">
           <div className="relative flex-1">
             <input
+              id="ticker-input"
+              name="ticker"
+              autoComplete="off"
               type="text"
               value={localTicker}
               onChange={(e) => setLocalTicker(e.target.value.toUpperCase())}
@@ -204,16 +207,16 @@ export function InputPanel({
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-9"
             />
             {assetLoading && (
-              <Loader2 size={15} className="absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin text-blue-500" />
+              <Loader2 size={15} className="absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin text-blue-500" aria-hidden="true" />
             )}
           </div>
           <button
             onClick={handleManualRefetch}
             disabled={assetLoading || !localTicker.trim() || !apiKey.trim()}
-            title="Odśwież dane"
+            aria-label="Odśwież dane giełdowe"
             className="p-2 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-40 transition-colors"
           >
-            <RefreshCw size={15} />
+            <RefreshCw size={15} aria-hidden="true" />
           </button>
         </div>
         <p className="text-xs text-gray-400">Dane pobierają się automatycznie po wpisaniu tickera.</p>
@@ -234,10 +237,13 @@ export function InputPanel({
 
       {/* Shares */}
       <div className="space-y-1">
-        <label className="text-sm font-medium text-gray-700">
+        <label htmlFor="shares-input" className="text-sm font-medium text-gray-700">
           Liczba akcji <span className="text-red-500">*</span>
         </label>
         <input
+          id="shares-input"
+          name="shares"
+          autoComplete="off"
           type="number"
           min={0}
           step={1}
@@ -307,11 +313,14 @@ export function InputPanel({
 
       {/* Price USD */}
       <div className="space-y-1">
-        <label className="text-sm font-medium text-gray-700">
+        <label htmlFor="price-usd" className="text-sm font-medium text-gray-700">
           Aktualna cena akcji (USD) <span className="text-red-500">*</span>
           {assetData && <span className="ml-1 text-xs text-gray-400">· auto z Twelve Data</span>}
         </label>
         <input
+          id="price-usd"
+          name="priceUsd"
+          autoComplete="off"
           type="number"
           min={0}
           step={0.01}
@@ -324,12 +333,15 @@ export function InputPanel({
 
       {/* FX Rate */}
       <div className="space-y-1">
-        <label className="text-sm font-medium text-gray-700">
+        <label htmlFor="fx-rate" className="text-sm font-medium text-gray-700">
           Kurs USD/PLN <span className="text-red-500">*</span>
           {fxData && !fxLoading && <span className="ml-1 text-xs text-gray-400">· auto z NBP</span>}
           {fxLoading && <span className="ml-1 text-xs text-gray-400">· ładowanie NBP…</span>}
         </label>
         <input
+          id="fx-rate"
+          name="fxRate"
+          autoComplete="off"
           type="number"
           min={0}
           step={0.0001}
@@ -375,11 +387,14 @@ export function InputPanel({
       {benchmarkType === 'savings' ? (
         /* Savings account rate */
         <div className="space-y-1">
-          <label className="text-sm font-medium text-gray-700">
+          <label htmlFor="savings-rate" className="text-sm font-medium text-gray-700">
             Oprocentowanie konta oszczędnościowego <span className="text-red-500">*</span>
             <span className="ml-1 text-xs font-normal text-gray-500">(% w skali roku)</span>
           </label>
           <input
+            id="savings-rate"
+            name="savingsRate"
+            autoComplete="off"
             type="number"
             min={0}
             max={50}
@@ -404,8 +419,12 @@ export function InputPanel({
         /* Bonds — all 8 types */
         <div className="space-y-3">
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700">Typ obligacji</label>
+            <label htmlFor="bond-type" className="text-sm font-medium text-gray-700">
+              Typ obligacji
+            </label>
             <select
+              id="bond-type"
+              name="bondType"
               value={selectedBondId}
               onChange={(e) => {
                 setSelectedBondId(e.target.value);
@@ -527,11 +546,14 @@ export function InputPanel({
                 {/* Penalty */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">
+                    <label htmlFor="bond-penalty" className="text-sm font-medium text-gray-700">
                       Kara za wcz. wykup
                       <span className="ml-1 text-xs font-normal text-gray-500">(% kapitału)</span>
                     </label>
                     <input
+                      id="bond-penalty"
+                      name="bondPenalty"
+                      autoComplete="off"
                       type="number"
                       min={0}
                       max={10}
