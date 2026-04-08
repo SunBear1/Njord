@@ -138,7 +138,7 @@ function App() {
   const heatmap = canCalc ? calcHeatmap(calcInputs) : null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
       <header className="bg-gradient-to-r from-slate-800 to-slate-900 text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-5 flex items-center gap-3">
           {/* Viking drakkar inline icon */}
@@ -253,7 +253,7 @@ function App() {
         <MethodologyPanel />
       </main>
 
-      <footer className="border-t border-gray-200 mt-10 py-5 text-center text-xs text-gray-400">
+      <footer className="mt-10 py-5 text-center text-xs" style={{ borderTop: '1px solid var(--color-border)', color: 'var(--color-text-faint)' }}>
         Njord — wyłącznie do celów edukacyjnych. Nie stanowi doradztwa inwestycyjnego.
       </footer>
     </div>
