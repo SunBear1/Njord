@@ -393,15 +393,21 @@ export function InputPanel({
           <label htmlFor="savings-rate" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
             Oprocentowanie konta oszczędnościowego <span className="text-red-500">*</span>
             <span className="text-xs font-normal text-gray-500">(% rocznie)</span>
-            {monthlyRate !== null && (
-              <Tooltip content={`Odpowiada ${monthlyRate.toFixed(3)}% miesięcznie (mnożnik ×${(monthlyRate / 100 + 1).toFixed(5)} co miesiąc). Podaj wartość z regulaminu banku.`} />
-            )}
-            {effectiveSavingsRate > 0 && wibor3m > 0 && Math.abs(effectiveSavingsRate - wibor3m) > 0.05 && (
-              <Tooltip
-                content={`Konta oszczędnościowe śledzą stopy NBP. Kalkulator zakłada stopniowy spadek z ${wibor3m.toFixed(2)}% do ok. 3,0% w horyzoncie ${Math.round(horizonMonths / 12 * 10) / 10} ${horizonMonths >= 24 ? 'lat' : 'roku'}. Efektywna stopa: ${effectiveSavingsRate.toFixed(2)}%.`}
-                width="w-72"
-              />
-            )}
+            <Tooltip
+              content={
+                <span className="space-y-1 block">
+                  {monthlyRate !== null && (
+                    <span className="block">≈ {monthlyRate.toFixed(3)}% miesięcznie (mnożnik ×{(monthlyRate / 100 + 1).toFixed(5)}).</span>
+                  )}
+                  {effectiveSavingsRate > 0 && wibor3m > 0 && Math.abs(effectiveSavingsRate - wibor3m) > 0.05 ? (
+                    <span className="block">Konta oszczędnościowe śledzą stopy NBP. Kalkulator zakłada stopniowy spadek z {wibor3m.toFixed(2)}% do ok. 3,0% w ciągu {Math.round(horizonMonths / 12 * 10) / 10} {horizonMonths >= 24 ? 'lat' : 'roku'}. Efektywna stopa: {effectiveSavingsRate.toFixed(2)}%.</span>
+                  ) : (
+                    <span className="block">Podaj wartość rocznego oprocentowania z regulaminu banku.</span>
+                  )}
+                </span>
+              }
+              width="w-72"
+            />
           </label>
           <input
             id="savings-rate"

@@ -192,7 +192,10 @@ function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-4 space-y-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Main 2-col layout: InputPanel scrolls freely, right column is sticky */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+
+          {/* LEFT: InputPanel */}
           <InputPanel
             onFetchAsset={fetchData}
             assetData={assetData}
@@ -233,36 +236,44 @@ function App() {
             onInflationRateChange={setInflationRate}
             onNbpRefRateChange={setNbpRefRate}
           />
-          <ScenarioEditor
-            key={scenarioEditKey}
-            scenarios={scenarios}
-            onChange={handleScenarioChange}
-            suggestedScenarios={suggestedScenarios}
-            onApplySuggested={handleApplySuggested}
-            currentPriceUSD={currentPriceUSD}
-            currentFxRate={currentFxRate}
-            volatilityStats={volatilityStats}
-          />
+
+          {/* RIGHT: ScenarioEditor + Results — sticky panel */}
+          <div className="sticky top-4 self-start max-h-[calc(100vh-2rem)] overflow-y-auto space-y-4 pb-4">
+            <ScenarioEditor
+              key={scenarioEditKey}
+              scenarios={scenarios}
+              onChange={handleScenarioChange}
+              suggestedScenarios={suggestedScenarios}
+              onApplySuggested={handleApplySuggested}
+              currentPriceUSD={currentPriceUSD}
+              currentFxRate={currentFxRate}
+              volatilityStats={volatilityStats}
+            />
+
+            {!canCalc && (
+              <div className="bg-white rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-400 space-y-1">
+                <p className="font-medium">Uzupełnij dane wejściowe</p>
+                <p className="text-sm">Wpisz ticker, liczbę akcji i oprocentowanie {benchmarkType === 'bonds' ? 'obligacji' : 'konta oszczędnościowego'}.</p>
+              </div>
+            )}
+
+            {results && (
+              <VerdictBanner
+                results={results}
+                inflationRate={effectiveInflation}
+                currentInflationRate={inflationRate}
+                inflationSource={inflationData?.source}
+                cpiPeriod={inflationData?.period}
+                inflationStale={inflationData?.isStale}
+                horizonMonths={horizonMonths}
+              />
+            )}
+          </div>
         </div>
 
-        {!canCalc && (
-          <div className="bg-white rounded-xl border border-dashed border-gray-300 p-10 text-center text-gray-400 space-y-2">
-            <p className="text-lg">Uzupełnij dane wejściowe, aby zobaczyć wyniki</p>
-            <p className="text-sm">Wpisz ticker, liczbę akcji i oprocentowanie {benchmarkType === 'bonds' ? 'obligacji' : 'konta oszczędnościowego'}.</p>
-          </div>
-        )}
-
+        {/* Charts — full width below */}
         {results && (
           <>
-            <VerdictBanner
-              results={results}
-              inflationRate={effectiveInflation}
-              currentInflationRate={inflationRate}
-              inflationSource={inflationData?.source}
-              cpiPeriod={inflationData?.period}
-              inflationStale={inflationData?.isStale}
-              horizonMonths={horizonMonths}
-            />
             <ComparisonChart results={results} />
             {timeline && (
               <TimelineChart

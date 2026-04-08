@@ -49,7 +49,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
       <div className="flex items-center gap-3 flex-wrap">
         <h2 className="text-lg font-semibold text-gray-800">Wyniki — co się bardziej opłaca?</h2>
         <span className="inline-flex items-center gap-1.5 text-xs text-gray-500 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full">
-          Belki 19%{hasInflation ? ` · inflacja ${inflationRate.toFixed(1)}%` : ''}
+          Podatek Belki 19% od zysku{hasInflation ? ` · inflacja ${inflationRate.toFixed(1)}%` : ''}
           <Tooltip
             content={disclaimerTooltip}
             width="w-72"
