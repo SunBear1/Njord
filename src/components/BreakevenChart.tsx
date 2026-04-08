@@ -17,7 +17,7 @@ export function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: 
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">
       <h3 className="text-base font-semibold text-gray-800">Break-even — mapa rentowności</h3>
       <p className="text-xs text-gray-500">
-        Zielone komórki = akcje biją {benchmarkLabel.toLowerCase()} (netto). {benchmarkLabel} docelowe:{' '}
+        Komórki oznaczają, w których kombinacjach zmian akcje biją {benchmarkLabel.toLowerCase()} (netto). {benchmarkLabel} docelowe:{' '}
         <strong>{fmtPLN(benchmarkEndValuePLN)}</strong>.
       </p>
 
@@ -52,8 +52,8 @@ export function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: 
                       title={`Akcje: ${fmtPLN(stockNetEnd)} | Różnica: ${diff >= 0 ? '+' : ''}${fmtPLN(diff)}`}
                       className={`p-1 text-center rounded cursor-default transition-colors ${
                         beatsBenchmark
-                          ? 'bg-green-100 text-green-800 font-medium'
-                          : 'bg-red-100 text-red-800'
+                          ? 'bg-blue-100 text-blue-800 font-medium'
+                          : 'bg-slate-100 text-slate-500'
                       }`}
                     >
                       {beatsBenchmark ? '✓' : '✗'}
@@ -68,11 +68,11 @@ export function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: 
 
       <div className="flex items-center gap-4 text-xs text-gray-500 pt-1">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-4 h-4 rounded bg-green-100 border border-green-200" />
+          <span className="inline-block w-4 h-4 rounded bg-blue-100 border border-blue-200" />
           Akcje lepsze (✓)
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-4 h-4 rounded bg-red-100 border border-red-200" />
+          <span className="inline-block w-4 h-4 rounded bg-slate-100 border border-slate-200" />
           {benchmarkLabel} lepsze (✗)
         </span>
         <span className="text-gray-400">Najedź kursorem na komórkę, by zobaczyć wartość</span>

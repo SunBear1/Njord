@@ -34,7 +34,7 @@ function App() {
   const [shares, setShares] = useState(0);
   const [currentPriceUSD, setCurrentPriceUSD] = useState(0);
   const [currentFxRate, setCurrentFxRate] = useState(0);
-  const [wibor3m, setWibor3m] = useState(0);
+  const [wibor3m, setWibor3m] = useState(3.85);
   const [benchmarkType, setBenchmarkType] = useState<BenchmarkType>('savings');
   const [bondFirstYearRate, setBondFirstYearRate] = useState(2.00);
   const [bondPenalty, setBondPenalty] = useState(0);
