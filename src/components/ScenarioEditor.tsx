@@ -84,7 +84,7 @@ export function ScenarioEditor({
   const [stockMode, setStockMode] = useState<InputMode>('pct');
   const [fxMode, setFxMode] = useState<InputMode>('pct');
   const [localValues, setLocalValues] = useState(() => initValues(scenarios));
-  const [statsOpen, setStatsOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(true);
   const [activeModelId, setActiveModelId] = useState<string | null>(null);
 
   // Sync localValues when scenarios change externally (model switch, apply suggested)
@@ -328,23 +328,23 @@ export function ScenarioEditor({
         </div>
       </div>
 
-      {/* Three scenario cards */}
-      <div className="grid grid-cols-3 gap-3 flex-1 min-h-0">
+      {/* Three scenario cards — compact, no vertical stretch */}
+      <div className="grid grid-cols-3 gap-2">
         {SCENARIO_CONFIG.map(({ key, label, headerBg, headerText, cardBorder, cardBg, inputBorder }) => {
           const stockDelta = toDelta(localValues[key].stock, stockMode, currentPriceUSD);
           const fxDelta = toDelta(localValues[key].fx, fxMode, currentFxRate);
           return (
-            <div key={key} className={`flex flex-col rounded-xl border ${cardBorder} ${cardBg} overflow-hidden`}>
+            <div key={key} className={`flex flex-col rounded-lg border ${cardBorder} ${cardBg} overflow-hidden`}>
               {/* Card header */}
-              <div className={`${headerBg} px-3 py-2 text-center`}>
-                <span className={`text-sm font-bold ${headerText}`}>{label}</span>
+              <div className={`${headerBg} px-2 py-1.5 text-center`}>
+                <span className={`text-xs font-bold ${headerText}`}>{label}</span>
               </div>
 
               {/* Card body */}
-              <div className="flex-1 flex flex-col gap-3 p-3">
+              <div className="flex flex-col gap-2 p-2">
                 {/* Stock input */}
-                <div className="space-y-1">
-                  <label className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Akcje</label>
+                <div className="space-y-0.5">
+                  <label className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">Akcje</label>
                   <div className="relative">
                     <input
                       type="number"
@@ -353,9 +353,9 @@ export function ScenarioEditor({
                       onChange={(e) => handleStockChange(key, e.target.value)}
                       onFocus={(e) => e.target.select()}
                       placeholder={stockMode === 'pct' ? '0' : String(currentPriceUSD || '')}
-                      className={`w-full border ${inputBorder} rounded-lg px-3 py-2 pr-10 text-sm text-center focus:outline-none focus:ring-2 bg-white`}
+                      className={`w-full border ${inputBorder} rounded px-2 py-1.5 pr-9 text-sm text-center focus:outline-none focus:ring-2 bg-white`}
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">{stockUnit}</span>
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-gray-400 pointer-events-none">{stockUnit}</span>
                   </div>
                   {stockMode === 'fixed' && currentPriceUSD > 0 && (
                     <span className={`inline-block text-[10px] rounded-full px-1.5 py-0.5 mx-auto ${
@@ -367,8 +367,8 @@ export function ScenarioEditor({
                 </div>
 
                 {/* FX input */}
-                <div className="space-y-1">
-                  <label className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">USD/PLN</label>
+                <div className="space-y-0.5">
+                  <label className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">USD/PLN</label>
                   <div className="relative">
                     <input
                       type="number"
@@ -377,9 +377,9 @@ export function ScenarioEditor({
                       onChange={(e) => handleFxChange(key, e.target.value)}
                       onFocus={(e) => e.target.select()}
                       placeholder={fxMode === 'pct' ? '0' : String(currentFxRate || '')}
-                      className={`w-full border ${inputBorder} rounded-lg px-3 py-2 pr-10 text-sm text-center focus:outline-none focus:ring-2 bg-white`}
+                      className={`w-full border ${inputBorder} rounded px-2 py-1.5 pr-9 text-sm text-center focus:outline-none focus:ring-2 bg-white`}
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">{fxUnit}</span>
+                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-gray-400 pointer-events-none">{fxUnit}</span>
                   </div>
                   {fxMode === 'fixed' && currentFxRate > 0 && (
                     <span className={`inline-block text-[10px] rounded-full px-1.5 py-0.5 mx-auto ${
@@ -395,21 +395,16 @@ export function ScenarioEditor({
         })}
       </div>
 
-      {/* Analysis card — collapsible thin strip */}
+      {/* Analysis — expanded by default, fills remaining space */}
       {volatilityStats && (
-        <div className="mt-3 border border-indigo-100 rounded-lg overflow-hidden">
+        <div className="flex-1 min-h-0 flex flex-col border border-indigo-100 rounded-lg overflow-hidden mt-2">
           <button
             onClick={() => setStatsOpen(o => !o)}
-            className="w-full flex items-center justify-between px-3 py-2 bg-indigo-50/60 text-xs text-indigo-800 hover:bg-indigo-100 transition-colors"
+            className="w-full flex items-center justify-between px-3 py-1.5 bg-indigo-50/60 text-xs text-indigo-800 hover:bg-indigo-100 transition-colors shrink-0"
           >
             <span className="flex items-center gap-2 flex-wrap">
-              <Info size={12} className="text-indigo-400 shrink-0" />
-              <span className="font-medium">
-                {volatilityStats.models
-                  ? `${volatilityStats.models.models.filter(m => m.confidence > 0).length} modele`
-                  : 'Analiza'
-                }
-              </span>
+              <Info size={11} className="text-indigo-400 shrink-0" />
+              <span className="font-medium">Analiza historyczna</span>
               {volatilityStats.regime && (
                 <span className={`rounded px-1.5 py-0.5 border text-[11px] font-semibold ${
                   volatilityStats.regime.currentRegimeLabel === 'bull'
@@ -427,76 +422,65 @@ export function ScenarioEditor({
                 {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(0)}%/r
               </span>
             </span>
-            {statsOpen ? <ChevronUp size={13} className="text-indigo-400 shrink-0" /> : <ChevronDown size={13} className="text-indigo-400 shrink-0" />}
+            {statsOpen ? <ChevronUp size={12} className="text-indigo-400 shrink-0" /> : <ChevronDown size={12} className="text-indigo-400 shrink-0" />}
           </button>
 
           {statsOpen && (
-            <div className="px-3 py-3 bg-white border-t border-indigo-100 text-xs text-gray-600 space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-gray-50 rounded-lg p-2.5 space-y-0.5">
-                  <div className="font-semibold text-gray-700">Zmienność akcji</div>
-                  <div className="text-lg font-bold text-gray-900">{volatilityStats.stockSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400">/rok</span></div>
-                  <div className="text-gray-500">Im wyższa, tym szerszy przedział Bear–Bull. Typowe akcje: 20–40%.</div>
+            <div className="flex-1 overflow-y-auto px-3 py-2 bg-white border-t border-indigo-100 text-xs text-gray-600 space-y-2">
+              <div className="grid grid-cols-2 gap-1.5">
+                <div className="bg-gray-50 rounded p-2 space-y-0.5">
+                  <div className="font-semibold text-gray-700 text-[11px]">Zmienność akcji</div>
+                  <div className="text-base font-bold text-gray-900">{volatilityStats.stockSigmaAnnual.toFixed(1)}%<span className="text-[10px] font-normal text-gray-400">/rok</span></div>
+                  <div className="text-gray-500 text-[10px] leading-tight">Im wyższa, tym szerszy przedział Bear–Bull.</div>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-2.5 space-y-0.5">
-                  <div className="font-semibold text-gray-700">Zmienność USD/PLN</div>
-                  <div className="text-lg font-bold text-gray-900">{volatilityStats.fxSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400">/rok</span></div>
-                  <div className="text-gray-500">Kurs dolara jest dodatkowym źródłem ryzyka dla inwestycji w USD.</div>
+                <div className="bg-gray-50 rounded p-2 space-y-0.5">
+                  <div className="font-semibold text-gray-700 text-[11px]">Zmienność USD/PLN</div>
+                  <div className="text-base font-bold text-gray-900">{volatilityStats.fxSigmaAnnual.toFixed(1)}%<span className="text-[10px] font-normal text-gray-400">/rok</span></div>
+                  <div className="text-gray-500 text-[10px] leading-tight">Dodatkowe źródło ryzyka walutowego.</div>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-2.5 space-y-0.5">
-                  <div className="font-semibold text-gray-700">Powiązanie z dolarem</div>
-                  <div className={`text-lg font-bold ${Math.abs(volatilityStats.correlation) > 0.1 ? (volatilityStats.correlation > 0 ? 'text-amber-600' : 'text-blue-600') : 'text-gray-700'}`}>
+                <div className="bg-gray-50 rounded p-2 space-y-0.5">
+                  <div className="font-semibold text-gray-700 text-[11px]">Korelacja z USD</div>
+                  <div className={`text-base font-bold ${Math.abs(volatilityStats.correlation) > 0.1 ? (volatilityStats.correlation > 0 ? 'text-amber-600' : 'text-blue-600') : 'text-gray-700'}`}>
                     {volatilityStats.correlation > 0 ? '+' : ''}{volatilityStats.correlation.toFixed(2)}
                   </div>
-                  <div className="text-gray-500">
+                  <div className="text-gray-500 text-[10px] leading-tight">
                     {volatilityStats.correlation < -0.1
-                      ? 'Gdy akcje spadają, dolar się umacnia — częściowo amortyzuje straty.'
+                      ? 'Spadek akcji → mocniejszy dolar (amortyzacja).'
                       : volatilityStats.correlation > 0.1
-                      ? 'Wzrost/spadek akcji idzie w parze z dolarem — efekty się wzmacniają.'
-                      : 'Akcje i USD/PLN zachowują się niezależnie od siebie.'}
+                      ? 'Ruchy akcji i dolara się wzmacniają.'
+                      : 'Niezależne od siebie.'}
                   </div>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-2.5 space-y-0.5">
-                  <div className="font-semibold text-gray-700">Historyczny trend</div>
-                  <div className={`text-lg font-bold ${volatilityStats.stockMeanAnnual >= 0 ? 'text-green-700' : 'text-red-600'}`}>
-                    {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400">/rok</span>
+                <div className="bg-gray-50 rounded p-2 space-y-0.5">
+                  <div className="font-semibold text-gray-700 text-[11px]">Hist. trend</div>
+                  <div className={`text-base font-bold ${volatilityStats.stockMeanAnnual >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                    {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%<span className="text-[10px] font-normal text-gray-400">/rok</span>
                   </div>
-                  <div className="text-gray-500">Tylko informacyjnie — 1 rok to za mało, by traktować to jako prognozę.</div>
+                  <div className="text-gray-500 text-[10px] leading-tight">Informacyjnie — nie prognoza.</div>
                 </div>
               </div>
 
               {volatilityStats.regime && (
-                <div className={`rounded-lg p-2.5 border text-xs ${
+                <div className={`rounded p-2 border text-[11px] ${
                   volatilityStats.regime.currentRegimeLabel === 'bull'
                     ? 'bg-green-50 border-green-200 text-green-800'
                     : 'bg-red-50 border-red-200 text-red-800'
                 }`}>
-                  <div className="font-semibold mb-1">
-                    {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Faza wzrostów (Bull)' : 'Faza spadków (Bear)'}
-                    {' — pewność: '}{Math.round(volatilityStats.regime.posteriorProbability * 100)}%
-                  </div>
-                  <div className="text-xs opacity-80">
-                    Zmienność: {volatilityStats.regime.stateSigmasAnnual[volatilityStats.regime.currentState].toFixed(0)}%/rok
-                    {' · '}Trend: {volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState] >= 0 ? '+' : ''}{volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState].toFixed(0)}%/rok
+                  <span className="font-semibold">
+                    {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Faza wzrostów' : 'Faza spadków'}
+                    {' — '}{Math.round(volatilityStats.regime.posteriorProbability * 100)}%
+                  </span>
+                  <span className="opacity-80">
+                    {' · '}{'\u03c3'} {volatilityStats.regime.stateSigmasAnnual[volatilityStats.regime.currentState].toFixed(0)}%/r
+                    {' · '}{volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState] >= 0 ? '+' : ''}{volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState].toFixed(0)}%/r
                     {' · '}~{volatilityStats.regime.expectedDurations[volatilityStats.regime.currentState].toFixed(0)} sesji
-                  </div>
+                  </span>
                 </div>
               )}
 
-              <div className="border-t pt-2 text-gray-500 leading-relaxed">
-                {volatilityStats.regime ? (
-                  <>
-                    <strong className="text-gray-600">Jak wyliczone?</strong>{' '}
-                    Bear/Bull = 5./95. percentyl z 3 000 symulacji Monte Carlo z przejściami między fazami rynku.
-                    Base = aktualna cena (0% zmiany).
-                  </>
-                ) : (
-                  <>
-                    <strong className="text-gray-600">Jak wyliczone?</strong>{' '}
-                    Bear/Bull = 5./95. percentyl rozkładu log-normalnego (zero-dryf, korekta Itô).
-                    Base = aktualna cena bez zmian.
-                  </>
-                )}
+              <div className="border-t pt-1.5 text-[10px] text-gray-400 leading-relaxed">
+                Bear/Bull = 5./95. percentyl z symulacji Monte Carlo.
+                Base = aktualna cena bez zmian.
               </div>
             </div>
           )}
