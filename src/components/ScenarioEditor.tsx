@@ -426,24 +426,24 @@ export function ScenarioEditor({
           </button>
 
           {statsOpen && (
-            <div className="flex-1 overflow-y-auto px-3 py-2 bg-white border-t border-indigo-100 text-xs text-gray-600 space-y-2">
-              <div className="grid grid-cols-2 gap-1.5">
-                <div className="bg-gray-50 rounded p-2 space-y-0.5">
-                  <div className="font-semibold text-gray-700 text-[11px]">Zmienność akcji</div>
-                  <div className="text-base font-bold text-gray-900">{volatilityStats.stockSigmaAnnual.toFixed(1)}%<span className="text-[10px] font-normal text-gray-400">/rok</span></div>
-                  <div className="text-gray-500 text-[10px] leading-tight">Im wyższa, tym szerszy przedział Bear–Bull.</div>
+            <div className="flex-1 overflow-y-auto px-3 py-3 bg-white border-t border-indigo-100 space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-gray-50 rounded-lg p-3 space-y-1">
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Zmienność akcji</div>
+                  <div className="text-2xl font-bold text-gray-900 leading-none">{volatilityStats.stockSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400 ml-0.5">/rok</span></div>
+                  <div className="text-xs text-gray-500 leading-snug">Im wyższa, tym szerszy przedział Bear–Bull.</div>
                 </div>
-                <div className="bg-gray-50 rounded p-2 space-y-0.5">
-                  <div className="font-semibold text-gray-700 text-[11px]">Zmienność USD/PLN</div>
-                  <div className="text-base font-bold text-gray-900">{volatilityStats.fxSigmaAnnual.toFixed(1)}%<span className="text-[10px] font-normal text-gray-400">/rok</span></div>
-                  <div className="text-gray-500 text-[10px] leading-tight">Dodatkowe źródło ryzyka walutowego.</div>
+                <div className="bg-gray-50 rounded-lg p-3 space-y-1">
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Zmienność USD/PLN</div>
+                  <div className="text-2xl font-bold text-gray-900 leading-none">{volatilityStats.fxSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400 ml-0.5">/rok</span></div>
+                  <div className="text-xs text-gray-500 leading-snug">Dodatkowe źródło ryzyka walutowego.</div>
                 </div>
-                <div className="bg-gray-50 rounded p-2 space-y-0.5">
-                  <div className="font-semibold text-gray-700 text-[11px]">Korelacja z USD</div>
-                  <div className={`text-base font-bold ${Math.abs(volatilityStats.correlation) > 0.1 ? (volatilityStats.correlation > 0 ? 'text-amber-600' : 'text-blue-600') : 'text-gray-700'}`}>
+                <div className="bg-gray-50 rounded-lg p-3 space-y-1">
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Korelacja z USD</div>
+                  <div className={`text-2xl font-bold leading-none ${Math.abs(volatilityStats.correlation) > 0.1 ? (volatilityStats.correlation > 0 ? 'text-amber-600' : 'text-blue-600') : 'text-gray-700'}`}>
                     {volatilityStats.correlation > 0 ? '+' : ''}{volatilityStats.correlation.toFixed(2)}
                   </div>
-                  <div className="text-gray-500 text-[10px] leading-tight">
+                  <div className="text-xs text-gray-500 leading-snug">
                     {volatilityStats.correlation < -0.1
                       ? 'Spadek akcji → mocniejszy dolar (amortyzacja).'
                       : volatilityStats.correlation > 0.1
@@ -451,17 +451,17 @@ export function ScenarioEditor({
                       : 'Niezależne od siebie.'}
                   </div>
                 </div>
-                <div className="bg-gray-50 rounded p-2 space-y-0.5">
-                  <div className="font-semibold text-gray-700 text-[11px]">Hist. trend</div>
-                  <div className={`text-base font-bold ${volatilityStats.stockMeanAnnual >= 0 ? 'text-green-700' : 'text-red-600'}`}>
-                    {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%<span className="text-[10px] font-normal text-gray-400">/rok</span>
+                <div className="bg-gray-50 rounded-lg p-3 space-y-1">
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Hist. trend</div>
+                  <div className={`text-2xl font-bold leading-none ${volatilityStats.stockMeanAnnual >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                    {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400 ml-0.5">/rok</span>
                   </div>
-                  <div className="text-gray-500 text-[10px] leading-tight">Informacyjnie — nie prognoza.</div>
+                  <div className="text-xs text-gray-500 leading-snug">Informacyjnie — nie prognoza.</div>
                 </div>
               </div>
 
               {volatilityStats.regime && (
-                <div className={`rounded p-2 border text-[11px] ${
+                <div className={`rounded-lg px-3 py-2.5 border text-sm ${
                   volatilityStats.regime.currentRegimeLabel === 'bull'
                     ? 'bg-green-50 border-green-200 text-green-800'
                     : 'bg-red-50 border-red-200 text-red-800'
@@ -470,7 +470,7 @@ export function ScenarioEditor({
                     {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Faza wzrostów' : 'Faza spadków'}
                     {' — '}{Math.round(volatilityStats.regime.posteriorProbability * 100)}%
                   </span>
-                  <span className="opacity-80">
+                  <span className="opacity-70 text-xs">
                     {' · '}{'\u03c3'} {volatilityStats.regime.stateSigmasAnnual[volatilityStats.regime.currentState].toFixed(0)}%/r
                     {' · '}{volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState] >= 0 ? '+' : ''}{volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState].toFixed(0)}%/r
                     {' · '}~{volatilityStats.regime.expectedDurations[volatilityStats.regime.currentState].toFixed(0)} sesji
@@ -478,7 +478,7 @@ export function ScenarioEditor({
                 </div>
               )}
 
-              <div className="border-t pt-1.5 text-[10px] text-gray-400 leading-relaxed">
+              <div className="border-t pt-2 text-xs text-gray-400 leading-relaxed">
                 Bear/Bull = 5./95. percentyl z symulacji Monte Carlo.
                 Base = aktualna cena bez zmian.
               </div>
