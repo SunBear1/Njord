@@ -58,14 +58,18 @@ export function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: 
                   return (
                     <td
                       key={df}
-                      title={`Akcje: ${fmtPLN(stockNetEnd)} | Różnica: ${diff >= 0 ? '+' : ''}${fmtPLN(diff)}`}
-                      className={`p-1 text-center rounded cursor-default transition-colors ${
+                      className={`p-1 text-center rounded cursor-default transition-colors relative group/cell ${
                         beatsBenchmark
                           ? 'bg-blue-100 text-blue-800 font-medium'
                           : 'bg-slate-100 text-slate-500'
                       }`}
                     >
                       {beatsBenchmark ? '✓' : '✗'}
+                      <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 rounded bg-gray-800 text-white text-[10px] whitespace-nowrap opacity-0 group-hover/cell:opacity-100 transition-opacity z-10 shadow-lg">
+                        Akcje: {fmtPLN(stockNetEnd)}
+                        <br />
+                        Różnica: {diff >= 0 ? '+' : ''}{fmtPLN(diff)}
+                      </div>
                     </td>
                   );
                 })}
