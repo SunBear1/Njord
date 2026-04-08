@@ -170,43 +170,52 @@ export function InputPanel({
       ? `${horizonMonths / 12} ${horizonMonths / 12 === 1 ? 'rok' : horizonMonths / 12 < 5 ? 'lata' : 'lat'}`
       : `${Math.floor(horizonMonths / 12)}l. ${horizonMonths % 12}m.`;
 
-  /* ────── Collapsed summary bar ────── */
-  if (collapsed) {
-    const bmSummary = benchmarkType === 'savings'
-      ? `Konto ${wibor3m > 0 ? wibor3m.toFixed(1) + '%' : '—'}`
-      : `Obligacje ${bondFirstYearRate.toFixed(1)}%`;
+  const bmSummary = benchmarkType === 'savings'
+    ? `Konto ${wibor3m > 0 ? wibor3m.toFixed(1) + '%' : '—'}`
+    : `Obligacje ${bondFirstYearRate.toFixed(1)}%`;
 
-    return (
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-3">
-        <button
-          type="button"
-          onClick={onToggleCollapse}
-          className="w-full flex items-center justify-between gap-3"
-        >
-          <div className="flex items-center gap-2 flex-wrap min-w-0 text-sm text-gray-700">
-            <span className="font-semibold text-gray-900">{ticker || '—'}</span>
-            <span className="text-gray-400">·</span>
-            <span>{shares} akcji</span>
-            <span className="text-gray-400">·</span>
-            <span>${currentPriceUSD.toFixed(2)}</span>
-            <span className="text-gray-400">·</span>
-            <span>PLN/USD {currentFxRate.toFixed(2)}</span>
-            <span className="text-gray-400">·</span>
-            <span>{bmSummary}</span>
-            <span className="text-gray-400">·</span>
-            <span className="text-blue-600 font-medium">{horizonLabel}</span>
-          </div>
-          <span className="flex items-center gap-1 text-xs text-blue-600 font-medium whitespace-nowrap shrink-0">
-            Rozwiń <ChevronDown size={14} />
-          </span>
-        </button>
-      </div>
-    );
-  }
-
-  /* ────── Full (expanded) form ────── */
+  /* ────── Animated layout: both summary + form always in DOM ────── */
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-5">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      {/* Summary bar — visible when collapsed */}
+      <div
+        className="grid transition-[grid-template-rows] duration-300 ease-in-out"
+        style={{ gridTemplateRows: collapsed ? '1fr' : '0fr' }}
+      >
+        <div className="overflow-hidden min-h-0">
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className="w-full flex items-center justify-between gap-3 px-5 py-3"
+          >
+            <div className="flex items-center gap-2 flex-wrap min-w-0 text-sm text-gray-700">
+              <span className="font-semibold text-gray-900">{ticker || '—'}</span>
+              <span className="text-gray-400">·</span>
+              <span>{shares} akcji</span>
+              <span className="text-gray-400">·</span>
+              <span>${currentPriceUSD.toFixed(2)}</span>
+              <span className="text-gray-400">·</span>
+              <span>PLN/USD {currentFxRate.toFixed(2)}</span>
+              <span className="text-gray-400">·</span>
+              <span>{bmSummary}</span>
+              <span className="text-gray-400">·</span>
+              <span className="text-blue-600 font-medium">{horizonLabel}</span>
+            </div>
+            <span className="flex items-center gap-1 text-xs text-blue-600 font-medium whitespace-nowrap shrink-0">
+              Rozwiń <ChevronDown size={14} />
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Full form — visible when expanded */}
+      <div
+        className="grid transition-[grid-template-rows] duration-300 ease-in-out"
+        style={{ gridTemplateRows: collapsed ? '0fr' : '1fr' }}
+      >
+        <div className="overflow-hidden min-h-0">
+          <div className="p-5 space-y-5">
+
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-800">Dane wejściowe</h2>
         {onToggleCollapse && (
@@ -728,6 +737,9 @@ export function InputPanel({
             </div>
           );
         })()}
+      </div>
+          </div>
+        </div>
       </div>
     </div>
   );

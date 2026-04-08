@@ -108,7 +108,7 @@ export function MethodologyPanel() {
               <div className="pl-4">S_(t+1) = S_t × exp((μ_i − 0,5·σ_i²)·Δt + σ_i·√Δt·z)</div>
               <div className="pl-4">Gdzie i = reżim aktywny w kroku t (symulowany łańcuchem Markowa)</div>
               <div className="pl-4">Bear (p5) / Base (p50) / Bull (p95) z rozkładu końcowych wartości</div>
-              <div className="pt-1">σ dzienne, ρ (korelacja Pearsona), trend — jak wcześniej (~1 rok danych)</div>
+              <div className="pt-1">σ dzienne, ρ (korelacja Pearsona), trend — jak wcześniej (~2 lata danych)</div>
               <div>Δ FX Bear = −ρ × |FX p95|, &nbsp;Δ FX Bull = +ρ × |FX p95|</div>
               <div className="pt-1 text-gray-400">Fallback: jeśli HMM nie zbiegnie → model log-normalny (zerowy dryf, p5/p95)</div>
             </div>
@@ -184,7 +184,7 @@ export function MethodologyPanel() {
                 stawki HICP do celu NBP (2,5%); to przybliżenie, nie prognoza
               </li>
               <li>
-                <strong>Dane historyczne (~1 rok)</strong> — zmienność i korelacja mogą się
+                <strong>Dane historyczne (~2 lata)</strong> — zmienność i korelacja mogą się
                 zmieniać; przeszłość nie gwarantuje przyszłości
               </li>
             </ul>
