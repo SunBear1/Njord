@@ -38,7 +38,7 @@ function App() {
   const [shares, setShares] = useState(0);
   const [currentPriceUSD, setCurrentPriceUSD] = useState(0);
   const [currentFxRate, setCurrentFxRate] = useState(0);
-  const [wibor3m, setWibor3m] = useState(3.85);
+  const [wibor3m, setWibor3m] = useState(0);
   const [benchmarkType, setBenchmarkType] = useState<BenchmarkType>('savings');
   const [bondFirstYearRate, setBondFirstYearRate] = useState(2.00);
   const [bondPenalty, setBondPenalty] = useState(0);
@@ -164,16 +164,8 @@ function App() {
   const timeline = useMemo(() => canCalc ? calcTimeline(calcInputs, scenarios) : null, [canCalc, calcInputs, scenarios]);
   const heatmap = useMemo(() => canCalc ? calcHeatmap(calcInputs) : null, [canCalc, calcInputs]);
 
-  // Auto-collapse InputPanel when results first become available
+  // InputPanel collapse — user-initiated only (no auto-collapse)
   const [inputCollapsed, setInputCollapsed] = useState(false);
-  const resultsShownRef = useRef(false);
-  useEffect(() => {
-    if (results && !resultsShownRef.current) {
-      resultsShownRef.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setInputCollapsed(true);
-    }
-  }, [results]);
 
   return (
     <div className="min-h-screen" style={ROOT_STYLE}>

@@ -173,7 +173,7 @@ export function InputPanel({
   /* ────── Collapsed summary bar ────── */
   if (collapsed) {
     const bmSummary = benchmarkType === 'savings'
-      ? `Konto ${wibor3m.toFixed(1)}%`
+      ? `Konto ${wibor3m > 0 ? wibor3m.toFixed(1) + '%' : '—'}`
       : `Obligacje ${bondFirstYearRate.toFixed(1)}%`;
 
     return (
