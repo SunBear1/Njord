@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
-import { Wand2, Info, ChevronDown, ChevronUp, Star } from 'lucide-react';
+import { Wand2, Info, ChevronDown, ChevronUp, Star, Loader2, HelpCircle } from 'lucide-react';
 import type { Scenarios, ScenarioKey } from '../types/scenario';
 import type { VolatilityStats } from '../hooks/useHistoricalVolatility';
+import { Tooltip } from './Tooltip';
 
 interface ScenarioEditorProps {
   scenarios: Scenarios;
@@ -18,10 +19,33 @@ interface ScenarioEditorProps {
 
 type InputMode = 'pct' | 'fixed';
 
-const SCENARIO_CONFIG: { key: ScenarioKey; label: string; accent: string; badge: string; colBg: string }[] = [
-  { key: 'bear', label: 'Bear',  accent: 'border-red-300',   badge: 'bg-red-50 text-red-700 border border-red-200',     colBg: 'bg-red-50/40' },
-  { key: 'base', label: 'Base',  accent: 'border-amber-300', badge: 'bg-amber-50 text-amber-700 border border-amber-200', colBg: 'bg-amber-50/40' },
-  { key: 'bull', label: 'Bull',  accent: 'border-green-300', badge: 'bg-green-50 text-green-700 border border-green-200', colBg: 'bg-green-50/40' },
+const SCENARIO_CONFIG: {
+  key: ScenarioKey;
+  label: string;
+  headerBg: string;
+  headerText: string;
+  cardBorder: string;
+  cardBg: string;
+  inputBorder: string;
+}[] = [
+  {
+    key: 'bear', label: 'Bear',
+    headerBg: 'bg-red-100', headerText: 'text-red-700',
+    cardBorder: 'border-red-200', cardBg: 'bg-red-50/30',
+    inputBorder: 'border-red-300 focus:ring-red-400',
+  },
+  {
+    key: 'base', label: 'Base',
+    headerBg: 'bg-amber-100', headerText: 'text-amber-700',
+    cardBorder: 'border-amber-200', cardBg: 'bg-amber-50/30',
+    inputBorder: 'border-amber-300 focus:ring-amber-400',
+  },
+  {
+    key: 'bull', label: 'Bull',
+    headerBg: 'bg-green-100', headerText: 'text-green-700',
+    cardBorder: 'border-green-200', cardBg: 'bg-green-50/30',
+    inputBorder: 'border-green-300 focus:ring-green-400',
+  },
 ];
 
 function initValues(s: Scenarios) {
@@ -37,11 +61,11 @@ function ModeToggle({ mode, onToggle, labelA, labelB }: { mode: InputMode; onTog
   return (
     <button
       onClick={onToggle}
-      className="flex w-full rounded border border-gray-200 overflow-hidden text-xs font-medium"
+      className="flex w-full rounded border border-gray-200 overflow-hidden text-[11px] font-medium"
       title="Przełącz tryb wpisywania"
     >
-      <span className={`flex-1 text-center py-0.5 ${mode === 'pct' ? 'bg-blue-600 text-white' : 'bg-white text-gray-400 hover:bg-gray-50'}`}>{labelA}</span>
-      <span className={`flex-1 text-center py-0.5 ${mode === 'fixed' ? 'bg-blue-600 text-white' : 'bg-white text-gray-400 hover:bg-gray-50'}`}>{labelB}</span>
+      <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'pct' ? 'bg-blue-600 text-white' : 'bg-white text-gray-400 hover:bg-gray-50'}`}>{labelA}</span>
+      <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'fixed' ? 'bg-blue-600 text-white' : 'bg-white text-gray-400 hover:bg-gray-50'}`}>{labelB}</span>
     </button>
   );
 }
@@ -118,13 +142,80 @@ export function ScenarioEditor({
     setFxMode(next);
   };
 
+  const stockUnit = stockMode === 'pct' ? '%' : 'USD';
+  const fxUnit = fxMode === 'pct' ? '%' : 'PLN';
+
+  // Compact mode: horizontal inline layout
+  if (compact) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3 space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h2 className="text-base font-semibold text-gray-800">Scenariusze</h2>
+            {volatilityStats?.modelsLoading && (
+              <span className="flex items-center gap-1 text-xs text-gray-400">
+                <Loader2 size={12} className="animate-spin" />
+              </span>
+            )}
+          </div>
+          {suggestedScenarios && (
+            <button onClick={onApplySuggested} className="flex items-center gap-1.5 text-xs bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-lg hover:bg-purple-100 transition-colors">
+              <Wand2 size={13} />
+              Przywróć
+            </button>
+          )}
+        </div>
+        {/* Compact table: same as before */}
+        <div className="space-y-1.5">
+          <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
+            <div />
+            {SCENARIO_CONFIG.map(({ key, label, headerBg, headerText }) => (
+              <div key={key} className={`text-center text-xs font-bold px-2 py-1 rounded ${headerBg} ${headerText}`}>{label}</div>
+            ))}
+          </div>
+          <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
+            <span className="text-xs font-medium text-gray-600">Akcje ({stockUnit})</span>
+            {SCENARIO_CONFIG.map(({ key, inputBorder }) => (
+              <input key={key} type="number" step={stockMode === 'pct' ? 0.1 : 0.01} value={localValues[key].stock}
+                onChange={(e) => handleStockChange(key, e.target.value)} onFocus={(e) => e.target.select()}
+                className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white`} />
+            ))}
+          </div>
+          <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
+            <span className="text-xs font-medium text-gray-600">USD/PLN ({fxUnit})</span>
+            {SCENARIO_CONFIG.map(({ key, inputBorder }) => (
+              <input key={key} type="number" step={fxMode === 'pct' ? 0.1 : 0.0001} value={localValues[key].fx}
+                onChange={(e) => handleFxChange(key, e.target.value)} onFocus={(e) => e.target.select()}
+                className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white`} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className={`bg-white rounded-xl border border-gray-200 shadow-sm ${compact ? 'px-4 py-3' : 'p-5'} space-y-3`}>
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 flex flex-col h-full">
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className={`font-semibold text-gray-800 ${compact ? 'text-base' : 'text-lg'}`}>Scenariusze</h2>
+      {/* Header row */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-gray-800">Scenariusze</h2>
+          <Tooltip content={
+            <span>
+              <strong>%</strong> — zmiana względem wartości dziś<br/>
+              <strong>USD / PLN</strong> — wartość docelowa bezwzględna
+            </span>
+          }>
+            <HelpCircle size={14} className="text-gray-300 cursor-help hover:text-gray-500 transition-colors" />
+          </Tooltip>
+          {volatilityStats?.modelsLoading && (
+            <span className="flex items-center gap-1 text-xs text-gray-400">
+              <Loader2 size={12} className="animate-spin" />
+              przeliczam…
+            </span>
+          )}
+        </div>
         {suggestedScenarios && (
           <button
             onClick={onApplySuggested}
@@ -136,14 +227,14 @@ export function ScenarioEditor({
         )}
       </div>
 
-      {/* Model tabs — switch between Bootstrap / GARCH / HMM */}
+      {/* Model tabs */}
       {volatilityStats?.models && volatilityStats.models.models.length > 1 && (() => {
         const { models, recommended, scoring } = volatilityStats.models;
         const availableModels = models.filter(m => m.confidence > 0);
         if (availableModels.length < 2) return null;
         const currentId = activeModelId ?? recommended.id;
         return (
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap mb-3">
             {availableModels.map(m => {
               const isRecommended = m.id === recommended.id;
               const isActive = m.id === currentId;
@@ -171,55 +262,123 @@ export function ScenarioEditor({
                 </button>
               );
             })}
-            <span className="text-[10px] text-gray-400 ml-1">★ = rekomendowany</span>
+            <span className="text-[10px] text-gray-400 ml-1">{'\u2605'} = rekomendowany</span>
           </div>
         );
       })()}
 
-      {!compact && suggestedScenarios && !volatilityStats?.models && (
-        <p className="text-xs text-gray-400">
-          Scenariusze statystyczne z historycznych danych. Base = cena bez zmian. Możesz edytować.
-        </p>
-      )}
+      {/* Mode toggles row */}
+      <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-gray-500 font-medium">Akcje:</span>
+          <div className="w-20"><ModeToggle mode={stockMode} onToggle={toggleStockMode} labelA="%" labelB="USD" /></div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-gray-500 font-medium">FX:</span>
+          <div className="w-20"><ModeToggle mode={fxMode} onToggle={toggleFxMode} labelA="%" labelB="PLN" /></div>
+        </div>
+      </div>
 
-      {/* Analysis card — compact, collapsible (hidden in compact mode) */}
-      {!compact && volatilityStats && (
-        <div className="border border-indigo-100 rounded-lg overflow-hidden">
+      {/* Three scenario cards */}
+      <div className="grid grid-cols-3 gap-3 flex-1 min-h-0">
+        {SCENARIO_CONFIG.map(({ key, label, headerBg, headerText, cardBorder, cardBg, inputBorder }) => {
+          const stockDelta = toDelta(localValues[key].stock, stockMode, currentPriceUSD);
+          const fxDelta = toDelta(localValues[key].fx, fxMode, currentFxRate);
+          return (
+            <div key={key} className={`flex flex-col rounded-xl border ${cardBorder} ${cardBg} overflow-hidden`}>
+              {/* Card header */}
+              <div className={`${headerBg} px-3 py-2 text-center`}>
+                <span className={`text-sm font-bold ${headerText}`}>{label}</span>
+              </div>
+
+              {/* Card body */}
+              <div className="flex-1 flex flex-col gap-3 p-3">
+                {/* Stock input */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">Akcje</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step={stockMode === 'pct' ? 0.1 : 0.01}
+                      value={localValues[key].stock}
+                      onChange={(e) => handleStockChange(key, e.target.value)}
+                      onFocus={(e) => e.target.select()}
+                      placeholder={stockMode === 'pct' ? '0' : String(currentPriceUSD || '')}
+                      className={`w-full border ${inputBorder} rounded-lg px-3 py-2 pr-10 text-sm text-center focus:outline-none focus:ring-2 bg-white`}
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">{stockUnit}</span>
+                  </div>
+                  {stockMode === 'fixed' && currentPriceUSD > 0 && (
+                    <div className={`text-[11px] text-center ${stockDelta >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                      {stockDelta >= 0 ? '+' : ''}{stockDelta.toFixed(1)}%
+                    </div>
+                  )}
+                </div>
+
+                {/* FX input */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">USD/PLN</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step={fxMode === 'pct' ? 0.1 : 0.0001}
+                      value={localValues[key].fx}
+                      onChange={(e) => handleFxChange(key, e.target.value)}
+                      onFocus={(e) => e.target.select()}
+                      placeholder={fxMode === 'pct' ? '0' : String(currentFxRate || '')}
+                      className={`w-full border ${inputBorder} rounded-lg px-3 py-2 pr-10 text-sm text-center focus:outline-none focus:ring-2 bg-white`}
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">{fxUnit}</span>
+                  </div>
+                  {fxMode === 'fixed' && currentFxRate > 0 && (
+                    <div className={`text-[11px] text-center ${fxDelta >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                      {fxDelta >= 0 ? '+' : ''}{fxDelta.toFixed(1)}%
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Analysis card — collapsible thin strip */}
+      {volatilityStats && (
+        <div className="mt-3 border border-indigo-100 rounded-lg overflow-hidden">
           <button
             onClick={() => setStatsOpen(o => !o)}
-            className="w-full flex items-center justify-between px-3 py-2.5 bg-indigo-50 text-xs text-indigo-800 hover:bg-indigo-100 transition-colors"
+            className="w-full flex items-center justify-between px-3 py-2 bg-indigo-50/60 text-xs text-indigo-800 hover:bg-indigo-100 transition-colors"
           >
-            <div className="flex flex-col gap-1.5 items-start">
-              <span className="flex items-center gap-1.5 font-medium">
-                <Info size={12} />
-                Analiza historyczna (~2 lata danych{volatilityStats.models ? `, ${volatilityStats.models.models.filter(m => m.confidence > 0).length} modele` : ''})
+            <span className="flex items-center gap-2 flex-wrap">
+              <Info size={12} className="text-indigo-400 shrink-0" />
+              <span className="font-medium">
+                {volatilityStats.models
+                  ? `${volatilityStats.models.models.filter(m => m.confidence > 0).length} modele`
+                  : 'Analiza'
+                }
               </span>
-              <span className="flex gap-1.5 flex-wrap">
-                {volatilityStats.regime && (
-                  <span className={`rounded px-1.5 py-0.5 border font-semibold text-[11px] ${
-                    volatilityStats.regime.currentRegimeLabel === 'bull'
-                      ? 'bg-green-50 text-green-700 border-green-200'
-                      : 'bg-red-50 text-red-700 border-red-200'
-                  }`}>
-                    {volatilityStats.regime.currentRegimeLabel === 'bull' ? '📈 Wzrost' : '📉 Spadek'}
-                    {' '}({Math.round(volatilityStats.regime.posteriorProbability * 100)}%)
-                  </span>
-                )}
-                <span className="bg-white rounded px-1.5 py-0.5 border border-indigo-100 text-[11px] text-indigo-600">
-                  σ <strong>{volatilityStats.stockSigmaAnnual.toFixed(0)}%</strong>/rok
+              {volatilityStats.regime && (
+                <span className={`rounded px-1.5 py-0.5 border text-[11px] font-semibold ${
+                  volatilityStats.regime.currentRegimeLabel === 'bull'
+                    ? 'bg-green-50 text-green-700 border-green-200'
+                    : 'bg-red-50 text-red-700 border-red-200'
+                }`}>
+                  {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Wzrost' : 'Spadek'}
+                  {' '}({Math.round(volatilityStats.regime.posteriorProbability * 100)}%)
                 </span>
-                <span className={`bg-white rounded px-1.5 py-0.5 border border-indigo-100 text-[11px] font-semibold ${volatilityStats.stockMeanAnnual >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {volatilityStats.stockMeanAnnual >= 0 ? '↑' : '↓'} {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(0)}%/rok
-                </span>
+              )}
+              <span className="text-indigo-500">
+                {'\u03c3'} {volatilityStats.stockSigmaAnnual.toFixed(0)}%/r
               </span>
-            </div>
+              <span className={volatilityStats.stockMeanAnnual >= 0 ? 'text-green-600' : 'text-red-500'}>
+                {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(0)}%/r
+              </span>
+            </span>
             {statsOpen ? <ChevronUp size={13} className="text-indigo-400 shrink-0" /> : <ChevronDown size={13} className="text-indigo-400 shrink-0" />}
           </button>
 
           {statsOpen && (
             <div className="px-3 py-3 bg-white border-t border-indigo-100 text-xs text-gray-600 space-y-3">
-
-              {/* Key metrics grid */}
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-gray-50 rounded-lg p-2.5 space-y-0.5">
                   <div className="font-semibold text-gray-700">Zmienność akcji</div>
@@ -253,7 +412,6 @@ export function ScenarioEditor({
                 </div>
               </div>
 
-              {/* HMM regime info */}
               {volatilityStats.regime && (
                 <div className={`rounded-lg p-2.5 border text-xs ${
                   volatilityStats.regime.currentRegimeLabel === 'bull'
@@ -261,21 +419,17 @@ export function ScenarioEditor({
                     : 'bg-red-50 border-red-200 text-red-800'
                 }`}>
                   <div className="font-semibold mb-1">
-                    {volatilityStats.regime.currentRegimeLabel === 'bull' ? '📈 Faza wzrostów (Bull)' : '📉 Faza spadków (Bear)'}
-                    {' — pewność modelu: '}{Math.round(volatilityStats.regime.posteriorProbability * 100)}%
+                    {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Faza wzrostów (Bull)' : 'Faza spadków (Bear)'}
+                    {' — pewność: '}{Math.round(volatilityStats.regime.posteriorProbability * 100)}%
                   </div>
                   <div className="text-xs opacity-80">
-                    Zmienność w tej fazie: {volatilityStats.regime.stateSigmasAnnual[volatilityStats.regime.currentState].toFixed(0)}%/rok
-                    · Średni trend: {volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState] >= 0 ? '+' : ''}{volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState].toFixed(0)}%/rok
-                    · Typowy czas trwania: ~{volatilityStats.regime.expectedDurations[volatilityStats.regime.currentState].toFixed(0)} sesji
-                  </div>
-                  <div className="text-xs opacity-70 mt-1 italic">
-                    Model oparty na ~2 latach danych — wyniki mają charakter orientacyjny, nie prognostyczny.
+                    Zmienność: {volatilityStats.regime.stateSigmasAnnual[volatilityStats.regime.currentState].toFixed(0)}%/rok
+                    {' · '}Trend: {volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState] >= 0 ? '+' : ''}{volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState].toFixed(0)}%/rok
+                    {' · '}~{volatilityStats.regime.expectedDurations[volatilityStats.regime.currentState].toFixed(0)} sesji
                   </div>
                 </div>
               )}
 
-              {/* Scenario methodology */}
               <div className="border-t pt-2 text-gray-500 leading-relaxed">
                 {volatilityStats.regime ? (
                   <>
@@ -294,88 +448,6 @@ export function ScenarioEditor({
             </div>
           )}
         </div>
-      )}
-
-      {/* Table layout: rows = fields, columns = scenarios */}
-      <div className="space-y-2">
-        {/* Column headers */}
-        <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-2">
-          <div />
-          {SCENARIO_CONFIG.map(({ key, label, badge, colBg }) => (
-            <div key={key} className={`text-center text-xs font-bold px-2 py-1.5 rounded-t-lg ${badge} ${colBg}`}>
-              {label}
-            </div>
-          ))}
-        </div>
-
-        {/* Row 1: Stock */}
-        <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center bg-gray-50 border border-gray-100 rounded-lg px-2 py-2">
-          <div className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-gray-600">Akcje</span>
-            <ModeToggle mode={stockMode} onToggle={toggleStockMode} labelA="%" labelB="USD" />
-          </div>
-          {SCENARIO_CONFIG.map(({ key, accent, colBg }) => (
-            <div key={key} className={`rounded-md ${colBg} p-0.5`}>
-              <input
-                type="number"
-                step={stockMode === 'pct' ? 0.1 : 0.01}
-                value={localValues[key].stock}
-                onChange={(e) => handleStockChange(key, e.target.value)}
-                onFocus={(e) => e.target.select()}
-                placeholder={stockMode === 'pct' ? '0' : String(currentPriceUSD || '')}
-                className={`w-full border-2 ${accent} rounded-md px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white`}
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* Row 2: FX */}
-        <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center bg-gray-50 border border-gray-100 rounded-lg px-2 py-2">
-          <div className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-gray-600">USD/PLN</span>
-            <ModeToggle mode={fxMode} onToggle={toggleFxMode} labelA="%" labelB="PLN" />
-          </div>
-          {SCENARIO_CONFIG.map(({ key, accent, colBg }) => (
-            <div key={key} className={`rounded-md ${colBg} p-0.5`}>
-              <input
-                type="number"
-                step={fxMode === 'pct' ? 0.1 : 0.0001}
-                value={localValues[key].fx}
-                onChange={(e) => handleFxChange(key, e.target.value)}
-                onFocus={(e) => e.target.select()}
-                placeholder={fxMode === 'pct' ? '0' : String(currentFxRate || '')}
-                className={`w-full border-2 ${accent} rounded-md px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white`}
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* Live % preview (only in fixed mode) */}
-        {(stockMode === 'fixed' || fxMode === 'fixed') && (
-          <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-start px-2">
-            <div />
-            {SCENARIO_CONFIG.map(({ key }) => (
-              <div key={key} className="text-xs text-center space-y-0.5">
-                {stockMode === 'fixed' && currentPriceUSD > 0 && (() => {
-                  const d = toDelta(localValues[key].stock, 'fixed', currentPriceUSD);
-                  return <div className="text-gray-400">Δakcje: <span className={d >= 0 ? 'text-green-600 font-medium' : 'text-red-500 font-medium'}>{d >= 0 ? '+' : ''}{d.toFixed(1)}%</span></div>;
-                })()}
-                {fxMode === 'fixed' && currentFxRate > 0 && (() => {
-                  const d = toDelta(localValues[key].fx, 'fixed', currentFxRate);
-                  return <div className="text-gray-400">ΔFX: <span className={d >= 0 ? 'text-green-600 font-medium' : 'text-red-500 font-medium'}>{d >= 0 ? '+' : ''}{d.toFixed(1)}%</span></div>;
-                })()}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Legend */}
-      {!compact && (
-        <p className="text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2 leading-relaxed">
-          <strong className="text-gray-600">%</strong> — zmiana względem wartości dziś &nbsp;·&nbsp;{' '}
-          <strong className="text-gray-600">USD / PLN</strong> — wartość docelowa bezwzględna (np. 4,12 PLN za dolara)
-        </p>
       )}
     </div>
   );

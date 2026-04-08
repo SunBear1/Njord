@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Info } from 'lucide-react';
 
 interface TooltipProps {
@@ -13,12 +14,40 @@ interface TooltipProps {
 }
 
 /**
- * Lightweight CSS-only tooltip using Tailwind group/hover.
- * No JS, no library dependency. Accessible via title fallback.
+ * Portal-based tooltip that escapes overflow-hidden containers.
+ * Positions itself relative to the trigger using getBoundingClientRect.
  */
 export function Tooltip({ content, children, side = 'top', width = 'w-60' }: TooltipProps) {
+  const [visible, setVisible] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const triggerRef = useRef<HTMLSpanElement>(null);
+
+  const updatePosition = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const top = side === 'top' ? rect.top - 8 : rect.bottom + 8;
+    setPos({ top, left: centerX });
+  }, [side]);
+
+  useEffect(() => {
+    if (!visible) return;
+    updatePosition();
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [visible, updatePosition]);
+
   return (
-    <span className="group relative inline-flex items-center align-middle">
+    <span
+      ref={triggerRef}
+      className="inline-flex items-center align-middle"
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+    >
       {children ?? (
         <Info
           size={13}
@@ -26,26 +55,29 @@ export function Tooltip({ content, children, side = 'top', width = 'w-60' }: Too
           aria-hidden="true"
         />
       )}
-      <span
-        role="tooltip"
-        className={[
-          'pointer-events-none absolute z-50 hidden group-hover:block',
-          width,
-          'rounded-lg bg-gray-800 text-white text-xs px-2.5 py-2',
-          'shadow-xl leading-relaxed whitespace-normal',
-          'left-1/2 -translate-x-1/2',
-          side === 'top' ? 'bottom-full mb-2' : 'top-full mt-2',
-        ].join(' ')}
-      >
-        {content}
-        {/* Arrow */}
+      {visible && createPortal(
         <span
+          role="tooltip"
           className={[
-            'absolute left-1/2 -translate-x-1/2 border-4 border-transparent',
-            side === 'top' ? 'top-full border-t-gray-800' : 'bottom-full border-b-gray-800',
+            'fixed z-[9999] pointer-events-none',
+            width,
+            'rounded-lg bg-gray-800 text-white text-xs px-2.5 py-2',
+            'shadow-xl leading-relaxed whitespace-normal',
+            '-translate-x-1/2',
+            side === 'top' ? '-translate-y-full' : '',
           ].join(' ')}
-        />
-      </span>
+          style={{ top: pos.top, left: pos.left }}
+        >
+          {content}
+          <span
+            className={[
+              'absolute left-1/2 -translate-x-1/2 border-4 border-transparent',
+              side === 'top' ? 'top-full border-t-gray-800' : 'bottom-full border-b-gray-800',
+            ].join(' ')}
+          />
+        </span>,
+        document.body,
+      )}
     </span>
   );
 }

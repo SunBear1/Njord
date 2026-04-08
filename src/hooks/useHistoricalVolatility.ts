@@ -8,6 +8,7 @@ import { bootstrapPredict } from '../utils/models/bootstrap';
 import { garchPredict } from '../utils/models/garch';
 import { hmmPredict } from '../utils/models/hmmModel';
 import { selectBestModel } from '../utils/models/modelSelector';
+import { useDebouncedValue } from './useDebouncedValue';
 
 export interface VolatilityStats {
   stockSigmaAnnual: number; // annualized σ in %
@@ -21,6 +22,8 @@ export interface VolatilityStats {
   models: ModelResults | null;
   /** Pre-computed scenarios per model id (for tab switching) */
   modelScenarios: Record<string, Scenarios>;
+  /** True while models are recomputing after horizon change */
+  modelsLoading: boolean;
 }
 
 export interface VolatilityResult {
@@ -94,55 +97,55 @@ export function useHistoricalVolatility(
   fxHistory: FxRate[] | null,
   horizonMonths: number,
 ): VolatilityResult {
-  return useMemo(() => {
-    if (!stockHistory || !fxHistory) return { stats: null, suggestedScenarios: null };
+  // Debounce horizon for expensive model computation (400ms after slider stops)
+  const debouncedHorizon = useDebouncedValue(horizonMonths, 400);
+
+  // Phase 1: Cheap statistics — recompute immediately on any change
+  const baseStats = useMemo(() => {
+    if (!stockHistory || !fxHistory) return null;
 
     const stockPrices = stockHistory.map((p) => p.close);
     const stockReturns = dailyReturns(stockPrices);
     const fxReturns = dailyReturns(fxHistory.map((r) => r.rate));
 
-    if (stockReturns.length < 5 || fxReturns.length < 5) {
-      return { stats: null, suggestedScenarios: null };
-    }
+    if (stockReturns.length < 5 || fxReturns.length < 5) return null;
 
     const stockDailySigma = stddev(stockReturns);
     const fxDailySigma = stddev(fxReturns);
     const rho = pearsonCorrelation(stockReturns, fxReturns);
 
-    // Annualize
     const stockSigmaAnnual = stockDailySigma * Math.sqrt(252) * 100;
     const fxSigmaAnnual = fxDailySigma * Math.sqrt(252) * 100;
     const stockMeanAnnual = mean(stockReturns) * 252 * 100;
     const fxMeanAnnual = mean(fxReturns) * 252 * 100;
 
-    const T = horizonMonths / 12;
-    const fxSigma = fxSigmaAnnual / 100;
-
     const stockLogRet = logReturns(stockPrices);
     const seed = dataSeed(stockPrices);
-    const horizonDays = Math.round(horizonMonths * 21);
 
-    // FX magnitude for scenario construction (shared by all models)
+    return { stockSigmaAnnual, fxSigmaAnnual, rho, stockMeanAnnual, fxMeanAnnual, stockLogRet, seed };
+  }, [stockHistory, fxHistory]);
+
+  // Phase 2: Heavy model computation — runs on DEBOUNCED horizon
+  const modelResult = useMemo(() => {
+    if (!baseStats) return null;
+
+    const { rho, stockLogRet, seed } = baseStats;
+    const T = debouncedHorizon / 12;
+    const fxSigma = baseStats.fxSigmaAnnual / 100;
+    const horizonDays = Math.round(debouncedHorizon * 21);
+
     const fxMagPct = (Math.exp(1.645 * fxSigma * Math.sqrt(T) + (-(fxSigma * fxSigma) / 2) * T) - 1) * 100;
 
-    // Run all three models
     const bootstrapResult = bootstrapPredict(stockLogRet, horizonDays, seed);
     const garchResult = garchPredict(stockLogRet, horizonDays, seed + 10);
     const hmmResult = hmmPredict(stockLogRet, horizonDays, seed);
 
     const allPredictions = [bootstrapResult, garchResult, hmmResult.prediction];
-
-    // Model selection via out-of-sample backtest
     const scoring = selectBestModel(stockLogRet, horizonDays, seed, allPredictions);
     const recommended = scoring.scored[scoring.recommendedIndex];
 
-    const modelResults: ModelResults = {
-      models: scoring.scored,
-      recommended,
-      scoring,
-    };
+    const modelResults: ModelResults = { models: scoring.scored, recommended, scoring };
 
-    // Pre-compute scenarios for each model (for tab switching in UI)
     const modelScenarios: Record<string, Scenarios> = {};
     for (const pred of scoring.scored) {
       if (pred.confidence > 0) {
@@ -150,23 +153,30 @@ export function useHistoricalVolatility(
       }
     }
 
-    // Use recommended model's percentiles for suggested scenarios
     const suggestedScenarios = recommended.confidence > 0
       ? toScenarios(recommended, rho, fxMagPct)
-      : toScenarios(bootstrapResult, rho, fxMagPct); // fallback to bootstrap
+      : toScenarios(bootstrapResult, rho, fxMagPct);
 
-    const stats: VolatilityStats = {
-      stockSigmaAnnual,
-      fxSigmaAnnual,
-      correlation: rho,
-      stockMeanAnnual,
-      fxMeanAnnual,
-      horizonScale: Math.sqrt(T),
-      regime: hmmResult.regime,
-      models: modelResults,
-      modelScenarios,
-    };
+    return { modelResults, modelScenarios, suggestedScenarios, regime: hmmResult.regime, horizonScale: Math.sqrt(T) };
+  }, [baseStats, debouncedHorizon]);
 
-    return { stats, suggestedScenarios };
-  }, [stockHistory, fxHistory, horizonMonths]);
+  // Are models still computing for a new horizon?
+  const modelsLoading = baseStats != null && debouncedHorizon !== horizonMonths;
+
+  if (!baseStats) return { stats: null, suggestedScenarios: null };
+
+  const stats: VolatilityStats = {
+    stockSigmaAnnual: baseStats.stockSigmaAnnual,
+    fxSigmaAnnual: baseStats.fxSigmaAnnual,
+    correlation: baseStats.rho,
+    stockMeanAnnual: baseStats.stockMeanAnnual,
+    fxMeanAnnual: baseStats.fxMeanAnnual,
+    horizonScale: modelResult?.horizonScale ?? Math.sqrt(horizonMonths / 12),
+    regime: modelResult?.regime ?? null,
+    models: modelResult?.modelResults ?? null,
+    modelScenarios: modelResult?.modelScenarios ?? {},
+    modelsLoading,
+  };
+
+  return { stats, suggestedScenarios: modelResult?.suggestedScenarios ?? null };
 }

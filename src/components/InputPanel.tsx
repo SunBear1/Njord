@@ -182,10 +182,17 @@ export function InputPanel({
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
       {/* Summary bar — visible when collapsed */}
       <div
-        className="grid transition-[grid-template-rows] duration-300 ease-in-out"
-        style={{ gridTemplateRows: collapsed ? '1fr' : '0fr' }}
+        className="grid"
+        style={{
+          gridTemplateRows: collapsed ? '1fr' : '0fr',
+          transition: 'grid-template-rows 500ms cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
       >
         <div className="overflow-hidden min-h-0">
+          <div
+            className="transition-opacity duration-500"
+            style={{ opacity: collapsed ? 1 : 0 }}
+          >
           <button
             type="button"
             onClick={onToggleCollapse}
@@ -208,16 +215,23 @@ export function InputPanel({
               Rozwiń <ChevronDown size={14} />
             </span>
           </button>
+          </div>
         </div>
       </div>
 
       {/* Full form — visible when expanded */}
       <div
-        className="grid transition-[grid-template-rows] duration-300 ease-in-out"
-        style={{ gridTemplateRows: collapsed ? '0fr' : '1fr' }}
+        className="grid"
+        style={{
+          gridTemplateRows: collapsed ? '0fr' : '1fr',
+          transition: 'grid-template-rows 500ms cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
       >
         <div className="overflow-hidden min-h-0">
-          <div className="p-5 space-y-5">
+          <div
+            className="p-5 space-y-5 transition-opacity duration-500"
+            style={{ opacity: collapsed ? 0 : 1 }}
+          >
 
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-800">Dane wejściowe</h2>
@@ -412,7 +426,7 @@ export function InputPanel({
           {fxData && !fxLoading && (
             <Tooltip content={`Kurs NBP: ${fmtNum(fxData.currentRate)} PLN/USD, pobierany automatycznie. Możesz wpisać własną wartość.`} />
           )}
-          {fxLoading && <span className="ml-1 text-xs text-gray-400">ładowanie…</span>}
+          {fxLoading && <span className="ml-1 text-xs text-gray-400 inline-flex items-center gap-1"><Loader2 size={11} className="animate-spin" />ładowanie…</span>}
         </label>
         <input
           id="fx-rate"
@@ -561,7 +575,7 @@ export function InputPanel({
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600 flex items-center gap-1">
                           Inflacja CPI
-                          {inflationLoading && <span className="text-gray-400">· ładowanie…</span>}
+                          {inflationLoading && <span className="text-gray-400 inline-flex items-center gap-1">· <Loader2 size={11} className="animate-spin" />ładowanie…</span>}
                           {inflationData && !inflationLoading && (
                             <Tooltip
                               content={`Źródło: ${inflationData.source}${inflationData.period ? ` (${inflationData.period})` : ''}. Obligacje indeksowane inflacją w rzeczywistości stosują odczyt CPI sprzed 2-3 miesięcy, nie bieżącą projekcję — przy stabilnej inflacji różnica jest minimalna.`}
