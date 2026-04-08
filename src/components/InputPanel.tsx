@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, AlertCircle, CheckCircle2, RefreshCw, Calculator, Info, ExternalLink } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle2, RefreshCw, Calculator, Info, ExternalLink, TrendingDown } from 'lucide-react';
 import type { AssetData } from '../types/asset';
 import type { FxData } from '../providers/nbpProvider';
 import type { CpiData } from '../hooks/useCpiGus';
@@ -413,6 +413,19 @@ export function InputPanel({
             <p className="text-xs text-gray-400">
               Podaj oprocentowanie konta oszczędnościowego w skali roku (z regulaminu banku).
             </p>
+          )}
+          {inflationRate > 0 && (
+            <div className="flex items-start gap-1.5 mt-1 bg-orange-50 border border-orange-200 rounded-lg px-2.5 py-2 text-xs text-orange-700">
+              <TrendingDown size={13} className="mt-0.5 flex-shrink-0" aria-hidden="true" />
+              <span>
+                <strong>Inflacja CPI: {inflationRate.toFixed(1)}% r/r (GUS)</strong> — kalkulowane są realne zwroty.
+                {wibor3m > 0 && inflationRate >= wibor3m && (
+                  <span className="block mt-0.5 font-medium">
+                    Uwaga: oprocentowanie ({wibor3m.toFixed(2)}%) niższe od inflacji — realna stopa ujemna.
+                  </span>
+                )}
+              </span>
+            </div>
           )}
         </div>
       ) : (
