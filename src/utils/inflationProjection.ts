@@ -15,14 +15,24 @@
 export const NBP_TARGET = 2.5;
 
 /** Mean-reversion time constant in months (half-life ≈ 12 months → τ = 12/ln2 ≈ 17.3) */
-const TAU = 18;
+const INFLATION_TAU = 18;
+
+/**
+ * Long-run equilibrium for savings account rates in Poland.
+ * Savings accounts typically offer ~65% of the NBP reference rate.
+ * With a long-run neutral NBP rate of ~4-4.5%, equilibrium ≈ 3.0%.
+ */
+export const SAVINGS_RATE_EQUILIBRIUM = 3.0;
+
+/** Mean-reversion time constant for savings rates — slower than inflation (τ = 24 months) */
+const SAVINGS_TAU = 24;
 
 /**
  * Projected annual inflation rate at month t from now.
  * Uses exponential decay toward NBP target.
  */
 export function projectedRate(currentRate: number, monthsFromNow: number): number {
-  return NBP_TARGET + (currentRate - NBP_TARGET) * Math.exp(-monthsFromNow / TAU);
+  return NBP_TARGET + (currentRate - NBP_TARGET) * Math.exp(-monthsFromNow / INFLATION_TAU);
 }
 
 /**
@@ -51,6 +61,33 @@ export function blendedInflationRate(currentRate: number, horizonMonths: number)
   const effectiveAnnual = (Math.pow(cumulativeFactor, 1 / years) - 1) * 100;
 
   return effectiveAnnual;
+}
+
+/**
+ * Compute a blended effective annual savings rate for the given horizon.
+ *
+ * Savings account rates follow the NBP reference rate, which reverts to a
+ * long-run neutral level over time. The blended rate is the single annual rate
+ * that, when compounded monthly for the horizon, gives the same terminal value
+ * as a month-by-month variable rate path.
+ *
+ * @param currentRate  Current annual savings account rate (%)
+ * @param horizonMonths  Investment horizon in months
+ * @returns Blended effective annual rate (%), suitable for monthly compounding
+ */
+export function blendedSavingsRate(currentRate: number, horizonMonths: number): number {
+  if (horizonMonths <= 0) return currentRate;
+
+  // Compute cumulative growth month by month with decaying rate
+  let cumulativeGrowth = 1;
+  for (let m = 1; m <= horizonMonths; m++) {
+    const annualRate = SAVINGS_RATE_EQUILIBRIUM + (currentRate - SAVINGS_RATE_EQUILIBRIUM) * Math.exp(-m / SAVINGS_TAU);
+    cumulativeGrowth *= 1 + annualRate / 100 / 12;
+  }
+
+  // Extract the equivalent constant annual rate (monthly compounding)
+  const effectiveMonthlyRate = Math.pow(cumulativeGrowth, 1 / horizonMonths) - 1;
+  return effectiveMonthlyRate * 12 * 100;
 }
 
 /**

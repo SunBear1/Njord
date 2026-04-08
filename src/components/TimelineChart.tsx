@@ -38,10 +38,10 @@ export function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflation
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">
       <h3 className="text-base font-semibold text-gray-800">Wartość w czasie</h3>
       <p className="text-xs text-gray-500">
-        Prognozowana wartość portfela przez cały horyzont (netto po Belce)
-        {inflationRate > 0 && '. Linia „Siła nabywcza" pokazuje erozję wartości pieniądza przez inflację.'}
+        Prognozowana wartość portfela przez cały horyzont (netto po podatku Belki).
+        {inflationRate > 0 && ' Szara linia przerywana „Siła nabywcza" pokazuje, ile warta jest dziś kwota wyjściowa, jeśli uwzględnić inflację.'}
       </p>
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={420}>
         <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 24, left: 10 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis
@@ -57,12 +57,12 @@ export function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflation
           />
           <Legend />
           <ReferenceLine y={currentValuePLN} stroke="#94a3b8" strokeDasharray="4 4" />
-          <Line type="monotone" dataKey="benchmark" name={benchmarkLabel} stroke="#8b5cf6" strokeWidth={2} dot={false} />
-          <Line type="monotone" dataKey="bear" name="Bear" stroke="var(--color-bear)" strokeWidth={2} dot={false} strokeDasharray="5 3" />
-          <Line type="monotone" dataKey="base" name="Base" stroke="var(--color-base)" strokeWidth={2} dot={false} />
-          <Line type="monotone" dataKey="bull" name="Bull" stroke="var(--color-bull)" strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="benchmark" name={benchmarkLabel}  stroke="#8b5cf6" strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="bear"      name="Bear (pesymistyczny)" stroke="#ef4444" strokeWidth={2} dot={false} strokeDasharray="5 3" />
+          <Line type="monotone" dataKey="base"      name="Base (bez zmian)"    stroke="#2563eb" strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="bull"      name="Bull (optymistyczny)" stroke="#16a34a" strokeWidth={2} dot={false} />
           {inflationRate > 0 && (
-            <Line type="monotone" dataKey="purchasingPower" name="Siła nabywcza" stroke="#f97316" strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
+            <Line type="monotone" dataKey="purchasingPower" name="Siła nabywcza" stroke="#94a3b8" strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
           )}
         </LineChart>
       </ResponsiveContainer>

@@ -133,8 +133,8 @@ export function ScenarioEditor({
       {suggestedScenarios && (
         <p className="text-xs text-indigo-600 bg-indigo-50 rounded-lg px-3 py-1.5">
           {volatilityStats?.regime
-            ? 'Scenariusze wyliczone z modelu HMM (reżim bull/bear) + Monte Carlo na ~1 roku danych. Możesz je dowolnie edytować.'
-            : 'Scenariusze wyliczone automatycznie z ~1 roku danych historycznych. Możesz je dowolnie edytować.'}
+            ? 'Scenariusze Bear i Bull wyznaczone modelem HMM + Monte Carlo. Base = cena bez zmian (punkt neutralny).'
+            : 'Scenariusze Bear i Bull wyznaczone statystycznie z historii. Base = cena bez zmian. Możesz je edytować.'}
         </p>
       )}
 
@@ -148,7 +148,7 @@ export function ScenarioEditor({
             <span className="flex items-center gap-2 font-medium flex-wrap">
               <span className="flex items-center gap-1.5">
                 <Info size={12} />
-                Analiza historyczna (~1 rok)
+                Analiza historyczna (~1 rok danych)
               </span>
               <span className="flex gap-1.5 font-normal text-indigo-600">
                 {volatilityStats.regime && (
@@ -157,18 +157,15 @@ export function ScenarioEditor({
                       ? 'bg-green-50 text-green-700 border-green-200'
                       : 'bg-red-50 text-red-700 border-red-200'
                   }`}>
-                    HMM: {volatilityStats.regime.currentRegimeLabel}
+                    Faza: {volatilityStats.regime.currentRegimeLabel === 'bull' ? '📈 Wzrost' : '📉 Spadek'}
                     {' '}({Math.round(volatilityStats.regime.posteriorProbability * 100)}%)
                   </span>
                 )}
                 <span className="bg-white rounded px-1.5 py-0.5 border border-indigo-100">
-                  σ <strong>{volatilityStats.stockSigmaAnnual.toFixed(0)}%</strong>
-                </span>
-                <span className="bg-white rounded px-1.5 py-0.5 border border-indigo-100">
-                  ρ <strong>{volatilityStats.correlation.toFixed(2)}</strong>
+                  Zmienność <strong>{volatilityStats.stockSigmaAnnual.toFixed(0)}%</strong>/rok
                 </span>
                 <span className={`bg-white rounded px-1.5 py-0.5 border border-indigo-100 font-semibold ${volatilityStats.stockMeanAnnual >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  trend {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(0)}%
+                  Trend {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(0)}%/rok
                 </span>
               </span>
             </span>
@@ -176,58 +173,81 @@ export function ScenarioEditor({
           </button>
 
           {statsOpen && (
-            <div className="px-3 py-2.5 bg-white border-t border-indigo-100 text-xs text-gray-600 space-y-2">
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                <div>
-                  <strong className="text-gray-700">σ (sigma)</strong> — zmienność akcji:{' '}
-                  <strong className="text-gray-800">{volatilityStats.stockSigmaAnnual.toFixed(1)}%</strong>/rok.{' '}
-                  <span className="text-gray-400">Im wyższe σ, tym szersze widełki Bear–Bull.</span>
+            <div className="px-3 py-3 bg-white border-t border-indigo-100 text-xs text-gray-600 space-y-3">
+
+              {/* Key metrics grid */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-gray-50 rounded-lg p-2.5 space-y-0.5">
+                  <div className="font-semibold text-gray-700">Zmienność akcji</div>
+                  <div className="text-lg font-bold text-gray-900">{volatilityStats.stockSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400">/rok</span></div>
+                  <div className="text-gray-500">Im wyższa, tym szerszy przedział Bear–Bull. Typowe akcje: 20–40%.</div>
                 </div>
-                <div>
-                  <strong className="text-gray-700">σ FX</strong> — zmienność USD/PLN:{' '}
-                  <strong className="text-gray-800">{volatilityStats.fxSigmaAnnual.toFixed(1)}%</strong>/rok.
+                <div className="bg-gray-50 rounded-lg p-2.5 space-y-0.5">
+                  <div className="font-semibold text-gray-700">Zmienność USD/PLN</div>
+                  <div className="text-lg font-bold text-gray-900">{volatilityStats.fxSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400">/rok</span></div>
+                  <div className="text-gray-500">Kurs dolara jest dodatkowym źródłem ryzyka dla inwestycji w USD.</div>
                 </div>
-                <div>
-                  <strong className="text-gray-700">ρ (rho)</strong> — korelacja akcji z USD/PLN:{' '}
-                  <strong className="text-gray-800">{volatilityStats.correlation.toFixed(2)}</strong>.{' '}
-                  <span className="text-gray-400">Zakres od −1 do +1.</span>
+                <div className="bg-gray-50 rounded-lg p-2.5 space-y-0.5">
+                  <div className="font-semibold text-gray-700">Powiązanie z dolarem</div>
+                  <div className={`text-lg font-bold ${Math.abs(volatilityStats.correlation) > 0.1 ? (volatilityStats.correlation > 0 ? 'text-amber-600' : 'text-blue-600') : 'text-gray-700'}`}>
+                    {volatilityStats.correlation > 0 ? '+' : ''}{volatilityStats.correlation.toFixed(2)}
+                  </div>
+                  <div className="text-gray-500">
+                    {volatilityStats.correlation < -0.1
+                      ? 'Gdy akcje spadają, dolar się umacnia — częściowo amortyzuje straty.'
+                      : volatilityStats.correlation > 0.1
+                      ? 'Wzrost/spadek akcji idzie w parze z dolarem — efekty się wzmacniają.'
+                      : 'Akcje i USD/PLN zachowują się niezależnie od siebie.'}
+                  </div>
                 </div>
-                <div>
-                  <strong className="text-gray-700">trend</strong> — historyczna średnia stopa zwrotu akcji:{' '}
-                  <strong className={volatilityStats.stockMeanAnnual >= 0 ? 'text-green-700' : 'text-red-600'}>{volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%</strong>/rok.{' '}
-                  <span className="text-gray-400">Tylko informacyjnie — zbyt niepewny do prognoz.</span>
+                <div className="bg-gray-50 rounded-lg p-2.5 space-y-0.5">
+                  <div className="font-semibold text-gray-700">Historyczny trend</div>
+                  <div className={`text-lg font-bold ${volatilityStats.stockMeanAnnual >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                    {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400">/rok</span>
+                  </div>
+                  <div className="text-gray-500">Tylko informacyjnie — 1 rok to za mało, by traktować to jako prognozę.</div>
                 </div>
               </div>
-              <p className="text-gray-500 leading-relaxed border-t pt-1.5">
-                {volatilityStats.correlation < -0.1
-                  ? '📉 Ujemna korelacja (ρ < 0) — gdy akcje spadają, dolar zwykle się umacnia. To częściowo amortyzuje straty w PLN.'
-                  : volatilityStats.correlation > 0.1
-                  ? '📈 Dodatnia korelacja (ρ > 0) — wzrost/spadek akcji idzie w parze ze wzrostem/spadkiem dolara. Efekty się wzmacniają.'
-                  : '➡️ Niska korelacja (ρ ≈ 0) — akcje i kurs USD/PLN zachowują się niezależnie od siebie.'}
-              </p>
-              <p className="text-gray-400 border-t pt-1.5 leading-relaxed">
+
+              {/* HMM regime info */}
+              {volatilityStats.regime && (
+                <div className={`rounded-lg p-2.5 border text-xs ${
+                  volatilityStats.regime.currentRegimeLabel === 'bull'
+                    ? 'bg-green-50 border-green-200 text-green-800'
+                    : 'bg-red-50 border-red-200 text-red-800'
+                }`}>
+                  <div className="font-semibold mb-1">
+                    {volatilityStats.regime.currentRegimeLabel === 'bull' ? '📈 Faza wzrostów (Bull)' : '📉 Faza spadków (Bear)'}
+                    {' — pewność modelu: '}{Math.round(volatilityStats.regime.posteriorProbability * 100)}%
+                  </div>
+                  <div className="text-xs opacity-80">
+                    Zmienność w tej fazie: {volatilityStats.regime.stateSigmasAnnual[volatilityStats.regime.currentState].toFixed(0)}%/rok
+                    · Średni trend: {volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState] >= 0 ? '+' : ''}{volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState].toFixed(0)}%/rok
+                    · Typowy czas trwania: ~{volatilityStats.regime.expectedDurations[volatilityStats.regime.currentState].toFixed(0)} sesji
+                  </div>
+                  <div className="text-xs opacity-70 mt-1 italic">
+                    Model oparty na ~1 roku danych — wyniki mają charakter orientacyjny, nie prognostyczny.
+                  </div>
+                </div>
+              )}
+
+              {/* Scenario methodology */}
+              <div className="border-t pt-2 text-gray-400 leading-relaxed">
                 {volatilityStats.regime ? (
                   <>
-                    <strong className="text-gray-500">Model HMM</strong> — wykrywa dwa reżimy rynkowe (bull/bear) na podstawie zmienności i stopy zwrotu.
-                    Aktualnie wykryty reżim: <strong className={volatilityStats.regime.currentRegimeLabel === 'bull' ? 'text-green-700' : 'text-red-600'}>
-                      {volatilityStats.regime.currentRegimeLabel}
-                    </strong>{' '}
-                    (σ = {volatilityStats.regime.stateSigmasAnnual[volatilityStats.regime.currentState].toFixed(0)}%,
-                    μ = {volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState] >= 0 ? '+' : ''}
-                    {volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState].toFixed(0)}%,
-                    śr. czas trwania ~{volatilityStats.regime.expectedDurations[volatilityStats.regime.currentState].toFixed(0)} sesji).{' '}
-                    <strong className="text-gray-500">Bear / Bull</strong> = p5% / p95% z {'\u00A0'}3 000 ścieżek Monte Carlo z przejściami reżimów.{' '}
-                    <strong className="text-gray-500">Base = mediana</strong> (p50%) symulacji.{' '}
-                    <em className="text-amber-700">Pewność modelu HMM: {Math.round(volatilityStats.regime.posteriorProbability * 100)}% — dane z ~1 roku, co jest krótkim horyzontem dla modeli reżimowych.</em>
+                    <strong className="text-gray-500">Jak wyliczone scenariusze?</strong>{' '}
+                    Bear i Bull = 5. i 95. percentyl z 3 000 symulacji Monte Carlo uwzględniających przejścia między fazami rynku.
+                    Base = aktualna cena (0% zmiany) — punkt neutralny do porównania.
                   </>
                 ) : (
                   <>
-                    <strong className="text-gray-500">Bear / Bull</strong> = scenariusze p5% / p95% z modelu log-normalnego (zerowy dryf, korekta Itô).
-                    Oznaczają przedziały, które akcja przekracza tylko w 5% najgorszych/najlepszych przypadków w horyzoncie inwestycji.{' '}
-                    <strong className="text-gray-500">Base = 0%</strong> — neutralny punkt wyjścia; wpisz ręcznie jeśli masz własną prognozę.
+                    <strong className="text-gray-500">Jak wyliczone scenariusze?</strong>{' '}
+                    Bear i Bull = skrajne 5% przypadków według rozkładu log-normalnego (zerodryf, korekta Itô).
+                    Oznaczają, że akcja przekroczy tę wartość tylko w najgorszych / najlepszych 5% scenariuszy.
+                    Base = aktualna cena bez zmian.
                   </>
                 )}
-              </p>
+              </div>
             </div>
           )}
         </div>

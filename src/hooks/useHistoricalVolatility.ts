@@ -119,14 +119,14 @@ export function useHistoricalVolatility(
       const horizonDays = Math.round(horizonMonths * 21); // ~21 trading days/month
       const mc = regimeConditionedMonteCarlo(hmmModel, regime.currentState, horizonDays, 3000, seed + 1);
 
-      const [p5, , p50, , p95] = mc.percentiles;
+      const [p5, , , , p95] = mc.percentiles;
 
       // FX: correlation-adjusted magnitude (same approach as before)
       const fxMagPct = (Math.exp(1.645 * fxSigma * Math.sqrt(T) + (-(fxSigma * fxSigma) / 2) * T) - 1) * 100;
 
       suggestedScenarios = {
         bear: { deltaStock: p5, deltaFx: -rho * fxMagPct },
-        base: { deltaStock: p50, deltaFx: 0 },
+        base: { deltaStock: 0, deltaFx: 0 },
         bull: { deltaStock: p95, deltaFx: +rho * fxMagPct },
       };
     } else {

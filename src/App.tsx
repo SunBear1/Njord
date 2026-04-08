@@ -16,7 +16,7 @@ import {
   calcTimeline,
   calcHeatmap,
 } from './utils/calculations';
-import { blendedInflationRate } from './utils/inflationProjection';
+import { blendedInflationRate, blendedSavingsRate } from './utils/inflationProjection';
 import { DEFAULT_HORIZON_MONTHS } from './utils/assetConfig';
 import type { Scenarios, ScenarioKey, BenchmarkType, BondRateType } from './types/scenario';
 
@@ -128,6 +128,13 @@ function App() {
     [inflationRate, horizonMonths],
   );
 
+  // Blended savings rate: mean-reversion toward long-run equilibrium (~3.0%)
+  // Savings account rates track the NBP reference rate, which cycles over time.
+  const effectiveSavingsRate = useMemo(
+    () => wibor3m > 0 ? blendedSavingsRate(wibor3m, horizonMonths) : 0,
+    [wibor3m, horizonMonths],
+  );
+
   // Compute effective bond rate based on type + external data.
   // Inflation-linked bonds use the blended projected rate (not the raw current reading)
   // to stay consistent with how real returns are calculated.
@@ -141,14 +148,14 @@ function App() {
     shares,
     currentPriceUSD,
     currentFxRate,
-    wibor3mPercent: wibor3m,
+    wibor3mPercent: benchmarkType === 'savings' ? effectiveSavingsRate : wibor3m,
     horizonMonths,
     benchmarkType,
     bondFirstYearRate,
     bondEffectiveRate: computedEffectiveRate,
     bondPenaltyPercent: bondPenalty,
     inflationRate: effectiveInflation,
-  }), [shares, currentPriceUSD, currentFxRate, wibor3m, horizonMonths, benchmarkType, bondFirstYearRate, computedEffectiveRate, bondPenalty, effectiveInflation]);
+  }), [shares, currentPriceUSD, currentFxRate, wibor3m, horizonMonths, benchmarkType, bondFirstYearRate, computedEffectiveRate, bondPenalty, effectiveInflation, effectiveSavingsRate]);
 
   const benchmarkReady = benchmarkType === 'savings' ? wibor3m > 0 : bondFirstYearRate > 0;
   const canCalc = shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && horizonMonths > 0 && benchmarkReady;
@@ -201,6 +208,7 @@ function App() {
             currentPriceUSD={currentPriceUSD}
             currentFxRate={currentFxRate}
             wibor3m={wibor3m}
+            effectiveSavingsRate={effectiveSavingsRate}
             horizonMonths={horizonMonths}
             benchmarkType={benchmarkType}
             bondFirstYearRate={bondFirstYearRate}
@@ -257,17 +265,15 @@ function App() {
               inflationStale={inflationData?.isStale}
               horizonMonths={horizonMonths}
             />
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              <ComparisonChart results={results} />
-              {timeline && (
-                <TimelineChart
-                  data={timeline}
-                  currentValuePLN={results[0]?.currentValuePLN ?? 0}
-                  benchmarkLabel={results[0]?.benchmarkLabel ?? 'Konto'}
-                  inflationRate={effectiveInflation}
-                />
-              )}
-            </div>
+            <ComparisonChart results={results} />
+            {timeline && (
+              <TimelineChart
+                data={timeline}
+                currentValuePLN={results[0]?.currentValuePLN ?? 0}
+                benchmarkLabel={results[0]?.benchmarkLabel ?? 'Konto'}
+                inflationRate={effectiveInflation}
+              />
+            )}
             {heatmap && (
               <BreakevenChart
                 cells={heatmap}

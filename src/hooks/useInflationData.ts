@@ -69,7 +69,7 @@ export function useInflationData(onData?: (d: InflationData) => void) {
         const result: InflationData = {
           currentRate: parsed.rate,
           period: parsed.period,
-          source: 'Eurostat HICP',
+          source: 'Eurostat',
           isStale: isStaleData(parsed.period),
         };
         setData(result);
