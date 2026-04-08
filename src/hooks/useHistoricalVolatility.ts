@@ -2,6 +2,12 @@ import { useMemo } from 'react';
 import type { HistoricalPrice } from '../types/asset';
 import type { FxRate } from '../providers/nbpProvider';
 import type { Scenarios } from '../types/scenario';
+import {
+  fitGaussianHmm,
+  detectCurrentRegime,
+  regimeConditionedMonteCarlo,
+  type RegimeInfo,
+} from '../utils/hmm';
 
 export interface VolatilityStats {
   stockSigmaAnnual: number; // annualized σ in %
@@ -10,6 +16,7 @@ export interface VolatilityStats {
   stockMeanAnnual: number; // annualized mean return in %
   fxMeanAnnual: number;
   horizonScale: number; // √(months/12)
+  regime: RegimeInfo | null;
 }
 
 export interface VolatilityResult {
@@ -21,6 +28,14 @@ function dailyReturns(prices: number[]): number[] {
   const ret: number[] = [];
   for (let i = 1; i < prices.length; i++) {
     if (prices[i - 1] > 0) ret.push((prices[i] - prices[i - 1]) / prices[i - 1]);
+  }
+  return ret;
+}
+
+function logReturns(prices: number[]): number[] {
+  const ret: number[] = [];
+  for (let i = 1; i < prices.length; i++) {
+    if (prices[i - 1] > 0 && prices[i] > 0) ret.push(Math.log(prices[i] / prices[i - 1]));
   }
   return ret;
 }
@@ -51,6 +66,15 @@ function pearsonCorrelation(a: number[], b: number[]): number {
   return denom > 0 ? cov / denom : 0;
 }
 
+/** Derive a deterministic seed from the data for reproducible Monte Carlo */
+function dataSeed(prices: number[]): number {
+  let h = 0;
+  for (let i = 0; i < prices.length; i++) {
+    h = ((h << 5) - h + Math.round(prices[i] * 100)) | 0;
+  }
+  return Math.abs(h);
+}
+
 export function useHistoricalVolatility(
   stockHistory: HistoricalPrice[] | null,
   fxHistory: FxRate[] | null,
@@ -59,7 +83,8 @@ export function useHistoricalVolatility(
   return useMemo(() => {
     if (!stockHistory || !fxHistory) return { stats: null, suggestedScenarios: null };
 
-    const stockReturns = dailyReturns(stockHistory.map((p) => p.close));
+    const stockPrices = stockHistory.map((p) => p.close);
+    const stockReturns = dailyReturns(stockPrices);
     const fxReturns = dailyReturns(fxHistory.map((r) => r.rate));
 
     if (stockReturns.length < 5 || fxReturns.length < 5) {
@@ -77,33 +102,47 @@ export function useHistoricalVolatility(
     const fxMeanAnnual = mean(fxReturns) * 252 * 100;
 
     const T = horizonMonths / 12;
-    const stockSigma = stockSigmaAnnual / 100; // decimal
     const fxSigma = fxSigmaAnnual / 100;
 
-    // Log-normal p5/p95 with zero drift (conservative, avoids projecting noisy recent trend).
-    // ln(P_T/P_0) ~ N(-σ²/2·T, σ²·T)  [zero-drift GBM with Itô correction]
-    // p5  (Bear): exp(-1.645·σ·√T - σ²/2·T) - 1
-    // p95 (Bull): exp(+1.645·σ·√T - σ²/2·T) - 1
-    const itoAdj = (s: number) => -(s * s) / 2 * T;
-    const stockBearPct = (Math.exp(-1.645 * stockSigma * Math.sqrt(T) + itoAdj(stockSigma)) - 1) * 100;
-    const stockBullPct = (Math.exp(+1.645 * stockSigma * Math.sqrt(T) + itoAdj(stockSigma)) - 1) * 100;
+    // Attempt HMM regime detection on log-returns
+    const stockLogRet = logReturns(stockPrices);
+    const seed = dataSeed(stockPrices);
+    const hmmModel = fitGaussianHmm(stockLogRet, 2, seed);
 
-    // FX magnitude: p95 of log-normal (symmetric ±)
-    const fxMagPct = (Math.exp(1.645 * fxSigma * Math.sqrt(T) + itoAdj(fxSigma)) - 1) * 100;
+    let regime: RegimeInfo | null = null;
+    let suggestedScenarios: Scenarios;
 
-    // Correlation-adjusted FX deltas (same sign convention as fixed Bug F):
-    // Bear: stock falls → E[ΔFXR] = -ρ · fxMag
-    // Bull: stock rises → E[ΔFXR] = +ρ · fxMag
-    const fxBearDelta = -rho * fxMagPct;
-    const fxBullDelta = +rho * fxMagPct;
+    if (hmmModel) {
+      // HMM succeeded — use regime-conditioned Monte Carlo
+      regime = detectCurrentRegime(stockLogRet, hmmModel);
 
-    // Base: zero drift for both (historical mean is too noisy over ~1 year to reliably project).
-    // The trend (stockMeanAnnual) is shown as info in the UI — user can incorporate it manually.
-    const suggestedScenarios: Scenarios = {
-      bear: { deltaStock: stockBearPct, deltaFx: fxBearDelta },
-      base: { deltaStock: 0, deltaFx: 0 },
-      bull: { deltaStock: stockBullPct, deltaFx: fxBullDelta },
-    };
+      const horizonDays = Math.round(horizonMonths * 21); // ~21 trading days/month
+      const mc = regimeConditionedMonteCarlo(hmmModel, regime.currentState, horizonDays, 3000, seed + 1);
+
+      const [p5, , p50, , p95] = mc.percentiles;
+
+      // FX: correlation-adjusted magnitude (same approach as before)
+      const fxMagPct = (Math.exp(1.645 * fxSigma * Math.sqrt(T) + (-(fxSigma * fxSigma) / 2) * T) - 1) * 100;
+
+      suggestedScenarios = {
+        bear: { deltaStock: p5, deltaFx: -rho * fxMagPct },
+        base: { deltaStock: p50, deltaFx: 0 },
+        bull: { deltaStock: p95, deltaFx: +rho * fxMagPct },
+      };
+    } else {
+      // Fallback: original log-normal p5/p95 approach
+      const stockSigma = stockSigmaAnnual / 100;
+      const itoAdj = (s: number) => -(s * s) / 2 * T;
+      const stockBearPct = (Math.exp(-1.645 * stockSigma * Math.sqrt(T) + itoAdj(stockSigma)) - 1) * 100;
+      const stockBullPct = (Math.exp(+1.645 * stockSigma * Math.sqrt(T) + itoAdj(stockSigma)) - 1) * 100;
+      const fxMagPct = (Math.exp(1.645 * fxSigma * Math.sqrt(T) + (-(fxSigma * fxSigma) / 2) * T) - 1) * 100;
+
+      suggestedScenarios = {
+        bear: { deltaStock: stockBearPct, deltaFx: -rho * fxMagPct },
+        base: { deltaStock: 0, deltaFx: 0 },
+        bull: { deltaStock: stockBullPct, deltaFx: +rho * fxMagPct },
+      };
+    }
 
     const stats: VolatilityStats = {
       stockSigmaAnnual,
@@ -112,6 +151,7 @@ export function useHistoricalVolatility(
       stockMeanAnnual,
       fxMeanAnnual,
       horizonScale: Math.sqrt(T),
+      regime,
     };
 
     return { stats, suggestedScenarios };

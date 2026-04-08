@@ -132,7 +132,9 @@ export function ScenarioEditor({
 
       {suggestedScenarios && (
         <p className="text-xs text-indigo-600 bg-indigo-50 rounded-lg px-3 py-1.5">
-          Scenariusze wyliczone automatycznie z ~1 roku danych historycznych. Możesz je dowolnie edytować.
+          {volatilityStats?.regime
+            ? 'Scenariusze wyliczone z modelu HMM (reżim bull/bear) + Monte Carlo na ~1 roku danych. Możesz je dowolnie edytować.'
+            : 'Scenariusze wyliczone automatycznie z ~1 roku danych historycznych. Możesz je dowolnie edytować.'}
         </p>
       )}
 
@@ -149,6 +151,15 @@ export function ScenarioEditor({
                 Analiza historyczna (~1 rok)
               </span>
               <span className="flex gap-1.5 font-normal text-indigo-600">
+                {volatilityStats.regime && (
+                  <span className={`rounded px-1.5 py-0.5 border font-semibold ${
+                    volatilityStats.regime.currentRegimeLabel === 'bull'
+                      ? 'bg-green-50 text-green-700 border-green-200'
+                      : 'bg-red-50 text-red-700 border-red-200'
+                  }`}>
+                    HMM: {volatilityStats.regime.currentRegimeLabel}
+                  </span>
+                )}
                 <span className="bg-white rounded px-1.5 py-0.5 border border-indigo-100">
                   σ <strong>{volatilityStats.stockSigmaAnnual.toFixed(0)}%</strong>
                 </span>
@@ -194,9 +205,26 @@ export function ScenarioEditor({
                   : '➡️ Niska korelacja (ρ ≈ 0) — akcje i kurs USD/PLN zachowują się niezależnie od siebie.'}
               </p>
               <p className="text-gray-400 border-t pt-1.5 leading-relaxed">
-                <strong className="text-gray-500">Bear / Bull</strong> = scenariusze p5% / p95% z modelu log-normalnego (zerowy dryf, korekta Itô).
-                Oznaczają przedziały, które akcja przekracza tylko w 5% najgorszych/najlepszych przypadków w horyzoncie inwestycji.{' '}
-                <strong className="text-gray-500">Base = 0%</strong> — neutralny punkt wyjścia; wpisz ręcznie jeśli masz własną prognozę.
+                {volatilityStats.regime ? (
+                  <>
+                    <strong className="text-gray-500">Model HMM</strong> — wykrywa dwa reżimy rynkowe (bull/bear) na podstawie zmienności i stopy zwrotu.
+                    Aktualnie wykryty reżim: <strong className={volatilityStats.regime.currentRegimeLabel === 'bull' ? 'text-green-700' : 'text-red-600'}>
+                      {volatilityStats.regime.currentRegimeLabel}
+                    </strong>{' '}
+                    (σ = {volatilityStats.regime.stateSigmasAnnual[volatilityStats.regime.currentState].toFixed(0)}%,
+                    μ = {volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState] >= 0 ? '+' : ''}
+                    {volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState].toFixed(0)}%,
+                    śr. czas trwania ~{volatilityStats.regime.expectedDurations[volatilityStats.regime.currentState].toFixed(0)} sesji).{' '}
+                    <strong className="text-gray-500">Bear / Bull</strong> = p5% / p95% z {'\u00A0'}3 000 ścieżek Monte Carlo z przejściami reżimów.{' '}
+                    <strong className="text-gray-500">Base = mediana</strong> (p50%) symulacji.
+                  </>
+                ) : (
+                  <>
+                    <strong className="text-gray-500">Bear / Bull</strong> = scenariusze p5% / p95% z modelu log-normalnego (zerowy dryf, korekta Itô).
+                    Oznaczają przedziały, które akcja przekracza tylko w 5% najgorszych/najlepszych przypadków w horyzoncie inwestycji.{' '}
+                    <strong className="text-gray-500">Base = 0%</strong> — neutralny punkt wyjścia; wpisz ręcznie jeśli masz własną prognozę.
+                  </>
+                )}
               </p>
             </div>
           )}

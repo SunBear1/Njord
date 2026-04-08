@@ -1,41 +1,44 @@
 ---
 name: bull-bear-scenarios
-description: Detect market regimes (bull/bear), compute expected regime durations, and generate Monte Carlo price scenarios conditioned on detected regimes. Trigger when user asks for: 'regime detection', 'bull/bear scenariusze', 'HMM + Monte Carlo', 'scenariusze cen akcji'.
+description: Detect market regimes (bull/bear), compute expected regime durations, and generate Monte Carlo price scenarios conditioned on detected regimes. Trigger when user asks for: 'regime detection', 'bull/bear scenarios', 'HMM + Monte Carlo', 'stock price scenarios'.
+globs:
+  - src/hooks/useHistoricalVolatility.ts
+  - src/utils/hmm.ts
 ---
-# Bull-Bear Scenario Generator — instrukcja dla agenta
+# Bull-Bear Scenario Generator — Agent Instructions
 
-Rola: Dostarcz modelu/agentowi Claude z proceduralnym przepływem pracy do wykrywania reżimów rynkowych (bull / bear) przy użyciu HMM, obliczania oczekiwanego czasu trwania reżimu oraz generowania scenariuszy cen akcji metodą Monte Carlo (GBM) warunkowanych na stanie.
+Role: Provide the agent with a procedural workflow for detecting market regimes (bull / bear) using HMM, computing expected regime duration, and generating stock price scenarios via regime-conditioned Monte Carlo (GBM).
 
-## Kiedy użyć tego skilla
-- Gdy użytkownik prosi o: „wykryj reżim bull/bear”, „wygeneruj scenariusze cen dla bull/bear”, „HMM + Monte Carlo”, „scenariusze akcji dla ticker X”.
+## When to Use This Skill
+- When the user asks to: "detect bull/bear regime", "generate bull/bear price scenarios", "HMM + Monte Carlo", "stock scenarios for ticker X".
 
-## Kroki (zwięzły workflow)
-1. Pobierz dane historyczne (ceny zamknięcia) w żądanej częstotliwości (domyślnie dzienne). Utwórz log‑zwroty r_t = ln(P_t/P_{t-1}).
-2. Dopasuj HMM na serii zwrotów (np. Gaussian HMM z 2–3 stanami). Użyj BIC/AIC by wybrać liczbę stanów jeśli potrzebne.【call_bN6ptXRhIjKafRVUYoVHxaNe-0】【call_bN6ptXRhIjKafRVUYoVHxaNe-9】
-3. Wyciągnij macierz przejść P. Dla stanu i diagonalny element p_ii to prawdopodobieństwo pozostania w stanie w kolejnym kroku; oczekiwany czas trwania stanu (w jednostkach kroków czasowych, np. sesji dziennych) przybliżony jest wzorem 1/(1 − p_ii)【call_c4ONAO7ZE1EvWOIL8ifdoGbF-1】.
-4. Wybierz horyzonty scenariuszy w odniesieniu do expected duration:
-   - Krótki ≈ 0.25 × expected_duration
-   - Średni ≈ 1 × expected_duration
-   - Długi ≈ 2–4 × expected_duration
-   Równolegle generuj standardowe horyzonty porównawcze (1 dzień / 1 tydzień / 1 miesiąc / kwartal / rok) dla pełnej analizy【call_bN6ptXRhIjKafRVUYoVHxaNe-6】【call_Dg5SR2aNHaiuSbyHA8c5OdBg-0】.
-5. Estymuj parametry drift (μ) i volatilność (σ) oddzielnie dla każdego stanu (średnie zwrotu i std zwrotu w danym stanie). Jeśli chcesz modelować zmienność warunkową, rozważ GARCH / MS‑GARCH dla σ (opcjonalne, wymaga bardziej zaawansowanej estymacji)【call_bN6ptXRhIjKafRVUYoVHxaNe-4】【call_bN6ptXRhIjKafRVUYoVHxaNe-3】.
-6. Generuj N ścieżek Monte Carlo:
-   - Prosty wariant: GBM z parametrami (μ_i, σ_i) zależnymi od aktualnego stanu i dyskretnym krokiem Δt.
-   - Alternatywa: bootstrapowanie historycznych residuów lub symulacja z przejściami reżimów (symuluj najpierw łańcuch Markova, potem dla każdego kroku użyj parametrów stanu)【call_Dg5SR2aNHaiuSbyHA8c5OdBg-0】【call_Dg5SR2aNHaiuSbyHA8c5OdBg-3】.
-7. Agreguj wyniki: percentyle (5%, 25%, 50%, 75%, 95%), prawdopodobieństwo przekroczenia progów, diagnostyka rozkładu końcowego.
-8. Walidacja: testy out‑of‑sample i backtest. Zaprezentuj niepewność i limitacje modelu (literatura wskazuje, że reżimowe modele dobrze opisują historię, ale prognostyczna siła bywa ograniczona)【call_bN6ptXRhIjKafRVUYoVHxaNe-5】.
+## Steps (Concise Workflow)
+1. Fetch historical data (closing prices) at the desired frequency (daily by default). Compute log-returns r_t = ln(P_t / P_{t-1}).
+2. Fit an HMM on the return series (e.g. Gaussian HMM with 2-3 states). Use BIC/AIC to choose the number of states if needed.
+3. Extract the transition matrix P. For state i, the diagonal element p_ii is the probability of remaining in that state at the next step; the expected duration (in time-step units, e.g. trading days) is approximated by 1 / (1 - p_ii).
+4. Choose scenario horizons relative to the expected duration:
+   - Short ~ 0.25 x expected_duration
+   - Medium ~ 1 x expected_duration
+   - Long ~ 2-4 x expected_duration
+   Also generate standard comparison horizons (1 day / 1 week / 1 month / quarter / year) for a full analysis.
+5. Estimate drift (mu) and volatility (sigma) separately for each state (mean return and std of returns within that state). For conditional volatility modelling, consider GARCH / MS-GARCH for sigma (optional, requires more advanced estimation).
+6. Generate N Monte Carlo paths:
+   - Simple variant: GBM with parameters (mu_i, sigma_i) depending on the current state and discrete time step dt.
+   - Alternative: bootstrap historical residuals or simulate with regime transitions (first simulate the Markov chain, then for each step use the parameters of the active state).
+7. Aggregate results: percentiles (5%, 25%, 50%, 75%, 95%), probability of exceeding thresholds, diagnostics of the terminal distribution.
+8. Validation: out-of-sample tests and backtesting. Present uncertainty and model limitations (the literature shows that regime-switching models describe history well, but predictive power can be limited).
 
-## Metryki i kontrole jakości
-- Dla reżimów: statystyki zwrotów per stan (mean, std, skew), confusion matrix jeśli są etykiety historyczne.
-- Dla scenariuszy: MSE/MAE dla punktowych prognoz; kalibracja dystrybucji (coverage) dla przedziałów probabilistycznych.
-- Backtest: porównanie wyników strategii switchingowej vs baseline.
+## Metrics and Quality Controls
+- For regimes: per-state return statistics (mean, std, skew), confusion matrix if historical labels are available.
+- For scenarios: MSE/MAE for point forecasts; distribution calibration (coverage) for probabilistic intervals.
+- Backtest: compare switching-strategy results vs. baseline.
 
-## Zasady praktyczne i ostrzeżenia
-- Używaj danych o wystarczającej długości (kilka lat dla danych dziennych) by model zobaczył przełączenia reżimów; krótkie serie zwiększają ryzyko overfittingu【call_bN6ptXRhIjKafRVUYoVHxaNe-6】.
-- Jeśli p_ii jest bardzo wysoki → długie reżimy: interpretuje się to jako rzadkie przejścia; dostosuj horyzonty i próbkowanie.
-- Zadbaj o walidację OOS — wiele badań wskazuje na ograniczoną prognostyczną użyteczność reżimowych modeli bez solidnej walidacji【call_bN6ptXRhIjKafRVUYoVHxaNe-5】.
+## Practical Rules and Caveats
+- Use data of sufficient length (several years for daily data) so the model can observe regime switches; short series increase overfitting risk.
+- If p_ii is very high -> long regimes: this means rare transitions; adjust horizons and sampling accordingly.
+- Ensure OOS validation -- many studies indicate limited predictive utility of regime models without robust validation.
 
-## Przykładowy pseudokod (Python, szkic)
+## Reference Pseudocode (Python sketch)
 
 ```python
 # pip: hmmlearn, numpy, pandas
@@ -57,23 +60,25 @@ def fit_hmm(returns, n_states=2):
 # S_{t+1} = S_t * exp( (mu - 0.5*sigma^2)*dt + sigma*sqrt(dt)*z )
 ```
 
-(Dołącz pełny, uruchamialny kod jako zasób jeśli użytkownik poprosi — lepiej wręczyć jako bundle `scripts/`.)
+## Example Triggers
+- "Detect bull or bear regime for ticker X"
+- "Generate price scenarios (bull/bear) for 30 days"
+- "Fit HMM to returns and run state-conditioned Monte Carlo"
 
-## Przyklady wyzwalaczy (do opisu skillu)
-- "Wykryj reżim bull lub bear dla ticker X"
-- "Wygeneruj scenariusze cenowe (bull/bear) na 30 dni" 
-- "Dopasuj HMM do zwrotów i zrób Monte Carlo warunkowane na stanie"
+## Implementation in Njord (TypeScript / Browser)
+The Njord app implements a 2-state Gaussian HMM directly in TypeScript (`src/utils/hmm.ts`)
+using Baum-Welch EM. Key design decisions:
+- **2 states only** -- bear (high sigma, low/negative mu) and bull (low sigma, positive mu). With ~250 daily observations, 2 states avoids overfitting.
+- **Multiple restarts** -- EM is run from several random initializations; best log-likelihood wins.
+- **Seeded PRNG** -- Monte Carlo uses a deterministic seed derived from the data so results are stable across re-renders.
+- **Fallback** -- if HMM fitting fails (convergence, degenerate variance), the hook falls back to the original log-normal p5/p95 approach.
+- **FX handling** -- HMM is fit on stock returns only; FX deltas remain correlation-adjusted via Pearson rho.
 
-## Pliki referencyjne (zalecane gdy skill będzie pakowany jako bundle)
-- scripts/fit_hmm.py — dopasowanie HMM + wyliczenie P
-- scripts/generate_mc.py — generator Monte Carlo warunkowy na stanie
-- references/background.md — krótkie odwołania do literatury i linków
+## Reference Files
+- `src/utils/hmm.ts` -- Gaussian HMM (Baum-Welch EM) + regime-conditioned Monte Carlo
+- `src/hooks/useHistoricalVolatility.ts` -- React hook consuming HMM output
 
-## Źródła i dalsza lektura
-- HMM do wykrywania reżimów rynkowych — praktyczne tutoriale i przykłady implementacji【call_bN6ptXRhIjKafRVUYoVHxaNe-0】【call_bN6ptXRhIjKafRVUYoVHxaNe-6】
-- Oczekiwany czas trwania stanu w łańcuchu Markowa — wzór i dowody (1/(1−p_ii))【call_c4ONAO7ZE1EvWOIL8ifdoGbF-1】
-- Monte Carlo + GBM — generowanie ścieżek cen akcji i instrukcje praktyczne【call_Dg5SR2aNHaiuSbyHA8c5OdBg-0】【call_Dg5SR2aNHaiuSbyHA8c5OdBg-3】
-
----
-
-Postępuj: jeśli chcesz, mogę natychmiast stworzyć ten skill w Twojej bibliotece (teksty + podstawowy SKILL.md) albo przygotować paczkę `.zip` z przykładowymi skryptami (wymaga uploadu bundle). Co wolisz?
+## Further Reading
+- HMM for market regime detection -- practical tutorials and implementation examples
+- Expected state duration in a Markov chain -- formula and proofs: 1/(1-p_ii)
+- Monte Carlo + GBM -- generating stock price paths and practical guides

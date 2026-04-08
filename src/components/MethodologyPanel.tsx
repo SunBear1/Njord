@@ -96,23 +96,27 @@ export function MethodologyPanel() {
 
           {/* 4. Sugestie z historii */}
           <section className="space-y-1">
-            <h3 className="font-semibold text-gray-900">4. Sugestie z danych historycznych</h3>
+            <h3 className="font-semibold text-gray-900">4. Sugestie z danych historycznych (HMM + Monte Carlo)</h3>
             <div className="bg-white border border-gray-200 rounded-lg p-3 font-mono text-xs space-y-1">
-              <div>σ dzienne = odchylenie standardowe dziennych stóp zwrotu (~1 rok danych)</div>
-              <div>σ roczne = σ dzienne × √252 &nbsp;|&nbsp; T = horyzont w latach</div>
-              <div>ρ = korelacja Pearsona (stopy zwrotu akcji vs. USD/PLN)</div>
-              <div className="pt-1 font-semibold">Bear/Bull — percentyle 5%/95% rozkładu log-normalnego (zerowy dryf):</div>
-              <div className="pl-4">Bear (p5):  exp(−1,645·σ·√T − σ²/2·T) − 1</div>
-              <div className="pl-4">Bull (p95): exp(+1,645·σ·√T − σ²/2·T) − 1</div>
-              <div className="pl-4">Δ FX Bear = −ρ × |FX p95|, &nbsp;Δ FX Bull = +ρ × |FX p95|</div>
-              <div className="pt-1">Base: Δ akcji = 0%, Δ FX = 0% (neutralny punkt startowy)</div>
+              <div className="font-semibold">Model podstawowy — HMM (Hidden Markov Model) z 2 reżimami:</div>
+              <div className="pl-4">1. Oblicz log-zwroty: r_t = ln(P_t / P_(t−1))</div>
+              <div className="pl-4">2. Dopasuj 2-stanowy Gaussowski HMM (Baum-Welch EM, 5 restartów)</div>
+              <div className="pl-4">3. Stan 0 = bear (niższe μ), Stan 1 = bull (wyższe μ)</div>
+              <div className="pl-4">4. Wykryj bieżący reżim (ostatnia obserwacja) za pomocą forward algorithm</div>
+              <div className="pl-4">5. Oczekiwany czas trwania stanu i = 1 / (1 − p_ii)</div>
+              <div className="pt-1 font-semibold">Monte Carlo — 3 000 ścieżek GBM z przejściami reżimów:</div>
+              <div className="pl-4">S_(t+1) = S_t × exp((μ_i − 0,5·σ_i²)·Δt + σ_i·√Δt·z)</div>
+              <div className="pl-4">Gdzie i = reżim aktywny w kroku t (symulowany łańcuchem Markowa)</div>
+              <div className="pl-4">Bear (p5) / Base (p50) / Bull (p95) z rozkładu końcowych wartości</div>
+              <div className="pt-1">σ dzienne, ρ (korelacja Pearsona), trend — jak wcześniej (~1 rok danych)</div>
+              <div>Δ FX Bear = −ρ × |FX p95|, &nbsp;Δ FX Bull = +ρ × |FX p95|</div>
+              <div className="pt-1 text-gray-400">Fallback: jeśli HMM nie zbiegnie → model log-normalny (zerowy dryf, p5/p95)</div>
             </div>
             <p className="text-xs text-gray-600">
-              Rozkład log-normalny unika błędów arytmetycznego skalowania (np. "−150%") przy długich horyzontach.
-              Zerowy dryf w Bear/Bull sprawia, że scenariusze nie zakładają powtórzenia ostatniego trendu —
-              historyczna średnia przy ~1 roku danych ma błąd standardowy ±30–50 pp rocznie.
-              Trend akcji wyświetlany jest jako informacja. Korelacja ρ: przy ujemnej ρ spadek akcji
-              idzie w parze z umocnieniem dolara, co amortyzuje stratę (Δ FX Bear {'>'} 0).
+              Model HMM wykrywa czy rynek jest w fazie wzrostowej (bull) czy spadkowej (bear)
+              i używa parametrów (μ, σ) właściwych dla danego reżimu. Monte Carlo z przejściami
+              reżimów uwzględnia możliwość zmiany fazy rynkowej w horyzoncie inwestycji.
+              Deterministyczny seed PRNG zapewnia powtarzalność wyników dla tych samych danych.
             </p>
           </section>
 
