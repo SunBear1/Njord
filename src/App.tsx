@@ -192,53 +192,59 @@ function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-4 space-y-4">
-        {/* Main 2-col layout: InputPanel scrolls freely, right column is sticky */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+        {/*
+          Two-pane layout: on lg+ each column scrolls independently,
+          keeping ScenarioEditor + results always in view alongside InputPanel.
+          On mobile: single column stacked normally.
+        */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-          {/* LEFT: InputPanel */}
-          <InputPanel
-            onFetchAsset={fetchData}
-            assetData={assetData}
-            assetLoading={assetLoading}
-            assetError={assetError}
-            fxData={fxData}
-            fxLoading={fxLoading}
-            ticker={ticker}
-            apiKey={apiKey}
-            shares={shares}
-            currentPriceUSD={currentPriceUSD}
-            currentFxRate={currentFxRate}
-            wibor3m={wibor3m}
-            effectiveSavingsRate={effectiveSavingsRate}
-            horizonMonths={horizonMonths}
-            benchmarkType={benchmarkType}
-            bondFirstYearRate={bondFirstYearRate}
-            bondEffectiveRate={computedEffectiveRate}
-            bondPenalty={bondPenalty}
-            bondRateType={bondRateType}
-            bondMargin={bondMargin}
-            inflationRate={inflationRate}
-            inflationData={inflationData}
-            inflationLoading={inflationLoading}
-            nbpRefRate={nbpRefRate}
-            onTickerChange={setTicker}
-            onApiKeyChange={handleApiKeyChange}
-            onSharesChange={setShares}
-            onPriceChange={setCurrentPriceUSD}
-            onFxRateChange={setCurrentFxRate}
-            onWiborChange={setWibor3m}
-            onHorizonChange={setHorizonMonths}
-            onBenchmarkTypeChange={handleBenchmarkTypeChange}
-            onBondFirstYearRateChange={setBondFirstYearRate}
-            onBondPenaltyChange={setBondPenalty}
-            onBondRateTypeChange={setBondRateType}
-            onBondMarginChange={setBondMargin}
-            onInflationRateChange={setInflationRate}
-            onNbpRefRateChange={setNbpRefRate}
-          />
+          {/* LEFT pane — InputPanel, independent scroll on lg+ */}
+          <div className="lg:h-[calc(100vh-5.5rem)] lg:overflow-y-auto lg:pr-2">
+            <InputPanel
+              onFetchAsset={fetchData}
+              assetData={assetData}
+              assetLoading={assetLoading}
+              assetError={assetError}
+              fxData={fxData}
+              fxLoading={fxLoading}
+              ticker={ticker}
+              apiKey={apiKey}
+              shares={shares}
+              currentPriceUSD={currentPriceUSD}
+              currentFxRate={currentFxRate}
+              wibor3m={wibor3m}
+              effectiveSavingsRate={effectiveSavingsRate}
+              horizonMonths={horizonMonths}
+              benchmarkType={benchmarkType}
+              bondFirstYearRate={bondFirstYearRate}
+              bondEffectiveRate={computedEffectiveRate}
+              bondPenalty={bondPenalty}
+              bondRateType={bondRateType}
+              bondMargin={bondMargin}
+              inflationRate={inflationRate}
+              inflationData={inflationData}
+              inflationLoading={inflationLoading}
+              nbpRefRate={nbpRefRate}
+              onTickerChange={setTicker}
+              onApiKeyChange={handleApiKeyChange}
+              onSharesChange={setShares}
+              onPriceChange={setCurrentPriceUSD}
+              onFxRateChange={setCurrentFxRate}
+              onWiborChange={setWibor3m}
+              onHorizonChange={setHorizonMonths}
+              onBenchmarkTypeChange={handleBenchmarkTypeChange}
+              onBondFirstYearRateChange={setBondFirstYearRate}
+              onBondPenaltyChange={setBondPenalty}
+              onBondRateTypeChange={setBondRateType}
+              onBondMarginChange={setBondMargin}
+              onInflationRateChange={setInflationRate}
+              onNbpRefRateChange={setNbpRefRate}
+            />
+          </div>
 
-          {/* RIGHT: ScenarioEditor + Results — sticky panel */}
-          <div className="sticky top-4 self-start max-h-[calc(100vh-2rem)] overflow-y-auto space-y-4 pb-4">
+          {/* RIGHT pane — ScenarioEditor + Results, independent scroll on lg+ */}
+          <div className="lg:h-[calc(100vh-5.5rem)] lg:overflow-y-auto lg:pr-2 space-y-4">
             <ScenarioEditor
               key={scenarioEditKey}
               scenarios={scenarios}
@@ -271,7 +277,7 @@ function App() {
           </div>
         </div>
 
-        {/* Charts — full width below */}
+        {/* Charts — full width below both panes */}
         {results && (
           <>
             <ComparisonChart results={results} />
