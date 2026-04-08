@@ -39,7 +39,7 @@ export function VerdictBanner({ results, inflationRate }: VerdictBannerProps) {
           return (
             <div
               key={r.key}
-              className={`${style.bg} ${style.border} border-2 rounded-2xl p-5 space-y-3`}
+              className={`${style.bg} ${style.border} border-2 rounded-xl p-5 space-y-3`}
             >
               {/* Scenario badge */}
               <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full ${style.badge}`}>

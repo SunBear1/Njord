@@ -58,9 +58,9 @@ export function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflation
           <Legend />
           <ReferenceLine y={currentValuePLN} stroke="#94a3b8" strokeDasharray="4 4" />
           <Line type="monotone" dataKey="benchmark" name={benchmarkLabel} stroke="#8b5cf6" strokeWidth={2} dot={false} />
-          <Line type="monotone" dataKey="bear" name="Bear" stroke="#ef4444" strokeWidth={2} dot={false} strokeDasharray="5 3" />
-          <Line type="monotone" dataKey="base" name="Base" stroke="#f59e0b" strokeWidth={2} dot={false} />
-          <Line type="monotone" dataKey="bull" name="Bull" stroke="#22c55e" strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="bear" name="Bear" stroke="var(--color-bear)" strokeWidth={2} dot={false} strokeDasharray="5 3" />
+          <Line type="monotone" dataKey="base" name="Base" stroke="var(--color-base)" strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="bull" name="Bull" stroke="var(--color-bull)" strokeWidth={2} dot={false} />
           {inflationRate > 0 && (
             <Line type="monotone" dataKey="purchasingPower" name="Siła nabywcza" stroke="#f97316" strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
           )}
