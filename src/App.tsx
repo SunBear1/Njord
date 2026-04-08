@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { HowItWorks } from './components/HowItWorks';
 import { InputPanel } from './components/InputPanel';
 import { ScenarioEditor } from './components/ScenarioEditor';
@@ -47,6 +47,7 @@ function App() {
   const [scenarioEditKey, setScenarioEditKey] = useState(0);
   const fxAutoFilled = useRef(false);
   const inflationAutoFilled = useRef(false);
+  const scenariosAutoApplied = useRef(false);
 
   const handleApiKeyChange = useCallback((key: string) => {
     setApiKey(key);
@@ -95,6 +96,15 @@ function App() {
 
   const handleApplySuggested = useCallback(() => {
     if (suggestedScenarios) {
+      setScenarios(suggestedScenarios);
+      setScenarioEditKey((k) => k + 1);
+    }
+  }, [suggestedScenarios]);
+
+  // Auto-apply suggested scenarios on first load
+  useEffect(() => {
+    if (suggestedScenarios && !scenariosAutoApplied.current) {
+      scenariosAutoApplied.current = true;
       setScenarios(suggestedScenarios);
       setScenarioEditKey((k) => k + 1);
     }

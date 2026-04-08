@@ -125,10 +125,16 @@ export function ScenarioEditor({
             className="flex items-center gap-1.5 text-xs bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-lg hover:bg-purple-100 transition-colors"
           >
             <Wand2 size={13} />
-            Zastosuj z historii
+            Przywróć z historii
           </button>
         )}
       </div>
+
+      {suggestedScenarios && (
+        <p className="text-xs text-indigo-600 bg-indigo-50 rounded-lg px-3 py-1.5">
+          Scenariusze wyliczone automatycznie z ~1 roku danych historycznych. Możesz je dowolnie edytować.
+        </p>
+      )}
 
       {/* Analysis card — compact, collapsible */}
       {volatilityStats && (
