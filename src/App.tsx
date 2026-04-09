@@ -50,7 +50,7 @@ function App() {
   const fxAutoFilled = useRef(false);
   const inflationAutoFilled = useRef(false);
 
-  const { assetData, analyzeResult, isLoading: assetLoading, error: assetError, fetchData: fetchAsset } = useAssetData();
+  const { assetData, proxyFxData, isLoading: assetLoading, error: assetError, fetchData: fetchAsset } = useAssetData();
   const { fxData, isLoading: fxLoading } = useFxData((data) => {
     if (!fxAutoFilled.current) {
       fxAutoFilled.current = true;
@@ -65,17 +65,16 @@ function App() {
   });
   const { suggestedScenarios, stats: volatilityStats } = useHistoricalVolatility(
     assetData?.historicalPrices ?? null,
-    analyzeResult?.fxHistory ?? fxData?.historicalRates ?? null,
+    proxyFxData?.historicalRates ?? fxData?.historicalRates ?? null,
     horizonMonths,
-    analyzeResult,
   );
 
   const fetchData = useCallback(async (tickerArg: string) => {
-    const data = await fetchAsset(tickerArg, horizonMonths);
+    const data = await fetchAsset(tickerArg);
     if (data?.asset.currentPrice) {
       setCurrentPriceUSD(data.asset.currentPrice);
     }
-  }, [fetchAsset, horizonMonths]);
+  }, [fetchAsset]);
 
   const handleScenarioChange = useCallback(
     (key: ScenarioKey, field: 'deltaStock' | 'deltaFx', value: number) => {
@@ -109,14 +108,14 @@ function App() {
   // Derive active scenarios: user overrides take precedence over HMM suggestions
   const scenarios = userScenarios ?? suggestedScenarios ?? DEFAULT_SCENARIOS;
 
-  // Auto-fill FX rate from analyze response when a new ticker is fetched
+  // Auto-fill FX rate from proxy response when a new ticker is fetched
   useEffect(() => {
-    if (analyzeResult?.latestFxRate && !fxAutoFilled.current) {
+    if (proxyFxData?.currentRate && !fxAutoFilled.current) {
       fxAutoFilled.current = true;
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setCurrentFxRate(analyzeResult.latestFxRate);
+      setCurrentFxRate(proxyFxData.currentRate);
     }
-  }, [analyzeResult]);
+  }, [proxyFxData]);
 
   // Auto-apply HMM suggestions once on first arrival — remount ScenarioEditor via key.
   // The ref guard ensures this runs exactly once; eslint-disable is intentional here.

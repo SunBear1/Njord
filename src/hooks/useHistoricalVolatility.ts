@@ -4,7 +4,6 @@ import type { FxRate } from '../providers/nbpProvider';
 import type { Scenarios } from '../types/scenario';
 import type { RegimeInfo } from '../utils/hmm';
 import type { ModelResults, PredictionResult } from '../utils/models/types';
-import type { AnalyzeResult } from '../types/analyze';
 import { bootstrapPredict } from '../utils/models/bootstrap';
 import { garchPredict } from '../utils/models/garch';
 import { hmmPredict } from '../utils/models/hmmModel';
@@ -97,7 +96,6 @@ export function useHistoricalVolatility(
   stockHistory: HistoricalPrice[] | null,
   fxHistory: FxRate[] | null,
   horizonMonths: number,
-  precomputed: AnalyzeResult | null = null,
 ): VolatilityResult {
   // Debounce horizon for expensive model computation (400ms after slider stops)
   const debouncedHorizon = useDebouncedValue(horizonMonths, 400);
@@ -166,21 +164,8 @@ export function useHistoricalVolatility(
   const modelsLoading = baseStats != null && debouncedHorizon !== horizonMonths;
 
   if (!baseStats) {
-    // No local data yet — return precomputed from Worker if available
-    if (precomputed) {
-      return {
-        stats: null,
-        suggestedScenarios: precomputed.suggestedScenarios,
-      };
-    }
     return { stats: null, suggestedScenarios: null };
   }
-
-  // Use precomputed Worker results when horizon matches and local hasn't computed yet
-  const usePrecomputed = precomputed && precomputed.forHorizonMonths === debouncedHorizon && modelResult === null;
-  const activeModelResult = usePrecomputed
-    ? { modelResults: precomputed.models, modelScenarios: precomputed.modelScenarios, suggestedScenarios: precomputed.suggestedScenarios, regime: precomputed.regime }
-    : modelResult;
 
   const stats: VolatilityStats = {
     stockSigmaAnnual: baseStats.stockSigmaAnnual,
@@ -188,14 +173,12 @@ export function useHistoricalVolatility(
     correlation: baseStats.rho,
     stockMeanAnnual: baseStats.stockMeanAnnual,
     fxMeanAnnual: baseStats.fxMeanAnnual,
-    horizonScale: activeModelResult
-      ? (modelResult?.horizonScale ?? Math.sqrt(horizonMonths / 12))
-      : Math.sqrt(horizonMonths / 12),
-    regime: activeModelResult?.regime ?? null,
-    models: activeModelResult?.modelResults ?? null,
-    modelScenarios: activeModelResult?.modelScenarios ?? {},
+    horizonScale: modelResult?.horizonScale ?? Math.sqrt(horizonMonths / 12),
+    regime: modelResult?.regime ?? null,
+    models: modelResult?.modelResults ?? null,
+    modelScenarios: modelResult?.modelScenarios ?? {},
     modelsLoading,
   };
 
-  return { stats, suggestedScenarios: activeModelResult?.suggestedScenarios ?? null };
+  return { stats, suggestedScenarios: modelResult?.suggestedScenarios ?? null };
 }
