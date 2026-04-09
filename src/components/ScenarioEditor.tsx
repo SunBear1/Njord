@@ -88,15 +88,30 @@ export function ScenarioEditor({
   const [activeModelId, setActiveModelId] = useState<string | null>(null);
 
   // Sync localValues when scenarios change externally (model switch, apply suggested)
-  // without remounting the component (preserves stockMode/fxMode/activeModelId)
+  // without remounting the component (preserves stockMode/fxMode/activeModelId).
+  // Must convert % deltas to the current display mode (USD/PLN) when in fixed mode.
   const prevScenariosRef = useRef(scenarios);
   useEffect(() => {
     if (scenarios !== prevScenariosRef.current) {
       prevScenariosRef.current = scenarios;
+      const keys: ScenarioKey[] = ['bear', 'base', 'bull'];
+      const updated = {} as Record<ScenarioKey, { stock: string; fx: string }>;
+      for (const key of keys) {
+        const pctStock = scenarios[key].deltaStock;
+        const pctFx = scenarios[key].deltaFx;
+        updated[key] = {
+          stock: stockMode === 'fixed' && currentPriceUSD > 0
+            ? (currentPriceUSD * (1 + pctStock / 100)).toFixed(2)
+            : String(parseFloat(pctStock.toFixed(2))),
+          fx: fxMode === 'fixed' && currentFxRate > 0
+            ? (currentFxRate * (1 + pctFx / 100)).toFixed(4)
+            : String(parseFloat(pctFx.toFixed(2))),
+        };
+      }
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLocalValues(initValues(scenarios));
+      setLocalValues(updated);
     }
-  }, [scenarios]);
+  }, [scenarios, stockMode, fxMode, currentPriceUSD, currentFxRate]);
 
   const toDelta = useCallback((raw: string, mode: InputMode, currentVal: number): number => {
     const n = parseFloat(raw);
