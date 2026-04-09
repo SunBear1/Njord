@@ -196,6 +196,9 @@ export function ScenarioEditor({
           )}
         </div>
         {/* Compact table: same as before */}
+        {currentPriceUSD <= 0 ? (
+          <p className="text-sm text-gray-400 italic text-center py-3">Pobierz dane akcji, aby zobaczyć scenariusze.</p>
+        ) : (
         <div className="space-y-1.5">
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
             <div />
@@ -219,7 +222,8 @@ export function ScenarioEditor({
                 className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white`} />
             ))}
           </div>
-        </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -335,86 +339,85 @@ export function ScenarioEditor({
         );
       })()}
 
-      {/* Mode toggles row */}
-      <div className="flex items-center gap-3 mb-3">
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-gray-500 font-medium">Akcje:</span>
-          <div className="w-20"><ModeToggle mode={stockMode} onToggle={toggleStockMode} labelA="%" labelB="USD" disabled={currentPriceUSD <= 0} /></div>
+      {currentPriceUSD <= 0 ? (
+        <div className="flex-1 flex items-center justify-center text-center py-8">
+          <p className="text-sm text-gray-400 italic">Pobierz dane akcji, aby zobaczyć scenariusze i prognozy modeli.</p>
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs text-gray-500 font-medium">FX:</span>
-          <div className="w-20"><ModeToggle mode={fxMode} onToggle={toggleFxMode} labelA="%" labelB="PLN" disabled={currentFxRate <= 0} /></div>
-        </div>
-      </div>
+      ) : (
+        <div className="space-y-1.5">
+          {/* Header row */}
+          <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center">
+            <div />
+            {SCENARIO_CONFIG.map(({ key, label, headerBg, headerText }) => (
+              <div key={key} className={`text-center text-xs font-bold px-2 py-1.5 rounded ${headerBg} ${headerText}`}>{label}</div>
+            ))}
+          </div>
 
-      {/* Three scenario cards — compact, no vertical stretch */}
-      <div className="grid grid-cols-3 gap-2">
-        {SCENARIO_CONFIG.map(({ key, label, headerBg, headerText, cardBorder, cardBg, inputBorder }) => {
-          const stockDelta = toDelta(localValues[key].stock, stockMode, currentPriceUSD);
-          const fxDelta = toDelta(localValues[key].fx, fxMode, currentFxRate);
-          return (
-            <div key={key} className={`flex flex-col rounded-lg border ${cardBorder} ${cardBg} overflow-hidden`}>
-              {/* Card header */}
-              <div className={`${headerBg} px-2 py-1.5 text-center`}>
-                <span className={`text-xs font-bold ${headerText}`}>{label}</span>
-              </div>
-
-              {/* Card body */}
-              <div className="flex flex-col gap-2 p-2">
-                {/* Stock input */}
-                <div className="space-y-0.5">
-                  <label className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">Akcje</label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      step={stockMode === 'pct' ? 0.1 : 0.01}
-                      min={stockMode === 'fixed' ? 0 : undefined}
-                      value={localValues[key].stock}
-                      onChange={(e) => handleStockChange(key, e.target.value)}
-                      onFocus={(e) => e.target.select()}
-                      placeholder={stockMode === 'pct' ? '0' : String(currentPriceUSD || '')}
-                      className={`w-full border ${inputBorder} rounded px-2 py-1.5 pr-9 text-sm text-center focus:outline-none focus:ring-2 bg-white`}
-                    />
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-gray-400 pointer-events-none">{stockUnit}</span>
-                  </div>
-                  {stockMode === 'fixed' && currentPriceUSD > 0 && (
-                    <span className={`inline-block text-[10px] rounded-full px-1.5 py-0.5 mx-auto ${
-                      stockDelta >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
-                    }`}>
-                      {stockDelta >= 0 ? '+' : ''}{stockDelta.toFixed(1)}%
-                    </span>
-                  )}
-                </div>
-
-                {/* FX input */}
-                <div className="space-y-0.5">
-                  <label className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">USD/PLN</label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      step={fxMode === 'pct' ? 0.1 : 0.0001}
-                      min={fxMode === 'fixed' ? 0 : undefined}
-                      value={localValues[key].fx}
-                      onChange={(e) => handleFxChange(key, e.target.value)}
-                      onFocus={(e) => e.target.select()}
-                      placeholder={fxMode === 'pct' ? '0' : String(currentFxRate || '')}
-                      className={`w-full border ${inputBorder} rounded px-2 py-1.5 pr-9 text-sm text-center focus:outline-none focus:ring-2 bg-white`}
-                    />
-                    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-gray-400 pointer-events-none">{fxUnit}</span>
-                  </div>
-                  {fxMode === 'fixed' && currentFxRate > 0 && (
-                    <span className={`inline-block text-[10px] rounded-full px-1.5 py-0.5 mx-auto ${
-                      fxDelta >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
-                    }`}>
-                      {fxDelta >= 0 ? '+' : ''}{fxDelta.toFixed(1)}%
-                    </span>
-                  )}
-                </div>
-              </div>
+          {/* Stock row */}
+          <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-start">
+            <div className="flex flex-col gap-1 pt-0.5">
+              <span className="text-xs font-medium text-gray-600">Akcje ({stockUnit})</span>
+              <ModeToggle mode={stockMode} onToggle={toggleStockMode} labelA="%" labelB="USD" disabled={currentPriceUSD <= 0} />
             </div>
-          );
-        })}
-      </div>
+            {SCENARIO_CONFIG.map(({ key, inputBorder }) => {
+              const delta = toDelta(localValues[key].stock, stockMode, currentPriceUSD);
+              return (
+                <div key={key} className="flex flex-col items-center gap-0.5">
+                  <input
+                    type="number"
+                    step={stockMode === 'pct' ? 0.1 : 0.01}
+                    min={stockMode === 'fixed' ? 0 : undefined}
+                    value={localValues[key].stock}
+                    onChange={(e) => handleStockChange(key, e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    placeholder={stockMode === 'pct' ? '0' : String(currentPriceUSD || '')}
+                    className={`w-full border ${inputBorder} rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 bg-white`}
+                  />
+                  {stockMode === 'fixed' && currentPriceUSD > 0 && (
+                    <span className={`text-[10px] rounded-full px-1.5 py-0.5 ${
+                      delta >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
+                    }`}>
+                      {delta >= 0 ? '+' : ''}{delta.toFixed(1)}%
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* FX row */}
+          <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-start">
+            <div className="flex flex-col gap-1 pt-0.5">
+              <span className="text-xs font-medium text-gray-600">USD/PLN ({fxUnit})</span>
+              <ModeToggle mode={fxMode} onToggle={toggleFxMode} labelA="%" labelB="PLN" disabled={currentFxRate <= 0} />
+            </div>
+            {SCENARIO_CONFIG.map(({ key, inputBorder }) => {
+              const delta = toDelta(localValues[key].fx, fxMode, currentFxRate);
+              return (
+                <div key={key} className="flex flex-col items-center gap-0.5">
+                  <input
+                    type="number"
+                    step={fxMode === 'pct' ? 0.1 : 0.0001}
+                    min={fxMode === 'fixed' ? 0 : undefined}
+                    value={localValues[key].fx}
+                    onChange={(e) => handleFxChange(key, e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    placeholder={fxMode === 'pct' ? '0' : String(currentFxRate || '')}
+                    className={`w-full border ${inputBorder} rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 bg-white`}
+                  />
+                  {fxMode === 'fixed' && currentFxRate > 0 && (
+                    <span className={`text-[10px] rounded-full px-1.5 py-0.5 ${
+                      delta >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
+                    }`}>
+                      {delta >= 0 ? '+' : ''}{delta.toFixed(1)}%
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Analysis — expanded by default, fills remaining space */}
       {volatilityStats && (

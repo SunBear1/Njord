@@ -1,9 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import type { HistoricalPrice } from '../types/asset';
 import type { FxRate } from '../providers/nbpProvider';
 import type { Scenarios } from '../types/scenario';
 import type { RegimeInfo } from '../utils/hmm';
-import type { ModelResults, PredictionResult } from '../utils/models/types';
+import type { ModelResults, PredictionResult, Percentiles } from '../utils/models/types';
 import { bootstrapPredict } from '../utils/models/bootstrap';
 import { garchPredict } from '../utils/models/garch';
 import { hmmPredict } from '../utils/models/hmmModel';
@@ -92,13 +92,29 @@ function toScenarios(pred: PredictionResult, rho: number, fxMagPct: number): Sce
   };
 }
 
+/** Max trading days for model simulation — beyond this, extrapolate with √T scaling */
+const MAX_MODEL_DAYS = 504;
+
+/** Scale model percentiles from modelDays to targetDays using mean+volatility decomposition */
+function scalePercentiles(pcts: Percentiles, modelDays: number, targetDays: number): Percentiles {
+  const timeRatio = targetDays / modelDays;
+  const sqrtRatio = Math.sqrt(timeRatio);
+  const logR = pcts.map(p => Math.log(Math.max(1e-10, 1 + p / 100)));
+  const medianLog = logR[2]; // p50
+  return logR.map(lr => {
+    const deviation = lr - medianLog;
+    const scaled = medianLog * timeRatio + deviation * sqrtRatio;
+    return (Math.exp(scaled) - 1) * 100;
+  }) as unknown as Percentiles;
+}
+
 export function useHistoricalVolatility(
   stockHistory: HistoricalPrice[] | null,
   fxHistory: FxRate[] | null,
   horizonMonths: number,
 ): VolatilityResult {
-  // Debounce horizon for expensive model computation (400ms after slider stops)
-  const debouncedHorizon = useDebouncedValue(horizonMonths, 400);
+  // Debounce horizon for expensive model computation (600ms after slider stops)
+  const debouncedHorizon = useDebouncedValue(horizonMonths, 600);
 
   // Phase 1: Cheap statistics — recompute immediately on any change
   const baseStats = useMemo(() => {
@@ -125,43 +141,79 @@ export function useHistoricalVolatility(
     return { stockSigmaAnnual, fxSigmaAnnual, rho, stockMeanAnnual, fxMeanAnnual, stockLogRet, seed };
   }, [stockHistory, fxHistory]);
 
-  // Phase 2: Heavy model computation — runs on DEBOUNCED horizon
-  const modelResult = useMemo(() => {
-    if (!baseStats) return null;
+  // Phase 2: Heavy model computation — deferred to avoid blocking UI during slider drag.
+  // Uses setTimeout(0) to yield the main thread between the React render and the computation,
+  // keeping the slider responsive while models recompute.
+  const [modelResult, setModelResult] = useState<{
+    modelResults: ModelResults;
+    modelScenarios: Record<string, Scenarios>;
+    suggestedScenarios: Scenarios;
+    regime: RegimeInfo | null;
+    horizonScale: number;
+  } | null>(null);
+  const [computing, setComputing] = useState(false);
 
-    const { rho, stockLogRet, seed } = baseStats;
-    const T = debouncedHorizon / 12;
-    const fxSigma = baseStats.fxSigmaAnnual / 100;
-    const horizonDays = Math.round(debouncedHorizon * 21);
-
-    const fxMagPct = (Math.exp(1.645 * fxSigma * Math.sqrt(T) + (-(fxSigma * fxSigma) / 2) * T) - 1) * 100;
-
-    const bootstrapResult = bootstrapPredict(stockLogRet, horizonDays, seed);
-    const garchResult = garchPredict(stockLogRet, horizonDays, seed + 10);
-    const hmmResult = hmmPredict(stockLogRet, horizonDays, seed);
-
-    const allPredictions = [bootstrapResult, garchResult, hmmResult.prediction];
-    const scoring = selectBestModel(stockLogRet, horizonDays, seed, allPredictions);
-    const recommended = scoring.scored[scoring.recommendedIndex];
-
-    const modelResults: ModelResults = { models: scoring.scored, recommended, scoring };
-
-    const modelScenarios: Record<string, Scenarios> = {};
-    for (const pred of scoring.scored) {
-      if (pred.confidence > 0) {
-        modelScenarios[pred.id] = toScenarios(pred, rho, fxMagPct);
-      }
+  useEffect(() => {
+    if (!baseStats) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setModelResult(null);
+      setComputing(false);
+      return;
     }
 
-    const suggestedScenarios = recommended.confidence > 0
-      ? toScenarios(recommended, rho, fxMagPct)
-      : toScenarios(bootstrapResult, rho, fxMagPct);
+    setComputing(true);
 
-    return { modelResults, modelScenarios, suggestedScenarios, regime: hmmResult.regime, horizonScale: Math.sqrt(T) };
+    const timer = setTimeout(() => {
+      const { rho, stockLogRet, seed } = baseStats;
+      const T = debouncedHorizon / 12;
+      const fxSigma = baseStats.fxSigmaAnnual / 100;
+      const rawHorizonDays = Math.round(debouncedHorizon * 21);
+      const modelDays = Math.min(rawHorizonDays, MAX_MODEL_DAYS);
+
+      const fxMagPct = (Math.exp(1.645 * fxSigma * Math.sqrt(T) + (-(fxSigma * fxSigma) / 2) * T) - 1) * 100;
+
+      const bootstrapResult = bootstrapPredict(stockLogRet, modelDays, seed);
+      const garchResult = garchPredict(stockLogRet, modelDays, seed + 10);
+      const hmmResult = hmmPredict(stockLogRet, modelDays, seed);
+
+      const allPredictions = [bootstrapResult, garchResult, hmmResult.prediction];
+      const scoring = selectBestModel(stockLogRet, modelDays, seed, allPredictions);
+
+      // Scale percentiles for horizons beyond MAX_MODEL_DAYS (√T extrapolation with dampened confidence)
+      if (rawHorizonDays > MAX_MODEL_DAYS) {
+        const damp = Math.sqrt(MAX_MODEL_DAYS / rawHorizonDays);
+        for (const pred of scoring.scored) {
+          pred.percentiles = scalePercentiles(pred.percentiles, modelDays, rawHorizonDays);
+          pred.confidence *= damp;
+        }
+      }
+
+      const recommended = scoring.scored[scoring.recommendedIndex];
+      const modelResults: ModelResults = { models: scoring.scored, recommended, scoring };
+
+      const modelScenarios: Record<string, Scenarios> = {};
+      for (const pred of scoring.scored) {
+        if (pred.confidence > 0) {
+          modelScenarios[pred.id] = toScenarios(pred, rho, fxMagPct);
+        }
+      }
+
+      const suggestedScenarios = recommended.confidence > 0
+        ? toScenarios(recommended, rho, fxMagPct)
+        : toScenarios(scoring.scored[0], rho, fxMagPct);
+
+      setModelResult({ modelResults, modelScenarios, suggestedScenarios, regime: hmmResult.regime, horizonScale: Math.sqrt(T) });
+      setComputing(false);
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+      setComputing(false);
+    };
   }, [baseStats, debouncedHorizon]);
 
   // Are models still computing for a new horizon?
-  const modelsLoading = baseStats != null && debouncedHorizon !== horizonMonths;
+  const modelsLoading = baseStats != null && (debouncedHorizon !== horizonMonths || computing);
 
   if (!baseStats) {
     return { stats: null, suggestedScenarios: null };
