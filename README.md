@@ -4,7 +4,7 @@
 
 > Wyłącznie do celów edukacyjnych. Nie stanowi doradztwa inwestycyjnego.
 
-🔗 **[Demo → sunbear1.github.io/Njord](https://sunbear1.github.io/Njord/)**
+🔗 **[Demo → njord.pages.dev](https://njord.pages.dev)**
 
 ![Njord screenshot](screenshots/Screenshot%202026-04-06%20at%2019.47.00.png)
 
@@ -24,15 +24,15 @@ Wszystkie obliczenia uwzględniają **podatek Belki (19%)** oraz kurs USD/PLN.
 
 | Funkcja | Opis |
 |---------|------|
-| 📈 Dane giełdowe live | Cena akcji i historia z [Twelve Data API](https://twelvedata.com) |
+| 📈 Dane giełdowe live | Cena akcji i historia z [Twelve Data API](https://twelvedata.com) (klucz po stronie serwera) |
 | 💱 Kurs walutowy live | PLN/USD z [NBP API](https://api.nbp.pl) |
 | 📊 Inflacja live | HICP dla Polski z [ECB API](https://data-api.ecb.europa.eu) |
 | 🎯 3 scenariusze | Bear / Base / Bull z edytowalnym % zmiany akcji i kursu |
-| 📉 Analiza zmienności | Sugerowane scenariusze na podstawie historycznej zmienności |
+| 📉 Analiza zmienności | HMM + GARCH + Bootstrap — scenariusze liczone po stronie serwera |
 | 🏦 8 typów obligacji | OTS, ROR, DOR, TOS, COI, EDO, ROS, ROD |
 | ⏱ Horyzont 1m–12r | Suwak horyzontu czasowego (do 5 lat dla oszczędności, do 12 lat dla obligacji) |
 | 📊 Wykresy | Porównanie słupkowe, timeline, mapa breakeven (heatmapa Δakcje × ΔFX) |
-| 🔒 Klucz API lokalnie | Klucz Twelve Data przechowywany w `localStorage`, nigdy nie opuszcza przeglądarki |
+| 🔒 Klucz API po stronie serwera | Klucz Twelve Data przechowywany jako sekret Cloudflare — nigdy nie trafia do przeglądarki |
 
 ### Obsługiwane obligacje skarbowe
 
@@ -49,6 +49,21 @@ Wszystkie obliczenia uwzględniają **podatek Belki (19%)** oraz kurs USD/PLN.
 
 ---
 
+## Architektura
+
+```
+Cloudflare Pages
+├── / (SPA)        ← React + Vite, serwowany statycznie
+└── /api/analyze   ← Pages Function (Workers runtime)
+    └── GET ?ticker=AAPL&horizonMonths=12
+        - pobiera dane z Twelve Data (klucz sekretny, server-side)
+        - pobiera kursy USD/PLN z NBP
+        - uruchamia HMM + GARCH + Bootstrap
+        - zwraca AssetData + suggestedScenarios
+```
+
+---
+
 ## Stos technologiczny
 
 - **React 19** + **TypeScript 6**
@@ -56,7 +71,7 @@ Wszystkie obliczenia uwzględniają **podatek Belki (19%)** oraz kurs USD/PLN.
 - **Tailwind CSS v4**
 - **Recharts** (wykresy)
 - **Lucide React** (ikony)
-- Deployed on **GitHub Pages** via GitHub Actions
+- **Cloudflare Pages** + **Pages Functions** (backend + hosting)
 
 ---
 
@@ -69,30 +84,45 @@ npm install
 npm run dev
 ```
 
-Aplikacja działa bez klucza API (dane giełdowe są niedostępne), ale kurs walutowy i inflacja ładują się automatycznie.
+> Bez Pages Functions `/api/analyze` nie jest dostępne lokalnie. Żeby uruchomić pełny stack:
+> ```bash
+> npm run dev:full   # Vite + Pages Functions na localhost:8788
+> ```
+> Wymaga pliku `.dev.vars` z kluczem API (patrz niżej).
 
-### Zmienne środowiskowe
+### Zmienne środowiskowe (lokalnie)
 
-Utwórz plik `.env.local` (opcjonalnie — dla wbudowanego klucza API):
+Utwórz plik `.dev.vars` w katalogu głównym (dla Wrangler):
 
-```env
-VITE_TWELVE_DATA_API_KEY=twój_klucz
+```ini
+TWELVE_DATA_API_KEY=twój_klucz
 ```
 
-Klucz można też podać bezpośrednio w interfejsie — zostanie zapisany w `localStorage`.
-Darmowe konto Twelve Data: 800 zapytań/dzień, 8/minutę → [twelvedata.com/pricing](https://twelvedata.com/pricing)
+> `.dev.vars` jest automatycznie w `.gitignore` Wranglera. Nigdy nie commituj kluczy.
 
 ### Komendy
 
 ```bash
-npm run dev      # serwer deweloperski (http://localhost:5173/Njord/)
-npm run build    # produkcyjny build (tsc + vite)
-npm run lint     # ESLint
-npm run preview  # podgląd buildu
+npm run dev        # serwer deweloperski — tylko frontend (http://localhost:5173/)
+npm run dev:full   # pełny stack: Vite + Pages Functions (http://localhost:8788/)
+npm run build      # produkcyjny build (tsc + vite)
+npm run lint       # ESLint
+npm run preview    # podgląd buildu
 ```
 
 ---
 
 ## Wdrożenie
 
-Push na `main` automatycznie buduje i deployuje aplikację na GitHub Pages przez `.github/workflows/deploy.yml`.
+### GitOps — Cloudflare Pages
+
+Push na `main` automatycznie buduje i deployuje aplikację przez natywną integrację Cloudflare Pages z GitHub.
+
+**Pierwsze wdrożenie (jednorazowo w dashboardzie CF):**
+1. Workers & Pages → Create application → Pages → Connect to Git
+2. Wybierz repozytorium i branch `main`
+3. Build command: `npm run build`, Output directory: `dist`
+4. Environment variables → dodaj `TWELVE_DATA_API_KEY` (Encrypted)
+
+Po tym kroku każdy push na `main` wyzwala automatyczny deploy.
+

@@ -1,24 +1,26 @@
 import { useState, useCallback, useRef } from 'react';
 import { fetchAssetData } from '../providers/twelveDataProvider';
 import type { AssetData } from '../types/asset';
+import type { AnalyzeResult } from '../types/analyze';
 
 interface UseAssetDataReturn {
   assetData: AssetData | null;
+  analyzeResult: AnalyzeResult | null;
   isLoading: boolean;
   error: string | null;
-  fetchData: (ticker: string, apiKey: string) => Promise<AssetData | null>;
+  fetchData: (ticker: string, horizonMonths: number) => Promise<AssetData | null>;
 }
 
 export function useAssetData(): UseAssetDataReturn {
   const [assetData, setAssetData] = useState<AssetData | null>(null);
+  const [analyzeResult, setAnalyzeResult] = useState<AnalyzeResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  const fetchData = useCallback(async (ticker: string, apiKey: string): Promise<AssetData | null> => {
-    if (!ticker.trim() || !apiKey.trim()) return null;
+  const fetchData = useCallback(async (ticker: string, horizonMonths: number): Promise<AssetData | null> => {
+    if (!ticker.trim()) return null;
 
-    // Cancel any in-flight request
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -26,14 +28,16 @@ export function useAssetData(): UseAssetDataReturn {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await fetchAssetData(ticker.toUpperCase().trim(), apiKey.trim(), controller.signal);
+      const response = await fetchAssetData(ticker.toUpperCase().trim(), horizonMonths, controller.signal);
       if (controller.signal.aborted) return null;
-      setAssetData(data);
-      return data;
+      setAssetData(response.assetData);
+      setAnalyzeResult(response.analyzeResult);
+      return response.assetData;
     } catch (err) {
       if (controller.signal.aborted) return null;
       setError(err instanceof Error ? err.message : 'Nieznany błąd');
       setAssetData(null);
+      setAnalyzeResult(null);
       return null;
     } finally {
       if (!controller.signal.aborted) {
@@ -42,5 +46,6 @@ export function useAssetData(): UseAssetDataReturn {
     }
   }, []);
 
-  return { assetData, isLoading, error, fetchData };
+  return { assetData, analyzeResult, isLoading, error, fetchData };
 }
+

@@ -26,15 +26,11 @@ const DEFAULT_SCENARIOS: Scenarios = {
   bull: { deltaStock: 10, deltaFx: 5 },
 };
 
-const STORAGE_KEY_API = 'njord_twelve_data_api_key';
-const BUILT_IN_KEY = import.meta.env.VITE_TWELVE_DATA_API_KEY || '';
-
 const ROOT_STYLE = { backgroundColor: 'var(--color-bg-primary)' } as const;
 const FOOTER_STYLE = { borderTop: '1px solid var(--color-border)', color: 'var(--color-text-faint)' } as const;
 
 function App() {
   const [ticker, setTicker] = useState('');
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem(STORAGE_KEY_API) || BUILT_IN_KEY);
   const [shares, setShares] = useState(0);
   const [currentPriceUSD, setCurrentPriceUSD] = useState(0);
   const [currentFxRate, setCurrentFxRate] = useState(0);
@@ -54,12 +50,7 @@ function App() {
   const fxAutoFilled = useRef(false);
   const inflationAutoFilled = useRef(false);
 
-  const handleApiKeyChange = useCallback((key: string) => {
-    setApiKey(key);
-    localStorage.setItem(STORAGE_KEY_API, key);
-  }, []);
-
-  const { assetData, isLoading: assetLoading, error: assetError, fetchData: fetchAsset } = useAssetData();
+  const { assetData, analyzeResult, isLoading: assetLoading, error: assetError, fetchData: fetchAsset } = useAssetData();
   const { fxData, isLoading: fxLoading } = useFxData((data) => {
     if (!fxAutoFilled.current) {
       fxAutoFilled.current = true;
@@ -74,16 +65,17 @@ function App() {
   });
   const { suggestedScenarios, stats: volatilityStats } = useHistoricalVolatility(
     assetData?.historicalPrices ?? null,
-    fxData?.historicalRates ?? null,
+    analyzeResult?.fxHistory ?? fxData?.historicalRates ?? null,
     horizonMonths,
+    analyzeResult,
   );
 
-  const fetchData = useCallback(async (ticker: string) => {
-    const data = await fetchAsset(ticker, apiKey);
+  const fetchData = useCallback(async (tickerArg: string) => {
+    const data = await fetchAsset(tickerArg, horizonMonths);
     if (data?.asset.currentPrice) {
       setCurrentPriceUSD(data.asset.currentPrice);
     }
-  }, [fetchAsset, apiKey]);
+  }, [fetchAsset, horizonMonths]);
 
   const handleScenarioChange = useCallback(
     (key: ScenarioKey, field: 'deltaStock' | 'deltaFx', value: number) => {
@@ -116,6 +108,15 @@ function App() {
 
   // Derive active scenarios: user overrides take precedence over HMM suggestions
   const scenarios = userScenarios ?? suggestedScenarios ?? DEFAULT_SCENARIOS;
+
+  // Auto-fill FX rate from analyze response when a new ticker is fetched
+  useEffect(() => {
+    if (analyzeResult?.latestFxRate && !fxAutoFilled.current) {
+      fxAutoFilled.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCurrentFxRate(analyzeResult.latestFxRate);
+    }
+  }, [analyzeResult]);
 
   // Auto-apply HMM suggestions once on first arrival — remount ScenarioEditor via key.
   // The ref guard ensures this runs exactly once; eslint-disable is intentional here.
@@ -214,7 +215,6 @@ function App() {
               fxData={fxData}
               fxLoading={fxLoading}
               ticker={ticker}
-              apiKey={apiKey}
               shares={shares}
               currentPriceUSD={currentPriceUSD}
               currentFxRate={currentFxRate}
@@ -234,7 +234,6 @@ function App() {
               collapsed
               onToggleCollapse={() => setInputCollapsed(false)}
               onTickerChange={setTicker}
-              onApiKeyChange={handleApiKeyChange}
               onSharesChange={setShares}
               onPriceChange={setCurrentPriceUSD}
               onFxRateChange={setCurrentFxRate}
@@ -274,7 +273,6 @@ function App() {
                 fxData={fxData}
                 fxLoading={fxLoading}
                 ticker={ticker}
-                apiKey={apiKey}
                 shares={shares}
                 currentPriceUSD={currentPriceUSD}
                 currentFxRate={currentFxRate}
@@ -293,7 +291,6 @@ function App() {
                 nbpRefRate={nbpRefRate}
                 onToggleCollapse={results ? () => setInputCollapsed(true) : undefined}
                 onTickerChange={setTicker}
-                onApiKeyChange={handleApiKeyChange}
                 onSharesChange={setShares}
                 onPriceChange={setCurrentPriceUSD}
                 onFxRateChange={setCurrentFxRate}

@@ -6,7 +6,7 @@ Instructions for AI agents working with this repository.
 
 **Njord** is a React/TypeScript SPA (Single Page Application) that compares holding a USD-denominated stock portfolio against Polish savings instruments: savings accounts or government bonds (obligacje skarbowe). All computations run in the browser — no backend.
 
-- **Live demo:** https://sunbear1.github.io/Njord/
+- **Live demo:** https://njord.pages.dev
 - **UI language:** Polish
 - **Base currency:** PLN (converted from USD via NBP exchange rate)
 
@@ -28,15 +28,16 @@ Instructions for AI agents working with this repository.
 ## Commands
 
 ```bash
-npm run dev      # dev server -> http://localhost:5173/Njord/
-npm run build    # tsc -b && vite build
-npm run lint     # ESLint
-npm run preview  # preview production build
+npm run dev        # dev server -> http://localhost:5173/
+npm run dev:full   # full stack: Vite + Pages Functions at localhost:8788
+npm run build      # tsc -b && vite build
+npm run lint       # ESLint
+npm run preview    # preview production build
 ```
 
-Build with API key:
-```bash
-VITE_TWELVE_DATA_API_KEY=xxx npm run build
+Local dev with Pages Functions (requires `.dev.vars`):
+```ini
+TWELVE_DATA_API_KEY=your_key
 ```
 
 ---
@@ -56,20 +57,25 @@ src/
 │   ├── MethodologyPanel.tsx      # Calculation methodology explanation
 │   └── HowItWorks.tsx           # User guide / how-to
 ├── hooks/
-│   ├── useAssetData.ts           # Fetch stock data (Twelve Data API)
-│   ├── useFxData.ts              # PLN/USD rate from NBP API (auto-refresh)
+│   ├── useAssetData.ts           # Fetch stock + analysis data from /api/analyze
+│   ├── useFxData.ts              # PLN/USD rate from NBP API (auto-refresh for current rate)
 │   ├── useCpiGus.ts              # CPI inflation from GUS BDL API (auto-fetch on mount)
-│   └── useHistoricalVolatility.ts # Historical volatility from stock + FX data
+│   └── useHistoricalVolatility.ts # Accepts precomputed scenarios from Worker; local recompute on horizon change
 ├── providers/
-│   ├── twelveDataProvider.ts     # Twelve Data time_series fetch, 252 trading days of history
-│   └── nbpProvider.ts            # NBP USD/PLN exchange rate fetch
+│   ├── twelveDataProvider.ts     # Calls /api/analyze (Cloudflare Pages Function)
+│   └── nbpProvider.ts            # NBP USD/PLN exchange rate fetch (direct, for current rate refresh)
 ├── utils/
 │   ├── calculations.ts           # All financial logic (pure functions)
 │   ├── assetConfig.ts            # Constants (DEFAULT_HORIZON_MONTHS = 12)
 │   └── formatting.ts             # Number formatting (fmtUSD, fmtPLN, fmtNum)
-└── types/
-    ├── scenario.ts               # ScenarioKey, BenchmarkType, BondPreset, ScenarioResult
-    └── asset.ts                  # AssetData, HistoricalPrice
+├── types/
+│   ├── scenario.ts               # ScenarioKey, BenchmarkType, BondPreset, ScenarioResult
+│   ├── asset.ts                  # AssetData, HistoricalPrice
+│   └── analyze.ts                # AnalyzeResponse, AnalyzeResult (Worker response types)
+functions/
+└── api/
+    └── analyze.ts                # Pages Function: GET /api/analyze?ticker=X&horizonMonths=N
+                                  # Fetches Twelve Data (secret key) + NBP FX, runs HMM/GARCH/Bootstrap
 ```
 
 ---
@@ -78,11 +84,11 @@ src/
 
 | API | URL | Purpose | CORS | Auth |
 |-----|-----|---------|------|------|
-| Twelve Data | `api.twelvedata.com/time_series` | Stock prices, 252 sessions | Yes | API key required |
+| Twelve Data | `api.twelvedata.com/time_series` | Stock prices, 252 sessions | Yes | API key required (server-side secret) |
 | NBP | `api.nbp.pl/api/exchangerates/...` | USD/PLN rate | Yes | None |
-| GUS BDL | `bdl.stat.gov.pl/api/v1/data/by-variable/217230` | Polish CPI inflation | Yes | None |
+| ECB HICP | `data-api.ecb.europa.eu/service/data/ICP/...` | Polish CPI inflation | Yes | None |
 
-**Twelve Data free tier:** 800 req/day, 8/min. User's key stored in `localStorage` under `njord_twelve_data_api_key`. Built-in key via `VITE_TWELVE_DATA_API_KEY` env var.
+**Twelve Data free tier:** 800 req/day, 8/min. API key stored as Cloudflare Pages environment secret (`TWELVE_DATA_API_KEY`) — never exposed to the browser. The `/api/analyze` Pages Function reads it server-side.
 
 ---
 
@@ -148,8 +154,9 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 - **Components:** Functional with hooks; no classes; props explicitly typed via interfaces
 - **No routing** — single-page application
 - **No tests** — no test framework configured (vitest, jest)
-- **Base path:** `/Njord/` (vite.config.ts) — required for GitHub Pages
-- **Deploy:** Automatic on `main` push via `.github/workflows/deploy.yml`
+- **Deploy:** Automatic on `main` push via **Cloudflare Pages** native GitHub integration (no GH Actions workflow)
+- **Backend:** `functions/api/analyze.ts` — Cloudflare Pages Function at `GET /api/analyze?ticker=X&horizonMonths=N`. Fetches Twelve Data (server-side API key) + NBP FX, runs HMM/GARCH/Bootstrap, returns `AnalyzeResponse`.
+- **Base path:** `/` (Cloudflare Pages serves from root)
 - **Agent docs:** `AGENTS.md` at repo root — this is the standard location for GitHub Copilot and other AI agents. For monorepo subprojects, nested `AGENTS.md` files can be placed in subdirectories.
 
 ---

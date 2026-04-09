@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true,
+    "types": ["@cloudflare/workers-types"],
+    "paths": {
+      "../../src/*": ["../../src/*"]
+    }
+  },
+  "include": [
+    "./**/*.ts",
+    "../src/utils/**/*.ts",
+    "../src/types/**/*.ts",
+    "../src/providers/nbpProvider.ts"
+  ]
+}

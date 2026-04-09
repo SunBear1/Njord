@@ -26,7 +26,6 @@ interface InputPanelProps {
   fxData: FxData | null;
   fxLoading: boolean;
   ticker: string;
-  apiKey: string;
   shares: number;
   currentPriceUSD: number;
   currentFxRate: number;
@@ -48,7 +47,6 @@ interface InputPanelProps {
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   onTickerChange: (v: string) => void;
-  onApiKeyChange: (v: string) => void;
   onSharesChange: (v: number) => void;
   onPriceChange: (v: number) => void;
   onFxRateChange: (v: number) => void;
@@ -72,7 +70,6 @@ export function InputPanel({
   fxData,
   fxLoading,
   ticker,
-  apiKey,
   shares,
   currentPriceUSD,
   currentFxRate,
@@ -91,7 +88,6 @@ export function InputPanel({
   collapsed,
   onToggleCollapse,
   onTickerChange,
-  onApiKeyChange,
   onSharesChange,
   onPriceChange,
   onFxRateChange,
@@ -142,17 +138,17 @@ export function InputPanel({
       return;
     }
     const trimmed = localTicker.trim().toUpperCase();
-    if (trimmed.length < 1 || !apiKey.trim()) return;
+    if (trimmed.length < 1) return;
     const timer = setTimeout(() => {
       onTickerChange(trimmed);
       onFetchAsset(trimmed);
     }, 800);
     return () => clearTimeout(timer);
-  }, [localTicker, apiKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [localTicker]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleManualRefetch = () => {
     const trimmed = localTicker.trim().toUpperCase();
-    if (trimmed && apiKey.trim()) {
+    if (trimmed) {
       onTickerChange(trimmed);
       onFetchAsset(trimmed);
     }
@@ -246,31 +242,15 @@ export function InputPanel({
         )}
       </div>
 
-      {/* Rate limit banner — only shown when API rate limit hit */}
+      {/* Rate limit banner */}
       {rateLimited && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-2">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
           <p className="text-sm font-medium text-amber-800">
             Limit zapytań API wyczerpany (maks. 8 na minutę).
           </p>
-          <p className="text-xs text-amber-700">
-            Poczekaj minutę i spróbuj ponownie, lub podaj własny darmowy klucz API z{' '}
-            <a
-              href="https://twelvedata.com/pricing"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 underline hover:text-blue-800"
-            >
-              twelvedata.com/pricing
-            </a>{' '}
-            (800 zapytań/dzień, 8/min):
+          <p className="text-xs text-amber-700 mt-1">
+            Poczekaj minutę i spróbuj ponownie.
           </p>
-          <input
-            type="password"
-            value={apiKey}
-            onChange={(e) => onApiKeyChange(e.target.value.trim())}
-            placeholder="Wklej swój klucz API…"
-            className="w-full border border-amber-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono bg-white"
-          />
         </div>
       )}
 
@@ -299,7 +279,7 @@ export function InputPanel({
           </div>
           <button
             onClick={handleManualRefetch}
-            disabled={assetLoading || !localTicker.trim() || !apiKey.trim()}
+            disabled={assetLoading || !localTicker.trim()}
             aria-label="Odśwież dane giełdowe"
             className="p-2 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-40 transition-colors"
           >
