@@ -177,7 +177,7 @@ export function useHistoricalVolatility(
   }
 
   // Use precomputed Worker results when horizon matches and local hasn't computed yet
-  const usePrecomputed = precomputed && precomputed.forHorizonMonths === horizonMonths && modelResult === null;
+  const usePrecomputed = precomputed && precomputed.forHorizonMonths === debouncedHorizon && modelResult === null;
   const activeModelResult = usePrecomputed
     ? { modelResults: precomputed.models, modelScenarios: precomputed.modelScenarios, suggestedScenarios: precomputed.suggestedScenarios, regime: precomputed.regime }
     : modelResult;

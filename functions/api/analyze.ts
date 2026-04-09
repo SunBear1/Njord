@@ -240,6 +240,13 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     });
   }
 
+  if (!env.TWELVE_DATA_API_KEY) {
+    return new Response(JSON.stringify({ error: 'Server configuration error: API key not configured' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+    });
+  }
+
   try {
     const [stockResult, fxResult] = await Promise.all([
       fetchStockData(ticker, env.TWELVE_DATA_API_KEY),
