@@ -57,12 +57,13 @@ function initValues(s: Scenarios) {
   };
 }
 
-function ModeToggle({ mode, onToggle, labelA, labelB }: { mode: InputMode; onToggle: () => void; labelA: string; labelB: string }) {
+function ModeToggle({ mode, onToggle, labelA, labelB, disabled }: { mode: InputMode; onToggle: () => void; labelA: string; labelB: string; disabled?: boolean }) {
   return (
     <button
       onClick={onToggle}
-      className="flex w-full rounded border border-gray-200 overflow-hidden text-[11px] font-medium"
-      title="Przełącz tryb wpisywania"
+      disabled={disabled}
+      className={`flex w-full rounded border border-gray-200 overflow-hidden text-[11px] font-medium ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+      title={disabled ? 'Wpisz ticker, aby przełączyć tryb' : 'Przełącz tryb wpisywania'}
     >
       <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'pct' ? 'bg-blue-600 text-white' : 'bg-white text-gray-400 hover:bg-gray-50'}`}>{labelA}</span>
       <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'fixed' ? 'bg-blue-600 text-white' : 'bg-white text-gray-400 hover:bg-gray-50'}`}>{labelB}</span>
@@ -116,8 +117,9 @@ export function ScenarioEditor({
   const toDelta = useCallback((raw: string, mode: InputMode, currentVal: number): number => {
     const n = parseFloat(raw);
     if (isNaN(n)) return 0;
-    if (mode === 'pct') return n;
-    return currentVal > 0 ? (n / currentVal - 1) * 100 : 0;
+    if (mode === 'pct') return Math.max(-100, n);
+    if (currentVal <= 0) return 0;
+    return Math.max(-100, (n / currentVal - 1) * 100);
   }, []);
 
   const handleStockChange = (key: ScenarioKey, raw: string) => {
@@ -131,6 +133,7 @@ export function ScenarioEditor({
   };
 
   const toggleStockMode = () => {
+    if (currentPriceUSD <= 0) return;
     const next: InputMode = stockMode === 'pct' ? 'fixed' : 'pct';
     const updated = { ...localValues };
     (Object.keys(updated) as ScenarioKey[]).forEach(key => {
@@ -150,6 +153,7 @@ export function ScenarioEditor({
   };
 
   const toggleFxMode = () => {
+    if (currentFxRate <= 0) return;
     const next: InputMode = fxMode === 'pct' ? 'fixed' : 'pct';
     const updated = { ...localValues };
     (Object.keys(updated) as ScenarioKey[]).forEach(key => {
@@ -202,7 +206,7 @@ export function ScenarioEditor({
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
             <span className="text-xs font-medium text-gray-600">Akcje ({stockUnit})</span>
             {SCENARIO_CONFIG.map(({ key, inputBorder }) => (
-              <input key={key} type="number" step={stockMode === 'pct' ? 0.1 : 0.01} value={localValues[key].stock}
+              <input key={key} type="number" step={stockMode === 'pct' ? 0.1 : 0.01} min={stockMode === 'fixed' ? 0 : undefined} value={localValues[key].stock}
                 onChange={(e) => handleStockChange(key, e.target.value)} onFocus={(e) => e.target.select()}
                 className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white`} />
             ))}
@@ -210,7 +214,7 @@ export function ScenarioEditor({
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
             <span className="text-xs font-medium text-gray-600">USD/PLN ({fxUnit})</span>
             {SCENARIO_CONFIG.map(({ key, inputBorder }) => (
-              <input key={key} type="number" step={fxMode === 'pct' ? 0.1 : 0.0001} value={localValues[key].fx}
+              <input key={key} type="number" step={fxMode === 'pct' ? 0.1 : 0.0001} min={fxMode === 'fixed' ? 0 : undefined} value={localValues[key].fx}
                 onChange={(e) => handleFxChange(key, e.target.value)} onFocus={(e) => e.target.select()}
                 className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white`} />
             ))}
@@ -335,11 +339,11 @@ export function ScenarioEditor({
       <div className="flex items-center gap-3 mb-3">
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-gray-500 font-medium">Akcje:</span>
-          <div className="w-20"><ModeToggle mode={stockMode} onToggle={toggleStockMode} labelA="%" labelB="USD" /></div>
+          <div className="w-20"><ModeToggle mode={stockMode} onToggle={toggleStockMode} labelA="%" labelB="USD" disabled={currentPriceUSD <= 0} /></div>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-gray-500 font-medium">FX:</span>
-          <div className="w-20"><ModeToggle mode={fxMode} onToggle={toggleFxMode} labelA="%" labelB="PLN" /></div>
+          <div className="w-20"><ModeToggle mode={fxMode} onToggle={toggleFxMode} labelA="%" labelB="PLN" disabled={currentFxRate <= 0} /></div>
         </div>
       </div>
 
@@ -364,6 +368,7 @@ export function ScenarioEditor({
                     <input
                       type="number"
                       step={stockMode === 'pct' ? 0.1 : 0.01}
+                      min={stockMode === 'fixed' ? 0 : undefined}
                       value={localValues[key].stock}
                       onChange={(e) => handleStockChange(key, e.target.value)}
                       onFocus={(e) => e.target.select()}
@@ -388,6 +393,7 @@ export function ScenarioEditor({
                     <input
                       type="number"
                       step={fxMode === 'pct' ? 0.1 : 0.0001}
+                      min={fxMode === 'fixed' ? 0 : undefined}
                       value={localValues[key].fx}
                       onChange={(e) => handleFxChange(key, e.target.value)}
                       onFocus={(e) => e.target.select()}
