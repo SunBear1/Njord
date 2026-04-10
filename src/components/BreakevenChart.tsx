@@ -23,9 +23,9 @@ export function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: 
   );
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">
-      <h3 className="text-base font-semibold text-gray-800">Break-even — mapa rentowności</h3>
-      <p className="text-xs text-gray-500">
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 space-y-3">
+      <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Break-even — mapa rentowności</h3>
+      <p className="text-xs text-gray-500 dark:text-gray-400">
         Komórki oznaczają, w których kombinacjach zmian akcje biją {benchmarkLabel.toLowerCase()} (netto). {benchmarkLabel} docelowe:{' '}
         <strong>{fmtPLN(benchmarkEndValuePLN)}</strong>.
       </p>
@@ -34,11 +34,11 @@ export function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: 
         <table className="text-xs border-collapse mx-auto">
           <thead>
             <tr>
-              <th className="p-1 text-gray-400 font-normal text-right pr-2">
+              <th className="p-1 text-gray-400 dark:text-gray-500 font-normal text-right pr-2">
                 Akcje ↓ / USD/PLN →
               </th>
               {deltaFxValues.map((df) => (
-                <th key={df} className="p-1 font-medium text-gray-600 text-center min-w-[52px] tabular-nums">
+                <th key={df} className="p-1 font-medium text-gray-600 dark:text-gray-400 text-center min-w-[52px] tabular-nums">
                   {df > 0 ? '+' : ''}{df}%
                 </th>
               ))}
@@ -47,7 +47,7 @@ export function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: 
           <tbody>
             {deltaStockValues.map((ds) => (
               <tr key={ds}>
-                <td className="p-1 font-medium text-gray-600 text-right pr-2 tabular-nums">
+                <td className="p-1 font-medium text-gray-600 dark:text-gray-400 text-right pr-2 tabular-nums">
                   {ds > 0 ? '+' : ''}{ds}%
                 </td>
                 {deltaFxValues.map((df) => {
@@ -60,8 +60,8 @@ export function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: 
                       key={df}
                       className={`p-1 text-center rounded cursor-default transition-colors relative group/cell ${
                         beatsBenchmark
-                          ? 'bg-blue-100 text-blue-800 font-medium'
-                          : 'bg-slate-100 text-slate-500'
+                          ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 font-medium'
+                          : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
                       }`}
                     >
                       {beatsBenchmark ? '✓' : '✗'}
@@ -79,16 +79,16 @@ export function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: 
         </table>
       </div>
 
-      <div className="flex items-center gap-4 text-xs text-gray-500 pt-1">
+      <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 pt-1">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-4 h-4 rounded bg-blue-100 border border-blue-200" />
+          <span className="inline-block w-4 h-4 rounded bg-blue-100 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800" />
           Akcje lepsze (✓)
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-4 h-4 rounded bg-slate-100 border border-slate-200" />
+          <span className="inline-block w-4 h-4 rounded bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600" />
           {benchmarkLabel} lepsze (✗)
         </span>
-        <span className="text-gray-400">Najedź kursorem na komórkę, by zobaczyć wartość</span>
+        <span className="text-gray-400 dark:text-gray-500">Najedź kursorem na komórkę, by zobaczyć wartość</span>
       </div>
     </div>
   );

@@ -32,10 +32,10 @@ export function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflation
   );
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">
-      <h3 className="text-base font-semibold text-gray-800">Wartość w czasie</h3>
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 space-y-3">
+      <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Wartość w czasie</h3>
       {inflationRate > 0 && (
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           Szara linia przerywana „Siła nabywcza" — wartość wyjściowa skorygowana o inflację ({inflationRate.toFixed(1)}% śr./rok).
         </p>
       )}

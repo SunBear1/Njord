@@ -187,7 +187,7 @@ export function InputPanel({
 
   /* ────── Animated layout: both summary + form always in DOM ────── */
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
       {/* Summary bar — visible when collapsed */}
       <div
         className="grid"
@@ -206,20 +206,20 @@ export function InputPanel({
             onClick={onToggleCollapse}
             className="w-full flex items-center justify-between gap-3 px-5 py-3"
           >
-            <div className="flex items-center gap-2 flex-wrap min-w-0 text-sm text-gray-700">
-              <span className="font-semibold text-gray-900">{ticker || '—'}</span>
-              <span className="text-gray-400">·</span>
+            <div className="flex items-center gap-2 flex-wrap min-w-0 text-sm text-gray-700 dark:text-gray-300">
+              <span className="font-semibold text-gray-900 dark:text-gray-100">{ticker || '—'}</span>
+              <span className="text-gray-400 dark:text-gray-500">·</span>
               <span>{shares} akcji</span>
-              <span className="text-gray-400">·</span>
+              <span className="text-gray-400 dark:text-gray-500">·</span>
               <span>${currentPriceUSD.toFixed(2)}</span>
-              <span className="text-gray-400">·</span>
+              <span className="text-gray-400 dark:text-gray-500">·</span>
               <span>PLN/USD {currentFxRate.toFixed(2)}</span>
-              <span className="text-gray-400">·</span>
+              <span className="text-gray-400 dark:text-gray-500">·</span>
               <span>{bmSummary}</span>
-              <span className="text-gray-400">·</span>
-              <span className="text-blue-600 font-medium">{horizonLabel}</span>
+              <span className="text-gray-400 dark:text-gray-500">·</span>
+              <span className="text-blue-600 dark:text-blue-400 font-medium">{horizonLabel}</span>
             </div>
-            <span className="flex items-center gap-1 text-xs text-blue-600 font-medium whitespace-nowrap shrink-0">
+            <span className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-medium whitespace-nowrap shrink-0">
               Rozwiń <ChevronDown size={16} />
             </span>
           </button>
@@ -242,12 +242,12 @@ export function InputPanel({
           >
 
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-800">Dane wejściowe</h2>
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Dane wejściowe</h2>
         {onToggleCollapse && (
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
+            className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition-colors"
           >
             Zwiń <ChevronUp size={16} />
           </button>
@@ -256,11 +256,11 @@ export function InputPanel({
 
       {/* Rate limit banner */}
       {rateLimited && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-          <p className="text-sm font-medium text-amber-800">
+        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+          <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
             Limit zapytań API wyczerpany (maks. 8 na minutę).
           </p>
-          <p className="text-xs text-amber-700 mt-1">
+          <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
             Poczekaj minutę i spróbuj ponownie.
           </p>
         </div>
@@ -268,11 +268,11 @@ export function InputPanel({
 
       {/* Ticker — auto-fetch */}
       <div className="space-y-1">
-        <label htmlFor="ticker-input" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+        <label htmlFor="ticker-input" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
           Ticker giełdowy <span className="text-red-500">*</span>
           <Tooltip content="Wpisz symbol giełdowy (np. AAPL, NVDA, VOO). Cena i kurs USD/PLN pobiorą się automatycznie." />
         </label>
-        <p className="text-xs text-gray-400">Zacznij pisać — dane pobiorą się automatycznie.</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500">Zacznij pisać — dane pobiorą się automatycznie.</p>
         <div className="flex gap-2 items-center">
           <div className="relative flex-1">
             <input
@@ -283,7 +283,7 @@ export function InputPanel({
               value={localTicker}
               onChange={(e) => setLocalTicker(e.target.value.toUpperCase())}
               placeholder="np. AAPL, NVDA, VOO"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 pr-9"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 pr-9"
             />
             {assetLoading && (
               <Loader2 size={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin text-blue-500" aria-hidden="true" />
@@ -293,7 +293,7 @@ export function InputPanel({
             onClick={handleManualRefetch}
             disabled={assetLoading || !localTicker.trim()}
             aria-label="Odśwież dane giełdowe"
-            className="p-2 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-40 transition-colors"
+            className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 transition-colors"
           >
             <RefreshCw size={16} aria-hidden="true" />
           </button>
@@ -315,7 +315,7 @@ export function InputPanel({
 
       {/* Shares */}
       <div className="space-y-1">
-        <label htmlFor="shares-input" className="text-sm font-medium text-gray-700">
+        <label htmlFor="shares-input" className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Liczba akcji <span className="text-red-500">*</span>
         </label>
         <input
@@ -328,24 +328,24 @@ export function InputPanel({
           value={shares || ''}
           onChange={(e) => onSharesChange(Number(e.target.value))}
           placeholder="np. 50"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
         />
         <button
           type="button"
           onClick={() => setShowValueCalc((v) => !v)}
-          className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors"
+          className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
         >
           <Calculator size={12} />
           {showValueCalc ? 'Ukryj kalkulator' : 'Nie wiesz ile masz akcji, ale znasz wartość?'}
         </button>
         {showValueCalc && (
-          <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 space-y-2">
-            <p className="text-xs text-blue-700">
+          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900 rounded-lg p-3 space-y-2">
+            <p className="text-xs text-blue-700 dark:text-blue-300">
               Wpisz całkowitą wartość portfela w USD — obliczymy liczbę akcji.
             </p>
             <div className="flex gap-2 items-end">
               <div className="flex-1 space-y-1">
-                <label className="text-xs text-blue-600">Wartość portfela (USD)</label>
+                <label className="text-xs text-blue-600 dark:text-blue-400">Wartość portfela (USD)</label>
                 <input
                   type="number"
                   min={0}
@@ -353,7 +353,7 @@ export function InputPanel({
                   value={totalValueStr}
                   onChange={(e) => setTotalValueStr(e.target.value)}
                   placeholder="np. 5000.00"
-                  className="w-full border border-blue-200 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 bg-white"
+                  className="w-full border border-blue-200 dark:border-blue-700 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 bg-white"
                 />
               </div>
               <button
@@ -374,14 +374,14 @@ export function InputPanel({
               </button>
             </div>
             {currentPriceUSD > 0 && totalValueStr && parseFloat(totalValueStr) > 0 && (
-              <p className="text-xs text-blue-600">
+              <p className="text-xs text-blue-600 dark:text-blue-400">
                 {fmtUSD(parseFloat(totalValueStr))} ÷ {fmtUSD(currentPriceUSD)} ≈{' '}
                 <strong>{Math.floor(parseFloat(totalValueStr) / currentPriceUSD)} akcji</strong>
                 {' '}(zaokrąglone w dół)
               </p>
             )}
             {!currentPriceUSD && (
-              <p className="text-xs text-amber-600">
+              <p className="text-xs text-amber-600 dark:text-amber-400">
                 Najpierw wpisz ticker, aby pobrać cenę akcji.
               </p>
             )}
@@ -391,7 +391,7 @@ export function InputPanel({
 
       {/* Price USD */}
       <div className="space-y-1">
-        <label htmlFor="price-usd" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+        <label htmlFor="price-usd" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
           Aktualna cena akcji (USD) <span className="text-red-500">*</span>
           {assetData && (
             <Tooltip content="Cena pobrana automatycznie z Twelve Data. Możesz ją edytować ręcznie." />
@@ -407,15 +407,15 @@ export function InputPanel({
           value={currentPriceUSD || ''}
           onChange={(e) => onPriceChange(Number(e.target.value))}
           placeholder="np. 185.00"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
         />
       </div>
 
       {/* Average cost (optional) */}
       <div className="space-y-1">
-        <label htmlFor="avg-cost-usd" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+        <label htmlFor="avg-cost-usd" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
           Cena zakupu (USD)
-          <span className="text-xs font-normal text-gray-400">(opcjonalnie)</span>
+          <span className="text-xs font-normal text-gray-400 dark:text-gray-500">(opcjonalnie)</span>
           <Tooltip content="Średnia cena zakupu za akcję. Używana do obliczenia rzeczywistego zysku/straty oraz prawidłowej podstawy podatku Belki — podatek nalicza się od zysku względem ceny zakupu, nie dzisiejszej ceny." />
         </label>
         <input
@@ -428,11 +428,11 @@ export function InputPanel({
           value={avgCostUSD || ''}
           onChange={(e) => onAvgCostUSDChange(Number(e.target.value))}
           placeholder="np. 50.00"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
         />
         {/* Inline P&L indicator */}
         {avgCostUSD > 0 && currentPriceUSD > 0 && (
-          <div className={`flex items-center gap-2 text-xs px-2 py-1 rounded-md ${currentPriceUSD >= avgCostUSD ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+          <div className={`flex items-center gap-2 text-xs px-2 py-1 rounded-md ${currentPriceUSD >= avgCostUSD ? 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400'}`}>
             {currentPriceUSD >= avgCostUSD ? '▲' : '▼'}
             <span>
               {fmtUSD(currentPriceUSD)} vs. zakup {fmtUSD(avgCostUSD)}
@@ -446,9 +446,9 @@ export function InputPanel({
 
       {/* Broker fee (optional) */}
       <div className="space-y-1">
-        <label htmlFor="broker-fee" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+        <label htmlFor="broker-fee" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
           Prowizja brokera (USD)
-          <span className="text-xs font-normal text-gray-400">(opcjonalnie)</span>
+          <span className="text-xs font-normal text-gray-400 dark:text-gray-500">(opcjonalnie)</span>
           <Tooltip content="Łączna prowizja za transakcję sprzedaży w USD. Odejmowana od wartości sprzedaży i zaliczana jako koszt uzyskania przychodu — pomniejsza podstawę podatku Belki. Przykład: IBKR min $1, Exante ~0.02 USD/akcję." />
         </label>
         <input
@@ -461,15 +461,15 @@ export function InputPanel({
           value={brokerFeeUSD || ''}
           onChange={(e) => onBrokerFeeUSDChange(Number(e.target.value))}
           placeholder="np. 1.00"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
         />
       </div>
 
       {/* Dividend yield (optional) */}
       <div className="space-y-1">
-        <label htmlFor="dividend-yield" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+        <label htmlFor="dividend-yield" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
           Stopa dywidendy (% rocznie)
-          <span className="text-xs font-normal text-gray-400">(opcjonalnie)</span>
+          <span className="text-xs font-normal text-gray-400 dark:text-gray-500">(opcjonalnie)</span>
           <Tooltip content="Roczna stopa dywidendy akcji (np. 1.5 dla 1.5%). Dywidendy akumulowane jako gotówka PLN w ciągu horyzontu. Podatek 19% od całości (pokrywa 15% WHT USA + 4% dopłata do polskiego PIT-38). Spółki wzrostowe zazwyczaj nie wypłacają dywidend (0)." />
         </label>
         <input
@@ -483,10 +483,10 @@ export function InputPanel({
           value={dividendYieldPercent || ''}
           onChange={(e) => onDividendYieldChange(Number(e.target.value))}
           placeholder="np. 1.5"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
         />
         {dividendYieldPercent > 0 && (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             Szacowane dywidendy netto (base): ok.{' '}
             <strong>
               {new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(
@@ -500,12 +500,12 @@ export function InputPanel({
 
       {/* FX Rate */}
       <div className="space-y-1">
-        <label htmlFor="fx-rate" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+        <label htmlFor="fx-rate" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
           Kurs sprzedaży USD <span className="text-red-500">*</span>
           {fxData && !fxLoading && (
             <Tooltip content={`Kurs z Alior Kantor — tyle PLN dostaniesz sprzedając dolary. Podatek Belki po kursie NBP (${fmtNum(fxData.currentRate)} PLN/USD).`} />
           )}
-          {fxLoading && <span className="ml-1 text-xs text-gray-400 inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" />ładowanie…</span>}
+          {fxLoading && <span className="ml-1 text-xs text-gray-400 dark:text-gray-500 inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" />ładowanie…</span>}
         </label>
         <input
           id="fx-rate"
@@ -517,21 +517,21 @@ export function InputPanel({
           value={currentFxRate || ''}
           onChange={(e) => onFxRateChange(Number(e.target.value))}
           placeholder="np. 4.1500"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
         />
       </div>
 
       {/* Benchmark selector */}
       <div className="space-y-3">
-        <label className="text-sm font-medium text-gray-700">Porównaj z:</label>
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Porównaj z:</label>
         <div className="flex gap-2">
           <button
             type="button"
             onClick={() => onBenchmarkTypeChange('savings')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'savings'
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300'
+                : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600'
             }`}
           >
             Konto oszczędnościowe
@@ -541,8 +541,8 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('bonds')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'bonds'
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300'
+                : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600'
             }`}
           >
             Obligacje skarbowe
@@ -552,8 +552,8 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('etf')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'etf'
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300'
+                : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600'
             }`}
           >
             ETF
@@ -564,9 +564,9 @@ export function InputPanel({
       {benchmarkType === 'savings' ? (
         /* Savings account rate */
         <div className="space-y-1">
-          <label htmlFor="savings-rate" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+          <label htmlFor="savings-rate" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
             Oprocentowanie konta oszczędnościowego <span className="text-red-500">*</span>
-            <span className="text-xs font-normal text-gray-500">(% rocznie)</span>
+            <span className="text-xs font-normal text-gray-500 dark:text-gray-400">(% rocznie)</span>
             <Tooltip
               content={
                 <span className="space-y-1 block">
@@ -594,15 +594,15 @@ export function InputPanel({
             value={wiborStr}
             onChange={(e) => handleWiborChange(e.target.value)}
             placeholder="np. 5.82"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
           />
           {!monthlyRate && (
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-400 dark:text-gray-500">
               Podaj oprocentowanie z regulaminu banku w skali roku.
             </p>
           )}
           {inflationRate > 0 && wibor3m > 0 && inflationRate >= wibor3m && (
-            <p className="text-xs text-amber-600 font-medium">
+            <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
               ⚠ Oprocentowanie ({wibor3m.toFixed(2)}%) niższe od inflacji — realna stopa ujemna.
             </p>
           )}
@@ -611,7 +611,7 @@ export function InputPanel({
         /* ETF benchmark */
         <div className="space-y-3">
           <div className="space-y-1">
-            <label htmlFor="etf-return" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+            <label htmlFor="etf-return" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
               Oczekiwany zwrot ETF (% rocznie) <span className="text-red-500">*</span>
               <Tooltip content="Historyczny średnioroczny zwrot funduszu przed odliczeniem TER. Przykład: VWCE/IWDA ≈ 8–10% (długoterminowa średnia S&P 500). Używana do projekcji wartości portfela." />
             </label>
@@ -626,11 +626,11 @@ export function InputPanel({
               value={etfAnnualReturnPercent || ''}
               onChange={(e) => onEtfAnnualReturnChange(Number(e.target.value))}
               placeholder="np. 8.0"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
             />
           </div>
           <div className="space-y-1">
-            <label htmlFor="etf-ter" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+            <label htmlFor="etf-ter" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
               TER — opłata za zarządzanie (% rocznie) <span className="text-red-500">*</span>
               <Tooltip content="Total Expense Ratio — roczna opłata funduszu za zarządzanie, automatycznie odejmowana od wartości. Przykład: VWCE 0.22%, CSPX/IWDA 0.07%, iShares Core S&P 500 0.07%." />
             </label>
@@ -645,11 +645,11 @@ export function InputPanel({
               value={etfTerPercent || ''}
               onChange={(e) => onEtfTerChange(Number(e.target.value))}
               placeholder="np. 0.07"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
             />
           </div>
           {etfAnnualReturnPercent > 0 && (
-            <p className="text-xs text-gray-500 px-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 px-1">
               Efektywny zwrot netto: <strong>{(etfAnnualReturnPercent - etfTerPercent).toFixed(2)}%</strong>/rok (przed Belką).
               Belka 19% naliczona od zysku przy sprzedaży.
             </p>
@@ -659,7 +659,7 @@ export function InputPanel({
         /* Bonds — all 8 types */
         <div className="space-y-3">
           <div className="space-y-1">
-            <label htmlFor="bond-type" className="text-sm font-medium text-gray-700">
+            <label htmlFor="bond-type" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Typ obligacji
             </label>
             <select
@@ -670,7 +670,7 @@ export function InputPanel({
                 const preset = BOND_PRESETS.find((b) => b.id === e.target.value);
                 if (preset) handleSelectBondPreset(e.target.value, preset);
               }}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
             >
               {BOND_PRESETS.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -690,29 +690,29 @@ export function InputPanel({
               <div className="space-y-3">
                 {/* Family bonds hint */}
                 {preset.isFamily && (
-                  <div className="flex items-start gap-1.5 bg-purple-50 border border-purple-200 text-purple-800 text-xs rounded-lg p-2.5">
+                  <div className="flex items-start gap-1.5 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 text-purple-800 dark:text-purple-200 text-xs rounded-lg p-2.5">
                     <Info size={12} className="mt-0.5 flex-shrink-0" />
                     Obligacje rodzinne — dostępne tylko dla beneficjentów programu 800+.
                   </div>
                 )}
 
                 {/* Rate info card */}
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-2 text-xs">
+                <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 space-y-2 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Oprocentowanie 1. roku:</span>
-                    <span className="font-semibold text-gray-900">{bondSettings.firstYearRate.toFixed(2)}%</span>
+                    <span className="text-gray-600 dark:text-gray-400">Oprocentowanie 1. roku:</span>
+                    <span className="font-semibold text-gray-900 dark:text-gray-100">{bondSettings.firstYearRate.toFixed(2)}%</span>
                   </div>
 
                   {preset.rateType === 'inflation' && (
                     <>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Marża:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Marża:</span>
                         <span className="font-medium">{bondSettings.margin.toFixed(2)}%</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-600 flex items-center gap-1">
+                        <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
                           Inflacja CPI
-                          {inflationLoading && <span className="text-gray-400 inline-flex items-center gap-1">· <Loader2 size={12} className="animate-spin" />ładowanie…</span>}
+                          {inflationLoading && <span className="text-gray-400 dark:text-gray-500 inline-flex items-center gap-1">· <Loader2 size={12} className="animate-spin" />ładowanie…</span>}
                           {inflationData && !inflationLoading && (
                             <Tooltip
                               content={`Źródło: ${inflationData.source}${inflationData.period ? ` (${inflationData.period})` : ''}. Obligacje indeksowane inflacją w rzeczywistości stosują odczyt CPI sprzed 2-3 miesięcy, nie bieżącą projekcję — przy stabilnej inflacji różnica jest minimalna.`}
@@ -728,12 +728,12 @@ export function InputPanel({
                           step={0.1}
                           value={inflationRate || ''}
                           onChange={(e) => onInflationRateChange(parseFloat(e.target.value) || 0)}
-                          className="w-20 border border-gray-300 rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+                          className="w-20 border border-gray-300 dark:border-gray-500 rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100"
                         />
                       </div>
-                      <div className="flex justify-between border-t border-gray-200 pt-1.5">
-                        <span className="text-gray-600 font-medium">Stopa efektywna (od 2. roku):</span>
-                        <span className="font-bold text-blue-700">{bondEffectiveRate.toFixed(2)}%</span>
+                      <div className="flex justify-between border-t border-gray-200 dark:border-gray-600 pt-1.5">
+                        <span className="text-gray-600 dark:text-gray-400 font-medium">Stopa efektywna (od 2. roku):</span>
+                        <span className="font-bold text-blue-700 dark:text-blue-300">{bondEffectiveRate.toFixed(2)}%</span>
                       </div>
                     </>
                   )}
@@ -741,11 +741,11 @@ export function InputPanel({
                   {preset.rateType === 'reference' && (
                     <>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Marża:</span>
+                        <span className="text-gray-600 dark:text-gray-400">Marża:</span>
                         <span className="font-medium">{bondSettings.margin.toFixed(2)}%</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-600 flex items-center gap-1">
+                        <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
                           Stopa referencyjna NBP:
                           <a
                             href="https://www.nbp.pl/polityka-pieniezna/instrumenty/stopy-procentowe.aspx"
@@ -765,19 +765,19 @@ export function InputPanel({
                           value={nbpRefRate || ''}
                           onChange={(e) => onNbpRefRateChange(parseFloat(e.target.value) || 0)}
                           placeholder="np. 5.75"
-                          className="w-20 border border-gray-300 rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+                          className="w-20 border border-gray-300 dark:border-gray-500 rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100"
                         />
                       </div>
-                      <div className="flex justify-between border-t border-gray-200 pt-1.5">
-                        <span className="text-gray-600 font-medium">Stopa efektywna (od 2. okresu):</span>
-                        <span className="font-bold text-blue-700">{bondEffectiveRate.toFixed(2)}%</span>
+                      <div className="flex justify-between border-t border-gray-200 dark:border-gray-600 pt-1.5">
+                        <span className="text-gray-600 dark:text-gray-400 font-medium">Stopa efektywna (od 2. okresu):</span>
+                        <span className="font-bold text-blue-700 dark:text-blue-300">{bondEffectiveRate.toFixed(2)}%</span>
                       </div>
                     </>
                   )}
 
                   {preset.rateType === 'fixed' && (
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Typ:</span>
+                      <span className="text-gray-600 dark:text-gray-400">Typ:</span>
                       <span className="font-medium">Stała stopa przez cały okres</span>
                     </div>
                   )}
@@ -786,9 +786,9 @@ export function InputPanel({
                 {/* Penalty */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label htmlFor="bond-penalty" className="text-sm font-medium text-gray-700">
+                    <label htmlFor="bond-penalty" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Kara za wcz. wykup
-                      <span className="ml-1 text-xs font-normal text-gray-500">(% kapitału)</span>
+                      <span className="ml-1 text-xs font-normal text-gray-500 dark:text-gray-400">(% kapitału)</span>
                     </label>
                     <input
                       id="bond-penalty"
@@ -802,30 +802,30 @@ export function InputPanel({
                       onChange={(e) => {
                         onBondSettingsChange({ ...bondSettings, penalty: parseFloat(e.target.value) || 0 });
                       }}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Zapadalność
                     </label>
-                    <div className="px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div className="px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
                       {preset.maturityMonths} mies.
                     </div>
                   </div>
                 </div>
 
                 {/* Early exit warning */}
-                <div className={`text-xs rounded-lg p-2.5 ${earlyExit ? (preset.earlyRedemptionAllowed ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700') : 'bg-green-50 text-green-700'}`}>
+                <div className={`text-xs rounded-lg p-2.5 ${earlyExit ? (preset.earlyRedemptionAllowed ? 'bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400' : 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400') : 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400'}`}>
                   {earlyExit
                     ? preset.earlyRedemptionAllowed
                       ? `Horyzont (${horizonMonths} mies.) < zapadalność ${preset.name} (${preset.maturityMonths} mies.) — kara za wcześniejszy wykup: ${preset.earlyRedemptionPenalty}% kapitału.`
                       : `${preset.name} nie pozwala na wcześniejszy wykup. Wyniki obliczone dla pełnego okresu zapadalności (${preset.maturityMonths} mies.).`
                     : `Horyzont pokrywa okres zapadalności obligacji — brak kary za wykup.`}
                 </div>
-                <div className="text-[10px] text-gray-400 mt-1">
+                <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
                   Stawki z {BOND_PRESETS_LAST_UPDATED}.{' '}
-                  <a href={BOND_PRESETS_SOURCE_URL} target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-500">
+                  <a href={BOND_PRESETS_SOURCE_URL} target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-500 dark:hover:text-gray-400">
                     Aktualne stawki na obligacjeskarbowe.pl
                   </a>
                 </div>
@@ -837,9 +837,9 @@ export function InputPanel({
 
       {/* Horizon Slider */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700">
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Horyzont czasowy:{' '}
-          <span className="text-blue-600 font-semibold">
+          <span className="text-blue-600 dark:text-blue-400 font-semibold">
             {horizonMonths <= 11
               ? `${horizonMonths} ${horizonMonths === 1 ? 'miesiąc' : horizonMonths < 5 ? 'miesiące' : 'miesięcy'}`
               : horizonMonths % 12 === 0
@@ -886,7 +886,7 @@ export function InputPanel({
                 return (
                   <span
                     key={label}
-                    className="absolute text-xs text-gray-400"
+                    className="absolute text-xs text-gray-400 dark:text-gray-500"
                     style={{
                       left: `${pct}%`,
                       transform: isFirst ? 'none' : isLast ? 'translateX(-100%)' : 'translateX(-50%)',
