@@ -12,6 +12,7 @@ import { useAssetData } from './hooks/useAssetData';
 import { useFxData } from './hooks/useFxData';
 import { useInflationData } from './hooks/useInflationData';
 import { useHistoricalVolatility } from './hooks/useHistoricalVolatility';
+import { useKantorRates } from './hooks/useKantorRates';
 import {
   calcAllScenarios,
   calcTimeline,
@@ -69,6 +70,7 @@ function App() {
     proxyFxData?.historicalRates ?? fxData?.historicalRates ?? null,
     horizonMonths,
   );
+  const kantorRates = useKantorRates();
 
   const fetchData = useCallback(async (tickerArg: string) => {
     const data = await fetchAsset(tickerArg);
@@ -234,6 +236,7 @@ function App() {
               inflationData={inflationData}
               inflationLoading={inflationLoading}
               nbpRefRate={nbpRefRate}
+              kantorRates={kantorRates}
               collapsed
               onToggleCollapse={() => setInputCollapsed(false)}
               onTickerChange={setTicker}
@@ -292,6 +295,7 @@ function App() {
                 inflationData={inflationData}
                 inflationLoading={inflationLoading}
                 nbpRefRate={nbpRefRate}
+                kantorRates={kantorRates}
                 onToggleCollapse={results ? () => setInputCollapsed(true) : undefined}
                 onTickerChange={setTicker}
                 onSharesChange={setShares}
