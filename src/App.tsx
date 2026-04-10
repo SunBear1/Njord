@@ -13,6 +13,7 @@ import { useFxData } from './hooks/useFxData';
 import { useInflationData } from './hooks/useInflationData';
 import { useHistoricalVolatility } from './hooks/useHistoricalVolatility';
 import { useKantorRates } from './hooks/useKantorRates';
+import { KantorSidebar } from './components/KantorSidebar';
 import {
   calcAllScenarios,
   calcTimeline,
@@ -73,6 +74,10 @@ function App() {
   const kantorRates = useKantorRates();
 
   const fetchData = useCallback(async (tickerArg: string) => {
+    // Reset scenarios so HMM suggestions auto-apply for the new ticker
+    setUserScenarios(null);
+    setScenarioEditKey((k) => k + 1);
+
     const data = await fetchAsset(tickerArg);
     if (data?.asset.currentPrice) {
       setCurrentPriceUSD(data.asset.currentPrice);
@@ -115,21 +120,19 @@ function App() {
   useEffect(() => {
     if (proxyFxData?.currentRate && !fxAutoFilled.current) {
       fxAutoFilled.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from async data source
       setCurrentFxRate(proxyFxData.currentRate);
     }
   }, [proxyFxData]);
 
-  // Auto-apply HMM suggestions once on first arrival — remount ScenarioEditor via key.
-  // The ref guard ensures this runs exactly once; eslint-disable is intentional here.
-  const suggestedAppliedRef = useRef(false);
+  // Auto-apply HMM suggestions when they arrive and user hasn't manually edited.
+  // Clears when fetchData sets userScenarios to null for a new ticker.
   useEffect(() => {
-    if (suggestedScenarios && !suggestedAppliedRef.current) {
-      suggestedAppliedRef.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (suggestedScenarios && userScenarios === null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- remount ScenarioEditor for new suggestions
       setScenarioEditKey((k) => k + 1);
     }
-  }, [suggestedScenarios]);
+  }, [suggestedScenarios, userScenarios]);
 
   // Defer horizonMonths for expensive calculations so slider stays smooth
   const deferredHorizon = useDeferredValue(horizonMonths);
@@ -208,7 +211,15 @@ function App() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-4 space-y-4">
+      <div className="flex justify-center">
+        {/* Kantor rates sticky sidebar — xl+ only */}
+        <aside className="hidden xl:block shrink-0 pt-6 pl-4">
+          <div className="sticky top-4">
+            <KantorSidebar rates={kantorRates} />
+          </div>
+        </aside>
+
+      <main className="flex-1 min-w-0 max-w-7xl mx-auto px-4 py-4 space-y-4">
         {inputCollapsed ? (
           /* ── Collapsed layout: summary bar → ScenarioEditor (full-width) → Results ── */
           <>
@@ -236,7 +247,6 @@ function App() {
               inflationData={inflationData}
               inflationLoading={inflationLoading}
               nbpRefRate={nbpRefRate}
-              kantorRates={kantorRates}
               collapsed
               onToggleCollapse={() => setInputCollapsed(false)}
               onTickerChange={setTicker}
@@ -295,7 +305,6 @@ function App() {
                 inflationData={inflationData}
                 inflationLoading={inflationLoading}
                 nbpRefRate={nbpRefRate}
-                kantorRates={kantorRates}
                 onToggleCollapse={results ? () => setInputCollapsed(true) : undefined}
                 onTickerChange={setTicker}
                 onSharesChange={setShares}
@@ -375,6 +384,7 @@ function App() {
         <MethodologyPanel />
         <HowItWorks />
       </main>
+      </div>
 
       <footer className="mt-10 py-5 text-center text-xs" style={FOOTER_STYLE}>
         Njord — wyłącznie do celów edukacyjnych. Nie stanowi doradztwa inwestycyjnego.

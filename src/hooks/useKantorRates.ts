@@ -5,6 +5,7 @@ export interface KantorRates {
   nbp: { buy: number; sell: number; mid: number; date: string } | null;
   isLoading: boolean;
   error: string | null;
+  lastUpdated: Date | null;
 }
 
 const ALIOR_URL = 'https://klient.internetowykantor.pl/api/public/marketBrief/USD_PLN';
@@ -50,6 +51,7 @@ export function useKantorRates(): KantorRates {
   const [nbp, setNbp] = useState<KantorRates['nbp']>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,6 +66,8 @@ export function useKantorRates(): KantorRates {
         setNbp(n.status === 'fulfilled' ? n.value : null);
         if (a.status === 'rejected' && n.status === 'rejected') {
           setError('Nie udało się pobrać kursów walut.');
+        } else {
+          setLastUpdated(new Date());
         }
       } catch {
         if (!cancelled) setError('Błąd połączenia.');
@@ -77,5 +81,5 @@ export function useKantorRates(): KantorRates {
     return () => { cancelled = true; clearInterval(interval); };
   }, []);
 
-  return { alior, nbp, isLoading, error };
+  return { alior, nbp, isLoading, error, lastUpdated };
 }

@@ -3,11 +3,9 @@ import { Loader2, AlertCircle, CheckCircle2, RefreshCw, Calculator, ExternalLink
 import type { AssetData } from '../types/asset';
 import type { FxData } from '../providers/nbpProvider';
 import type { InflationData } from '../hooks/useInflationData';
-import type { KantorRates } from '../hooks/useKantorRates';
 import type { BenchmarkType, BondPreset, BondRateType } from '../types/scenario';
 import { BOND_PRESETS, BOND_PRESETS_LAST_UPDATED, BOND_PRESETS_SOURCE_URL } from '../data/bondPresets';
 import { fmtUSD, fmtNum } from '../utils/formatting';
-import { FxComparisonCard } from './FxComparisonCard';
 import { Tooltip } from './Tooltip';
 
 interface InputPanelProps {
@@ -35,7 +33,6 @@ interface InputPanelProps {
   inflationData: InflationData | null;
   inflationLoading: boolean;
   nbpRefRate: number;
-  kantorRates: KantorRates;
   /** Collapsed summary mode */
   collapsed?: boolean;
   onToggleCollapse?: () => void;
@@ -78,7 +75,6 @@ export function InputPanel({
   inflationData,
   inflationLoading,
   nbpRefRate,
-  kantorRates,
   collapsed,
   onToggleCollapse,
   onTickerChange,
@@ -415,9 +411,6 @@ export function InputPanel({
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
-
-      {/* Kantor rates comparison */}
-      <FxComparisonCard rates={kantorRates} />
 
       {/* Benchmark selector */}
       <div className="space-y-3">
