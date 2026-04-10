@@ -33,8 +33,34 @@ const HORIZON_PRESETS = [
 
 const fmtTooltipUSD = (value: ValueType | undefined) => fmtUSD(Number(value ?? 0));
 
+const MONTH_NAMES = ['Sty', 'Lut', 'Mar', 'Kwi', 'Maj', 'Cze', 'Lip', 'Sie', 'Wrz', 'Paź', 'Lis', 'Gru'] as const;
+
+/** Approximate trading days from today to end of a given month/year (~21 per month). */
+function tradingDaysUntil(year: number, month: number): number {
+  const now = new Date();
+  const target = new Date(year, month, 0); // last day of month
+  const diffMs = target.getTime() - now.getTime();
+  const calendarDays = Math.max(1, Math.ceil(diffMs / 86_400_000));
+  return Math.round(calendarDays * (252 / 365));
+}
+
+/** Generate the next 12 months as selectable options. */
+function getMonthOptions(): { label: string; year: number; month: number }[] {
+  const now = new Date();
+  const options: { label: string; year: number; month: number }[] = [];
+  for (let i = 1; i <= 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const m = d.getMonth();     // 0-based
+    const y = d.getFullYear();
+    options.push({ label: `${MONTH_NAMES[m]} ${y}`, year: y, month: m + 1 });
+  }
+  return options;
+}
+
 export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonChange, currentFxRate }: SellAnalysisPanelProps) {
   const [showTable, setShowTable] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const monthOptions = useMemo(() => getMonthOptions(), []);
 
   // Prepare touch probability curve data
   const touchCurveData = useMemo(() => {
@@ -58,9 +84,9 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
             {HORIZON_PRESETS.map((p) => (
               <button
                 key={p.days}
-                onClick={() => onHorizonChange(p.days)}
+                onClick={() => { onHorizonChange(p.days); setSelectedMonth(null); }}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                  horizonDays === p.days
+                  horizonDays === p.days && !selectedMonth
                     ? 'bg-white text-blue-700 shadow-sm border border-gray-200'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
@@ -69,6 +95,38 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Month picker */}
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-gray-500 font-medium shrink-0">Termin:</span>
+          <div className="flex flex-wrap gap-1">
+            {monthOptions.map((mo) => {
+              const key = `${mo.year}-${mo.month}`;
+              const isActive = selectedMonth === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => {
+                    setSelectedMonth(key);
+                    onHorizonChange(tradingDaysUntil(mo.year, mo.month));
+                  }}
+                  className={`px-2 py-1 text-[11px] font-medium rounded transition-colors ${
+                    isActive
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-50 text-gray-600 hover:bg-gray-200 border border-gray-200'
+                  }`}
+                >
+                  {mo.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Active horizon info */}
+        <div className="mt-2 text-[11px] text-gray-400">
+          Horyzont: ~{horizonDays} sesji ({(horizonDays / 21).toFixed(1)} mies.)
         </div>
 
         {isLoading && (
