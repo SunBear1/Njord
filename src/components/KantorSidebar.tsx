@@ -94,6 +94,25 @@ export function KantorSidebar({ rates }: KantorSidebarProps) {
       <p className="text-[9px] text-gray-300 leading-tight">
         Kupno = ile PLN za 1 USD (sprzedajesz USD). Sprzedaż = ile PLN za 1 USD (kupujesz USD).
       </p>
+
+      {/* Role explanation — which rate is used where */}
+      {(alior || nbp) && !isLoading && (
+        <div className="bg-blue-50/60 border border-blue-100 rounded-md px-2.5 py-2 space-y-1">
+          <div className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider">Jak liczymy?</div>
+          {alior && (
+            <div className="flex items-start gap-1.5 text-[10px] text-gray-600">
+              <span className="text-green-600 mt-0.5">●</span>
+              <span><strong className="text-gray-700">Kantor</strong> → wycena portfela w PLN</span>
+            </div>
+          )}
+          {nbp && (
+            <div className="flex items-start gap-1.5 text-[10px] text-gray-600">
+              <span className="text-blue-500 mt-0.5">●</span>
+              <span><strong className="text-gray-700">NBP</strong> → podstawa podatku Belki</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
