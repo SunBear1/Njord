@@ -328,8 +328,7 @@ export function ScenarioEditor({
                 <span>
                   Scenariusze generowane przez kalibrowane modele predykcyjne:<br /><br />
                   <strong>GBM</strong> — geometryczny ruch Browna z rozkładem Studenta; drift wyrównany do długoterminowej premii rynkowej<br />
-                  <strong>Bootstrap</strong> — losuje bloki historycznych zwrotów, zero założeń o rozkładzie<br />
-                  <strong>HMM</strong> — informacyjny wykrywacz reżimu rynkowego (bull/bear)<br /><br />
+                  <strong>Bootstrap</strong> — losuje bloki historycznych zwrotów, zero założeń o rozkładzie<br /><br />
                   {'\u2605'} = rekomendowany model dla danego horyzontu
                 </span>
               }
@@ -388,7 +387,21 @@ export function ScenarioEditor({
           {/* FX row */}
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-start">
             <div className="flex flex-col gap-1 pt-0.5">
-              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">USD/PLN ({fxUnit})</span>
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                USD/PLN ({fxUnit})
+                {volatilityStats && Math.abs(volatilityStats.correlation) > 0.05 && (
+                  <Tooltip
+                    width="w-64"
+                    content={
+                      volatilityStats.correlation < 0
+                        ? 'Ujemna korelacja akcje↔USD: w scenariuszu wzrostowym (bull) PLN się umacnia (niższy kurs USD), w spadkowym (bear) USD rośnie jako „safe haven". To typowy wzorzec risk-on/risk-off.'
+                        : 'Dodatnia korelacja akcje↔USD: wzrosty akcji idą w parze ze wzrostem dolara, spadki — ze spadkiem. Ryzyko walutowe wzmacnia ruchy portfela.'
+                    }
+                  >
+                    <HelpCircle size={10} className="text-gray-400 dark:text-gray-500 cursor-help" aria-hidden="true" />
+                  </Tooltip>
+                )}
+              </span>
               <ModeToggle mode={fxMode} onToggle={toggleFxMode} labelA="%" labelB="PLN" disabled={currentFxRate <= 0} />
             </div>
             {SCENARIO_CONFIG.map(({ key, inputBorder }) => {
