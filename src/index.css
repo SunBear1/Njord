@@ -29,16 +29,9 @@
   --color-accent-success: #16a34a;  /* green-600 */
   --color-accent-error: #dc2626;    /* red-600 */
 
-  /* Badge background tokens */
-  --color-badge-info: #dbeafe;      /* blue-100 */
-  --color-badge-warning: #fed7aa;   /* orange-100 */
-  --color-badge-success: #dcfce7;   /* green-100 */
-  --color-badge-error: #fee2e2;     /* red-100 */
-
   /* Input state tokens */
   --color-input-border: #d1d5db;        /* gray-300 */
   --color-input-border-focus: #3b82f6;  /* blue-500 */
-  --color-input-border-error: #fcd34d;  /* amber-300 */
 }
 
 /*

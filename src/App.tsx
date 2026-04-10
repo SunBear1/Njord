@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo, useDeferredValue } from 'react';
 import { HowItWorks } from './components/HowItWorks';
 import { InputPanel } from './components/InputPanel';
 import { ScenarioEditor } from './components/ScenarioEditor';
@@ -7,6 +7,7 @@ import { ComparisonChart } from './components/ComparisonChart';
 import { TimelineChart } from './components/TimelineChart';
 import { BreakevenChart } from './components/BreakevenChart';
 import { MethodologyPanel } from './components/MethodologyPanel';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { useAssetData } from './hooks/useAssetData';
 import { useFxData } from './hooks/useFxData';
 import { useInflationData } from './hooks/useInflationData';
@@ -128,17 +129,20 @@ function App() {
     }
   }, [suggestedScenarios]);
 
+  // Defer horizonMonths for expensive calculations so slider stays smooth
+  const deferredHorizon = useDeferredValue(horizonMonths);
+
   // Blended inflation rate: mean-reversion from current rate toward NBP target (2.5%)
   const effectiveInflation = useMemo(
-    () => inflationRate > 0 ? blendedInflationRate(inflationRate, horizonMonths) : 0,
-    [inflationRate, horizonMonths],
+    () => inflationRate > 0 ? blendedInflationRate(inflationRate, deferredHorizon) : 0,
+    [inflationRate, deferredHorizon],
   );
 
   // Blended savings rate: mean-reversion toward long-run equilibrium (~3.0%)
   // Savings account rates track the NBP reference rate, which cycles over time.
   const effectiveSavingsRate = useMemo(
-    () => wibor3m > 0 ? blendedSavingsRate(wibor3m, horizonMonths) : 0,
-    [wibor3m, horizonMonths],
+    () => wibor3m > 0 ? blendedSavingsRate(wibor3m, deferredHorizon) : 0,
+    [wibor3m, deferredHorizon],
   );
 
   // Compute effective bond rate based on type + external data.
@@ -155,7 +159,7 @@ function App() {
     currentPriceUSD,
     currentFxRate,
     wibor3mPercent: benchmarkType === 'savings' ? effectiveSavingsRate : wibor3m,
-    horizonMonths,
+    horizonMonths: deferredHorizon,
     benchmarkType,
     bondFirstYearRate,
     bondEffectiveRate: computedEffectiveRate,
@@ -163,7 +167,7 @@ function App() {
     bondCouponFrequency,
     bondReinvestmentRate: effectiveSavingsRate,
     inflationRate: effectiveInflation,
-  }), [shares, currentPriceUSD, currentFxRate, wibor3m, horizonMonths, benchmarkType, bondFirstYearRate, computedEffectiveRate, bondPenalty, bondCouponFrequency, effectiveInflation, effectiveSavingsRate]);
+  }), [shares, currentPriceUSD, currentFxRate, wibor3m, deferredHorizon, benchmarkType, bondFirstYearRate, computedEffectiveRate, bondPenalty, bondCouponFrequency, effectiveInflation, effectiveSavingsRate]);
 
   const benchmarkReady = benchmarkType === 'savings' ? wibor3m > 0 : bondFirstYearRate > 0;
   const canCalc = shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && horizonMonths > 0 && benchmarkReady;
@@ -328,30 +332,38 @@ function App() {
 
         {results && (
           <>
-            <VerdictBanner
-              results={results}
-              inflationRate={effectiveInflation}
-              currentInflationRate={inflationRate}
-              inflationSource={inflationData?.source}
-              cpiPeriod={inflationData?.period}
-              inflationStale={inflationData?.isStale}
-              horizonMonths={horizonMonths}
-            />
-            <ComparisonChart results={results} />
-            {timeline && (
-              <TimelineChart
-                data={timeline}
-                currentValuePLN={results[0]?.currentValuePLN ?? 0}
-                benchmarkLabel={results[0]?.benchmarkLabel ?? 'Konto'}
+            <ErrorBoundary>
+              <VerdictBanner
+                results={results}
                 inflationRate={effectiveInflation}
+                currentInflationRate={inflationRate}
+                inflationSource={inflationData?.source}
+                cpiPeriod={inflationData?.period}
+                inflationStale={inflationData?.isStale}
+                horizonMonths={horizonMonths}
               />
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <ComparisonChart results={results} />
+            </ErrorBoundary>
+            {timeline && (
+              <ErrorBoundary>
+                <TimelineChart
+                  data={timeline}
+                  currentValuePLN={results[0]?.currentValuePLN ?? 0}
+                  benchmarkLabel={results[0]?.benchmarkLabel ?? 'Konto'}
+                  inflationRate={effectiveInflation}
+                />
+              </ErrorBoundary>
             )}
             {heatmap && (
-              <BreakevenChart
-                cells={heatmap}
-                benchmarkEndValuePLN={results[0]?.benchmarkEndValuePLN ?? 0}
-                benchmarkLabel={results[0]?.benchmarkLabel ?? 'Konto'}
-              />
+              <ErrorBoundary>
+                <BreakevenChart
+                  cells={heatmap}
+                  benchmarkEndValuePLN={results[0]?.benchmarkEndValuePLN ?? 0}
+                  benchmarkLabel={results[0]?.benchmarkLabel ?? 'Konto'}
+                />
+              </ErrorBoundary>
             )}
           </>
         )}

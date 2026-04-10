@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Wand2, Info, ChevronDown, ChevronUp, Star, Loader2, HelpCircle } from 'lucide-react';
+import { Wand2, Info, Star, Loader2, HelpCircle } from 'lucide-react';
 import type { Scenarios, ScenarioKey } from '../types/scenario';
 import type { VolatilityStats } from '../hooks/useHistoricalVolatility';
 import { Tooltip } from './Tooltip';
@@ -85,7 +85,6 @@ export function ScenarioEditor({
   const [stockMode, setStockMode] = useState<InputMode>('pct');
   const [fxMode, setFxMode] = useState<InputMode>('pct');
   const [localValues, setLocalValues] = useState(() => initValues(scenarios));
-  const [statsOpen, setStatsOpen] = useState(true);
   const [activeModelId, setActiveModelId] = useState<string | null>(null);
 
   // Sync localValues when scenarios change externally (model switch, apply suggested)
@@ -209,7 +208,7 @@ export function ScenarioEditor({
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
             <span className="text-xs font-medium text-gray-600">Akcje ({stockUnit})</span>
             {SCENARIO_CONFIG.map(({ key, inputBorder }) => (
-              <input key={key} type="number" step={stockMode === 'pct' ? 0.1 : 0.01} min={stockMode === 'fixed' ? 0 : undefined} value={localValues[key].stock}
+              <input key={key} type="text" inputMode="decimal" value={localValues[key].stock}
                 onChange={(e) => handleStockChange(key, e.target.value)} onFocus={(e) => e.target.select()}
                 className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white`} />
             ))}
@@ -217,7 +216,7 @@ export function ScenarioEditor({
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
             <span className="text-xs font-medium text-gray-600">USD/PLN ({fxUnit})</span>
             {SCENARIO_CONFIG.map(({ key, inputBorder }) => (
-              <input key={key} type="number" step={fxMode === 'pct' ? 0.1 : 0.0001} min={fxMode === 'fixed' ? 0 : undefined} value={localValues[key].fx}
+              <input key={key} type="text" inputMode="decimal" value={localValues[key].fx}
                 onChange={(e) => handleFxChange(key, e.target.value)} onFocus={(e) => e.target.select()}
                 className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white`} />
             ))}
@@ -237,8 +236,8 @@ export function ScenarioEditor({
           <h2 className="text-lg font-semibold text-gray-800">Scenariusze</h2>
           <Tooltip content={
             <span>
-              <strong>%</strong> — zmiana względem wartości dziś<br/>
-              <strong>USD / PLN</strong> — wartość docelowa bezwzględna
+              <strong>%</strong> — zmiana procentowa względem obecnej ceny<br/>
+              <strong>USD / PLN</strong> — docelowa cena lub kurs
             </span>
           }>
             <HelpCircle size={14} className="text-gray-300 cursor-help hover:text-gray-500 transition-colors" />
@@ -289,7 +288,7 @@ export function ScenarioEditor({
                       {coverage && (
                         <>
                           <br />
-                          <span className="text-gray-300">Coverage: {coverage} — jak dobrze model przewiduje dane historyczne (cel: 90%).</span>
+                          <span className="text-gray-300">Trafność: {coverage} — jak dobrze model przewiduje dane historyczne (cel: 90%).</span>
                         </>
                       )}
                       {isRecommended && (
@@ -364,9 +363,8 @@ export function ScenarioEditor({
               return (
                 <div key={key} className="flex flex-col items-center gap-0.5">
                   <input
-                    type="number"
-                    step={stockMode === 'pct' ? 0.1 : 0.01}
-                    min={stockMode === 'fixed' ? 0 : undefined}
+                    type="text"
+                    inputMode="decimal"
                     value={localValues[key].stock}
                     onChange={(e) => handleStockChange(key, e.target.value)}
                     onFocus={(e) => e.target.select()}
@@ -396,9 +394,8 @@ export function ScenarioEditor({
               return (
                 <div key={key} className="flex flex-col items-center gap-0.5">
                   <input
-                    type="number"
-                    step={fxMode === 'pct' ? 0.1 : 0.0001}
-                    min={fxMode === 'fixed' ? 0 : undefined}
+                    type="text"
+                    inputMode="decimal"
                     value={localValues[key].fx}
                     onChange={(e) => handleFxChange(key, e.target.value)}
                     onFocus={(e) => e.target.select()}
@@ -419,25 +416,23 @@ export function ScenarioEditor({
         </div>
       )}
 
-      {/* Analysis — expanded by default, fills remaining space */}
+      {/* Analysis — always visible */}
       {volatilityStats && (
         <div className="flex-1 min-h-0 flex flex-col border border-indigo-100 rounded-lg overflow-hidden mt-2">
-          <button
-            onClick={() => setStatsOpen(o => !o)}
-            className="w-full flex items-center justify-between px-3 py-1.5 bg-indigo-50/60 text-xs text-indigo-800 hover:bg-indigo-100 transition-colors shrink-0"
-          >
+          <div className="w-full flex items-center px-3 py-1.5 bg-indigo-50/60 text-xs text-indigo-800 shrink-0">
             <span className="flex items-center gap-2 flex-wrap">
               <Info size={11} className="text-indigo-400 shrink-0" />
               <span className="font-medium">Analiza historyczna</span>
               {volatilityStats.regime && (
-                <span className={`rounded px-1.5 py-0.5 border text-[11px] font-semibold ${
-                  volatilityStats.regime.currentRegimeLabel === 'bull'
-                    ? 'bg-green-50 text-green-700 border-green-200'
-                    : 'bg-red-50 text-red-700 border-red-200'
-                }`}>
-                  {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Wzrost' : 'Spadek'}
-                  {' '}({Math.round(volatilityStats.regime.posteriorProbability * 100)}%)
-                </span>
+                <Tooltip content={`Prawdopodobieństwo: ${Math.round(volatilityStats.regime.posteriorProbability * 100)}%`}>
+                  <span className={`rounded px-1.5 py-0.5 border text-[11px] font-semibold cursor-help ${
+                    volatilityStats.regime.currentRegimeLabel === 'bull'
+                      ? 'bg-green-50 text-green-700 border-green-200'
+                      : 'bg-red-50 text-red-700 border-red-200'
+                  }`}>
+                    {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Faza wzrostowa' : 'Faza spadkowa'}
+                  </span>
+                </Tooltip>
               )}
               <span className="text-indigo-500">
                 {'\u03c3'} {volatilityStats.stockSigmaAnnual.toFixed(0)}%/r
@@ -446,16 +441,14 @@ export function ScenarioEditor({
                 {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(0)}%/r
               </span>
             </span>
-            {statsOpen ? <ChevronUp size={12} className="text-indigo-400 shrink-0" /> : <ChevronDown size={12} className="text-indigo-400 shrink-0" />}
-          </button>
+          </div>
 
-          {statsOpen && (
-            <div className="flex-1 overflow-y-auto px-3 py-3 bg-white border-t border-indigo-100 space-y-3">
+          <div className="flex-1 overflow-y-auto px-3 py-3 bg-white border-t border-indigo-100 space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-gray-50 rounded-lg p-3 space-y-1">
                   <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Zmienność akcji</div>
                   <div className="text-2xl font-bold text-gray-900 leading-none">{volatilityStats.stockSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400 ml-0.5">/rok</span></div>
-                  <div className="text-xs text-gray-500 leading-snug">Im wyższa, tym szerszy przedział Bear–Bull.</div>
+                  <div className="text-xs text-gray-500 leading-snug">Im wyższa, tym większy rozrzut scenariuszy.</div>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3 space-y-1">
                   <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Zmienność USD/PLN</div>
@@ -476,7 +469,7 @@ export function ScenarioEditor({
                   </div>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3 space-y-1">
-                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Hist. trend</div>
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Trend historyczny</div>
                   <div className={`text-2xl font-bold leading-none ${volatilityStats.stockMeanAnnual >= 0 ? 'text-green-700' : 'text-red-600'}`}>
                     {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400 ml-0.5">/rok</span>
                   </div>
@@ -502,12 +495,7 @@ export function ScenarioEditor({
                 </div>
               )}
 
-              <div className="border-t pt-2 text-xs text-gray-400 leading-relaxed">
-                Bear/Bull = 5./95. percentyl z symulacji Monte Carlo.
-                Base = aktualna cena bez zmian.
-              </div>
             </div>
-          )}
         </div>
       )}
     </div>

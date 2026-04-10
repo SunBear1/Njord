@@ -4,19 +4,9 @@ import type { AssetData } from '../types/asset';
 import type { FxData } from '../providers/nbpProvider';
 import type { InflationData } from '../hooks/useInflationData';
 import type { BenchmarkType, BondPreset, BondRateType } from '../types/scenario';
+import { BOND_PRESETS, BOND_PRESETS_LAST_UPDATED, BOND_PRESETS_SOURCE_URL } from '../data/bondPresets';
 import { fmtUSD, fmtNum } from '../utils/formatting';
 import { Tooltip } from './Tooltip';
-
-const BOND_PRESETS: BondPreset[] = [
-  { id: 'OTS', name: 'OTS (3-mies.)',     maturityMonths: 3,   rateType: 'fixed',     firstYearRate: 2.00, margin: 0,    earlyRedemptionPenalty: 0,    couponFrequency: 0,  description: 'Stałoprocentowe, 3 miesiące' },
-  { id: 'ROR', name: 'ROR (roczne)',       maturityMonths: 12,  rateType: 'reference', firstYearRate: 4.00, margin: 0,    earlyRedemptionPenalty: 0.50, couponFrequency: 12, description: 'Zmiennoprocentowe, stopa ref. NBP' },
-  { id: 'DOR', name: 'DOR (2-letnie)',     maturityMonths: 24,  rateType: 'reference', firstYearRate: 4.15, margin: 0.15, earlyRedemptionPenalty: 0.70, couponFrequency: 12, description: 'Zmiennoprocentowe, stopa ref. NBP + 0,15%' },
-  { id: 'TOS', name: 'TOS (3-letnie)',     maturityMonths: 36,  rateType: 'fixed',     firstYearRate: 4.40, margin: 0,    earlyRedemptionPenalty: 0.70, couponFrequency: 0,  description: 'Stałoprocentowe, 3 lata' },
-  { id: 'COI', name: 'COI (4-letnie)',     maturityMonths: 48,  rateType: 'inflation', firstYearRate: 4.75, margin: 1.50, earlyRedemptionPenalty: 0.70, couponFrequency: 1,  description: 'Inflacja + 1,50% marży' },
-  { id: 'EDO', name: 'EDO (10-letnie)',    maturityMonths: 120, rateType: 'inflation', firstYearRate: 5.35, margin: 2.00, earlyRedemptionPenalty: 2.00, couponFrequency: 0,  description: 'Inflacja + 2,00% marży' },
-  { id: 'ROS', name: 'ROS (6-letnie)',     maturityMonths: 72,  rateType: 'inflation', firstYearRate: 5.00, margin: 2.00, earlyRedemptionPenalty: 2.00, couponFrequency: 0,  description: 'Rodzinne, inflacja + 2,00%', isFamily: true },
-  { id: 'ROD', name: 'ROD (12-letnie)',    maturityMonths: 144, rateType: 'inflation', firstYearRate: 5.60, margin: 2.50, earlyRedemptionPenalty: 2.00, couponFrequency: 0,  description: 'Rodzinne, inflacja + 2,50%', isFamily: true },
-];
 
 interface InputPanelProps {
   onFetchAsset: (ticker: string) => void;
@@ -117,17 +107,17 @@ export function InputPanel({
     onBondMarginChange(preset.margin);
     onBondCouponFrequencyChange(preset.couponFrequency);
     const earlyExit = horizonMonths < preset.maturityMonths;
-    const penalty = earlyExit ? preset.earlyRedemptionPenalty : 0;
+    const penalty = earlyExit && preset.earlyRedemptionAllowed ? preset.earlyRedemptionPenalty : 0;
     onBondPenaltyChange(penalty);
   };
 
-  // Re-evaluate penalty whenever horizon changes (Bug B fix)
+  // Re-evaluate penalty whenever horizon changes
   useEffect(() => {
     if (benchmarkType !== 'bonds') return;
     const preset = BOND_PRESETS.find((b) => b.id === selectedBondId);
     if (!preset) return;
     const earlyExit = horizonMonths < preset.maturityMonths;
-    const penalty = earlyExit ? preset.earlyRedemptionPenalty : 0;
+    const penalty = earlyExit && preset.earlyRedemptionAllowed ? preset.earlyRedemptionPenalty : 0;
     onBondPenaltyChange(penalty);
   }, [horizonMonths, selectedBondId, benchmarkType]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -659,10 +649,18 @@ export function InputPanel({
                 </div>
 
                 {/* Early exit warning */}
-                <div className={`text-xs rounded-lg p-2.5 ${earlyExit ? 'bg-amber-50 text-amber-700' : 'bg-green-50 text-green-700'}`}>
+                <div className={`text-xs rounded-lg p-2.5 ${earlyExit ? (preset.earlyRedemptionAllowed ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700') : 'bg-green-50 text-green-700'}`}>
                   {earlyExit
-                    ? `Horyzont (${horizonMonths} mies.) < zapadalność ${preset.name} (${preset.maturityMonths} mies.) — kara za wcześniejszy wykup: ${preset.earlyRedemptionPenalty}% kapitału.`
+                    ? preset.earlyRedemptionAllowed
+                      ? `Horyzont (${horizonMonths} mies.) < zapadalność ${preset.name} (${preset.maturityMonths} mies.) — kara za wcześniejszy wykup: ${preset.earlyRedemptionPenalty}% kapitału.`
+                      : `${preset.name} nie pozwala na wcześniejszy wykup. Wyniki obliczone dla pełnego okresu zapadalności (${preset.maturityMonths} mies.).`
                     : `Horyzont pokrywa okres zapadalności obligacji — brak kary za wykup.`}
+                </div>
+                <div className="text-[10px] text-gray-400 mt-1">
+                  Stawki z {BOND_PRESETS_LAST_UPDATED}.{' '}
+                  <a href={BOND_PRESETS_SOURCE_URL} target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-500">
+                    Aktualne stawki na obligacjeskarbowe.pl
+                  </a>
                 </div>
               </div>
             );

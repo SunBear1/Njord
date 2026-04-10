@@ -18,7 +18,8 @@ export interface BondPreset {
   rateType: BondRateType;
   firstYearRate: number;          // % for first year/period (promotional)
   margin: number;                 // added to base rate (NBP ref or inflation) for years 2+
-  earlyRedemptionPenalty: number; // in % of principal
+  earlyRedemptionPenalty: number; // in % of principal (PLN per 100 PLN unit)
+  earlyRedemptionAllowed: boolean; // false for OTS (too short) and TOS (locked)
   couponFrequency: number;        // coupon payments/year: 0=capitalized at maturity, 1=annual, 12=monthly
   description: string;
   isFamily?: boolean;             // 800+ beneficiaries only

@@ -21,11 +21,11 @@ export interface CalcInputs {
   inflationRate: number; // annual CPI % (e.g. 3.6 for 3.6%)
 }
 
-export function calcCurrentValuePLN(inputs: CalcInputs): number {
+function calcCurrentValuePLN(inputs: CalcInputs): number {
   return inputs.shares * inputs.currentPriceUSD * inputs.currentFxRate;
 }
 
-export function calcSavingsEndValue(inputs: CalcInputs): number {
+function calcSavingsEndValue(inputs: CalcInputs): number {
   const { wibor3mPercent, horizonMonths } = inputs;
   const currentValuePLN = calcCurrentValuePLN(inputs);
   const monthlyRate = wibor3mPercent / 100 / 12;
@@ -98,7 +98,7 @@ function bondCouponEndValue(
   return principal + totalReinvested;
 }
 
-export function calcBondEndValue(inputs: CalcInputs): number {
+function calcBondEndValue(inputs: CalcInputs): number {
   const { bondFirstYearRate, bondEffectiveRate, bondPenaltyPercent, bondCouponFrequency, bondReinvestmentRate, horizonMonths } = inputs;
   const currentValuePLN = calcCurrentValuePLN(inputs);
   const penalty = currentValuePLN * (bondPenaltyPercent / 100);
@@ -122,7 +122,7 @@ export function calcBondEndValue(inputs: CalcInputs): number {
   return effectiveGross;
 }
 
-export function calcBenchmarkEndValue(inputs: CalcInputs): number {
+function calcBenchmarkEndValue(inputs: CalcInputs): number {
   return inputs.benchmarkType === 'bonds'
     ? calcBondEndValue(inputs)
     : calcSavingsEndValue(inputs);
