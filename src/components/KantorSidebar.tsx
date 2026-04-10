@@ -6,7 +6,9 @@ interface KantorSidebarProps {
 }
 
 function spreadPct(buy: number, sell: number): string {
-  return ((sell - buy) / ((sell + buy) / 2) * 100).toFixed(2);
+  const avg = (sell + buy) / 2;
+  if (!avg || !isFinite(avg)) return '—';
+  return ((sell - buy) / avg * 100).toFixed(2);
 }
 
 function fmtTime(d: Date): string {

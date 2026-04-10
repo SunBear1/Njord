@@ -86,9 +86,10 @@ function analyzeOnePath(path: Float64Array): PathStats {
 }
 
 function percentiles(values: number[]): DistributionStats {
+  if (values.length === 0) return { p10: 0, p25: 0, p50: 0, p75: 0, p90: 0, mean: 0 };
   const sorted = values.slice().sort((a, b) => a - b);
   const n = sorted.length;
-  const p = (pct: number) => sorted[Math.floor(pct * n)] ?? sorted[n - 1];
+  const p = (pct: number) => sorted[Math.min(Math.floor(pct * n), n - 1)];
   const mean = sorted.reduce((s, v) => s + v, 0) / n;
   return { p10: p(0.10), p25: p(0.25), p50: p(0.50), p75: p(0.75), p90: p(0.90), mean };
 }
@@ -139,7 +140,7 @@ export function computeTouchProbabilities(
   return targets.map((target) => {
     let touches = 0;
     for (const path of paths) {
-      for (let i = 1; i < path.length; i++) {
+      for (let i = 0; i < path.length; i++) {
         if (path[i] >= target) {
           touches++;
           break;
@@ -168,6 +169,7 @@ export function computeExpectedSellPrices(
 }
 
 export function findOptimalTarget(targets: SellTarget[]): SellTarget {
+  if (targets.length === 0) return { target: 0, pTouch: 0, expectedValue: 0, riskOfForcedSale: 1 };
   let best = targets[0];
   for (const t of targets) {
     if (t.expectedValue > best.expectedValue) best = t;

@@ -36,6 +36,7 @@ const SCENARIO_STYLE = {
 
 export function VerdictBanner({ results, inflationRate, currentInflationRate, inflationSource, cpiPeriod, inflationStale, horizonMonths }: VerdictBannerProps) {
   const bmLabel = results[0]?.benchmarkLabel ?? 'Konto';
+  if (results.length === 0) return null;
   const hasInflation = inflationRate > 0;
   const horizonYears = horizonMonths / 12;
 

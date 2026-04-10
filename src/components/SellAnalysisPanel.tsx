@@ -31,8 +31,6 @@ const HORIZON_PRESETS = [
   { days: 252, label: '1 rok' },
 ] as const;
 
-const fmtTooltipUSD = (value: ValueType | undefined) => fmtUSD(Number(value ?? 0));
-
 const MONTH_NAMES = ['Sty', 'Lut', 'Mar', 'Kwi', 'Maj', 'Cze', 'Lip', 'Sie', 'Wrz', 'Paź', 'Lis', 'Gru'] as const;
 
 /** Approximate trading days from today to end of a given month/year (~21 per month). */
@@ -61,6 +59,27 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
   const [showTable, setShowTable] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const monthOptions = useMemo(() => getMonthOptions(), []);
+
+  // Transform fan chart data into stackable bands
+  const fanChartBands = useMemo(() => {
+    if (!analysis) return [];
+    return analysis.fanChart.map((pt) => ({
+      day: pt.day,
+      // Bottom band: p10 (base offset, invisible)
+      base: pt.p10,
+      // Band heights for stacking
+      band_p10_p25: pt.p25 - pt.p10,
+      band_p25_p50: pt.p50 - pt.p25,
+      band_p50_p75: pt.p75 - pt.p50,
+      band_p75_p90: pt.p90 - pt.p75,
+      // Keep absolute values for tooltip
+      p10: pt.p10,
+      p25: pt.p25,
+      p50: pt.p50,
+      p75: pt.p75,
+      p90: pt.p90,
+    }));
+  }, [analysis]);
 
   // Prepare touch probability curve data
   const touchCurveData = useMemo(() => {
@@ -209,7 +228,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
               Linia niebieska przerywana = optymalna cena sprzedaży.
             </p>
             <ResponsiveContainer width="100%" height={400}>
-              <AreaChart data={analysis.fanChart} margin={{ top: 10, right: 10, bottom: 24, left: 10 }}>
+              <AreaChart data={fanChartBands} margin={{ top: 10, right: 10, bottom: 24, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis
                   dataKey="day"
@@ -223,16 +242,34 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                   domain={['auto', 'auto']}
                 />
                 <Tooltip
-                  formatter={fmtTooltipUSD}
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null;
+                    const d = payload[0]?.payload as Record<string, number> | undefined;
+                    if (!d) return null;
+                    return (
+                      <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-2 text-xs">
+                        <div className="font-semibold mb-1">Dzień {label}</div>
+                        <div className="text-gray-600">p90: {fmtUSD(d.p90)}</div>
+                        <div className="text-gray-600">p75: {fmtUSD(d.p75)}</div>
+                        <div className="text-blue-600 font-medium">p50: {fmtUSD(d.p50)}</div>
+                        <div className="text-gray-600">p25: {fmtUSD(d.p25)}</div>
+                        <div className="text-gray-600">p10: {fmtUSD(d.p10)}</div>
+                      </div>
+                    );
+                  }}
                   labelFormatter={(v) => `Dzień ${v}`}
                 />
-                {/* p10–p90 band (lightest) */}
-                <Area type="monotone" dataKey="p90" stroke="none" fill="#dbeafe" fillOpacity={0.5} name="p90" />
-                <Area type="monotone" dataKey="p10" stroke="none" fill="#ffffff" fillOpacity={1} name="p10" />
-                {/* p25–p75 band (darker) */}
-                <Area type="monotone" dataKey="p75" stroke="none" fill="#93c5fd" fillOpacity={0.5} name="p75" />
-                <Area type="monotone" dataKey="p25" stroke="none" fill="#ffffff" fillOpacity={1} name="p25" />
-                {/* Median line */}
+                {/* Invisible base layer to offset stacking to p10 level */}
+                <Area type="monotone" dataKey="base" stackId="fan" stroke="none" fill="transparent" name="base" />
+                {/* p10–p25 band (lightest) */}
+                <Area type="monotone" dataKey="band_p10_p25" stackId="fan" stroke="none" fill="#dbeafe" fillOpacity={0.6} name="band_p10_p25" />
+                {/* p25–p50 band */}
+                <Area type="monotone" dataKey="band_p25_p50" stackId="fan" stroke="none" fill="#93c5fd" fillOpacity={0.6} name="band_p25_p50" />
+                {/* p50–p75 band */}
+                <Area type="monotone" dataKey="band_p50_p75" stackId="fan" stroke="none" fill="#93c5fd" fillOpacity={0.6} name="band_p50_p75" />
+                {/* p75–p90 band (lightest) */}
+                <Area type="monotone" dataKey="band_p75_p90" stackId="fan" stroke="none" fill="#dbeafe" fillOpacity={0.6} name="band_p75_p90" />
+                {/* Median line (non-stacked overlay) */}
                 <Area type="monotone" dataKey="p50" stroke="#2563eb" strokeWidth={2} fill="none" name="Mediana" />
                 {/* Reference lines */}
                 <ReferenceLine y={analysis.currentPrice} stroke="#6b7280" strokeDasharray="4 4" label={{ value: `Dziś: ${fmtUSD(analysis.currentPrice)}`, position: 'right', fontSize: 10, fill: '#6b7280' }} />

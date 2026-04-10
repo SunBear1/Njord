@@ -1,8 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import type { HistoricalPrice } from '../types/asset';
 import type { SellAnalysisResult } from '../types/sellAnalysis';
 import { fitGaussianHmm, detectCurrentRegime } from '../utils/hmm';
 import { runSellAnalysis } from '../utils/sellAnalysis';
+
+const DEBOUNCE_MS = 300;
 
 export interface UseSellAnalysisResult {
   analysis: SellAnalysisResult | null;
@@ -40,8 +42,14 @@ export function useSellAnalysis(
 
   const [analysis, setAnalysis] = useState<SellAnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const computeRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
+    // Clear any pending debounce/compute on input change
+    clearTimeout(debounceRef.current);
+    clearTimeout(computeRef.current);
+
     if (!prepared) {
       setAnalysis(null);
       setIsLoading(false);
@@ -50,34 +58,39 @@ export function useSellAnalysis(
 
     setIsLoading(true);
 
-    // Defer heavy computation to avoid blocking the main thread
-    const timeoutId = setTimeout(() => {
-      try {
-        const model = fitGaussianHmm(prepared.logRet);
-        if (!model) {
+    // Debounce rapid horizon changes, then defer heavy computation
+    debounceRef.current = setTimeout(() => {
+      computeRef.current = setTimeout(() => {
+        try {
+          const model = fitGaussianHmm(prepared.logRet);
+          if (!model) {
+            setAnalysis(null);
+            setIsLoading(false);
+            return;
+          }
+          const regime = detectCurrentRegime(prepared.logRet, model);
+
+          const result = runSellAnalysis(
+            model,
+            regime.currentState,
+            prepared.currentPrice,
+            horizonDays,
+            prepared.seed,
+          );
+
+          setAnalysis({ ...result, regimeInfo: regime });
+        } catch {
           setAnalysis(null);
+        } finally {
           setIsLoading(false);
-          return;
         }
-        const regime = detectCurrentRegime(prepared.logRet, model);
+      }, 0);
+    }, DEBOUNCE_MS);
 
-        const result = runSellAnalysis(
-          model,
-          regime.currentState,
-          prepared.currentPrice,
-          horizonDays,
-          prepared.seed,
-        );
-
-        setAnalysis({ ...result, regimeInfo: regime });
-      } catch {
-        setAnalysis(null);
-      } finally {
-        setIsLoading(false);
-      }
-    }, 0);
-
-    return () => clearTimeout(timeoutId);
+    return () => {
+      clearTimeout(debounceRef.current);
+      clearTimeout(computeRef.current);
+    };
   }, [prepared, horizonDays]);
 
   return { analysis, isLoading };

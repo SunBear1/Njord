@@ -307,6 +307,7 @@ export function fitGaussianHmm(
     // Sanity: reject degenerate models
     if (model.stds.some((s) => s < MIN_STD)) continue;
     if (!isFinite(model.logLikelihood)) continue;
+    if (model.means.some((m) => !isFinite(m)) || model.stds.some((s) => !isFinite(s))) continue;
 
     if (!bestModel || model.logLikelihood > bestModel.logLikelihood) {
       bestModel = model;

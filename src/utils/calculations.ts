@@ -75,6 +75,7 @@ function bondCouponEndValue(
   couponFrequency: number,
   reinvestmentRatePercent: number,
 ): number {
+  if (couponFrequency <= 0) return principal;
   const couponIntervalMonths = 12 / couponFrequency;
   const monthlyReinvRate = reinvestmentRatePercent / 100 / 12;
   let totalReinvested = 0;
