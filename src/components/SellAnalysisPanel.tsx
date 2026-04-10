@@ -26,31 +26,31 @@ interface SellAnalysisPanelProps {
 
 const HORIZON_PRESETS = [
   { days: 21, label: '1 mies.' },
-  { days: 63, label: '1 kw.' },
+  { days: 63, label: '1 kwartał' },
   { days: 126, label: '6 mies.' },
   { days: 252, label: '1 rok' },
 ] as const;
 
 const MONTH_NAMES = ['Sty', 'Lut', 'Mar', 'Kwi', 'Maj', 'Cze', 'Lip', 'Sie', 'Wrz', 'Paź', 'Lis', 'Gru'] as const;
 
-/** Approximate trading days from today to end of a given month/year (~21 per month). */
+/** Approximate trading days from today to end of a given month/year. */
 function tradingDaysUntil(year: number, month: number): number {
   const now = new Date();
-  const target = new Date(year, month, 0); // last day of month
+  const target = new Date(year, month, 0); // last day of month (month is 1-indexed here)
   const diffMs = target.getTime() - now.getTime();
   const calendarDays = Math.max(1, Math.ceil(diffMs / 86_400_000));
   return Math.round(calendarDays * (252 / 365));
 }
 
-/** Generate the next 12 months as selectable options. */
-function getMonthOptions(): { label: string; year: number; month: number }[] {
+/** Generate next N months as selectable deadline options. */
+function getMonthOptions(count: number): { label: string; year: number; month: number }[] {
   const now = new Date();
   const options: { label: string; year: number; month: number }[] = [];
-  for (let i = 1; i <= 12; i++) {
+  for (let i = 1; i <= count; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
     const m = d.getMonth();     // 0-based
     const y = d.getFullYear();
-    options.push({ label: `${MONTH_NAMES[m]} ${y}`, year: y, month: m + 1 });
+    options.push({ label: `${MONTH_NAMES[m]} '${String(y).slice(2)}`, year: y, month: m + 1 });
   }
   return options;
 }
@@ -58,7 +58,7 @@ function getMonthOptions(): { label: string; year: number; month: number }[] {
 export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonChange, currentFxRate }: SellAnalysisPanelProps) {
   const [showTable, setShowTable] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
-  const monthOptions = useMemo(() => getMonthOptions(), []);
+  const monthOptions = useMemo(() => getMonthOptions(6), []);
 
   // Transform fan chart data into stackable bands
   const fanChartBands = useMemo(() => {
@@ -92,13 +92,15 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
 
   return (
     <div className="space-y-5">
-      {/* Header with horizon selector */}
+      {/* Header with unified horizon selector */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-2">
-            <Target size={20} className="text-blue-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Optymalna cena sprzedaży</h2>
-          </div>
+        <div className="flex items-center gap-2 mb-3">
+          <Target size={20} className="text-blue-600" />
+          <h2 className="text-lg font-semibold text-gray-900">Optymalna cena sprzedaży</h2>
+        </div>
+
+        {/* Unified horizon: duration presets | deadline months */}
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
             {HORIZON_PRESETS.map((p) => (
               <button
@@ -114,38 +116,39 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
               </button>
             ))}
           </div>
-        </div>
 
-        {/* Month picker */}
-        <div className="mt-3 flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-gray-500 font-medium shrink-0">Termin:</span>
-          <div className="flex flex-wrap gap-1">
-            {monthOptions.map((mo) => {
-              const key = `${mo.year}-${mo.month}`;
-              const isActive = selectedMonth === key;
-              return (
-                <button
-                  key={key}
-                  onClick={() => {
-                    setSelectedMonth(key);
-                    onHorizonChange(tradingDaysUntil(mo.year, mo.month));
-                  }}
-                  className={`px-2 py-1 text-[11px] font-medium rounded transition-colors ${
-                    isActive
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-50 text-gray-600 hover:bg-gray-200 border border-gray-200'
-                  }`}
-                >
-                  {mo.label}
-                </button>
-              );
-            })}
+          <div className="w-px h-5 bg-gray-300 mx-1 hidden sm:block" aria-hidden="true" />
+
+          <div className="flex items-center gap-1">
+            <Calendar size={13} className="text-gray-400 shrink-0" />
+            <div className="flex gap-1 flex-wrap">
+              {monthOptions.map((mo) => {
+                const key = `${mo.year}-${mo.month}`;
+                const isActive = selectedMonth === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => {
+                      setSelectedMonth(key);
+                      onHorizonChange(tradingDaysUntil(mo.year, mo.month));
+                    }}
+                    className={`px-2 py-1.5 text-[11px] font-medium rounded-md transition-colors ${
+                      isActive
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    {mo.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
         {/* Active horizon info */}
         <div className="mt-2 text-[11px] text-gray-400">
-          Horyzont: ~{horizonDays} sesji ({(horizonDays / 21).toFixed(1)} mies.)
+          ~{horizonDays} sesji giełdowych ({(horizonDays / 21).toFixed(1)} mies.)
         </div>
 
         {isLoading && (
