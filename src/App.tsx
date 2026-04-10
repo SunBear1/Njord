@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useMemo, useDeferredValue } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo, useDeferredValue, lazy, Suspense } from 'react';
 import { HowItWorks } from './components/HowItWorks';
 import { InputPanel } from './components/InputPanel';
 import { ScenarioEditor } from './components/ScenarioEditor';
@@ -13,6 +13,7 @@ import { useFxData } from './hooks/useFxData';
 import { useInflationData } from './hooks/useInflationData';
 import { useHistoricalVolatility } from './hooks/useHistoricalVolatility';
 import { useKantorRates } from './hooks/useKantorRates';
+import { useSellAnalysis } from './hooks/useSellAnalysis';
 import { KantorSidebar } from './components/KantorSidebar';
 import {
   calcAllScenarios,
@@ -22,6 +23,8 @@ import {
 import { blendedInflationRate, blendedSavingsRate } from './utils/inflationProjection';
 import { DEFAULT_HORIZON_MONTHS } from './utils/assetConfig';
 import type { Scenarios, ScenarioKey, BenchmarkType, BondRateType } from './types/scenario';
+
+const SellAnalysisPanel = lazy(() => import('./components/SellAnalysisPanel').then(m => ({ default: m.SellAnalysisPanel })));
 
 const DEFAULT_SCENARIOS: Scenarios = {
   bear: { deltaStock: -10, deltaFx: -5 },
@@ -193,6 +196,17 @@ function App() {
   const timeline = useMemo(() => canCalc ? calcTimeline(calcInputs, scenarios) : null, [canCalc, calcInputs, scenarios]);
   const heatmap = useMemo(() => canCalc ? calcHeatmap(calcInputs) : null, [canCalc, calcInputs]);
 
+  // Sell analysis
+  type ActiveView = 'comparison' | 'sellAnalysis';
+  const [activeView, setActiveView] = useState<ActiveView>('comparison');
+  const [sellHorizonDays, setSellHorizonDays] = useState(63);
+  const { analysis: sellAnalysis, isLoading: sellAnalysisLoading } = useSellAnalysis(
+    assetData?.historicalPrices ?? null,
+    currentPriceUSD,
+    sellHorizonDays,
+    activeView === 'sellAnalysis',
+  );
+
   // InputPanel collapse — user-initiated only (no auto-collapse)
   const [inputCollapsed, setInputCollapsed] = useState(false);
 
@@ -355,7 +369,33 @@ function App() {
           </>
         )}
 
-        {results && (
+        {/* View toggle — only show when stock data is loaded */}
+        {currentPriceUSD > 0 && assetData && (
+          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5 w-fit">
+            <button
+              onClick={() => setActiveView('comparison')}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                activeView === 'comparison'
+                  ? 'bg-white text-blue-700 shadow-sm border border-gray-200'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Porównanie z benchmarkiem
+            </button>
+            <button
+              onClick={() => setActiveView('sellAnalysis')}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                activeView === 'sellAnalysis'
+                  ? 'bg-white text-blue-700 shadow-sm border border-gray-200'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Optymalna cena sprzedaży
+            </button>
+          </div>
+        )}
+
+        {activeView === 'comparison' && results && (
           <>
             <ErrorBoundary>
               <VerdictBanner
@@ -391,6 +431,20 @@ function App() {
               </ErrorBoundary>
             )}
           </>
+        )}
+
+        {activeView === 'sellAnalysis' && (
+          <ErrorBoundary>
+            <Suspense fallback={<div className="text-center py-8 text-gray-400">Ładowanie modułu…</div>}>
+              <SellAnalysisPanel
+                analysis={sellAnalysis}
+                isLoading={sellAnalysisLoading}
+                horizonDays={sellHorizonDays}
+                onHorizonChange={setSellHorizonDays}
+                currentFxRate={currentFxRate}
+              />
+            </Suspense>
+          </ErrorBoundary>
         )}
 
         <MethodologyPanel />
