@@ -80,7 +80,7 @@ function App() {
       aliorAutoFilled.current = true;
       fxAutoFilled.current = true;
       // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from async data source
-      setCurrentFxRate(kantorRates.alior.sell);
+      setCurrentFxRate(kantorRates.alior.buy);
     }
   }, [kantorRates.alior]);
 

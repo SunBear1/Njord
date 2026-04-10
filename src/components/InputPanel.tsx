@@ -394,7 +394,7 @@ export function InputPanel({
         <label htmlFor="fx-rate" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
           Kurs sprzedaży USD <span className="text-red-500">*</span>
           {fxData && !fxLoading && (
-            <Tooltip content={`Kurs sprzedaży z Alior Kantor — tyle dostaniesz sprzedając dolary. Podatek Belki po kursie NBP (${fmtNum(fxData.currentRate)} PLN/USD).`} />
+            <Tooltip content={`Kurs z Alior Kantor — tyle PLN dostaniesz sprzedając dolary. Podatek Belki po kursie NBP (${fmtNum(fxData.currentRate)} PLN/USD).`} />
           )}
           {fxLoading && <span className="ml-1 text-xs text-gray-400 inline-flex items-center gap-1"><Loader2 size={11} className="animate-spin" />ładowanie…</span>}
         </label>

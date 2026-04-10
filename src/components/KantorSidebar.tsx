@@ -25,10 +25,10 @@ function RateBlock({ label, href, buy, sell }: { label: string; href: string; bu
         {label}
       </a>
       <div className="grid grid-cols-2 gap-x-2 text-xs">
-        <div className="text-gray-400">Kupno</div>
-        <div className="text-right font-mono text-green-700 font-medium">{buy.toFixed(4)}</div>
-        <div className="text-gray-400">Sprzedaż</div>
+        <div className="text-gray-400">Kupno USD</div>
         <div className="text-right font-mono text-red-600 font-medium">{sell.toFixed(4)}</div>
+        <div className="text-gray-400">Sprzedaż USD</div>
+        <div className="text-right font-mono text-green-700 font-medium">{buy.toFixed(4)}</div>
         <div className="text-gray-400">Spread</div>
         <div className="text-right font-mono text-gray-500">{spreadPct(buy, sell)}%</div>
       </div>
