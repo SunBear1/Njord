@@ -32,6 +32,7 @@ interface InputPanelProps {
   nbpRefRate: number;
   avgCostUSD: number;
   brokerFeeUSD: number;
+  dividendYieldPercent: number;
   /** Saved bond preset ID for UI restoration on page reload */
   initialBondPresetId?: string;
   /** Collapsed summary mode */
@@ -48,6 +49,7 @@ interface InputPanelProps {
   onBondPresetChange: (id: string) => void;
   onAvgCostUSDChange: (v: number) => void;
   onBrokerFeeUSDChange: (v: number) => void;
+  onDividendYieldChange: (v: number) => void;
   onInflationRateChange: (v: number) => void;
   onNbpRefRateChange: (v: number) => void;
 }
@@ -75,6 +77,7 @@ export function InputPanel({
   nbpRefRate,
   avgCostUSD,
   brokerFeeUSD,
+  dividendYieldPercent,
   initialBondPresetId,
   collapsed,
   onToggleCollapse,
@@ -89,6 +92,7 @@ export function InputPanel({
   onBondPresetChange,
   onAvgCostUSDChange,
   onBrokerFeeUSDChange,
+  onDividendYieldChange,
   onInflationRateChange,
   onNbpRefRateChange,
 }: InputPanelProps) {
@@ -449,6 +453,39 @@ export function InputPanel({
           placeholder="np. 1.00"
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+      </div>
+
+      {/* Dividend yield (optional) */}
+      <div className="space-y-1">
+        <label htmlFor="dividend-yield" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+          Stopa dywidendy (% rocznie)
+          <span className="text-xs font-normal text-gray-400">(opcjonalnie)</span>
+          <Tooltip content="Roczna stopa dywidendy akcji (np. 1.5 dla 1.5%). Dywidendy akumulowane jako gotówka PLN w ciągu horyzontu. Podatek 19% od całości (pokrywa 15% WHT USA + 4% dopłata do polskiego PIT-38). Spółki wzrostowe zazwyczaj nie wypłacają dywidend (0)." />
+        </label>
+        <input
+          id="dividend-yield"
+          name="dividendYield"
+          autoComplete="off"
+          type="number"
+          min={0}
+          max={20}
+          step={0.1}
+          value={dividendYieldPercent || ''}
+          onChange={(e) => onDividendYieldChange(Number(e.target.value))}
+          placeholder="np. 1.5"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        {dividendYieldPercent > 0 && (
+          <p className="text-xs text-gray-500">
+            Szacowane dywidendy netto (base): ok.{' '}
+            <strong>
+              {new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(
+                (shares || 0) * (currentPriceUSD || 0) * (dividendYieldPercent / 100) * (horizonMonths / 12) * 0.81 * (currentFxRate || 1)
+              )}
+            </strong>
+            {' '}przez {horizonMonths} mies.
+          </p>
+        )}
       </div>
 
       {/* FX Rate */}

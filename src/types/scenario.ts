@@ -55,4 +55,6 @@ export interface ScenarioResult {
   unrealizedGainPLN: number;     // currentValuePLN − costBasisValuePLN (negative = loss)
   unrealizedGainPercent: number; // unrealizedGainPLN / costBasisValuePLN × 100
   belkaTaxedFromCostBasis: boolean; // true = Belka applies to sale above cost basis (not just today)
+  // Dividend income
+  dividendsNetPLN: number;       // net dividend income after 19% Belka (0 if no yield set)
 }

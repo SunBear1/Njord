@@ -129,6 +129,11 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
                       realnie {r.stockRealReturnNet >= 0 ? '+' : ''}{r.stockRealReturnNet.toFixed(2)}%
                     </div>
                   )}
+                  {r.dividendsNetPLN > 0 && (
+                    <div className="text-[10px] text-emerald-700 font-medium">
+                      w tym dyw. {fmtPLN(r.dividendsNetPLN)}
+                    </div>
+                  )}
                 </div>
 
                 {/* Benchmark column */}

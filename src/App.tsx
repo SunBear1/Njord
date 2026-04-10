@@ -61,6 +61,7 @@ function App() {
   const [horizonMonths, setHorizonMonths] = useState(saved?.horizonMonths ?? DEFAULT_HORIZON_MONTHS);
   const [avgCostUSD, setAvgCostUSD] = useState(saved?.avgCostUSD ?? 0);
   const [brokerFeeUSD, setBrokerFeeUSD] = useState(saved?.brokerFeeUSD ?? 0);
+  const [dividendYieldPercent, setDividendYieldPercent] = useState(saved?.dividendYieldPercent ?? 0);
   // null = use HMM suggestions when available; non-null = user has manually overridden
   const [userScenarios, setUserScenarios] = useState<Scenarios | null>(saved?.userScenarios ?? null);
   const [scenarioEditKey, setScenarioEditKey] = useState(0);
@@ -109,10 +110,10 @@ function App() {
   // Auto-save user inputs to localStorage (debounced 600ms)
   useEffect(() => {
     const timer = setTimeout(() => {
-      saveState({ ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, brokerFeeUSD });
+      saveState({ ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, brokerFeeUSD, dividendYieldPercent });
     }, 600);
     return () => clearTimeout(timer);
-  }, [ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, brokerFeeUSD]);
+  }, [ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, brokerFeeUSD, dividendYieldPercent]);
 
   const fetchData = useCallback(async (tickerArg: string) => {
     // Reset scenarios so HMM suggestions auto-apply for the new ticker
@@ -216,7 +217,8 @@ function App() {
     inflationRate: effectiveInflation,
     avgCostUSD,
     brokerFeeUSD,
-  }), [shares, currentPriceUSD, currentFxRate, fxData, wibor3m, deferredHorizon, benchmarkType, bondSettings, computedEffectiveRate, effectiveInflation, effectiveSavingsRate, avgCostUSD, brokerFeeUSD]);
+    dividendYieldPercent,
+  }), [shares, currentPriceUSD, currentFxRate, fxData, wibor3m, deferredHorizon, benchmarkType, bondSettings, computedEffectiveRate, effectiveInflation, effectiveSavingsRate, avgCostUSD, brokerFeeUSD, dividendYieldPercent]);
 
   const benchmarkReady = benchmarkType === 'savings' ? wibor3m > 0 : bondSettings.firstYearRate > 0;
   const canCalc = shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && horizonMonths > 0 && benchmarkReady;
@@ -301,6 +303,7 @@ function App() {
               nbpRefRate={nbpRefRate}
               avgCostUSD={avgCostUSD}
               brokerFeeUSD={brokerFeeUSD}
+              dividendYieldPercent={dividendYieldPercent}
               initialBondPresetId={bondPresetId}
               collapsed
               onToggleCollapse={() => setInputCollapsed(false)}
@@ -315,6 +318,7 @@ function App() {
               onBondPresetChange={setBondPresetId}
               onAvgCostUSDChange={setAvgCostUSD}
               onBrokerFeeUSDChange={setBrokerFeeUSD}
+              onDividendYieldChange={setDividendYieldPercent}
               onInflationRateChange={setInflationRate}
               onNbpRefRateChange={setNbpRefRate}
             />
@@ -358,6 +362,7 @@ function App() {
                 nbpRefRate={nbpRefRate}
                 avgCostUSD={avgCostUSD}
                 brokerFeeUSD={brokerFeeUSD}
+                dividendYieldPercent={dividendYieldPercent}
                 initialBondPresetId={bondPresetId}
                 onToggleCollapse={results ? () => setInputCollapsed(true) : undefined}
                 onTickerChange={setTicker}
@@ -371,6 +376,7 @@ function App() {
                 onBondPresetChange={setBondPresetId}
                 onAvgCostUSDChange={setAvgCostUSD}
                 onBrokerFeeUSDChange={setBrokerFeeUSD}
+                onDividendYieldChange={setDividendYieldPercent}
                 onInflationRateChange={setInflationRate}
                 onNbpRefRateChange={setNbpRefRate}
               />

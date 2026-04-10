@@ -24,6 +24,8 @@ export interface CalcInputs {
   avgCostUSD: number;    // average purchase price per share in USD (0 = not set)
   // Transaction costs (optional — subtracted from end value before tax)
   brokerFeeUSD: number;  // total broker commission in USD (0 = none)
+  // Dividend yield (optional — accumulated as net cash over horizon)
+  dividendYieldPercent: number; // annual dividend yield % (0 = none)
 }
 
 function calcCurrentValuePLN(inputs: CalcInputs): number {
@@ -135,12 +137,12 @@ function benchmarkLabel(type: BenchmarkType): string {
 export function calcStockScenario(
   inputs: CalcInputs,
   params: ScenarioParams,
-): { rawEndValue: number; netEndValue: number } {
+): { rawEndValue: number; netEndValue: number; dividendsNetPLN: number } {
   const projectedPriceUSD = inputs.currentPriceUSD * (1 + params.deltaStock / 100);
   const projectedFxRate = inputs.currentFxRate * (1 + params.deltaFx / 100);
   // Actual PLN received at kantor conversion rate, minus broker fee converted at same rate
   const feeInPLN = (inputs.brokerFeeUSD || 0) * projectedFxRate;
-  const rawEndValue = inputs.shares * projectedPriceUSD * projectedFxRate - feeInPLN;
+  const rawCapitalPLN = inputs.shares * projectedPriceUSD * projectedFxRate - feeInPLN;
 
   // Tax basis at NBP mid rate (Polish tax law)
   const nbpRate = inputs.nbpMidRate || inputs.currentFxRate;
@@ -154,17 +156,20 @@ export function calcStockScenario(
     ? inputs.shares * inputs.avgCostUSD * nbpRate  // use current NBP rate as proxy for purchase rate
     : inputs.shares * inputs.currentPriceUSD * nbpRate;
 
-  const taxableProfit = endValueNbp - feeNbp - costBasisNbp;
+  const taxableCapGain = endValueNbp - feeNbp - costBasisNbp;
+  const capitalGainTax = taxableCapGain > 0 ? taxableCapGain * BELKA_TAX : 0;
 
-  let netEndValue: number;
-  if (taxableProfit > 0) {
-    const tax = taxableProfit * BELKA_TAX;
-    netEndValue = rawEndValue - tax;
-  } else {
-    netEndValue = rawEndValue; // loss vs cost basis — no Belka tax
-  }
+  // Dividends: accumulated over horizon, taxed 19% total (covers US WHT 15% + Polish 4%)
+  // Based on current price as proxy for average value during the period
+  const grossDividendsPLN = inputs.dividendYieldPercent > 0
+    ? inputs.shares * inputs.currentPriceUSD * (inputs.dividendYieldPercent / 100) * (inputs.horizonMonths / 12) * projectedFxRate
+    : 0;
+  const dividendsNetPLN = grossDividendsPLN * (1 - BELKA_TAX);
 
-  return { rawEndValue, netEndValue };
+  const rawEndValue = rawCapitalPLN + grossDividendsPLN;
+  const netEndValue = rawCapitalPLN - capitalGainTax + dividendsNetPLN;
+
+  return { rawEndValue, netEndValue, dividendsNetPLN };
 }
 
 export function calcAllScenarios(inputs: CalcInputs, scenarios: Scenarios): ScenarioResult[] {
@@ -192,7 +197,7 @@ export function calcAllScenarios(inputs: CalcInputs, scenarios: Scenarios): Scen
   const labels: Record<ScenarioKey, string> = { bear: 'Bear', base: 'Base', bull: 'Bull' };
 
   return (['bear', 'base', 'bull'] as ScenarioKey[]).map((key) => {
-    const { rawEndValue, netEndValue } = calcStockScenario(inputs, scenarios[key]);
+    const { rawEndValue, netEndValue, dividendsNetPLN } = calcStockScenario(inputs, scenarios[key]);
     const stockBeatsBenchmark = netEndValue > bmEndValue;
     const differencePLN = netEndValue - bmEndValue;
     const differencePercent = (differencePLN / currentValuePLN) * 100;
@@ -230,6 +235,7 @@ export function calcAllScenarios(inputs: CalcInputs, scenarios: Scenarios): Scen
       unrealizedGainPLN,
       unrealizedGainPercent,
       belkaTaxedFromCostBasis,
+      dividendsNetPLN,
     };
   });
 }

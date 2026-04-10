@@ -16,6 +16,7 @@ export interface PersistedState {
   userScenarios: Scenarios | null;
   avgCostUSD: number;
   brokerFeeUSD: number;
+  dividendYieldPercent: number;
 }
 
 export function loadState(): Partial<PersistedState> | null {
