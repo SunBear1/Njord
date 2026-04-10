@@ -225,4 +225,14 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 - Inflation impact is shown as real returns (Fisher formula) alongside nominal values. The orange warning banner appears only when `inflationRate > 0`.
 - The purchasing power line on the timeline chart is a dashed orange line showing value erosion from inflation.
 - `wibor3m` state variable in `App.tsx` represents the savings account interest rate (not the raw WIBOR 3M index). Help text in the UI clarifies this.
-- All financial calculations are pure functions in `calculations.ts` — easy to unit test if a test framework is added later.
+- All financial calculations are pure functions in `calculations.ts` — easy to unit test.
+
+### Validation loop
+
+After modifying any file in `src/utils/models/` or `src/hooks/useHistoricalVolatility.ts`:
+1. Run `npm test` — all tests must pass (includes model calibration tests: coverage, cross-model consistency, stability, determinism)
+2. Run `npm run lint` — zero errors
+3. Run `npm run build` — must compile cleanly
+
+The CI pipeline (`.github/workflows/ci.yml`) enforces this automatically on every push and pull request.
+The Copilot cloud coding agent environment is configured via `.github/copilot-setup-steps.yml`.
