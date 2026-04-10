@@ -80,20 +80,34 @@ function dataSeed(prices: number[]): number {
   return Math.abs(h);
 }
 
-/** Convert a PredictionResult's percentiles into Scenarios with FX correlation */
+/**
+ * Convert a PredictionResult's percentiles into Scenarios with FX correlation.
+ *
+ * Uses p25/p75 (IQR) for bear/bull instead of p5/p95 (extreme tails).
+ * p50 (median) becomes the base scenario so model predictions are actually used.
+ * Hard clamps prevent absurd outputs for volatile stocks or long horizons.
+ */
+const MAX_SCENARIO_UP = 300;   // max +300% (4× price)
+const MAX_SCENARIO_DOWN = -90; // max -90%
+
+function clampDelta(v: number): number {
+  return Math.max(MAX_SCENARIO_DOWN, Math.min(MAX_SCENARIO_UP, v));
+}
+
 function toScenarios(pred: PredictionResult, rho: number, fxMagPct: number): Scenarios {
-  const [p5, , , , p95] = pred.percentiles;
+  const [, p25, p50, p75] = pred.percentiles;
   return {
-    bear: { deltaStock: p5, deltaFx: -rho * fxMagPct },
-    base: { deltaStock: 0, deltaFx: 0 },
-    bull: { deltaStock: p95, deltaFx: +rho * fxMagPct },
+    bear:  { deltaStock: clampDelta(p25), deltaFx: clampDelta(-rho * fxMagPct) },
+    base:  { deltaStock: clampDelta(p50), deltaFx: 0 },
+    bull:  { deltaStock: clampDelta(p75), deltaFx: clampDelta(+rho * fxMagPct) },
   };
 }
 
 /** Max trading days for model simulation — beyond this, extrapolate with √T scaling */
 const MAX_MODEL_DAYS = 504;
 
-/** Scale model percentiles from modelDays to targetDays using mean+volatility decomposition */
+/** Scale model percentiles from modelDays to targetDays using mean+volatility decomposition.
+ *  Clamps the output to prevent absurd extrapolations at very long horizons. */
 function scalePercentiles(pcts: Percentiles, modelDays: number, targetDays: number): Percentiles {
   const timeRatio = targetDays / modelDays;
   const sqrtRatio = Math.sqrt(timeRatio);
@@ -102,7 +116,9 @@ function scalePercentiles(pcts: Percentiles, modelDays: number, targetDays: numb
   return logR.map(lr => {
     const deviation = lr - medianLog;
     const scaled = medianLog * timeRatio + deviation * sqrtRatio;
-    return (Math.exp(scaled) - 1) * 100;
+    // Clamp log-return to prevent exp() overflow: ±ln(5) ≈ 1.6 → max ~400%
+    const clamped = Math.max(-3, Math.min(Math.log(5), scaled));
+    return (Math.exp(clamped) - 1) * 100;
   }) as unknown as Percentiles;
 }
 

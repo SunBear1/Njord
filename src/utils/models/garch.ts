@@ -161,8 +161,9 @@ export function garchPredict(
       const z = studentT(rng, nu);
       const eps = sigma * z;
 
-      // GBM-like: log-return = mu - 0.5*σ² + ε (Itô correction)
-      cumLogReturn += mu - 0.5 * sig2 + eps;
+      // mu is the sample mean of log-returns (already includes Itô drift);
+      // no additional −½σ² correction needed.
+      cumLogReturn += mu + eps;
 
       // Update conditional variance
       sig2 = omega + alpha * eps * eps + beta * sig2;

@@ -46,7 +46,8 @@ export function simulateFullPaths(
       const sigma = model.stds[state];
 
       const [z] = boxMuller(rng);
-      const logReturn = (mu - 0.5 * sigma * sigma) + sigma * z;
+      // mu is the mean of observed log-returns — no extra Itô correction needed
+      const logReturn = mu + sigma * z;
       price *= Math.exp(logReturn);
       path[t + 1] = price;
 

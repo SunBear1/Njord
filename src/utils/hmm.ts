@@ -328,7 +328,8 @@ export function detectCurrentRegime(obs: number[], model: HmmModel): RegimeInfo 
   const expectedDurations = model.transmat.map((row, i) => 1 / (1 - row[i] + 1e-10));
 
   const TRADING_DAYS = 252;
-  const stateMeansAnnual = model.means.map((m) => m * TRADING_DAYS * 100);
+  // Correct annualization via exp() for log-returns (not simple multiplication)
+  const stateMeansAnnual = model.means.map((m) => (Math.exp(m * TRADING_DAYS) - 1) * 100);
   const stateSigmasAnnual = model.stds.map((s) => s * Math.sqrt(TRADING_DAYS) * 100);
 
   return {
@@ -370,9 +371,10 @@ export function regimeConditionedMonteCarlo(
       const mu = model.means[state];
       const sigma = model.stds[state];
 
-      // GBM step: ln(S_{t+1}/S_t) = (mu - 0.5*sigma^2)*dt + sigma*sqrt(dt)*z
+      // GBM step: mu is already the mean of observed log-returns (≈ drift − ½σ²),
+      // so no additional Itô correction is needed.
       const [z] = boxMuller(rng);
-      logReturn += (mu - 0.5 * sigma * sigma) * dt + sigma * Math.sqrt(dt) * z;
+      logReturn += mu * dt + sigma * Math.sqrt(dt) * z;
 
       // Regime transition
       const u = rng();

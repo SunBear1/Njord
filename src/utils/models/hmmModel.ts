@@ -80,8 +80,8 @@ export function hmmPredict(
     ? ` ⚠ Grube ogony (kurtoza=${kurt.toFixed(1)}) — Gaussian HMM może zaniżać ryzyko ekstremalne.`
     : '';
 
-  const bearAnnual = model.means[0] * TRADING_DAYS_YEAR * 100;
-  const bullAnnual = model.means[1] * TRADING_DAYS_YEAR * 100;
+  const bearAnnual = (Math.exp(model.means[0] * TRADING_DAYS_YEAR) - 1) * 100;
+  const bullAnnual = (Math.exp(model.means[1] * TRADING_DAYS_YEAR) - 1) * 100;
   const regimeLabel = regime.currentRegimeLabel === 'bull' ? 'wzrost' : 'spadek';
 
   // Confidence: posterior probability × data adequacy × model fit

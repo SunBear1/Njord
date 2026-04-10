@@ -19,18 +19,21 @@ const MIN_TRAIN_DAYS = 60; // minimum training data for backtest
 
 type ModelFactory = (logReturns: number[], horizonDays: number, seed: number) => PredictionResult;
 
-/** Compute realized cumulative returns over rolling windows in the test period */
+/** Compute realized cumulative returns over rolling windows in the test period.
+ *  Only includes windows with at least half the target horizon to avoid
+ *  truncated windows inflating coverage scores. */
 function realizedReturns(logReturns: number[], testStart: number, horizonDays: number): number[] {
   const returns: number[] = [];
-  // For each starting point in the test period, compute the cumulative return over horizonDays
-  // We use 1-day returns as the simplest check
+  const minDays = Math.max(1, Math.floor(horizonDays * 0.5));
+
   for (let t = testStart; t < logReturns.length; t++) {
     const remaining = Math.min(horizonDays, logReturns.length - t);
+    if (remaining < minDays) break; // stop before severely truncated windows
     let cum = 0;
     for (let d = 0; d < remaining; d++) {
       cum += logReturns[t + d];
     }
-    returns.push((Math.exp(cum) - 1) * 100); // percentage change
+    returns.push((Math.exp(cum) - 1) * 100);
   }
   return returns;
 }
