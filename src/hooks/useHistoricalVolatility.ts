@@ -173,14 +173,11 @@ export function useHistoricalVolatility(
       const bootstrapHorizonDays = Math.min(Math.round(debouncedHorizon * 21), 504);
       const bootstrapResult = bootstrapPredict(stockLogRet, bootstrapHorizonDays, seed);
 
-      // ── Model 3: HMM (regime detection only — info display) ───────────
+      // ── Regime detection (HMM — informational only, not a model tab) ──
       const hmmResult = hmmPredict(stockLogRet, bootstrapHorizonDays, seed);
-      // Reduce HMM confidence to signal it's informational only
-      hmmResult.prediction.confidence = Math.min(hmmResult.prediction.confidence * 0.3, 0.25);
-      hmmResult.prediction.description += ' [Informacyjny — zbyt mało danych dla wiarygodnych scenariuszy]';
 
-      // ── Tiered selection ───────────────────────────────────────────────
-      const allPredictions = [gbmResult, bootstrapResult, hmmResult.prediction];
+      // ── Tiered selection (GBM + Bootstrap only) ─────────────────────
+      const allPredictions: PredictionResult[] = [gbmResult, bootstrapResult];
       const useBootstrapPrimary = debouncedHorizon <= BOOTSTRAP_HORIZON_MONTHS;
       const recommendedIndex = useBootstrapPrimary ? 1 : 0;
       const recommended = allPredictions[recommendedIndex];
