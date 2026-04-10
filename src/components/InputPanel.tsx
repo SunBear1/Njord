@@ -30,6 +30,8 @@ interface InputPanelProps {
   inflationData: InflationData | null;
   inflationLoading: boolean;
   nbpRefRate: number;
+  /** Saved bond preset ID for UI restoration on page reload */
+  initialBondPresetId?: string;
   /** Collapsed summary mode */
   collapsed?: boolean;
   onToggleCollapse?: () => void;
@@ -41,6 +43,7 @@ interface InputPanelProps {
   onHorizonChange: (v: number) => void;
   onBenchmarkTypeChange: (v: BenchmarkType) => void;
   onBondSettingsChange: (s: BondSettings) => void;
+  onBondPresetChange: (id: string) => void;
   onInflationRateChange: (v: number) => void;
   onNbpRefRateChange: (v: number) => void;
 }
@@ -66,6 +69,7 @@ export function InputPanel({
   inflationData,
   inflationLoading,
   nbpRefRate,
+  initialBondPresetId,
   collapsed,
   onToggleCollapse,
   onTickerChange,
@@ -76,6 +80,7 @@ export function InputPanel({
   onHorizonChange,
   onBenchmarkTypeChange,
   onBondSettingsChange,
+  onBondPresetChange,
   onInflationRateChange,
   onNbpRefRateChange,
 }: InputPanelProps) {
@@ -83,7 +88,13 @@ export function InputPanel({
   const [wiborStr, setWiborStr] = useState(wibor3m > 0 ? String(wibor3m) : '');
   const [showValueCalc, setShowValueCalc] = useState(false);
   const [totalValueStr, setTotalValueStr] = useState('');
-  const [selectedBondId, setSelectedBondId] = useState(BOND_PRESETS[0].id);
+  const [selectedBondId, setSelectedBondId] = useState(initialBondPresetId ?? BOND_PRESETS[0].id);
+
+  const handleSelectBondPreset = (id: string, preset: BondPreset) => {
+    setSelectedBondId(id);
+    onBondPresetChange(id);
+    applyBondPreset(preset);
+  };
   const isFirstRender = useRef(true);
   const rateLimited = assetError === 'RATE_LIMIT';
 
@@ -488,9 +499,8 @@ export function InputPanel({
               name="bondType"
               value={selectedBondId}
               onChange={(e) => {
-                setSelectedBondId(e.target.value);
                 const preset = BOND_PRESETS.find((b) => b.id === e.target.value);
-                if (preset) applyBondPreset(preset);
+                if (preset) handleSelectBondPreset(e.target.value, preset);
               }}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >

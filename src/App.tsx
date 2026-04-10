@@ -22,6 +22,7 @@ import {
 } from './utils/calculations';
 import { blendedInflationRate, blendedSavingsRate } from './utils/inflationProjection';
 import { DEFAULT_HORIZON_MONTHS } from './utils/assetConfig';
+import { loadState, saveState } from './utils/persistedState';
 import type { Scenarios, ScenarioKey, BenchmarkType, BondSettings } from './types/scenario';
 
 const SellAnalysisPanel = lazy(() => import('./components/SellAnalysisPanel').then(m => ({ default: m.SellAnalysisPanel })));
@@ -32,28 +33,34 @@ const DEFAULT_SCENARIOS: Scenarios = {
   bull: { deltaStock: 10, deltaFx: 5 },
 };
 
+const DEFAULT_BOND_SETTINGS: BondSettings = {
+  firstYearRate: 2.00,
+  penalty: 0,
+  rateType: 'fixed',
+  margin: 0,
+  couponFrequency: 0,
+};
+
 const ROOT_STYLE = { backgroundColor: 'var(--color-bg-primary)' } as const;
 const FOOTER_STYLE = { borderTop: '1px solid var(--color-border)', color: 'var(--color-text-faint)' } as const;
 
 function App() {
-  const [ticker, setTicker] = useState('');
-  const [shares, setShares] = useState(0);
+  // Load persisted state once on mount (synchronous — runs before first render)
+  const saved = loadState();
+
+  const [ticker, setTicker] = useState(saved?.ticker ?? '');
+  const [shares, setShares] = useState(saved?.shares ?? 0);
   const [currentPriceUSD, setCurrentPriceUSD] = useState(0);
   const [currentFxRate, setCurrentFxRate] = useState(0);
-  const [wibor3m, setWibor3m] = useState(0);
-  const [benchmarkType, setBenchmarkType] = useState<BenchmarkType>('savings');
-  const [bondSettings, setBondSettings] = useState<BondSettings>({
-    firstYearRate: 2.00,
-    penalty: 0,
-    rateType: 'fixed',
-    margin: 0,
-    couponFrequency: 0,
-  });
+  const [wibor3m, setWibor3m] = useState(saved?.wibor3m ?? 0);
+  const [benchmarkType, setBenchmarkType] = useState<BenchmarkType>(saved?.benchmarkType ?? 'savings');
+  const [bondSettings, setBondSettings] = useState<BondSettings>(saved?.bondSettings ?? DEFAULT_BOND_SETTINGS);
+  const [bondPresetId, setBondPresetId] = useState(saved?.bondPresetId ?? 'OTS');
   const [inflationRate, setInflationRate] = useState(0);
-  const [nbpRefRate, setNbpRefRate] = useState(0);
-  const [horizonMonths, setHorizonMonths] = useState(DEFAULT_HORIZON_MONTHS);
+  const [nbpRefRate, setNbpRefRate] = useState(saved?.nbpRefRate ?? 0);
+  const [horizonMonths, setHorizonMonths] = useState(saved?.horizonMonths ?? DEFAULT_HORIZON_MONTHS);
   // null = use HMM suggestions when available; non-null = user has manually overridden
-  const [userScenarios, setUserScenarios] = useState<Scenarios | null>(null);
+  const [userScenarios, setUserScenarios] = useState<Scenarios | null>(saved?.userScenarios ?? null);
   const [scenarioEditKey, setScenarioEditKey] = useState(0);
   const fxAutoFilled = useRef(false);
   const aliorAutoFilled = useRef(false);
@@ -96,6 +103,14 @@ function App() {
       setInflationRate(inflationData.currentRate);
     }
   }, [inflationData?.currentRate]);
+
+  // Auto-save user inputs to localStorage (debounced 600ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      saveState({ ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios });
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios]);
 
   const fetchData = useCallback(async (tickerArg: string) => {
     // Reset scenarios so HMM suggestions auto-apply for the new ticker
@@ -280,6 +295,7 @@ function App() {
               inflationData={inflationData}
               inflationLoading={inflationLoading}
               nbpRefRate={nbpRefRate}
+              initialBondPresetId={bondPresetId}
               collapsed
               onToggleCollapse={() => setInputCollapsed(false)}
               onTickerChange={setTicker}
@@ -290,6 +306,7 @@ function App() {
               onHorizonChange={setHorizonMonths}
               onBenchmarkTypeChange={handleBenchmarkTypeChange}
               onBondSettingsChange={setBondSettings}
+              onBondPresetChange={setBondPresetId}
               onInflationRateChange={setInflationRate}
               onNbpRefRateChange={setNbpRefRate}
             />
@@ -331,6 +348,7 @@ function App() {
                 inflationData={inflationData}
                 inflationLoading={inflationLoading}
                 nbpRefRate={nbpRefRate}
+                initialBondPresetId={bondPresetId}
                 onToggleCollapse={results ? () => setInputCollapsed(true) : undefined}
                 onTickerChange={setTicker}
                 onSharesChange={setShares}
@@ -340,6 +358,7 @@ function App() {
                 onHorizonChange={setHorizonMonths}
                 onBenchmarkTypeChange={handleBenchmarkTypeChange}
                 onBondSettingsChange={setBondSettings}
+                onBondPresetChange={setBondPresetId}
                 onInflationRateChange={setInflationRate}
                 onNbpRefRateChange={setNbpRefRate}
               />
