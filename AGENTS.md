@@ -105,18 +105,20 @@ functions/
 
 ## Bond presets
 
-8 presets defined in `src/components/InputPanel.tsx` (constant `BOND_PRESETS`):
+8 presets defined in `src/data/bondPresets.ts` (constant `BOND_PRESETS`):
 
 | ID | Name | Maturity | Rate type | Year 1 | Margin |
 |----|------|----------|-----------|--------|--------|
-| OTS | 3-month | 3 mo | fixed | 2.00% | 0 |
-| ROR | Annual | 12 mo | reference (NBP) | 4.00% | 0 |
-| DOR | 2-year | 24 mo | reference (NBP) | 4.15% | 0.15% |
-| TOS | 3-year | 36 mo | fixed | 4.40% | 0 |
-| COI | 4-year | 48 mo | inflation | 4.75% | 1.50% |
-| EDO | 10-year | 120 mo | inflation | 5.35% | 2.00% |
-| ROS | 6-year (family) | 72 mo | inflation | 5.00% | 2.00% |
-| ROD | 12-year (family) | 144 mo | inflation | 5.60% | 2.50% |
+| OTS | 3-month | 3 mo | fixed | 1.50% | 0 |
+| ROR | Annual | 12 mo | reference (NBP) | 5.50% | 0 |
+| DOR | 2-year | 24 mo | reference (NBP) | 5.60% | 0.25% |
+| TOS | 3-year | 36 mo | fixed | 5.70% | 0 |
+| COI | 4-year | 48 mo | inflation | 6.00% | 1.50% |
+| EDO | 10-year | 120 mo | inflation | 6.20% | 2.00% |
+| ROS | 6-year (family) | 72 mo | inflation | 6.05% | 2.00% |
+| ROD | 12-year (family) | 144 mo | inflation | 6.45% | 2.50% |
+
+> Rates as of 2025-07-17. Source: https://www.obligacjeskarbowe.pl/oferta-obligacji/
 
 `BondRateType`: `fixed` | `reference` | `inflation`
 

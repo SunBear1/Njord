@@ -122,9 +122,11 @@ export function useHistoricalVolatility(
 
     const stockSigmaAnnual = stockDailySigma * Math.sqrt(252) * 100;
     const fxSigmaAnnual = fxDailySigma * Math.sqrt(252) * 100;
-    const stockMeanAnnual = mean(stockReturns) * 252 * 100;
 
     const stockLogRet = logReturns(stockPrices);
+    // GBM drift parameter μ must be the mean of log-returns (not simple returns).
+    // Using arithmetic mean of simple returns would introduce ≈ σ²/2 upward bias.
+    const stockMeanAnnual = mean(stockLogRet) * 252 * 100;
     const seed = dataSeed(stockPrices);
 
     return { stockSigmaAnnual, fxSigmaAnnual, rho, stockMeanAnnual, stockLogRet, seed };

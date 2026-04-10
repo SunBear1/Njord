@@ -11,8 +11,12 @@
 
 import type { PredictionResult, ModelScoringResult, Percentiles } from './types';
 import { bootstrapPredict } from './bootstrap';
-import { garchPredict } from './garch';
 import { hmmPredict } from './hmmModel';
+
+// Note: GARCH is retired from the active pipeline. The model selector itself
+// is no longer called by useHistoricalVolatility (which does its own tiered
+// GBM/Bootstrap selection). Kept for potential future backtesting use.
+import { garchPredict } from './garch';
 
 const TEST_DAYS = 63; // ~1 quarter of trading days
 const MIN_TRAIN_DAYS = 60; // minimum training data for backtest

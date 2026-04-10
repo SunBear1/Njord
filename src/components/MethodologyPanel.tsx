@@ -57,7 +57,7 @@ export function MethodologyPanel() {
               <div className="font-semibold">Obligacje kapitalizowane (OTS, TOS, EDO, ROS, ROD):</div>
               <div className="pl-4">Rok 1: Wartość × (1 + stopa 1. roku)</div>
               <div className="pl-4">Rok 2+: Wartość × (1 + stopa efektywna) za każdy pełny rok</div>
-              <div className="pl-4">Niepełny rok: Wartość × (1 + stopa × miesiące ÷ 12)</div>
+              <div className="pl-4">Niepełny rok: Wartość × (1 + stopa ÷ 12)<sup>miesiące</sup></div>
               <div className="pl-4">Podatek Belki od łącznego zysku przy wykupie</div>
               <div className="pt-1 font-semibold">Obligacje kuponowe (ROR, DOR, COI):</div>
               <div className="pl-4">Kupon brutto = Kapitał × stopa × (interwał ÷ 12)</div>
@@ -112,26 +112,30 @@ export function MethodologyPanel() {
 
           {/* 4. Sugestie z historii */}
           <section className="space-y-1">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">4. Sugestie z danych historycznych (HMM + Monte Carlo)</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100">4. Scenariusze z danych historycznych</h3>
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 font-mono text-xs space-y-1">
-              <div className="font-semibold">Model podstawowy — HMM (Hidden Markov Model) z 2 reżimami:</div>
-              <div className="pl-4">1. Oblicz log-zwroty: r_t = ln(P_t / P_(t−1))</div>
-              <div className="pl-4">2. Dopasuj 2-stanowy Gaussowski HMM (Baum-Welch EM, 5 restartów)</div>
-              <div className="pl-4">3. Stan 0 = bear (niższe μ), Stan 1 = bull (wyższe μ)</div>
-              <div className="pl-4">4. Wykryj bieżący reżim (ostatnia obserwacja) za pomocą forward algorithm</div>
-              <div className="pl-4">5. Oczekiwany czas trwania stanu i = 1 / (1 − p_ii)</div>
-              <div className="pt-1 font-semibold">Monte Carlo — 3 000 ścieżek GBM z przejściami reżimów:</div>
-              <div className="pl-4">S_(t+1) = S_t × exp((μ_i − 0,5·σ_i²)·Δt + σ_i·√Δt·z)</div>
-              <div className="pl-4">Gdzie i = reżim aktywny w kroku t (symulowany łańcuchem Markowa)</div>
-              <div className="pl-4">Bear (p5) / Base (p50) / Bull (p95) z rozkładu końcowych wartości</div>
-              <div className="pt-1">σ dzienne, ρ (korelacja Pearsona), trend — ~2 lata danych historycznych</div>
+              <div className="font-semibold">Dobór modelu (warstwowy):</div>
+              <div className="pl-4">Horyzont ≤ 6 mies. → Block Bootstrap (3 000 ścieżek, blok 5 dni)</div>
+              <div className="pl-4">Horyzont &gt; 6 mies. → Kalibrowany GBM (formuła zamknięta)</div>
+              <div className="pt-1 font-semibold">GBM — Geometryczny Ruch Browna z rozkładem Studenta (ν=5):</div>
+              <div className="pl-4">S(T)/S(0) = exp((μ − σ²/2)·T + σ·√T·z)</div>
+              <div className="pl-4">Bear (p25) / Base (p50) / Bull (p75) — kwartyle, nie skrajne percentyle</div>
+              <div className="pt-1 font-semibold">Kalibracja dryfu (drift shrinkage):</div>
+              <div className="pl-4">μ = w × μ<sub>hist</sub> + (1 − w) × 8%  (długoterminowa premia rynkowa)</div>
+              <div className="pl-4">w = min(1, lata danych ÷ 10) — z 1 rokiem: 90% prior, 10% historyczny</div>
+              <div className="pt-1 font-semibold">Tłumienie zmienności (horyzonty &gt; 2 lata):</div>
+              <div className="pl-4">σ<sub>eff</sub> = σ × max(0,75 ; 1 − 0,015 × (T − 2))</div>
+              <div className="pl-4">Efekt: przy 12 latach dampFactor ≈ 0,85 — odzwierciedla mean-reversion</div>
+              <div className="pt-1 font-semibold">Ograniczenia (hard clamp):</div>
+              <div className="pl-4">Roczny zwrot: [−80%, +100%] | Całkowity: [−95%, +1000%]</div>
+              <div className="pt-1">σ dzienne, ρ (korelacja Pearsona) — ~2 lata danych historycznych</div>
               <div>Δ FX Bear = −ρ × |FX p95|,  Δ FX Bull = +ρ × |FX p95|</div>
-              <div className="pt-1 text-gray-400 dark:text-gray-500">Fallback: jeśli HMM nie zbiegnie → model log-normalny (zerowy dryf, p5/p95)</div>
+              <div className="pt-1 text-gray-400 dark:text-gray-500">HMM (Hidden Markov Model) — informacyjnie: detekcja reżimu rynkowego (wzrost/spadek). Nie wpływa na scenariusze.</div>
             </div>
             <p className="text-xs text-gray-600 dark:text-gray-400">
-              Model HMM wykrywa czy rynek jest w fazie wzrostowej (bull) czy spadkowej (bear)
-              i używa parametrów (μ, σ) właściwych dla danego reżimu. Monte Carlo z przejściami
-              reżimów uwzględnia możliwość zmiany fazy rynkowej w horyzoncie inwestycji.
+              Scenariusze to zakresy prawdopodobieństwa, nie prognozy. Żaden model nie jest w stanie
+              przewidzieć przyszłych cen akcji. Drift shrinkage zapobiega ekstrapolacji krótkoterminowych
+              trendów — nawet jeśli akcje wzrosły +200% w ostatnim roku, model ogranicza oczekiwany zwrot.
               Deterministyczny seed PRNG zapewnia powtarzalność wyników dla tych samych danych.
             </p>
           </section>
@@ -192,14 +196,16 @@ export function MethodologyPanel() {
                 od teraz. Podatek od dotychczasowego zysku nie wpływa na wybór „trzymać vs. sprzedać"
               </li>
               <li>
-                <strong>Brak prowizji maklerskich</strong> — przy sprzedaży/kupnie akcji
+                <strong>Prowizja maklerska</strong> — opcjonalna, odejmowana od wartości sprzedaży
+                i zaliczana jako koszt uzyskania przychodu (pomniejsza podstawę Belki)
               </li>
               <li>
                 <strong>Brak rolowania obligacji.</strong> Jeśli horyzont &gt; zapadalność (np. OTS 3 mies. przy 9 mies.),
                 wynik ekstrapoluje stopę — nie modeluje ponownego zakupu obligacji
               </li>
               <li>
-                <strong>Brak dywidend</strong> — nie uwzględniamy wypłat z akcji
+                <strong>Dywidendy</strong> — opcjonalne; akumulowane za cały horyzont, opodatkowane 19%
+                (pokrywa US WHT 15% + dopłata PL 4%)
               </li>
               <li>
                 <strong>Inflacja — model mean-reversion</strong> — prognozujemy zbieżność bieżącej
