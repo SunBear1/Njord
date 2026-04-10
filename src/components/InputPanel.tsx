@@ -33,6 +33,8 @@ interface InputPanelProps {
   avgCostUSD: number;
   brokerFeeUSD: number;
   dividendYieldPercent: number;
+  etfAnnualReturnPercent: number;
+  etfTerPercent: number;
   /** Saved bond preset ID for UI restoration on page reload */
   initialBondPresetId?: string;
   /** Collapsed summary mode */
@@ -50,6 +52,8 @@ interface InputPanelProps {
   onAvgCostUSDChange: (v: number) => void;
   onBrokerFeeUSDChange: (v: number) => void;
   onDividendYieldChange: (v: number) => void;
+  onEtfAnnualReturnChange: (v: number) => void;
+  onEtfTerChange: (v: number) => void;
   onInflationRateChange: (v: number) => void;
   onNbpRefRateChange: (v: number) => void;
 }
@@ -78,6 +82,8 @@ export function InputPanel({
   avgCostUSD,
   brokerFeeUSD,
   dividendYieldPercent,
+  etfAnnualReturnPercent,
+  etfTerPercent,
   initialBondPresetId,
   collapsed,
   onToggleCollapse,
@@ -93,6 +99,8 @@ export function InputPanel({
   onAvgCostUSDChange,
   onBrokerFeeUSDChange,
   onDividendYieldChange,
+  onEtfAnnualReturnChange,
+  onEtfTerChange,
   onInflationRateChange,
   onNbpRefRateChange,
 }: InputPanelProps) {
@@ -173,7 +181,9 @@ export function InputPanel({
 
   const bmSummary = benchmarkType === 'savings'
     ? `Konto ${wibor3m > 0 ? wibor3m.toFixed(1) + '%' : '—'}`
-    : `Obligacje ${bondSettings.firstYearRate.toFixed(1)}%`;
+    : benchmarkType === 'etf'
+      ? `ETF ${etfAnnualReturnPercent > 0 ? etfAnnualReturnPercent.toFixed(1) + '%' : '—'}`
+      : `Obligacje ${bondSettings.firstYearRate.toFixed(1)}%`;
 
   /* ────── Animated layout: both summary + form always in DOM ────── */
   return (
@@ -537,6 +547,17 @@ export function InputPanel({
           >
             Obligacje skarbowe
           </button>
+          <button
+            type="button"
+            onClick={() => onBenchmarkTypeChange('etf')}
+            className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
+              benchmarkType === 'etf'
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            ETF
+          </button>
         </div>
       </div>
 
@@ -583,6 +604,54 @@ export function InputPanel({
           {inflationRate > 0 && wibor3m > 0 && inflationRate >= wibor3m && (
             <p className="text-xs text-amber-600 font-medium">
               ⚠ Oprocentowanie ({wibor3m.toFixed(2)}%) niższe od inflacji — realna stopa ujemna.
+            </p>
+          )}
+        </div>
+      ) : benchmarkType === 'etf' ? (
+        /* ETF benchmark */
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <label htmlFor="etf-return" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+              Oczekiwany zwrot ETF (% rocznie) <span className="text-red-500">*</span>
+              <Tooltip content="Historyczny średnioroczny zwrot funduszu przed odliczeniem TER. Przykład: VWCE/IWDA ≈ 8–10% (długoterminowa średnia S&P 500). Używana do projekcji wartości portfela." />
+            </label>
+            <input
+              id="etf-return"
+              name="etfReturn"
+              autoComplete="off"
+              type="number"
+              min={-20}
+              max={30}
+              step={0.1}
+              value={etfAnnualReturnPercent || ''}
+              onChange={(e) => onEtfAnnualReturnChange(Number(e.target.value))}
+              placeholder="np. 8.0"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div className="space-y-1">
+            <label htmlFor="etf-ter" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+              TER — opłata za zarządzanie (% rocznie) <span className="text-red-500">*</span>
+              <Tooltip content="Total Expense Ratio — roczna opłata funduszu za zarządzanie, automatycznie odejmowana od wartości. Przykład: VWCE 0.22%, CSPX/IWDA 0.07%, iShares Core S&P 500 0.07%." />
+            </label>
+            <input
+              id="etf-ter"
+              name="etfTer"
+              autoComplete="off"
+              type="number"
+              min={0}
+              max={5}
+              step={0.01}
+              value={etfTerPercent || ''}
+              onChange={(e) => onEtfTerChange(Number(e.target.value))}
+              placeholder="np. 0.07"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          {etfAnnualReturnPercent > 0 && (
+            <p className="text-xs text-gray-500 px-1">
+              Efektywny zwrot netto: <strong>{(etfAnnualReturnPercent - etfTerPercent).toFixed(2)}%</strong>/rok (przed Belką).
+              Belka 19% naliczona od zysku przy sprzedaży.
             </p>
           )}
         </div>

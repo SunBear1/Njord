@@ -7,7 +7,7 @@ export interface ScenarioParams {
 
 export type Scenarios = Record<ScenarioKey, ScenarioParams>;
 
-export type BenchmarkType = 'savings' | 'bonds';
+export type BenchmarkType = 'savings' | 'bonds' | 'etf';
 
 export type BondRateType = 'fixed' | 'reference' | 'inflation';
 

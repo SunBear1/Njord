@@ -26,6 +26,9 @@ export interface CalcInputs {
   brokerFeeUSD: number;  // total broker commission in USD (0 = none)
   // Dividend yield (optional — accumulated as net cash over horizon)
   dividendYieldPercent: number; // annual dividend yield % (0 = none)
+  // ETF benchmark fields (only used when benchmarkType === 'etf')
+  etfAnnualReturnPercent: number; // expected annual return % before TER (e.g. 8 for 8%)
+  etfTerPercent: number;          // total expense ratio % per year (e.g. 0.07 for 0.07%)
 }
 
 function calcCurrentValuePLN(inputs: CalcInputs): number {
@@ -124,14 +127,27 @@ function calcBondEndValue(inputs: CalcInputs): number {
   return effectiveGross;
 }
 
+function calcEtfEndValue(inputs: CalcInputs): number {
+  const currentValuePLN = calcCurrentValuePLN(inputs);
+  const netAnnualRate = (inputs.etfAnnualReturnPercent - inputs.etfTerPercent) / 100;
+  const months = inputs.horizonMonths;
+  const grossEndValue = currentValuePLN * Math.pow(1 + netAnnualRate, months / 12);
+  const gain = grossEndValue - currentValuePLN;
+  return gain > 0
+    ? currentValuePLN + gain * (1 - BELKA_TAX)
+    : grossEndValue;
+}
+
 function calcBenchmarkEndValue(inputs: CalcInputs): number {
-  return inputs.benchmarkType === 'bonds'
-    ? calcBondEndValue(inputs)
-    : calcSavingsEndValue(inputs);
+  if (inputs.benchmarkType === 'bonds') return calcBondEndValue(inputs);
+  if (inputs.benchmarkType === 'etf') return calcEtfEndValue(inputs);
+  return calcSavingsEndValue(inputs);
 }
 
 function benchmarkLabel(type: BenchmarkType): string {
-  return type === 'bonds' ? 'Obligacje' : 'Konto';
+  if (type === 'bonds') return 'Obligacje';
+  if (type === 'etf') return 'ETF';
+  return 'Konto';
 }
 
 export function calcStockScenario(
@@ -275,6 +291,8 @@ export function calcTimeline(inputs: CalcInputs, scenarios: Scenarios): Timeline
           ? currentValuePLN + (effectiveGross - currentValuePLN) * (1 - BELKA_TAX)
           : effectiveGross;
       }
+    } else if (inputs.benchmarkType === 'etf') {
+      benchmarkVal = calcEtfEndValue(bmInputs);
     } else {
       const monthlyRate = inputs.wibor3mPercent / 100 / 12;
       const grossEnd = currentValuePLN * Math.pow(1 + monthlyRate, m);

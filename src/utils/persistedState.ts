@@ -17,6 +17,8 @@ export interface PersistedState {
   avgCostUSD: number;
   brokerFeeUSD: number;
   dividendYieldPercent: number;
+  etfAnnualReturnPercent: number;
+  etfTerPercent: number;
 }
 
 export function loadState(): Partial<PersistedState> | null {

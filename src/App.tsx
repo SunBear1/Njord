@@ -62,6 +62,8 @@ function App() {
   const [avgCostUSD, setAvgCostUSD] = useState(saved?.avgCostUSD ?? 0);
   const [brokerFeeUSD, setBrokerFeeUSD] = useState(saved?.brokerFeeUSD ?? 0);
   const [dividendYieldPercent, setDividendYieldPercent] = useState(saved?.dividendYieldPercent ?? 0);
+  const [etfAnnualReturnPercent, setEtfAnnualReturnPercent] = useState(saved?.etfAnnualReturnPercent ?? 8);
+  const [etfTerPercent, setEtfTerPercent] = useState(saved?.etfTerPercent ?? 0.07);
   // null = use HMM suggestions when available; non-null = user has manually overridden
   const [userScenarios, setUserScenarios] = useState<Scenarios | null>(saved?.userScenarios ?? null);
   const [scenarioEditKey, setScenarioEditKey] = useState(0);
@@ -110,10 +112,10 @@ function App() {
   // Auto-save user inputs to localStorage (debounced 600ms)
   useEffect(() => {
     const timer = setTimeout(() => {
-      saveState({ ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, brokerFeeUSD, dividendYieldPercent });
+      saveState({ ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent });
     }, 600);
     return () => clearTimeout(timer);
-  }, [ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, brokerFeeUSD, dividendYieldPercent]);
+  }, [ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent]);
 
   const fetchData = useCallback(async (tickerArg: string) => {
     // Reset scenarios so HMM suggestions auto-apply for the new ticker
@@ -218,9 +220,15 @@ function App() {
     avgCostUSD,
     brokerFeeUSD,
     dividendYieldPercent,
-  }), [shares, currentPriceUSD, currentFxRate, fxData, wibor3m, deferredHorizon, benchmarkType, bondSettings, computedEffectiveRate, effectiveInflation, effectiveSavingsRate, avgCostUSD, brokerFeeUSD, dividendYieldPercent]);
+    etfAnnualReturnPercent,
+    etfTerPercent,
+  }), [shares, currentPriceUSD, currentFxRate, fxData, wibor3m, deferredHorizon, benchmarkType, bondSettings, computedEffectiveRate, effectiveInflation, effectiveSavingsRate, avgCostUSD, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent]);
 
-  const benchmarkReady = benchmarkType === 'savings' ? wibor3m > 0 : bondSettings.firstYearRate > 0;
+  const benchmarkReady = benchmarkType === 'savings'
+    ? wibor3m > 0
+    : benchmarkType === 'etf'
+      ? etfAnnualReturnPercent !== 0
+      : bondSettings.firstYearRate > 0;
   const canCalc = shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && horizonMonths > 0 && benchmarkReady;
 
   const results = useMemo(() => canCalc ? calcAllScenarios(calcInputs, scenarios) : null, [canCalc, calcInputs, scenarios]);
@@ -304,6 +312,8 @@ function App() {
               avgCostUSD={avgCostUSD}
               brokerFeeUSD={brokerFeeUSD}
               dividendYieldPercent={dividendYieldPercent}
+              etfAnnualReturnPercent={etfAnnualReturnPercent}
+              etfTerPercent={etfTerPercent}
               initialBondPresetId={bondPresetId}
               collapsed
               onToggleCollapse={() => setInputCollapsed(false)}
@@ -319,6 +329,8 @@ function App() {
               onAvgCostUSDChange={setAvgCostUSD}
               onBrokerFeeUSDChange={setBrokerFeeUSD}
               onDividendYieldChange={setDividendYieldPercent}
+              onEtfAnnualReturnChange={setEtfAnnualReturnPercent}
+              onEtfTerChange={setEtfTerPercent}
               onInflationRateChange={setInflationRate}
               onNbpRefRateChange={setNbpRefRate}
             />
@@ -363,6 +375,8 @@ function App() {
                 avgCostUSD={avgCostUSD}
                 brokerFeeUSD={brokerFeeUSD}
                 dividendYieldPercent={dividendYieldPercent}
+                etfAnnualReturnPercent={etfAnnualReturnPercent}
+                etfTerPercent={etfTerPercent}
                 initialBondPresetId={bondPresetId}
                 onToggleCollapse={results ? () => setInputCollapsed(true) : undefined}
                 onTickerChange={setTicker}
@@ -377,6 +391,8 @@ function App() {
                 onAvgCostUSDChange={setAvgCostUSD}
                 onBrokerFeeUSDChange={setBrokerFeeUSD}
                 onDividendYieldChange={setDividendYieldPercent}
+                onEtfAnnualReturnChange={setEtfAnnualReturnPercent}
+                onEtfTerChange={setEtfTerPercent}
                 onInflationRateChange={setInflationRate}
                 onNbpRefRateChange={setNbpRefRate}
               />
