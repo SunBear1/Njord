@@ -392,9 +392,9 @@ export function InputPanel({
       {/* FX Rate */}
       <div className="space-y-1">
         <label htmlFor="fx-rate" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-          Ile PLN za 1 USD <span className="text-red-500">*</span>
+          Kurs sprzedaży USD <span className="text-red-500">*</span>
           {fxData && !fxLoading && (
-            <Tooltip content={`Kurs kupna z Alior Kantor — tyle dostaniesz sprzedając dolary. Podatek Belki po kursie NBP (${fmtNum(fxData.currentRate)} PLN/USD).`} />
+            <Tooltip content={`Kurs sprzedaży z Alior Kantor — tyle dostaniesz sprzedając dolary. Podatek Belki po kursie NBP (${fmtNum(fxData.currentRate)} PLN/USD).`} />
           )}
           {fxLoading && <span className="ml-1 text-xs text-gray-400 inline-flex items-center gap-1"><Loader2 size={11} className="animate-spin" />ładowanie…</span>}
         </label>
