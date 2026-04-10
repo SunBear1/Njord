@@ -3,11 +3,10 @@ import type { HistoricalPrice } from '../types/asset';
 import type { FxRate } from '../providers/nbpProvider';
 import type { Scenarios } from '../types/scenario';
 import type { RegimeInfo } from '../utils/hmm';
-import type { ModelResults, PredictionResult, Percentiles } from '../utils/models/types';
+import type { ModelResults, PredictionResult } from '../utils/models/types';
 import { bootstrapPredict } from '../utils/models/bootstrap';
-import { garchPredict } from '../utils/models/garch';
+import { gbmPredict, clampScenario } from '../utils/models/gbmModel';
 import { hmmPredict } from '../utils/models/hmmModel';
-import { selectBestModel } from '../utils/models/modelSelector';
 import { useDebouncedValue } from './useDebouncedValue';
 
 export interface VolatilityStats {
@@ -83,44 +82,21 @@ function dataSeed(prices: number[]): number {
 /**
  * Convert a PredictionResult's percentiles into Scenarios with FX correlation.
  *
- * Uses p25/p75 (IQR) for bear/bull instead of p5/p95 (extreme tails).
- * p50 (median) becomes the base scenario so model predictions are actually used.
- * Hard clamps prevent absurd outputs for volatile stocks or long horizons.
+ * Uses p25/p75 for bear/bull (inter-quartile range — more stable than p5/p95).
+ * p50 (median) becomes the base scenario.
+ * All values clamped through the GBM sanity bounds.
  */
-const MAX_SCENARIO_UP = 300;   // max +300% (4× price)
-const MAX_SCENARIO_DOWN = -90; // max -90%
-
-function clampDelta(v: number): number {
-  return Math.max(MAX_SCENARIO_DOWN, Math.min(MAX_SCENARIO_UP, v));
-}
-
-function toScenarios(pred: PredictionResult, rho: number, fxMagPct: number): Scenarios {
+function toScenarios(pred: PredictionResult, rho: number, fxMagPct: number, horizonYears: number): Scenarios {
   const [, p25, p50, p75] = pred.percentiles;
   return {
-    bear:  { deltaStock: clampDelta(p25), deltaFx: clampDelta(-rho * fxMagPct) },
-    base:  { deltaStock: clampDelta(p50), deltaFx: 0 },
-    bull:  { deltaStock: clampDelta(p75), deltaFx: clampDelta(+rho * fxMagPct) },
+    bear:  { deltaStock: clampScenario(p25, horizonYears), deltaFx: clampScenario(-rho * fxMagPct, horizonYears) },
+    base:  { deltaStock: clampScenario(p50, horizonYears), deltaFx: 0 },
+    bull:  { deltaStock: clampScenario(p75, horizonYears), deltaFx: clampScenario(+rho * fxMagPct, horizonYears) },
   };
 }
 
-/** Max trading days for model simulation — beyond this, extrapolate with √T scaling */
-const MAX_MODEL_DAYS = 504;
-
-/** Scale model percentiles from modelDays to targetDays using mean+volatility decomposition.
- *  Clamps the output to prevent absurd extrapolations at very long horizons. */
-function scalePercentiles(pcts: Percentiles, modelDays: number, targetDays: number): Percentiles {
-  const timeRatio = targetDays / modelDays;
-  const sqrtRatio = Math.sqrt(timeRatio);
-  const logR = pcts.map(p => Math.log(Math.max(1e-10, 1 + p / 100)));
-  const medianLog = logR[2]; // p50
-  return logR.map(lr => {
-    const deviation = lr - medianLog;
-    const scaled = medianLog * timeRatio + deviation * sqrtRatio;
-    // Clamp log-return to prevent exp() overflow: ±ln(5) ≈ 1.6 → max ~400%
-    const clamped = Math.max(-3, Math.min(Math.log(5), scaled));
-    return (Math.exp(clamped) - 1) * 100;
-  }) as unknown as Percentiles;
-}
+/** Threshold: horizons ≤ this use bootstrap as primary, longer use GBM */
+const BOOTSTRAP_HORIZON_MONTHS = 6;
 
 export function useHistoricalVolatility(
   stockHistory: HistoricalPrice[] | null,
@@ -154,9 +130,10 @@ export function useHistoricalVolatility(
     return { stockSigmaAnnual, fxSigmaAnnual, rho, stockMeanAnnual, stockLogRet, seed };
   }, [stockHistory, fxHistory]);
 
-  // Phase 2: Heavy model computation — deferred to avoid blocking UI during slider drag.
-  // Uses setTimeout(0) to yield the main thread between the React render and the computation,
-  // keeping the slider responsive while models recompute.
+  // Phase 2: Model computation — tiered approach:
+  //   ≤ 6 months: Bootstrap (primary) + GBM (secondary)
+  //   > 6 months: GBM (primary) + Bootstrap (secondary for reference)
+  //   HMM: regime detection only, not used for scenario generation
   const [modelResult, setModelResult] = useState<{
     modelResults: ModelResults;
     modelScenarios: Record<string, Scenarios>;
@@ -177,42 +154,54 @@ export function useHistoricalVolatility(
 
     const timer = setTimeout(() => {
       const { rho, stockLogRet, seed } = baseStats;
-      const T = debouncedHorizon / 12;
+      const T = debouncedHorizon / 12; // horizon in years
       const fxSigma = baseStats.fxSigmaAnnual / 100;
-      const rawHorizonDays = Math.round(debouncedHorizon * 21);
-      const modelDays = Math.min(rawHorizonDays, MAX_MODEL_DAYS);
+      const dataYears = stockLogRet.length / 252;
 
+      // FX magnitude for scenario correlation
       const fxMagPct = (Math.exp(1.645 * fxSigma * Math.sqrt(T) + (-(fxSigma * fxSigma) / 2) * T) - 1) * 100;
 
-      const bootstrapResult = bootstrapPredict(stockLogRet, modelDays, seed);
-      const garchResult = garchPredict(stockLogRet, modelDays, seed + 10);
-      const hmmResult = hmmPredict(stockLogRet, modelDays, seed);
+      // ── Model 1: GBM (closed-form, works for all horizons) ────────────
+      const gbmResult = gbmPredict(
+        baseStats.stockSigmaAnnual / 100,
+        baseStats.stockMeanAnnual / 100,
+        dataYears,
+        T,
+      );
 
-      const allPredictions = [bootstrapResult, garchResult, hmmResult.prediction];
-      const scoring = selectBestModel(stockLogRet, modelDays, seed, allPredictions);
+      // ── Model 2: Bootstrap (Monte Carlo, best for short horizons) ─────
+      const bootstrapHorizonDays = Math.min(Math.round(debouncedHorizon * 21), 504);
+      const bootstrapResult = bootstrapPredict(stockLogRet, bootstrapHorizonDays, seed);
 
-      // Scale percentiles for horizons beyond MAX_MODEL_DAYS (√T extrapolation with dampened confidence)
-      if (rawHorizonDays > MAX_MODEL_DAYS) {
-        const damp = Math.sqrt(MAX_MODEL_DAYS / rawHorizonDays);
-        for (const pred of scoring.scored) {
-          pred.percentiles = scalePercentiles(pred.percentiles, modelDays, rawHorizonDays);
-          pred.confidence *= damp;
-        }
-      }
+      // ── Model 3: HMM (regime detection only — info display) ───────────
+      const hmmResult = hmmPredict(stockLogRet, bootstrapHorizonDays, seed);
+      // Reduce HMM confidence to signal it's informational only
+      hmmResult.prediction.confidence = Math.min(hmmResult.prediction.confidence * 0.3, 0.25);
+      hmmResult.prediction.description += ' [Informacyjny — zbyt mało danych dla wiarygodnych scenariuszy]';
 
-      const recommended = scoring.scored[scoring.recommendedIndex];
-      const modelResults: ModelResults = { models: scoring.scored, recommended, scoring };
+      // ── Tiered selection ───────────────────────────────────────────────
+      const allPredictions = [gbmResult, bootstrapResult, hmmResult.prediction];
+      const useBootstrapPrimary = debouncedHorizon <= BOOTSTRAP_HORIZON_MONTHS;
+      const recommendedIndex = useBootstrapPrimary ? 1 : 0;
+      const recommended = allPredictions[recommendedIndex];
 
+      const scoring = {
+        scored: allPredictions,
+        recommendedIndex,
+        bestCoverage: 0,
+      };
+
+      const modelResults: ModelResults = { models: allPredictions, recommended, scoring };
+
+      // Build per-model scenarios for tab switching
       const modelScenarios: Record<string, Scenarios> = {};
-      for (const pred of scoring.scored) {
+      for (const pred of allPredictions) {
         if (pred.confidence > 0) {
-          modelScenarios[pred.id] = toScenarios(pred, rho, fxMagPct);
+          modelScenarios[pred.id] = toScenarios(pred, rho, fxMagPct, T);
         }
       }
 
-      const suggestedScenarios = recommended.confidence > 0
-        ? toScenarios(recommended, rho, fxMagPct)
-        : toScenarios(scoring.scored[0], rho, fxMagPct);
+      const suggestedScenarios = toScenarios(recommended, rho, fxMagPct, T);
 
       setModelResult({ modelResults, modelScenarios, suggestedScenarios, regime: hmmResult.regime });
       setComputing(false);

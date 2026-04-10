@@ -296,7 +296,7 @@ export function ScenarioEditor({
                       {isRecommended && (
                         <>
                           <br />
-                          <span className="text-amber-200">Wybrany automatycznie jako najlepiej dopasowany do danych.</span>
+                          <span className="text-amber-200">Najlepszy model dla wybranego horyzontu inwestycyjnego.</span>
                         </>
                       )}
                     </span>
@@ -326,11 +326,11 @@ export function ScenarioEditor({
               width="w-72"
               content={
                 <span>
-                  Aplikacja uruchamia 3 modele predykcyjne i automatycznie wybiera najlepszy:<br /><br />
-                  <strong>Bootstrap</strong> — losuje bloki historycznych zwrotów, zero założeń<br />
-                  <strong>GARCH</strong> — modeluje zmienną zmienność (vol clustering)<br />
-                  <strong>HMM</strong> — rozpoznaje fazy rynku (bull/bear)<br /><br />
-                  {'\u2605'} = model z najlepszym dopasowaniem do danych (coverage najbliższy 90%)
+                  Scenariusze generowane przez kalibrowane modele predykcyjne:<br /><br />
+                  <strong>GBM</strong> — geometryczny ruch Browna z rozkładem Studenta; drift wyrównany do długoterminowej premii rynkowej<br />
+                  <strong>Bootstrap</strong> — losuje bloki historycznych zwrotów, zero założeń o rozkładzie<br />
+                  <strong>HMM</strong> — informacyjny wykrywacz reżimu rynkowego (bull/bear)<br /><br />
+                  {'\u2605'} = rekomendowany model dla danego horyzontu
                 </span>
               }
             >

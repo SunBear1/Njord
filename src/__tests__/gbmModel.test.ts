@@ -1,21 +1,14 @@
 /**
- * GBM model unit tests — TDD tests written BEFORE the model exists.
- * These define the expected behavior of the new calibrated GBM model.
+ * GBM model unit tests — TDD tests for the calibrated GBM model.
+ * Tests the actual gbmModel module functions.
  */
 import { describe, it, expect } from 'vitest';
-
-// The module we're testing — doesn't exist yet, will be created in Phase 1
-// import { gbmPredict, shrinkDrift, dampVolatility } from '../utils/models/gbmModel';
-
-/**
- * Placeholder implementations that will be replaced by the real module.
- * These exist so the tests compile and can verify the interface.
- */
+import { gbmPredict, shrinkDrift, dampVolatility, clampScenario } from '../utils/models/gbmModel';
 
 // Student-t quantile for ν=5 at p=0.95 (two-sided)
 const STUDENT_T_Q95_NU5 = 2.015;
 
-/** Closed-form GBM percentile: exp((μ-σ²/2)·T + σ·√T·z) - 1 */
+/** Closed-form GBM percentile (raw, for reference calculations) */
 function analyticalGBM(mu: number, sigma: number, T: number, z: number): number {
   return (Math.exp((mu - 0.5 * sigma * sigma) * T + sigma * Math.sqrt(T) * z) - 1) * 100;
 }
@@ -133,66 +126,110 @@ describe('GBM model — mathematical correctness', () => {
   });
 });
 
-describe('Drift shrinkage', () => {
+describe('Drift shrinkage (real shrinkDrift function)', () => {
   it('w=0 (no data) returns prior', () => {
-    const prior = 0.08;
-    const historical = 2.0; // 200% historical return
-    const w = 0;
-    const shrunk = w * historical + (1 - w) * prior;
-    expect(shrunk).toBeCloseTo(prior, 5);
+    const shrunk = shrinkDrift(2.0, 0); // 200% historical, 0 years
+    expect(shrunk).toBeCloseTo(0.08, 5);
   });
 
   it('w=1 (10+ years data) returns historical', () => {
-    const prior = 0.08;
-    const historical = 0.12;
-    const w = 1;
-    const shrunk = w * historical + (1 - w) * prior;
-    expect(shrunk).toBeCloseTo(historical, 5);
+    const shrunk = shrinkDrift(0.12, 10);
+    expect(shrunk).toBeCloseTo(0.12, 5);
   });
 
   it('w=0.1 (1 year data) mostly returns prior', () => {
-    const prior = 0.08;
-    const historical = 2.0; // extreme
-    const w = 0.1;
-    const shrunk = w * historical + (1 - w) * prior;
-    // 0.1 * 2.0 + 0.9 * 0.08 = 0.20 + 0.072 = 0.272 (27.2%)
+    const shrunk = shrinkDrift(2.0, 1);
     expect(shrunk).toBeCloseTo(0.272, 3);
-    // Much more reasonable than 200%!
     expect(shrunk).toBeLessThan(0.5);
   });
 
-  it('shrinkage weight formula: w = min(1, dataYears / 10)', () => {
-    expect(Math.min(1, 0.5 / 10)).toBeCloseTo(0.05, 5); // 6 months
-    expect(Math.min(1, 1 / 10)).toBeCloseTo(0.1, 5); // 1 year
-    expect(Math.min(1, 5 / 10)).toBeCloseTo(0.5, 5); // 5 years
-    expect(Math.min(1, 10 / 10)).toBeCloseTo(1.0, 5); // 10 years
-    expect(Math.min(1, 20 / 10)).toBeCloseTo(1.0, 5); // 20 years (capped)
+  it('caps at w=1 for more than 10 years', () => {
+    const shrunk = shrinkDrift(0.15, 20);
+    expect(shrunk).toBeCloseTo(0.15, 5);
   });
 });
 
-describe('Damped volatility', () => {
+describe('Damped volatility (real dampVolatility function)', () => {
   it('no damping for T ≤ 2 years', () => {
     const sigma = 0.30;
-    // dampFactor(T) = 1.0 for T ≤ 2
     for (const T of [0.25, 0.5, 1, 1.5, 2]) {
-      const dampFactor = T <= 2 ? 1.0 : 1.0 - 0.015 * (T - 2);
-      expect(sigma * dampFactor).toBeCloseTo(sigma, 5);
+      expect(dampVolatility(sigma, T)).toBeCloseTo(sigma, 5);
     }
   });
 
   it('damping reduces σ for long horizons', () => {
     const sigma = 0.30;
-    const T = 12; // 12 years
-    // dampFactor at T=12: approximately 0.85
-    const dampFactor = Math.max(0.75, 1.0 - 0.015 * (T - 2));
-    expect(dampFactor).toBeGreaterThan(0.75);
-    expect(dampFactor).toBeLessThan(1.0);
-    expect(sigma * dampFactor).toBeLessThan(sigma);
+    const damped = dampVolatility(sigma, 12);
+    expect(damped).toBeLessThan(sigma);
+    expect(damped).toBeGreaterThan(sigma * 0.75);
   });
 
   it('dampFactor never goes below 0.75', () => {
-    const T = 50; // extreme
-    const dampFactor = Math.max(0.75, 1.0 - 0.015 * (T - 2));
-    expect(dampFactor).toBeCloseTo(0.75, 5);
+    const sigma = 0.30;
+    const damped = dampVolatility(sigma, 50);
+    expect(damped).toBeCloseTo(sigma * 0.75, 5);
+  });
+});
+
+describe('Sanity bounds (real clampScenario function)', () => {
+  it('clamps extreme bull to annual max', () => {
+    const clamped = clampScenario(500, 1); // 500% in 1yr → way over 100% annual cap
+    expect(clamped).toBeLessThanOrEqual(100);
+  });
+
+  it('clamps extreme bear to floor', () => {
+    const clamped = clampScenario(-99, 1);
+    expect(clamped).toBeGreaterThanOrEqual(-95);
+  });
+
+  it('passes through reasonable values', () => {
+    const clamped = clampScenario(30, 1);
+    expect(clamped).toBeCloseTo(30, 1);
+  });
+
+  it('allows large multi-year returns within annual bounds', () => {
+    // 100% annual for 10yr = (1+1)^10 - 1 = 1023x → clamped to 1000%
+    const clamped = clampScenario(500, 10);
+    expect(clamped).toBeLessThanOrEqual(1000);
+    expect(clamped).toBeGreaterThan(100); // multi-year can exceed 100%
+  });
+});
+
+describe('gbmPredict integration', () => {
+  it('produces valid PredictionResult for NVDA-like stock', () => {
+    const result = gbmPredict(0.50, 1.5, 1, 1); // σ=50%, μ_hist=150% (extreme), 1yr data, 1yr horizon
+    expect(result.id).toBe('gbm');
+    expect(result.confidence).toBeGreaterThan(0);
+
+    const [p5, p25, p50, p75, p95] = result.percentiles;
+    // Monotonicity
+    expect(p5).toBeLessThanOrEqual(p25);
+    expect(p25).toBeLessThanOrEqual(p50);
+    expect(p50).toBeLessThanOrEqual(p75);
+    expect(p75).toBeLessThanOrEqual(p95);
+
+    // Because of drift shrinkage (1yr → w=0.1), drift should be ~23%, not 150%
+    // bull should be reasonable, not $1000 NVDA
+    expect(p95).toBeLessThanOrEqual(100); // annual cap
+    expect(p5).toBeGreaterThanOrEqual(-80); // annual floor
+  });
+
+  it('produces zero-change for T=0', () => {
+    const result = gbmPredict(0.30, 0.10, 1, 0);
+    expect(result.confidence).toBe(0); // invalid input
+  });
+
+  it('SPY-like stock produces tight range', () => {
+    const result = gbmPredict(0.15, 0.10, 1, 1); // σ=15%, μ=10%, 1yr, 1yr
+    const [p5, , , , p95] = result.percentiles;
+    expect(p5).toBeGreaterThan(-40);
+    expect(p95).toBeLessThan(60);
+  });
+
+  it('12-year horizon with high vol stays bounded', () => {
+    const result = gbmPredict(0.50, 2.0, 1, 12); // σ=50%, extreme μ, 1yr data, 12yr horizon
+    const [p5, , , , p95] = result.percentiles;
+    expect(p95).toBeLessThanOrEqual(1000);
+    expect(p5).toBeGreaterThanOrEqual(-95);
   });
 });
