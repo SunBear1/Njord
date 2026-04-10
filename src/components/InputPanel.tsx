@@ -109,6 +109,9 @@ export function InputPanel({
   const [showValueCalc, setShowValueCalc] = useState(false);
   const [totalValueStr, setTotalValueStr] = useState('');
   const [selectedBondId, setSelectedBondId] = useState(initialBondPresetId ?? BOND_PRESETS[0].id);
+  const [showAdvanced, setShowAdvanced] = useState(
+    () => (avgCostUSD > 0 || brokerFeeUSD > 0 || dividendYieldPercent > 0),
+  );
 
   const handleSelectBondPreset = (id: string, preset: BondPreset) => {
     setSelectedBondId(id);
@@ -411,6 +414,29 @@ export function InputPanel({
         />
       </div>
 
+      {/* Advanced settings (collapsible) */}
+      <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+          aria-expanded={showAdvanced}
+        >
+          <span className="flex items-center gap-1.5">
+            Ustawienia zaawansowane
+            {(avgCostUSD > 0 || brokerFeeUSD > 0 || dividendYieldPercent > 0) && (
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+            )}
+          </span>
+          <ChevronDown size={14} className={`transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} aria-hidden="true" />
+        </button>
+        <div
+          className="grid transition-[grid-template-rows] duration-300 ease-in-out"
+          style={{ gridTemplateRows: showAdvanced ? '1fr' : '0fr' }}
+        >
+          <div className="overflow-hidden min-h-0">
+            <div className="px-3 pb-3 space-y-4">
+
       {/* Average cost (optional) */}
       <div className="space-y-1">
         <label htmlFor="avg-cost-usd" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
@@ -496,6 +522,11 @@ export function InputPanel({
             {' '}przez {horizonMonths} mies.
           </p>
         )}
+      </div>
+
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* FX Rate */}
