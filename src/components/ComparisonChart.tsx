@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   BarChart,
   Bar,
@@ -9,20 +10,17 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import type { ValueType } from 'recharts/types/component/DefaultTooltipContent';
 import type { ScenarioResult } from '../types/scenario';
-import { fmtPLN } from '../utils/formatting';
+import { fmtTooltipPLN } from '../utils/formatting';
 
 interface ComparisonChartProps {
   results: ScenarioResult[];
 }
 
-const fmtTooltip = (value: ValueType | undefined) => fmtPLN(Number(value ?? 0));
-
 export function ComparisonChart({ results }: ComparisonChartProps) {
   const bmLabel = results[0]?.benchmarkLabel ?? 'Konto';
 
-  const data = [
+  const data = useMemo(() => [
     {
       name: 'Bear',
       'Akcje (netto)': Math.round(results[0]?.stockNetEndValuePLN ?? 0),
@@ -38,7 +36,7 @@ export function ComparisonChart({ results }: ComparisonChartProps) {
       'Akcje (netto)': Math.round(results[2]?.stockNetEndValuePLN ?? 0),
       [`${bmLabel} (netto)`]: Math.round(results[2]?.benchmarkEndValuePLN ?? 0),
     },
-  ];
+  ], [results, bmLabel]);
 
   const bmKey = `${bmLabel} (netto)`;
   const currentValue = results[0]?.currentValuePLN ?? 0;
@@ -51,7 +49,7 @@ export function ComparisonChart({ results }: ComparisonChartProps) {
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis dataKey="name" tick={{ fontSize: 13 }} />
           <YAxis tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 12 }} />
-          <Tooltip formatter={fmtTooltip} />
+          <Tooltip formatter={fmtTooltipPLN} />
           <Legend />
           <ReferenceLine y={currentValue} stroke="#94a3b8" strokeDasharray="5 5" label={{ value: 'Wartość dziś', fontSize: 11, fill: '#94a3b8' }} />
           <Bar dataKey="Akcje (netto)" fill="#3b82f6" radius={[4, 4, 0, 0]} />

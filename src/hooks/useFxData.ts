@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { fetchFxData } from '../providers/nbpProvider';
 import type { FxData } from '../providers/nbpProvider';
 
@@ -8,13 +8,11 @@ interface UseFxDataReturn {
   error: string | null;
 }
 
-export function useFxData(onData?: (data: FxData) => void): UseFxDataReturn {
+export function useFxData(): UseFxDataReturn {
   // isLoading starts true since the effect fires immediately
   const [fxData, setFxData] = useState<FxData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const onDataRef = useRef(onData);
-  useEffect(() => { onDataRef.current = onData; });
 
   useEffect(() => {
     let cancelled = false;
@@ -23,7 +21,6 @@ export function useFxData(onData?: (data: FxData) => void): UseFxDataReturn {
         if (cancelled) return;
         setFxData(data);
         setIsLoading(false);
-        onDataRef.current?.(data);
       })
       .catch((err) => {
         if (cancelled) return;

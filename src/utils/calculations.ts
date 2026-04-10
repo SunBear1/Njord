@@ -46,14 +46,8 @@ function bondGrossValue(principal: number, firstYearRate: number, effectiveRate:
   while (remaining > 0) {
     const rate = (year === 1 ? firstYearRate : effectiveRate) / 100;
     const monthsThisYear = Math.min(remaining, 12);
-
-    if (monthsThisYear === 12) {
-      value *= (1 + rate);
-    } else {
-      // Partial year — simple interest for the remainder
-      value *= (1 + rate * monthsThisYear / 12);
-    }
-
+    // Monthly compounding for both full and partial years
+    value *= Math.pow(1 + rate / 12, monthsThisYear);
     remaining -= monthsThisYear;
     year++;
   }

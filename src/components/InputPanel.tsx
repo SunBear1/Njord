@@ -3,7 +3,7 @@ import { Loader2, AlertCircle, CheckCircle2, RefreshCw, Calculator, ExternalLink
 import type { AssetData } from '../types/asset';
 import type { FxData } from '../providers/nbpProvider';
 import type { InflationData } from '../hooks/useInflationData';
-import type { BenchmarkType, BondPreset, BondRateType } from '../types/scenario';
+import type { BenchmarkType, BondPreset, BondSettings } from '../types/scenario';
 import { BOND_PRESETS, BOND_PRESETS_LAST_UPDATED, BOND_PRESETS_SOURCE_URL } from '../data/bondPresets';
 import { fmtUSD, fmtNum } from '../utils/formatting';
 import { Tooltip } from './Tooltip';
@@ -24,11 +24,8 @@ interface InputPanelProps {
   effectiveSavingsRate: number;
   horizonMonths: number;
   benchmarkType: BenchmarkType;
-  bondFirstYearRate: number;
+  bondSettings: BondSettings;
   bondEffectiveRate: number;
-  bondPenalty: number;
-  bondRateType: BondRateType;
-  bondMargin: number;
   inflationRate: number;
   inflationData: InflationData | null;
   inflationLoading: boolean;
@@ -43,11 +40,7 @@ interface InputPanelProps {
   onWiborChange: (v: number) => void;
   onHorizonChange: (v: number) => void;
   onBenchmarkTypeChange: (v: BenchmarkType) => void;
-  onBondFirstYearRateChange: (v: number) => void;
-  onBondPenaltyChange: (v: number) => void;
-  onBondRateTypeChange: (v: BondRateType) => void;
-  onBondMarginChange: (v: number) => void;
-  onBondCouponFrequencyChange: (v: number) => void;
+  onBondSettingsChange: (s: BondSettings) => void;
   onInflationRateChange: (v: number) => void;
   onNbpRefRateChange: (v: number) => void;
 }
@@ -67,10 +60,8 @@ export function InputPanel({
   effectiveSavingsRate,
   horizonMonths,
   benchmarkType,
-  bondFirstYearRate,
+  bondSettings,
   bondEffectiveRate,
-  bondPenalty,
-  bondMargin,
   inflationRate,
   inflationData,
   inflationLoading,
@@ -84,11 +75,7 @@ export function InputPanel({
   onWiborChange,
   onHorizonChange,
   onBenchmarkTypeChange,
-  onBondFirstYearRateChange,
-  onBondPenaltyChange,
-  onBondRateTypeChange,
-  onBondMarginChange,
-  onBondCouponFrequencyChange,
+  onBondSettingsChange,
   onInflationRateChange,
   onNbpRefRateChange,
 }: InputPanelProps) {
@@ -102,13 +89,15 @@ export function InputPanel({
 
   // Apply bond preset
   const applyBondPreset = (preset: BondPreset) => {
-    onBondFirstYearRateChange(preset.firstYearRate);
-    onBondRateTypeChange(preset.rateType);
-    onBondMarginChange(preset.margin);
-    onBondCouponFrequencyChange(preset.couponFrequency);
     const earlyExit = horizonMonths < preset.maturityMonths;
     const penalty = earlyExit && preset.earlyRedemptionAllowed ? preset.earlyRedemptionPenalty : 0;
-    onBondPenaltyChange(penalty);
+    onBondSettingsChange({
+      firstYearRate: preset.firstYearRate,
+      rateType: preset.rateType,
+      margin: preset.margin,
+      couponFrequency: preset.couponFrequency,
+      penalty,
+    });
   };
 
   // Re-evaluate penalty whenever horizon changes
@@ -118,7 +107,7 @@ export function InputPanel({
     if (!preset) return;
     const earlyExit = horizonMonths < preset.maturityMonths;
     const penalty = earlyExit && preset.earlyRedemptionAllowed ? preset.earlyRedemptionPenalty : 0;
-    onBondPenaltyChange(penalty);
+    onBondSettingsChange({ ...bondSettings, penalty });
   }, [horizonMonths, selectedBondId, benchmarkType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-fetch with 800ms debounce, requires ticker + API key
@@ -161,7 +150,7 @@ export function InputPanel({
 
   const bmSummary = benchmarkType === 'savings'
     ? `Konto ${wibor3m > 0 ? wibor3m.toFixed(1) + '%' : '—'}`
-    : `Obligacje ${bondFirstYearRate.toFixed(1)}%`;
+    : `Obligacje ${bondSettings.firstYearRate.toFixed(1)}%`;
 
   /* ────── Animated layout: both summary + form always in DOM ────── */
   return (
@@ -533,14 +522,14 @@ export function InputPanel({
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-2 text-xs">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Oprocentowanie 1. roku:</span>
-                    <span className="font-semibold text-gray-900">{bondFirstYearRate.toFixed(2)}%</span>
+                    <span className="font-semibold text-gray-900">{bondSettings.firstYearRate.toFixed(2)}%</span>
                   </div>
 
                   {preset.rateType === 'inflation' && (
                     <>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Marża:</span>
-                        <span className="font-medium">{bondMargin.toFixed(2)}%</span>
+                        <span className="font-medium">{bondSettings.margin.toFixed(2)}%</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600 flex items-center gap-1">
@@ -575,7 +564,7 @@ export function InputPanel({
                     <>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Marża:</span>
-                        <span className="font-medium">{bondMargin.toFixed(2)}%</span>
+                        <span className="font-medium">{bondSettings.margin.toFixed(2)}%</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600 flex items-center gap-1">
@@ -631,9 +620,9 @@ export function InputPanel({
                       min={0}
                       max={10}
                       step={0.01}
-                      value={bondPenalty}
+                      value={bondSettings.penalty}
                       onChange={(e) => {
-                        onBondPenaltyChange(parseFloat(e.target.value) || 0);
+                        onBondSettingsChange({ ...bondSettings, penalty: parseFloat(e.target.value) || 0 });
                       }}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />

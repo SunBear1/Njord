@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 export interface InflationData {
   currentRate: number;  // latest monthly YoY % (e.g. 2.5)
@@ -43,12 +43,10 @@ function isStaleData(period: string): boolean {
   return dataDate < sixMonthsAgo;
 }
 
-export function useInflationData(onData?: (d: InflationData) => void) {
+export function useInflationData() {
   const [data, setData] = useState<InflationData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const callbackRef = useRef(onData);
-  callbackRef.current = onData;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -73,7 +71,6 @@ export function useInflationData(onData?: (d: InflationData) => void) {
           isStale: isStaleData(parsed.period),
         };
         setData(result);
-        callbackRef.current?.(result);
       } catch (err) {
         if (cancelled) return;
 
@@ -85,7 +82,6 @@ export function useInflationData(onData?: (d: InflationData) => void) {
         };
         setData(fallback);
         setError(err instanceof Error ? err.message : 'Błąd pobierania HICP');
-        callbackRef.current?.(fallback);
       } finally {
         if (!cancelled) setIsLoading(false);
       }

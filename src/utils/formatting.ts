@@ -17,3 +17,6 @@ export const fmtDiffPct = (v: number): string => {
   const sign = v >= 0 ? '+' : '';
   return `${sign}${v.toFixed(2)}%`;
 };
+
+/** Recharts tooltip formatter — formats value as PLN currency. */
+export const fmtTooltipPLN = (value: unknown) => fmtPLN(Number(value ?? 0));

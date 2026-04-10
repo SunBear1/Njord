@@ -22,7 +22,7 @@ import {
 } from './utils/calculations';
 import { blendedInflationRate, blendedSavingsRate } from './utils/inflationProjection';
 import { DEFAULT_HORIZON_MONTHS } from './utils/assetConfig';
-import type { Scenarios, ScenarioKey, BenchmarkType, BondRateType } from './types/scenario';
+import type { Scenarios, ScenarioKey, BenchmarkType, BondSettings } from './types/scenario';
 
 const SellAnalysisPanel = lazy(() => import('./components/SellAnalysisPanel').then(m => ({ default: m.SellAnalysisPanel })));
 
@@ -42,11 +42,13 @@ function App() {
   const [currentFxRate, setCurrentFxRate] = useState(0);
   const [wibor3m, setWibor3m] = useState(0);
   const [benchmarkType, setBenchmarkType] = useState<BenchmarkType>('savings');
-  const [bondFirstYearRate, setBondFirstYearRate] = useState(2.00);
-  const [bondPenalty, setBondPenalty] = useState(0);
-  const [bondRateType, setBondRateType] = useState<BondRateType>('fixed');
-  const [bondMargin, setBondMargin] = useState(0);
-  const [bondCouponFrequency, setBondCouponFrequency] = useState(0);
+  const [bondSettings, setBondSettings] = useState<BondSettings>({
+    firstYearRate: 2.00,
+    penalty: 0,
+    rateType: 'fixed',
+    margin: 0,
+    couponFrequency: 0,
+  });
   const [inflationRate, setInflationRate] = useState(0);
   const [nbpRefRate, setNbpRefRate] = useState(0);
   const [horizonMonths, setHorizonMonths] = useState(DEFAULT_HORIZON_MONTHS);
@@ -58,18 +60,8 @@ function App() {
   const inflationAutoFilled = useRef(false);
 
   const { assetData, proxyFxData, isLoading: assetLoading, error: assetError, fetchData: fetchAsset } = useAssetData();
-  const { fxData, isLoading: fxLoading } = useFxData((data) => {
-    if (!fxAutoFilled.current) {
-      fxAutoFilled.current = true;
-      setCurrentFxRate(data.currentRate);
-    }
-  });
-  const { data: inflationData, isLoading: inflationLoading } = useInflationData((d) => {
-    if (!inflationAutoFilled.current) {
-      inflationAutoFilled.current = true;
-      setInflationRate(d.currentRate);
-    }
-  });
+  const { fxData, isLoading: fxLoading } = useFxData();
+  const { data: inflationData, isLoading: inflationLoading } = useInflationData();
   const { suggestedScenarios, stats: volatilityStats } = useHistoricalVolatility(
     assetData?.historicalPrices ?? null,
     proxyFxData?.historicalRates ?? fxData?.historicalRates ?? null,
@@ -86,6 +78,24 @@ function App() {
       setCurrentFxRate(kantorRates.alior.buy);
     }
   }, [kantorRates.alior]);
+
+  // Secondary FX source: NBP rate (fallback if Alior Kantor not yet available)
+  useEffect(() => {
+    if (fxData?.currentRate && !fxAutoFilled.current) {
+      fxAutoFilled.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from async data source
+      setCurrentFxRate(fxData.currentRate);
+    }
+  }, [fxData?.currentRate]);
+
+  // Auto-fill inflation from ECB/NBP data
+  useEffect(() => {
+    if (inflationData?.currentRate && !inflationAutoFilled.current) {
+      inflationAutoFilled.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from async data source
+      setInflationRate(inflationData.currentRate);
+    }
+  }, [inflationData?.currentRate]);
 
   const fetchData = useCallback(async (tickerArg: string) => {
     // Reset scenarios so HMM suggestions auto-apply for the new ticker
@@ -167,11 +177,11 @@ function App() {
   // Compute effective bond rate based on type + external data.
   // Inflation-linked bonds use the blended projected rate (not the raw current reading)
   // to stay consistent with how real returns are calculated.
-  const computedEffectiveRate = bondRateType === 'fixed'
-    ? bondFirstYearRate
-    : bondRateType === 'reference'
-      ? nbpRefRate + bondMargin
-      : effectiveInflation + bondMargin;
+  const computedEffectiveRate = bondSettings.rateType === 'fixed'
+    ? bondSettings.firstYearRate
+    : bondSettings.rateType === 'reference'
+      ? nbpRefRate + bondSettings.margin
+      : effectiveInflation + bondSettings.margin;
 
   const calcInputs = useMemo(() => ({
     shares,
@@ -181,15 +191,15 @@ function App() {
     wibor3mPercent: benchmarkType === 'savings' ? effectiveSavingsRate : wibor3m,
     horizonMonths: deferredHorizon,
     benchmarkType,
-    bondFirstYearRate,
+    bondFirstYearRate: bondSettings.firstYearRate,
     bondEffectiveRate: computedEffectiveRate,
-    bondPenaltyPercent: bondPenalty,
-    bondCouponFrequency,
+    bondPenaltyPercent: bondSettings.penalty,
+    bondCouponFrequency: bondSettings.couponFrequency,
     bondReinvestmentRate: effectiveSavingsRate,
     inflationRate: effectiveInflation,
-  }), [shares, currentPriceUSD, currentFxRate, fxData, wibor3m, deferredHorizon, benchmarkType, bondFirstYearRate, computedEffectiveRate, bondPenalty, bondCouponFrequency, effectiveInflation, effectiveSavingsRate]);
+  }), [shares, currentPriceUSD, currentFxRate, fxData, wibor3m, deferredHorizon, benchmarkType, bondSettings, computedEffectiveRate, effectiveInflation, effectiveSavingsRate]);
 
-  const benchmarkReady = benchmarkType === 'savings' ? wibor3m > 0 : bondFirstYearRate > 0;
+  const benchmarkReady = benchmarkType === 'savings' ? wibor3m > 0 : bondSettings.firstYearRate > 0;
   const canCalc = shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && horizonMonths > 0 && benchmarkReady;
 
   const results = useMemo(() => canCalc ? calcAllScenarios(calcInputs, scenarios) : null, [canCalc, calcInputs, scenarios]);
@@ -264,11 +274,8 @@ function App() {
               effectiveSavingsRate={effectiveSavingsRate}
               horizonMonths={horizonMonths}
               benchmarkType={benchmarkType}
-              bondFirstYearRate={bondFirstYearRate}
+              bondSettings={bondSettings}
               bondEffectiveRate={computedEffectiveRate}
-              bondPenalty={bondPenalty}
-              bondRateType={bondRateType}
-              bondMargin={bondMargin}
               inflationRate={inflationRate}
               inflationData={inflationData}
               inflationLoading={inflationLoading}
@@ -282,11 +289,7 @@ function App() {
               onWiborChange={setWibor3m}
               onHorizonChange={setHorizonMonths}
               onBenchmarkTypeChange={handleBenchmarkTypeChange}
-              onBondFirstYearRateChange={setBondFirstYearRate}
-              onBondPenaltyChange={setBondPenalty}
-              onBondRateTypeChange={setBondRateType}
-              onBondMarginChange={setBondMargin}
-              onBondCouponFrequencyChange={setBondCouponFrequency}
+              onBondSettingsChange={setBondSettings}
               onInflationRateChange={setInflationRate}
               onNbpRefRateChange={setNbpRefRate}
             />
@@ -322,11 +325,8 @@ function App() {
                 effectiveSavingsRate={effectiveSavingsRate}
                 horizonMonths={horizonMonths}
                 benchmarkType={benchmarkType}
-                bondFirstYearRate={bondFirstYearRate}
+                bondSettings={bondSettings}
                 bondEffectiveRate={computedEffectiveRate}
-                bondPenalty={bondPenalty}
-                bondRateType={bondRateType}
-                bondMargin={bondMargin}
                 inflationRate={inflationRate}
                 inflationData={inflationData}
                 inflationLoading={inflationLoading}
@@ -339,11 +339,7 @@ function App() {
                 onWiborChange={setWibor3m}
                 onHorizonChange={setHorizonMonths}
                 onBenchmarkTypeChange={handleBenchmarkTypeChange}
-                onBondFirstYearRateChange={setBondFirstYearRate}
-                onBondPenaltyChange={setBondPenalty}
-                onBondRateTypeChange={setBondRateType}
-                onBondMarginChange={setBondMargin}
-                onBondCouponFrequencyChange={setBondCouponFrequency}
+                onBondSettingsChange={setBondSettings}
                 onInflationRateChange={setInflationRate}
                 onNbpRefRateChange={setNbpRefRate}
               />

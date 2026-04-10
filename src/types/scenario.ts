@@ -11,6 +11,14 @@ export type BenchmarkType = 'savings' | 'bonds';
 
 export type BondRateType = 'fixed' | 'reference' | 'inflation';
 
+export interface BondSettings {
+  firstYearRate: number;    // % for first year/period
+  penalty: number;          // early redemption penalty % of principal
+  rateType: BondRateType;
+  margin: number;           // added to base rate for years 2+
+  couponFrequency: number;  // payments/year: 0=capitalized, 1=annual, 12=monthly
+}
+
 export interface BondPreset {
   id: string;
   name: string;

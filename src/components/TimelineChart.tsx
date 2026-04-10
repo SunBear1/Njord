@@ -10,9 +10,8 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import type { ValueType } from 'recharts/types/component/DefaultTooltipContent';
 import type { TimelinePoint } from '../utils/calculations';
-import { fmtPLN } from '../utils/formatting';
+import { fmtTooltipPLN } from '../utils/formatting';
 
 interface TimelineChartProps {
   data: TimelinePoint[];
@@ -20,8 +19,6 @@ interface TimelineChartProps {
   benchmarkLabel: string;
   inflationRate: number;
 }
-
-const fmtTooltip = (value: ValueType | undefined) => fmtPLN(Number(value ?? 0));
 
 export function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate }: TimelineChartProps) {
   const chartData = useMemo(() =>
@@ -53,7 +50,7 @@ export function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflation
           />
           <YAxis tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 12 }} />
           <Tooltip
-            formatter={fmtTooltip}
+            formatter={fmtTooltipPLN}
             labelFormatter={(v) => `Miesiąc ${v}`}
           />
           <Legend />
