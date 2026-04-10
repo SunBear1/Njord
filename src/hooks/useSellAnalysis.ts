@@ -6,7 +6,7 @@ import { runSellAnalysis } from '../utils/sellAnalysis';
 
 const DEBOUNCE_MS = 300;
 
-export interface UseSellAnalysisResult {
+interface UseSellAnalysisResult {
   analysis: SellAnalysisResult | null;
   isLoading: boolean;
 }

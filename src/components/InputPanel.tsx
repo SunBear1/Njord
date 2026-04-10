@@ -353,7 +353,7 @@ export function InputPanel({
                   value={totalValueStr}
                   onChange={(e) => setTotalValueStr(e.target.value)}
                   placeholder="np. 5000.00"
-                  className="w-full border border-blue-200 dark:border-blue-700 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 bg-white"
+                  className="w-full border border-blue-200 dark:border-blue-700 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 bg-white dark:bg-gray-800"
                 />
               </div>
               <button
@@ -728,7 +728,7 @@ export function InputPanel({
                           step={0.1}
                           value={inflationRate || ''}
                           onChange={(e) => onInflationRateChange(parseFloat(e.target.value) || 0)}
-                          className="w-20 border border-gray-300 dark:border-gray-500 rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100"
+                          className="w-20 border border-gray-300 dark:border-gray-500 rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-600 dark:text-gray-100"
                         />
                       </div>
                       <div className="flex justify-between border-t border-gray-200 dark:border-gray-600 pt-1.5">
@@ -765,7 +765,7 @@ export function InputPanel({
                           value={nbpRefRate || ''}
                           onChange={(e) => onNbpRefRateChange(parseFloat(e.target.value) || 0)}
                           placeholder="np. 5.75"
-                          className="w-20 border border-gray-300 dark:border-gray-500 rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100"
+                          className="w-20 border border-gray-300 dark:border-gray-500 rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-600 dark:text-gray-100"
                         />
                       </div>
                       <div className="flex justify-between border-t border-gray-200 dark:border-gray-600 pt-1.5">

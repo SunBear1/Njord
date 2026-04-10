@@ -22,7 +22,7 @@ const INFLATION_TAU = 18;
  * Savings accounts typically offer ~65% of the NBP reference rate.
  * With a long-run neutral NBP rate of ~4-4.5%, equilibrium ≈ 3.0%.
  */
-export const SAVINGS_RATE_EQUILIBRIUM = 3.0;
+const SAVINGS_RATE_EQUILIBRIUM = 3.0;
 
 /** Mean-reversion time constant for savings rates — slower than inflation (τ = 24 months) */
 const SAVINGS_TAU = 24;
@@ -31,7 +31,7 @@ const SAVINGS_TAU = 24;
  * Projected annual inflation rate at month t from now.
  * Uses exponential decay toward NBP target.
  */
-export function projectedRate(currentRate: number, monthsFromNow: number): number {
+function projectedRate(currentRate: number, monthsFromNow: number): number {
   return NBP_TARGET + (currentRate - NBP_TARGET) * Math.exp(-monthsFromNow / INFLATION_TAU);
 }
 
@@ -88,20 +88,4 @@ export function blendedSavingsRate(currentRate: number, horizonMonths: number): 
   // Extract the equivalent constant annual rate (monthly compounding)
   const effectiveMonthlyRate = Math.pow(cumulativeGrowth, 1 / horizonMonths) - 1;
   return effectiveMonthlyRate * 12 * 100;
-}
-
-/**
- * Build a human-readable description of the inflation projection.
- */
-export function inflationProjectionLabel(
-  currentRate: number,
-  horizonMonths: number,
-  blended: number,
-): string {
-  const years = horizonMonths / 12;
-  if (Math.abs(currentRate - NBP_TARGET) < 0.3) {
-    return `${blended.toFixed(1)}% śr. rocznie (≈ cel NBP ${NBP_TARGET}%)`;
-  }
-  const direction = currentRate > NBP_TARGET ? '↘' : '↗';
-  return `${blended.toFixed(1)}% śr. rocznie (${currentRate.toFixed(1)}% ${direction} ${NBP_TARGET}% cel NBP, ${years.toFixed(years % 1 === 0 ? 0 : 1)} l.)`;
 }

@@ -40,6 +40,10 @@
 /* Dark theme — active when <html class="dark"> */
 html.dark {
   color-scheme: dark;
+  --color-brand: #3b82f6;
+  --color-bear: #f87171;
+  --color-base: #fbbf24;
+  --color-bull: #4ade80;
   --color-bg-primary: #0f172a;
   --color-bg-secondary: #1e293b;
   --color-bg-card: #1e293b;

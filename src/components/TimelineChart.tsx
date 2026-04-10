@@ -18,9 +18,13 @@ interface TimelineChartProps {
   currentValuePLN: number;
   benchmarkLabel: string;
   inflationRate: number;
+  isDark?: boolean;
 }
 
-export function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate }: TimelineChartProps) {
+export function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate, isDark }: TimelineChartProps) {
+  const gridColor = isDark ? '#374151' : '#f0f0f0';
+  const tickColor = isDark ? '#9ca3af' : '#666666';
+  const labelColor = isDark ? '#9ca3af' : '#9ca3af';
   const chartData = useMemo(() =>
     inflationRate > 0
       ? data.map((point) => ({
@@ -41,14 +45,14 @@ export function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflation
       )}
       <ResponsiveContainer width="100%" height={420}>
         <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 24, left: 10 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
           <XAxis
             dataKey="month"
             tickFormatter={(v) => `${v}m`}
-            tick={{ fontSize: 12 }}
-            label={{ value: 'Miesiące', position: 'insideBottomRight', offset: 0, fontSize: 11, fill: '#9ca3af' }}
+            tick={{ fontSize: 12, fill: tickColor }}
+            label={{ value: 'Miesiące', position: 'insideBottomRight', offset: 0, fontSize: 11, fill: labelColor }}
           />
-          <YAxis tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 12 }} />
+          <YAxis tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 12, fill: tickColor }} />
           <Tooltip
             formatter={fmtTooltipPLN}
             labelFormatter={(v) => `Miesiąc ${v}`}

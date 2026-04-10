@@ -230,7 +230,7 @@ function App() {
   const benchmarkReady = benchmarkType === 'savings'
     ? wibor3m > 0
     : benchmarkType === 'etf'
-      ? etfAnnualReturnPercent !== 0
+      ? true
       : bondSettings.firstYearRate > 0;
   const canCalc = shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && horizonMonths > 0 && benchmarkReady;
 
@@ -470,7 +470,7 @@ function App() {
               />
             </ErrorBoundary>
             <ErrorBoundary>
-              <ComparisonChart results={results} />
+              <ComparisonChart results={results} isDark={isDark} />
             </ErrorBoundary>
             {timeline && (
               <ErrorBoundary>
@@ -479,6 +479,7 @@ function App() {
                   currentValuePLN={results[0]?.currentValuePLN ?? 0}
                   benchmarkLabel={results[0]?.benchmarkLabel ?? 'Konto'}
                   inflationRate={effectiveInflation}
+                  isDark={isDark}
                 />
               </ErrorBoundary>
             )}
@@ -503,6 +504,7 @@ function App() {
                 horizonDays={sellHorizonDays}
                 onHorizonChange={setSellHorizonDays}
                 currentFxRate={currentFxRate}
+                isDark={isDark}
               />
             </Suspense>
           </ErrorBoundary>

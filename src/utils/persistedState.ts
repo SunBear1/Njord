@@ -3,7 +3,7 @@ import type { BenchmarkType, BondSettings, Scenarios } from '../types/scenario';
 const STORAGE_KEY = 'njord_state';
 const SCHEMA_VERSION = 1;
 
-export interface PersistedState {
+interface PersistedState {
   _v: number;
   ticker: string;
   shares: number;

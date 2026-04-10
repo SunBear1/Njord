@@ -5,28 +5,10 @@
  * Implements the algorithm described in .github/instructions/bull-bear-scenarios.md
  */
 
-// ---------------------------------------------------------------------------
-// Seeded PRNG (Mulberry32) — deterministic results across re-renders
-// ---------------------------------------------------------------------------
+import { mulberry32, boxMuller } from './models/types';
 
-export function mulberry32(seed: number): () => number {
-  return () => {
-    seed |= 0;
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-/** Box-Muller transform — two standard normals from two uniforms */
-export function boxMuller(rng: () => number): [number, number] {
-  const u1 = rng();
-  const u2 = rng();
-  const r = Math.sqrt(-2 * Math.log(u1 || 1e-300));
-  const theta = 2 * Math.PI * u2;
-  return [r * Math.cos(theta), r * Math.sin(theta)];
-}
+// Re-export for consumers that import from hmm.ts
+export { mulberry32, boxMuller };
 
 // ---------------------------------------------------------------------------
 // HMM Types
@@ -364,7 +346,7 @@ export function detectCurrentRegime(obs: number[], model: HmmModel): RegimeInfo 
 // Public: Regime-conditioned Monte Carlo
 // ---------------------------------------------------------------------------
 
-export interface MonteCarloResult {
+interface MonteCarloResult {
   /** Percentile price changes (%) at [p5, p25, p50, p75, p95] */
   percentiles: [number, number, number, number, number];
 }

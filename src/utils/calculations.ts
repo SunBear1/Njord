@@ -2,7 +2,7 @@ import type { ScenarioKey, ScenarioParams, ScenarioResult, Scenarios, BenchmarkT
 
 const BELKA_TAX = 0.19;
 
-export interface CalcInputs {
+interface CalcInputs {
   shares: number;
   currentPriceUSD: number;
   currentFxRate: number; // Kantor rate for actual PLN conversion
@@ -129,7 +129,7 @@ function calcBondEndValue(inputs: CalcInputs): number {
 
 function calcEtfEndValue(inputs: CalcInputs): number {
   const currentValuePLN = calcCurrentValuePLN(inputs);
-  const netAnnualRate = (inputs.etfAnnualReturnPercent - inputs.etfTerPercent) / 100;
+  const netAnnualRate = Math.max((inputs.etfAnnualReturnPercent - inputs.etfTerPercent) / 100, -1);
   const months = inputs.horizonMonths;
   const grossEndValue = currentValuePLN * Math.pow(1 + netAnnualRate, months / 12);
   const gain = grossEndValue - currentValuePLN;
@@ -150,7 +150,7 @@ function benchmarkLabel(type: BenchmarkType): string {
   return 'Konto';
 }
 
-export function calcStockScenario(
+function calcStockScenario(
   inputs: CalcInputs,
   params: ScenarioParams,
 ): { rawEndValue: number; netEndValue: number; dividendsNetPLN: number } {
@@ -266,6 +266,7 @@ export interface TimelinePoint {
 }
 
 export function calcTimeline(inputs: CalcInputs, scenarios: Scenarios): TimelinePoint[] {
+  if (inputs.horizonMonths <= 0) return [];
   const currentValuePLN = calcCurrentValuePLN(inputs);
   const points: TimelinePoint[] = [];
 
@@ -274,7 +275,7 @@ export function calcTimeline(inputs: CalcInputs, scenarios: Scenarios): Timeline
     const bmInputs = { ...inputs, horizonMonths: m };
     let benchmarkVal: number;
     if (inputs.benchmarkType === 'bonds') {
-      const penalty = m < inputs.horizonMonths ? currentValuePLN * (inputs.bondPenaltyPercent / 100) : 0;
+      const penalty = currentValuePLN * (inputs.bondPenaltyPercent / 100);
 
       if (inputs.bondCouponFrequency > 0) {
         // Coupon bond: use coupon model (tax already handled per-coupon)

@@ -11,10 +11,10 @@ export function HowItWorks() {
         className="w-full flex items-center justify-between px-5 py-3 text-blue-800 dark:text-blue-200 font-medium hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
       >
         <span className="flex items-center gap-2">
-          <HelpCircle size={16} />
+          <HelpCircle size={16} aria-hidden="true" />
           Jak działa ten kalkulator?
         </span>
-        {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        {open ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
       </button>
 
       {open && (

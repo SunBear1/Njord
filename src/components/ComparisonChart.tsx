@@ -15,10 +15,13 @@ import { fmtTooltipPLN } from '../utils/formatting';
 
 interface ComparisonChartProps {
   results: ScenarioResult[];
+  isDark?: boolean;
 }
 
-export function ComparisonChart({ results }: ComparisonChartProps) {
+export function ComparisonChart({ results, isDark }: ComparisonChartProps) {
   const bmLabel = results[0]?.benchmarkLabel ?? 'Konto';
+  const gridColor = isDark ? '#374151' : '#f0f0f0';
+  const tickColor = isDark ? '#9ca3af' : '#666666';
 
   const data = useMemo(() => [
     {
@@ -46,9 +49,9 @@ export function ComparisonChart({ results }: ComparisonChartProps) {
       <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Wartość końcowa — porównanie</h3>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data} barCategoryGap="25%">
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey="name" tick={{ fontSize: 13 }} />
-          <YAxis tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 12 }} />
+          <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+          <XAxis dataKey="name" tick={{ fontSize: 13, fill: tickColor }} />
+          <YAxis tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 12, fill: tickColor }} />
           <Tooltip formatter={fmtTooltipPLN} />
           <Legend />
           <ReferenceLine y={currentValue} stroke="#94a3b8" strokeDasharray="5 5" label={{ value: 'Wartość dziś', fontSize: 11, fill: '#94a3b8' }} />

@@ -22,6 +22,7 @@ interface SellAnalysisPanelProps {
   horizonDays: number;
   onHorizonChange: (days: number) => void;
   currentFxRate: number;
+  isDark?: boolean;
 }
 
 const UNIFIED_PRESETS = [
@@ -61,7 +62,10 @@ function getMonthOptions(count: number): { label: string; year: number; month: n
   });
 }
 
-export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonChange, currentFxRate }: SellAnalysisPanelProps) {
+export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonChange, currentFxRate, isDark }: SellAnalysisPanelProps) {
+  const gridColor = isDark ? '#374151' : '#f0f0f0';
+  const tickColor = isDark ? '#9ca3af' : '#666666';
+  const labelColor = isDark ? '#9ca3af' : '#9ca3af';
   const [showTable, setShowTable] = useState(true);
   const [isCustomActive, setIsCustomActive] = useState(false);
   const [showCustomPicker, setShowCustomPicker] = useState(false);
@@ -117,7 +121,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                 className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-all ${
                   isActive
                     ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
-                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
+                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30'
                 }`}
               >
                 <span className="text-sm font-semibold leading-snug">{p.label}</span>
@@ -134,7 +138,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
             className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-all ${
               isCustomActive || showCustomPicker
                 ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
-                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
+                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30'
             }`}
           >
             <span className="text-sm font-semibold leading-snug">Własny</span>
@@ -206,7 +210,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4">
               <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Reżim rynkowy</div>
-              <div className={`text-lg font-bold ${analysis.regimeInfo.currentRegimeLabel === 'bull' ? 'text-green-700' : 'text-red-700'}`}>
+              <div className={`text-lg font-bold ${analysis.regimeInfo.currentRegimeLabel === 'bull' ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
                 {analysis.regimeInfo.currentRegimeLabel === 'bull' ? '📈 Faza wzrostowa' : '📉 Faza spadkowa'}
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -245,16 +249,16 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
             </p>
             <ResponsiveContainer width="100%" height={400}>
               <AreaChart data={fanChartBands} margin={{ top: 10, right: 10, bottom: 24, left: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                 <XAxis
                   dataKey="day"
                   tickFormatter={(v) => `${v}d`}
-                  tick={{ fontSize: 11 }}
-                  label={{ value: 'Dzień handlowy', position: 'insideBottomRight', offset: 0, fontSize: 11, fill: '#9ca3af' }}
+                  tick={{ fontSize: 11, fill: tickColor }}
+                  label={{ value: 'Dzień handlowy', position: 'insideBottomRight', offset: 0, fontSize: 11, fill: labelColor }}
                 />
                 <YAxis
                   tickFormatter={(v: number) => `$${v.toFixed(0)}`}
-                  tick={{ fontSize: 11 }}
+                  tick={{ fontSize: 11, fill: tickColor }}
                   domain={['auto', 'auto']}
                 />
                 <Tooltip
@@ -302,16 +306,16 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
             </p>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={touchCurveData} margin={{ top: 10, right: 10, bottom: 24, left: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                 <XAxis
                   dataKey="target"
                   tickFormatter={(v: number) => `$${v.toFixed(0)}`}
-                  tick={{ fontSize: 11 }}
-                  label={{ value: 'Cena docelowa (USD)', position: 'insideBottomRight', offset: 0, fontSize: 11, fill: '#9ca3af' }}
+                  tick={{ fontSize: 11, fill: tickColor }}
+                  label={{ value: 'Cena docelowa (USD)', position: 'insideBottomRight', offset: 0, fontSize: 11, fill: labelColor }}
                 />
                 <YAxis
                   tickFormatter={(v: number) => `${v}%`}
-                  tick={{ fontSize: 11 }}
+                  tick={{ fontSize: 11, fill: tickColor }}
                   domain={[0, 100]}
                 />
                 <Tooltip
@@ -354,18 +358,18 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                       return (
                         <tr
                           key={sp.target}
-                          className={`border-b border-gray-100 ${isOptimal ? 'bg-blue-50 font-semibold' : ''}`}
+                          className={`border-b border-gray-100 dark:border-gray-700 ${isOptimal ? 'bg-blue-50 dark:bg-blue-950/30 font-semibold' : ''}`}
                         >
                           <td className="py-2 pr-4">
                             {fmtUSD(sp.target)}
                             {isOptimal && <span className="ml-1.5 text-[10px] text-blue-600 dark:text-blue-400 font-bold">★ OPTYMALNY</span>}
                           </td>
-                          <td className={`py-2 pr-4 ${changePct >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                          <td className={`py-2 pr-4 ${changePct >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-600'}`}>
                             {changePct >= 0 ? '+' : ''}{changePct.toFixed(1)}%
                           </td>
                           <td className="py-2 pr-4">
                             <div className="flex items-center gap-2">
-                              <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                              <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                                 <div
                                   className={`h-full rounded-full ${sp.pTouch > 0.5 ? 'bg-green-500' : sp.pTouch > 0.2 ? 'bg-amber-500' : 'bg-red-500'}`}
                                   style={{ width: `${sp.pTouch * 100}%` }}
@@ -386,9 +390,9 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           </div>
 
           {/* Disclaimer */}
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-            <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5" />
-            <div className="text-xs text-amber-800 space-y-1">
+          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 flex items-start gap-3">
+            <AlertTriangle size={16} className="text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div className="text-xs text-amber-800 dark:text-amber-300 space-y-1">
               <p className="font-semibold">Ograniczenia modelu</p>
               <ul className="list-disc list-inside space-y-0.5">
                 <li>Model nie przewiduje wydarzeń jednorazowych (wyniki kwartalne, przejęcia, regulacje)</li>
@@ -417,16 +421,16 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
 
 function SummaryCard({ label, value, subvalue, accent }: { label: string; value: string; subvalue: string; accent: 'blue' | 'green' | 'purple' | 'red' }) {
   const colors = {
-    blue: 'border-blue-200 bg-blue-50/50',
-    green: 'border-green-200 bg-green-50/50',
-    purple: 'border-purple-200 bg-purple-50/50',
-    red: 'border-red-200 bg-red-50/50',
+    blue: 'border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/30',
+    green: 'border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/30',
+    purple: 'border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/30',
+    red: 'border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-950/30',
   };
   const textColors = {
     blue: 'text-blue-700 dark:text-blue-300',
-    green: 'text-green-700',
+    green: 'text-green-700 dark:text-green-400',
     purple: 'text-purple-700',
-    red: 'text-red-700',
+    red: 'text-red-700 dark:text-red-400',
   };
   return (
     <div className={`rounded-xl border shadow-sm p-4 ${colors[accent]}`}>

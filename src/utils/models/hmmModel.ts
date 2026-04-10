@@ -30,10 +30,6 @@ function kurtosis(data: number[]): number {
   return m2 > 0 ? m4 / (m2 * m2) : 3;
 }
 
-export interface HmmPredictionExtra {
-  regime: RegimeInfo;
-}
-
 /**
  * Run HMM regime detection + Monte Carlo prediction.
  * @param logReturns Daily log-returns

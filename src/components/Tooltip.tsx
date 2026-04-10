@@ -51,7 +51,7 @@ export function Tooltip({ content, children, side = 'top', width = 'w-60' }: Too
       {children ?? (
         <Info
           size={12}
-          className="text-gray-400 cursor-help hover:text-gray-600 transition-colors"
+          className="text-gray-400 dark:text-gray-500 cursor-help hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
           aria-hidden="true"
         />
       )}
@@ -61,7 +61,7 @@ export function Tooltip({ content, children, side = 'top', width = 'w-60' }: Too
           className={[
             'fixed z-[9999] pointer-events-none',
             width,
-            'rounded-lg bg-gray-800 text-white text-xs px-2.5 py-2',
+            'rounded-lg bg-gray-800 dark:bg-gray-900 text-white text-xs px-2.5 py-2',
             'shadow-xl leading-relaxed whitespace-normal',
             '-translate-x-1/2',
             side === 'top' ? '-translate-y-full' : '',

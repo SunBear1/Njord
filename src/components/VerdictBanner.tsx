@@ -64,7 +64,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
         <Info size={16} className="text-gray-400 dark:text-gray-500 flex-shrink-0" aria-hidden="true" />
         <p className="text-sm text-gray-600 dark:text-gray-400">
           Aktualnie posiadasz akcje o wartości{' '}
-          <strong className="text-gray-900 dark:text-gray-100">{fmtPLN(results[0]?.currentValuePLN ?? 0)}</strong>.{' '}
+          <strong className="text-gray-900 dark:text-gray-100 tabular-nums">{fmtPLN(results[0]?.currentValuePLN ?? 0)}</strong>.{' '}
           Wyniki pokazują wartość po wybranym horyzoncie czasowym.
         </p>
       </div>
@@ -122,8 +122,8 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
                     {stockWins && <Trophy size={12} className="text-amber-400" aria-hidden="true" />}
                     Akcje
                   </div>
-                  <div className="text-base font-bold text-gray-800 dark:text-gray-100">{fmtPLN(r.stockNetEndValuePLN)}</div>
-                  <div className="text-xs font-medium text-blue-600 dark:text-blue-400">{fmtDiffPct(r.stockReturnNet)}</div>
+                  <div className="text-base font-bold text-gray-800 dark:text-gray-100 tabular-nums">{fmtPLN(r.stockNetEndValuePLN)}</div>
+                  <div className="text-xs font-medium text-blue-600 dark:text-blue-400 tabular-nums">{fmtDiffPct(r.stockReturnNet)}</div>
                   {hasInflation && (
                     <div className="text-[10px] text-orange-600 dark:text-orange-400 font-medium">
                       realnie {r.stockRealReturnNet >= 0 ? '+' : ''}{r.stockRealReturnNet.toFixed(2)}%
@@ -142,8 +142,8 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
                     {!stockWins && <Trophy size={12} className="text-amber-400" aria-hidden="true" />}
                     {bmLabel}
                   </div>
-                  <div className="text-base font-bold text-gray-800 dark:text-gray-100">{fmtPLN(r.benchmarkEndValuePLN)}</div>
-                  <div className="text-xs font-medium text-purple-600">
+                  <div className="text-base font-bold text-gray-800 dark:text-gray-100 tabular-nums">{fmtPLN(r.benchmarkEndValuePLN)}</div>
+                  <div className="text-xs font-medium text-purple-600 dark:text-purple-400 tabular-nums">
                     {r.benchmarkReturnNet >= 0 ? '+' : ''}{r.benchmarkReturnNet.toFixed(2)}%
                   </div>
                   {hasInflation && (

@@ -15,8 +15,6 @@ export interface VolatilityStats {
   fxSigmaAnnual: number;
   correlation: number; // Pearson ρ between daily returns
   stockMeanAnnual: number; // annualized mean return in %
-  fxMeanAnnual: number;
-  horizonScale: number; // √(months/12)
   regime: RegimeInfo | null;
   /** Multi-model predictions + recommendation */
   models: ModelResults | null;
@@ -26,7 +24,7 @@ export interface VolatilityStats {
   modelsLoading: boolean;
 }
 
-export interface VolatilityResult {
+interface VolatilityResult {
   stats: VolatilityStats | null;
   suggestedScenarios: Scenarios | null;
 }
@@ -133,12 +131,11 @@ export function useHistoricalVolatility(
     const stockSigmaAnnual = stockDailySigma * Math.sqrt(252) * 100;
     const fxSigmaAnnual = fxDailySigma * Math.sqrt(252) * 100;
     const stockMeanAnnual = mean(stockReturns) * 252 * 100;
-    const fxMeanAnnual = mean(fxReturns) * 252 * 100;
 
     const stockLogRet = logReturns(stockPrices);
     const seed = dataSeed(stockPrices);
 
-    return { stockSigmaAnnual, fxSigmaAnnual, rho, stockMeanAnnual, fxMeanAnnual, stockLogRet, seed };
+    return { stockSigmaAnnual, fxSigmaAnnual, rho, stockMeanAnnual, stockLogRet, seed };
   }, [stockHistory, fxHistory]);
 
   // Phase 2: Heavy model computation — deferred to avoid blocking UI during slider drag.
@@ -149,7 +146,6 @@ export function useHistoricalVolatility(
     modelScenarios: Record<string, Scenarios>;
     suggestedScenarios: Scenarios;
     regime: RegimeInfo | null;
-    horizonScale: number;
   } | null>(null);
   const [computing, setComputing] = useState(false);
 
@@ -202,7 +198,7 @@ export function useHistoricalVolatility(
         ? toScenarios(recommended, rho, fxMagPct)
         : toScenarios(scoring.scored[0], rho, fxMagPct);
 
-      setModelResult({ modelResults, modelScenarios, suggestedScenarios, regime: hmmResult.regime, horizonScale: Math.sqrt(T) });
+      setModelResult({ modelResults, modelScenarios, suggestedScenarios, regime: hmmResult.regime });
       setComputing(false);
     }, 0);
 
@@ -224,8 +220,6 @@ export function useHistoricalVolatility(
     fxSigmaAnnual: baseStats.fxSigmaAnnual,
     correlation: baseStats.rho,
     stockMeanAnnual: baseStats.stockMeanAnnual,
-    fxMeanAnnual: baseStats.fxMeanAnnual,
-    horizonScale: modelResult?.horizonScale ?? Math.sqrt(horizonMonths / 12),
     regime: modelResult?.regime ?? null,
     models: modelResult?.modelResults ?? null,
     modelScenarios: modelResult?.modelScenarios ?? {},

@@ -32,19 +32,19 @@ const SCENARIO_CONFIG: {
     key: 'bear', label: 'Bear',
     headerBg: 'bg-red-100 dark:bg-red-900/40', headerText: 'text-red-700 dark:text-red-300',
     cardBorder: 'border-red-200 dark:border-red-800', cardBg: 'bg-red-50/30 dark:bg-red-950/20',
-    inputBorder: 'border-red-300 focus:ring-red-400',
+    inputBorder: 'border-red-300 dark:border-red-600 focus:ring-red-400',
   },
   {
     key: 'base', label: 'Base',
     headerBg: 'bg-amber-100 dark:bg-amber-900/40', headerText: 'text-amber-700 dark:text-amber-300',
     cardBorder: 'border-amber-200 dark:border-amber-800', cardBg: 'bg-amber-50/30 dark:bg-amber-950/20',
-    inputBorder: 'border-amber-300 focus:ring-amber-400',
+    inputBorder: 'border-amber-300 dark:border-amber-600 focus:ring-amber-400',
   },
   {
     key: 'bull', label: 'Bull',
     headerBg: 'bg-green-100 dark:bg-green-900/40', headerText: 'text-green-700 dark:text-green-300',
     cardBorder: 'border-green-200 dark:border-green-800', cardBg: 'bg-green-50/30 dark:bg-green-950/20',
-    inputBorder: 'border-green-300 focus:ring-green-400',
+    inputBorder: 'border-green-300 dark:border-green-600 focus:ring-green-400',
   },
 ];
 
@@ -183,13 +183,13 @@ export function ScenarioEditor({
             <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">Scenariusze</h2>
             {volatilityStats?.modelsLoading && (
               <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
-                <Loader2 size={12} className="animate-spin" />
+                <Loader2 size={12} className="animate-spin" aria-hidden="true" />
               </span>
             )}
           </div>
           {suggestedScenarios && (
             <button onClick={onApplySuggested} className="flex items-center gap-1.5 text-xs bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 px-3 py-1.5 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors">
-              <Wand2 size={12} />
+              <Wand2 size={12} aria-hidden="true" />
               Przywróć
             </button>
           )}
@@ -207,17 +207,19 @@ export function ScenarioEditor({
           </div>
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
             <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Akcje ({stockUnit})</span>
-            {SCENARIO_CONFIG.map(({ key, inputBorder }) => (
+            {SCENARIO_CONFIG.map(({ key, label, inputBorder }) => (
               <input key={key} type="text" inputMode="decimal" value={localValues[key].stock}
                 onChange={(e) => handleStockChange(key, e.target.value)} onFocus={(e) => e.target.select()}
+                aria-label={`${label} — zmiana akcji (${stockUnit})`}
                 className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white dark:bg-gray-700 dark:text-gray-100`} />
             ))}
           </div>
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
             <span className="text-xs font-medium text-gray-600 dark:text-gray-400">USD/PLN ({fxUnit})</span>
-            {SCENARIO_CONFIG.map(({ key, inputBorder }) => (
+            {SCENARIO_CONFIG.map(({ key, label, inputBorder }) => (
               <input key={key} type="text" inputMode="decimal" value={localValues[key].fx}
                 onChange={(e) => handleFxChange(key, e.target.value)} onFocus={(e) => e.target.select()}
+                aria-label={`${label} — zmiana kursu (${fxUnit})`}
                 className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white dark:bg-gray-700 dark:text-gray-100`} />
             ))}
           </div>
@@ -240,11 +242,11 @@ export function ScenarioEditor({
               <strong>USD / PLN</strong> — docelowa cena lub kurs
             </span>
           }>
-            <HelpCircle size={16} className="text-gray-300 dark:text-gray-600 cursor-help hover:text-gray-500 dark:hover:text-gray-400 transition-colors" />
+            <HelpCircle size={16} aria-hidden="true" className="text-gray-300 dark:text-gray-600 cursor-help hover:text-gray-500 dark:hover:text-gray-400 transition-colors" />
           </Tooltip>
           {volatilityStats?.modelsLoading && (
             <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
-              <Loader2 size={12} className="animate-spin" />
+              <Loader2 size={12} className="animate-spin" aria-hidden="true" />
               przeliczam…
             </span>
           )}
@@ -254,7 +256,7 @@ export function ScenarioEditor({
             onClick={onApplySuggested}
             className="flex items-center gap-1.5 text-xs bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 px-3 py-1.5 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors"
           >
-            <Wand2 size={12} />
+            <Wand2 size={12} aria-hidden="true" />
             Przywróć z historii
           </button>
         )}
@@ -332,7 +334,7 @@ export function ScenarioEditor({
                 </span>
               }
             >
-              <HelpCircle size={12} className="text-gray-300 dark:text-gray-600 cursor-help hover:text-gray-500 dark:hover:text-gray-400 transition-colors" />
+              <HelpCircle size={12} aria-hidden="true" className="text-gray-300 dark:text-gray-600 cursor-help hover:text-gray-500 dark:hover:text-gray-400 transition-colors" />
             </Tooltip>
           </div>
         );
@@ -421,7 +423,7 @@ export function ScenarioEditor({
         <div className="flex-1 min-h-0 flex flex-col border border-indigo-100 dark:border-indigo-900 rounded-lg overflow-hidden mt-2">
           <div className="w-full flex items-center px-3 py-1.5 bg-indigo-50/60 dark:bg-indigo-900/20 text-xs text-indigo-800 dark:text-indigo-200 shrink-0">
             <span className="flex items-center gap-2 flex-wrap">
-              <Info size={12} className="text-indigo-400 dark:text-indigo-300 shrink-0" />
+              <Info size={12} aria-hidden="true" className="text-indigo-400 dark:text-indigo-300 shrink-0" />
               <span className="font-medium">Analiza historyczna</span>
               {volatilityStats.regime && (
                 <Tooltip content={`Prawdopodobieństwo: ${Math.round(volatilityStats.regime.posteriorProbability * 100)}%`}>
