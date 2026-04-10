@@ -5,10 +5,10 @@ export function HowItWorks() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-xl overflow-hidden">
+    <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-xl overflow-hidden">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-5 py-3 text-blue-800 font-medium hover:bg-blue-100 transition-colors"
+        className="w-full flex items-center justify-between px-5 py-3 text-blue-800 dark:text-blue-200 font-medium hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
       >
         <span className="flex items-center gap-2">
           <HelpCircle size={16} />
@@ -18,7 +18,7 @@ export function HowItWorks() {
       </button>
 
       {open && (
-        <div className="px-5 py-4 border-t border-blue-200 text-sm text-blue-900 space-y-3">
+        <div className="px-5 py-4 border-t border-blue-200 dark:border-blue-800 text-sm text-blue-900 dark:text-blue-100 space-y-3">
           <p>
             <strong>Njord</strong> porównuje, co bardziej się opłaca: trzymać akcje spółki
             (wyceniane w USD) czy sprzedać je i wpłacić środki na konto oszczędnościowe
@@ -26,8 +26,8 @@ export function HowItWorks() {
           </p>
           <ol className="list-decimal list-inside space-y-2">
             <li>
-              <strong>Wpisz ticker</strong> (np. <code className="bg-blue-100 px-1 rounded">AAPL</code>,{' '}
-              <code className="bg-blue-100 px-1 rounded">NVDA</code>) — aplikacja automatycznie pobierze aktualny kurs akcji,
+              <strong>Wpisz ticker</strong> (np. <code className="bg-blue-100 dark:bg-blue-900/40 px-1 rounded">AAPL</code>,{' '}
+              <code className="bg-blue-100 dark:bg-blue-900/40 px-1 rounded">NVDA</code>) — aplikacja automatycznie pobierze aktualny kurs akcji,
               kurs USD/PLN z NBP oraz historyczną zmienność.
             </li>
             <li>
@@ -43,7 +43,7 @@ export function HowItWorks() {
               która opcja jest lepsza i o ile złotych.
             </li>
           </ol>
-          <div className="bg-blue-100 rounded-lg p-3 text-xs">
+          <div className="bg-blue-100 dark:bg-blue-900/40 rounded-lg p-3 text-xs">
             <strong>Uwaga:</strong> Kalkulator uwzględnia podatek Belki (19%) zarówno od zysku
             z akcji, jak i od odsetek z konta oszczędnościowego / obligacji. Wpływ inflacji na realną
             wartość zysku wyświetlany jest osobno. Nie uwzględnia prowizji

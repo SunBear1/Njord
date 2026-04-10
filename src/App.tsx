@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useMemo, useDeferredValue, lazy, Suspense } from 'react';
+import { Moon, Sun } from 'lucide-react';
 import { HowItWorks } from './components/HowItWorks';
 import { InputPanel } from './components/InputPanel';
 import { ScenarioEditor } from './components/ScenarioEditor';
@@ -14,6 +15,7 @@ import { useInflationData } from './hooks/useInflationData';
 import { useHistoricalVolatility } from './hooks/useHistoricalVolatility';
 import { useKantorRates } from './hooks/useKantorRates';
 import { useSellAnalysis } from './hooks/useSellAnalysis';
+import { useDarkMode } from './hooks/useDarkMode';
 import { KantorSidebar } from './components/KantorSidebar';
 import {
   calcAllScenarios,
@@ -45,6 +47,7 @@ const ROOT_STYLE = { backgroundColor: 'var(--color-bg-primary)' } as const;
 const FOOTER_STYLE = { borderTop: '1px solid var(--color-border)', color: 'var(--color-text-faint)' } as const;
 
 function App() {
+  const [isDark, toggleDarkMode] = useDarkMode();
   // Load persisted state once on mount (synchronous — runs before first render)
   const saved = loadState();
 
@@ -269,10 +272,18 @@ function App() {
             <line x1="46" y1="39" x2="48" y2="48" stroke="#93c5fd" stroke-width="1.5" stroke-linecap="round"/>
             <path d="M8 52 Q18 49 28 52 Q38 55 48 52 Q54 50 58 52" stroke="#60a5fa" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.7"/>
           </svg>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold tracking-tight">Njord</h1>
             <p className="text-sm text-slate-400">Kalkulator: akcje vs. konto oszczędnościowe / obligacje skarbowe</p>
           </div>
+          <button
+            type="button"
+            onClick={toggleDarkMode}
+            aria-label={isDark ? 'Włącz tryb jasny' : 'Włącz tryb ciemny'}
+            className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+          >
+            {isDark ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
         </div>
       </header>
 
@@ -410,7 +421,7 @@ function App() {
             </div>
 
             {!canCalc && (
-              <div className="bg-white rounded-xl border border-dashed border-gray-300 p-10 text-center text-gray-400 space-y-2">
+              <div className="bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-10 text-center text-gray-400 dark:text-gray-500 space-y-2">
                 <p className="text-lg">Uzupełnij dane wejściowe, aby zobaczyć wyniki</p>
                 <p className="text-sm">Wpisz ticker, liczbę akcji i oprocentowanie {benchmarkType === 'bonds' ? 'obligacji' : 'konta oszczędnościowego'}.</p>
               </div>
@@ -420,13 +431,13 @@ function App() {
 
         {/* View toggle — only show when stock data is loaded */}
         {currentPriceUSD > 0 && assetData && (
-          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5 w-fit">
+          <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5 w-fit">
             <button
               onClick={() => setActiveView('comparison')}
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 activeView === 'comparison'
-                  ? 'bg-white text-blue-700 shadow-sm border border-gray-200'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white dark:bg-gray-700 text-blue-700 dark:text-blue-400 shadow-sm border border-gray-200 dark:border-gray-600'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
               Porównanie z benchmarkiem
@@ -435,8 +446,8 @@ function App() {
               onClick={() => setActiveView('sellAnalysis')}
               className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                 activeView === 'sellAnalysis'
-                  ? 'bg-white text-blue-700 shadow-sm border border-gray-200'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white dark:bg-gray-700 text-blue-700 dark:text-blue-400 shadow-sm border border-gray-200 dark:border-gray-600'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
               }`}
             >
               Optymalna cena sprzedaży

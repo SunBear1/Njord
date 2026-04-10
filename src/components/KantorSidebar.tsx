@@ -22,7 +22,7 @@ function RateBlock({ label, href, buy, sell }: { label: string; href: string; bu
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-[11px] font-semibold text-gray-500 hover:text-blue-600 uppercase tracking-wider"
+        className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 dark:text-gray-400 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-400 uppercase tracking-wider"
       >
         {label}
       </a>
@@ -32,7 +32,7 @@ function RateBlock({ label, href, buy, sell }: { label: string; href: string; bu
         <div className="text-gray-400">Sprzedaż USD</div>
         <div className="text-right font-mono text-green-700 font-medium">{buy.toFixed(4)}</div>
         <div className="text-gray-400">Spread</div>
-        <div className="text-right font-mono text-gray-500">{spreadPct(buy, sell)}%</div>
+        <div className="text-right font-mono text-gray-500 dark:text-gray-400">{spreadPct(buy, sell)}%</div>
       </div>
     </div>
   );
@@ -44,13 +44,13 @@ export function KantorSidebar({ rates }: KantorSidebarProps) {
   return (
     <div className="w-48 space-y-3">
       {/* Header */}
-      <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700">
-        <ArrowDownUp size={12} className="text-blue-600" />
+      <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300 dark:text-gray-300">
+        <ArrowDownUp size={12} className="text-blue-600 dark:text-blue-400" />
         <span>USD / PLN</span>
       </div>
 
       {isLoading && !alior && !nbp ? (
-        <div className="text-[11px] text-gray-400 animate-pulse">Pobieram kursy…</div>
+        <div className="text-[11px] text-gray-400 dark:text-gray-500 dark:text-gray-400 animate-pulse">Pobieram kursy…</div>
       ) : error && !alior && !nbp ? (
         <div className="text-[11px] text-red-400">{error}</div>
       ) : (
@@ -64,7 +64,7 @@ export function KantorSidebar({ rates }: KantorSidebarProps) {
             />
           )}
 
-          {alior && nbp && <hr className="border-gray-200" />}
+          {alior && nbp && <hr className="border-gray-200 dark:border-gray-700" />}
 
           {nbp && (
             <RateBlock
@@ -100,17 +100,17 @@ export function KantorSidebar({ rates }: KantorSidebarProps) {
       {/* Role explanation — which rate is used where */}
       {(alior || nbp) && !isLoading && (
         <div className="bg-blue-50/60 border border-blue-100 rounded-md px-2.5 py-2 space-y-1">
-          <div className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider">Jak liczymy?</div>
+          <div className="text-[10px] font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wider">Jak liczymy?</div>
           {alior && (
-            <div className="flex items-start gap-1.5 text-[10px] text-gray-600">
+            <div className="flex items-start gap-1.5 text-[10px] text-gray-600 dark:text-gray-400">
               <span className="text-green-600 mt-0.5">●</span>
-              <span><strong className="text-gray-700">Kantor</strong> → wycena portfela w PLN</span>
+              <span><strong className="text-gray-700 dark:text-gray-300">Kantor</strong> → wycena portfela w PLN</span>
             </div>
           )}
           {nbp && (
-            <div className="flex items-start gap-1.5 text-[10px] text-gray-600">
+            <div className="flex items-start gap-1.5 text-[10px] text-gray-600 dark:text-gray-400">
               <span className="text-blue-500 mt-0.5">●</span>
-              <span><strong className="text-gray-700">NBP</strong> → podstawa podatku Belki</span>
+              <span><strong className="text-gray-700 dark:text-gray-300">NBP</strong> → podstawa podatku Belki</span>
             </div>
           )}
         </div>

@@ -30,20 +30,20 @@ const SCENARIO_CONFIG: {
 }[] = [
   {
     key: 'bear', label: 'Bear',
-    headerBg: 'bg-red-100', headerText: 'text-red-700',
-    cardBorder: 'border-red-200', cardBg: 'bg-red-50/30',
+    headerBg: 'bg-red-100 dark:bg-red-900/40', headerText: 'text-red-700 dark:text-red-300',
+    cardBorder: 'border-red-200 dark:border-red-800', cardBg: 'bg-red-50/30 dark:bg-red-950/20',
     inputBorder: 'border-red-300 focus:ring-red-400',
   },
   {
     key: 'base', label: 'Base',
-    headerBg: 'bg-amber-100', headerText: 'text-amber-700',
-    cardBorder: 'border-amber-200', cardBg: 'bg-amber-50/30',
+    headerBg: 'bg-amber-100 dark:bg-amber-900/40', headerText: 'text-amber-700 dark:text-amber-300',
+    cardBorder: 'border-amber-200 dark:border-amber-800', cardBg: 'bg-amber-50/30 dark:bg-amber-950/20',
     inputBorder: 'border-amber-300 focus:ring-amber-400',
   },
   {
     key: 'bull', label: 'Bull',
-    headerBg: 'bg-green-100', headerText: 'text-green-700',
-    cardBorder: 'border-green-200', cardBg: 'bg-green-50/30',
+    headerBg: 'bg-green-100 dark:bg-green-900/40', headerText: 'text-green-700 dark:text-green-300',
+    cardBorder: 'border-green-200 dark:border-green-800', cardBg: 'bg-green-50/30 dark:bg-green-950/20',
     inputBorder: 'border-green-300 focus:ring-green-400',
   },
 ];
@@ -62,11 +62,11 @@ function ModeToggle({ mode, onToggle, labelA, labelB, disabled }: { mode: InputM
     <button
       onClick={onToggle}
       disabled={disabled}
-      className={`flex w-full rounded border border-gray-200 overflow-hidden text-[11px] font-medium ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+      className={`flex w-full rounded border border-gray-200 dark:border-gray-600 overflow-hidden text-[11px] font-medium ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
       title={disabled ? 'Wpisz ticker, aby przełączyć tryb' : 'Przełącz tryb wpisywania'}
     >
-      <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'pct' ? 'bg-blue-600 text-white' : 'bg-white text-gray-400 hover:bg-gray-50'}`}>{labelA}</span>
-      <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'fixed' ? 'bg-blue-600 text-white' : 'bg-white text-gray-400 hover:bg-gray-50'}`}>{labelB}</span>
+      <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'pct' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>{labelA}</span>
+      <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'fixed' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>{labelB}</span>
     </button>
   );
 }
@@ -177,18 +177,18 @@ export function ScenarioEditor({
   // Compact mode: horizontal inline layout
   if (compact) {
     return (
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3 space-y-2">
+      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm px-4 py-3 space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-gray-800">Scenariusze</h2>
+            <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">Scenariusze</h2>
             {volatilityStats?.modelsLoading && (
-              <span className="flex items-center gap-1 text-xs text-gray-400">
+              <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
                 <Loader2 size={12} className="animate-spin" />
               </span>
             )}
           </div>
           {suggestedScenarios && (
-            <button onClick={onApplySuggested} className="flex items-center gap-1.5 text-xs bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-lg hover:bg-purple-100 transition-colors">
+            <button onClick={onApplySuggested} className="flex items-center gap-1.5 text-xs bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 px-3 py-1.5 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors">
               <Wand2 size={12} />
               Przywróć
             </button>
@@ -196,7 +196,7 @@ export function ScenarioEditor({
         </div>
         {/* Compact table: same as before */}
         {currentPriceUSD <= 0 ? (
-          <p className="text-sm text-gray-400 italic text-center py-3">Pobierz dane akcji, aby zobaczyć scenariusze.</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 italic text-center py-3">Pobierz dane akcji, aby zobaczyć scenariusze.</p>
         ) : (
         <div className="space-y-1.5">
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
@@ -206,19 +206,19 @@ export function ScenarioEditor({
             ))}
           </div>
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
-            <span className="text-xs font-medium text-gray-600">Akcje ({stockUnit})</span>
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Akcje ({stockUnit})</span>
             {SCENARIO_CONFIG.map(({ key, inputBorder }) => (
               <input key={key} type="text" inputMode="decimal" value={localValues[key].stock}
                 onChange={(e) => handleStockChange(key, e.target.value)} onFocus={(e) => e.target.select()}
-                className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white`} />
+                className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white dark:bg-gray-700 dark:text-gray-100`} />
             ))}
           </div>
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
-            <span className="text-xs font-medium text-gray-600">USD/PLN ({fxUnit})</span>
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">USD/PLN ({fxUnit})</span>
             {SCENARIO_CONFIG.map(({ key, inputBorder }) => (
               <input key={key} type="text" inputMode="decimal" value={localValues[key].fx}
                 onChange={(e) => handleFxChange(key, e.target.value)} onFocus={(e) => e.target.select()}
-                className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white`} />
+                className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white dark:bg-gray-700 dark:text-gray-100`} />
             ))}
           </div>
           </div>
@@ -228,22 +228,22 @@ export function ScenarioEditor({
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 flex flex-col h-full">
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 flex flex-col h-full">
 
       {/* Header row */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold text-gray-800">Scenariusze</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Scenariusze</h2>
           <Tooltip content={
             <span>
               <strong>%</strong> — zmiana procentowa względem obecnej ceny<br/>
               <strong>USD / PLN</strong> — docelowa cena lub kurs
             </span>
           }>
-            <HelpCircle size={16} className="text-gray-300 cursor-help hover:text-gray-500 transition-colors" />
+            <HelpCircle size={16} className="text-gray-300 dark:text-gray-600 cursor-help hover:text-gray-500 dark:hover:text-gray-400 transition-colors" />
           </Tooltip>
           {volatilityStats?.modelsLoading && (
-            <span className="flex items-center gap-1 text-xs text-gray-400">
+            <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
               <Loader2 size={12} className="animate-spin" />
               przeliczam…
             </span>
@@ -252,7 +252,7 @@ export function ScenarioEditor({
         {suggestedScenarios && (
           <button
             onClick={onApplySuggested}
-            className="flex items-center gap-1.5 text-xs bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-lg hover:bg-purple-100 transition-colors"
+            className="flex items-center gap-1.5 text-xs bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 px-3 py-1.5 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors"
           >
             <Wand2 size={12} />
             Przywróć z historii
@@ -309,12 +309,12 @@ export function ScenarioEditor({
                     className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border transition-colors ${
                       isActive
                         ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-700'
+                        : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-600 hover:border-indigo-300 hover:text-indigo-700'
                     }`}
                   >
                     {isRecommended && <Star size={12} className={isActive ? 'text-amber-300' : 'text-amber-400'} />}
                     {m.name}
-                    {coverage && <span className={`text-[10px] ${isActive ? 'text-indigo-200' : 'text-gray-400'}`}>{coverage}</span>}
+                    {coverage && <span className={`text-[10px] ${isActive ? 'text-indigo-200' : 'text-gray-400 dark:text-gray-500'}`}>{coverage}</span>}
                   </button>
                 </Tooltip>
               );
@@ -332,7 +332,7 @@ export function ScenarioEditor({
                 </span>
               }
             >
-              <HelpCircle size={12} className="text-gray-300 cursor-help hover:text-gray-500 transition-colors" />
+              <HelpCircle size={12} className="text-gray-300 dark:text-gray-600 cursor-help hover:text-gray-500 dark:hover:text-gray-400 transition-colors" />
             </Tooltip>
           </div>
         );
@@ -340,7 +340,7 @@ export function ScenarioEditor({
 
       {currentPriceUSD <= 0 ? (
         <div className="flex-1 flex items-center justify-center text-center py-8">
-          <p className="text-sm text-gray-400 italic">Pobierz dane akcji, aby zobaczyć scenariusze i prognozy modeli.</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 italic">Pobierz dane akcji, aby zobaczyć scenariusze i prognozy modeli.</p>
         </div>
       ) : (
         <div className="space-y-1.5">
@@ -355,7 +355,7 @@ export function ScenarioEditor({
           {/* Stock row */}
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-start">
             <div className="flex flex-col gap-1 pt-0.5">
-              <span className="text-xs font-medium text-gray-600">Akcje ({stockUnit})</span>
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Akcje ({stockUnit})</span>
               <ModeToggle mode={stockMode} onToggle={toggleStockMode} labelA="%" labelB="USD" disabled={currentPriceUSD <= 0} />
             </div>
             {SCENARIO_CONFIG.map(({ key, inputBorder }) => {
@@ -369,11 +369,11 @@ export function ScenarioEditor({
                     onChange={(e) => handleStockChange(key, e.target.value)}
                     onFocus={(e) => e.target.select()}
                     placeholder={stockMode === 'pct' ? '0' : String(currentPriceUSD || '')}
-                    className={`w-full border ${inputBorder} rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 bg-white`}
+                    className={`w-full border ${inputBorder} rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 bg-white dark:bg-gray-700 dark:text-gray-100`}
                   />
                   {stockMode === 'fixed' && currentPriceUSD > 0 && (
                     <span className={`text-[10px] rounded-full px-1.5 py-0.5 ${
-                      delta >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
+                      delta >= 0 ? 'bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400' : 'bg-red-50 dark:bg-red-950/20 text-red-500 dark:text-red-400'
                     }`}>
                       {delta >= 0 ? '+' : ''}{delta.toFixed(1)}%
                     </span>
@@ -386,7 +386,7 @@ export function ScenarioEditor({
           {/* FX row */}
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-start">
             <div className="flex flex-col gap-1 pt-0.5">
-              <span className="text-xs font-medium text-gray-600">USD/PLN ({fxUnit})</span>
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">USD/PLN ({fxUnit})</span>
               <ModeToggle mode={fxMode} onToggle={toggleFxMode} labelA="%" labelB="PLN" disabled={currentFxRate <= 0} />
             </div>
             {SCENARIO_CONFIG.map(({ key, inputBorder }) => {
@@ -400,11 +400,11 @@ export function ScenarioEditor({
                     onChange={(e) => handleFxChange(key, e.target.value)}
                     onFocus={(e) => e.target.select()}
                     placeholder={fxMode === 'pct' ? '0' : String(currentFxRate || '')}
-                    className={`w-full border ${inputBorder} rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 bg-white`}
+                    className={`w-full border ${inputBorder} rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 bg-white dark:bg-gray-700 dark:text-gray-100`}
                   />
                   {fxMode === 'fixed' && currentFxRate > 0 && (
                     <span className={`text-[10px] rounded-full px-1.5 py-0.5 ${
-                      delta >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
+                      delta >= 0 ? 'bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400' : 'bg-red-50 dark:bg-red-950/20 text-red-500 dark:text-red-400'
                     }`}>
                       {delta >= 0 ? '+' : ''}{delta.toFixed(1)}%
                     </span>
@@ -418,17 +418,17 @@ export function ScenarioEditor({
 
       {/* Analysis — always visible */}
       {volatilityStats && (
-        <div className="flex-1 min-h-0 flex flex-col border border-indigo-100 rounded-lg overflow-hidden mt-2">
-          <div className="w-full flex items-center px-3 py-1.5 bg-indigo-50/60 text-xs text-indigo-800 shrink-0">
+        <div className="flex-1 min-h-0 flex flex-col border border-indigo-100 dark:border-indigo-900 rounded-lg overflow-hidden mt-2">
+          <div className="w-full flex items-center px-3 py-1.5 bg-indigo-50/60 dark:bg-indigo-900/20 text-xs text-indigo-800 dark:text-indigo-200 shrink-0">
             <span className="flex items-center gap-2 flex-wrap">
-              <Info size={12} className="text-indigo-400 shrink-0" />
+              <Info size={12} className="text-indigo-400 dark:text-indigo-300 shrink-0" />
               <span className="font-medium">Analiza historyczna</span>
               {volatilityStats.regime && (
                 <Tooltip content={`Prawdopodobieństwo: ${Math.round(volatilityStats.regime.posteriorProbability * 100)}%`}>
                   <span className={`rounded px-1.5 py-0.5 border text-[11px] font-semibold cursor-help ${
                     volatilityStats.regime.currentRegimeLabel === 'bull'
-                      ? 'bg-green-50 text-green-700 border-green-200'
-                      : 'bg-red-50 text-red-700 border-red-200'
+                      ? 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800'
+                      : 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
                   }`}>
                     {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Faza wzrostowa' : 'Faza spadkowa'}
                   </span>
@@ -438,24 +438,24 @@ export function ScenarioEditor({
             </span>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-3 py-3 bg-white border-t border-indigo-100 space-y-3">
+          <div className="flex-1 overflow-y-auto px-3 py-3 bg-white dark:bg-gray-800 border-t border-indigo-100 dark:border-indigo-900 space-y-3">
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-gray-50 rounded-lg p-3 space-y-1">
-                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Zmienność akcji</div>
-                  <div className="text-2xl font-bold text-gray-900 leading-none">{volatilityStats.stockSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400 ml-0.5">/rok</span></div>
-                  <div className="text-xs text-gray-500 leading-snug">Im wyższa, tym większy rozrzut scenariuszy.</div>
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 space-y-1">
+                  <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Zmienność akcji</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 leading-none">{volatilityStats.stockSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400 dark:text-gray-500 ml-0.5">/rok</span></div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 leading-snug">Im wyższa, tym większy rozrzut scenariuszy.</div>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3 space-y-1">
-                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Zmienność USD/PLN</div>
-                  <div className="text-2xl font-bold text-gray-900 leading-none">{volatilityStats.fxSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400 ml-0.5">/rok</span></div>
-                  <div className="text-xs text-gray-500 leading-snug">Dodatkowe źródło ryzyka walutowego.</div>
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 space-y-1">
+                  <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Zmienność USD/PLN</div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 leading-none">{volatilityStats.fxSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400 dark:text-gray-500 ml-0.5">/rok</span></div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 leading-snug">Dodatkowe źródło ryzyka walutowego.</div>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3 space-y-1">
-                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Korelacja z USD</div>
-                  <div className={`text-2xl font-bold leading-none ${Math.abs(volatilityStats.correlation) > 0.1 ? (volatilityStats.correlation > 0 ? 'text-amber-600' : 'text-blue-600') : 'text-gray-700'}`}>
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 space-y-1">
+                  <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Korelacja z USD</div>
+                  <div className={`text-2xl font-bold leading-none ${Math.abs(volatilityStats.correlation) > 0.1 ? (volatilityStats.correlation > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-blue-600 dark:text-blue-400') : 'text-gray-700 dark:text-gray-300'}`}>
                     {volatilityStats.correlation > 0 ? '+' : ''}{volatilityStats.correlation.toFixed(2)}
                   </div>
-                  <div className="text-xs text-gray-500 leading-snug">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 leading-snug">
                     {volatilityStats.correlation < -0.1
                       ? 'Spadek akcji → mocniejszy dolar (amortyzacja).'
                       : volatilityStats.correlation > 0.1
@@ -463,20 +463,20 @@ export function ScenarioEditor({
                       : 'Niezależne od siebie.'}
                   </div>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3 space-y-1">
-                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Trend historyczny</div>
-                  <div className={`text-2xl font-bold leading-none ${volatilityStats.stockMeanAnnual >= 0 ? 'text-green-700' : 'text-red-600'}`}>
-                    {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400 ml-0.5">/rok</span>
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 space-y-1">
+                  <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Trend historyczny</div>
+                  <div className={`text-2xl font-bold leading-none ${volatilityStats.stockMeanAnnual >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400 dark:text-gray-500 ml-0.5">/rok</span>
                   </div>
-                  <div className="text-xs text-gray-500 leading-snug">Informacyjnie — nie prognoza.</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 leading-snug">Informacyjnie — nie prognoza.</div>
                 </div>
               </div>
 
               {volatilityStats.regime && (
                 <div className={`rounded-lg px-3 py-2.5 border text-sm ${
                   volatilityStats.regime.currentRegimeLabel === 'bull'
-                    ? 'bg-green-50 border-green-200 text-green-800'
-                    : 'bg-red-50 border-red-200 text-red-800'
+                    ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-300'
+                    : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300'
                 }`}>
                   <span className="font-semibold">
                     {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Faza wzrostów' : 'Faza spadków'}

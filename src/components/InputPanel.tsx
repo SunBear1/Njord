@@ -283,7 +283,7 @@ export function InputPanel({
               value={localTicker}
               onChange={(e) => setLocalTicker(e.target.value.toUpperCase())}
               placeholder="np. AAPL, NVDA, VOO"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-9"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 pr-9"
             />
             {assetLoading && (
               <Loader2 size={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin text-blue-500" aria-hidden="true" />
@@ -328,7 +328,7 @@ export function InputPanel({
           value={shares || ''}
           onChange={(e) => onSharesChange(Number(e.target.value))}
           placeholder="np. 50"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
         />
         <button
           type="button"
@@ -353,7 +353,7 @@ export function InputPanel({
                   value={totalValueStr}
                   onChange={(e) => setTotalValueStr(e.target.value)}
                   placeholder="np. 5000.00"
-                  className="w-full border border-blue-200 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  className="w-full border border-blue-200 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 bg-white"
                 />
               </div>
               <button
@@ -407,7 +407,7 @@ export function InputPanel({
           value={currentPriceUSD || ''}
           onChange={(e) => onPriceChange(Number(e.target.value))}
           placeholder="np. 185.00"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
         />
       </div>
 
@@ -428,7 +428,7 @@ export function InputPanel({
           value={avgCostUSD || ''}
           onChange={(e) => onAvgCostUSDChange(Number(e.target.value))}
           placeholder="np. 50.00"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
         />
         {/* Inline P&L indicator */}
         {avgCostUSD > 0 && currentPriceUSD > 0 && (
@@ -461,7 +461,7 @@ export function InputPanel({
           value={brokerFeeUSD || ''}
           onChange={(e) => onBrokerFeeUSDChange(Number(e.target.value))}
           placeholder="np. 1.00"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
         />
       </div>
 
@@ -483,7 +483,7 @@ export function InputPanel({
           value={dividendYieldPercent || ''}
           onChange={(e) => onDividendYieldChange(Number(e.target.value))}
           placeholder="np. 1.5"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
         />
         {dividendYieldPercent > 0 && (
           <p className="text-xs text-gray-500">
@@ -517,7 +517,7 @@ export function InputPanel({
           value={currentFxRate || ''}
           onChange={(e) => onFxRateChange(Number(e.target.value))}
           placeholder="np. 4.1500"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
         />
       </div>
 
@@ -594,7 +594,7 @@ export function InputPanel({
             value={wiborStr}
             onChange={(e) => handleWiborChange(e.target.value)}
             placeholder="np. 5.82"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
           />
           {!monthlyRate && (
             <p className="text-xs text-gray-400">
@@ -626,7 +626,7 @@ export function InputPanel({
               value={etfAnnualReturnPercent || ''}
               onChange={(e) => onEtfAnnualReturnChange(Number(e.target.value))}
               placeholder="np. 8.0"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
             />
           </div>
           <div className="space-y-1">
@@ -645,7 +645,7 @@ export function InputPanel({
               value={etfTerPercent || ''}
               onChange={(e) => onEtfTerChange(Number(e.target.value))}
               placeholder="np. 0.07"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
             />
           </div>
           {etfAnnualReturnPercent > 0 && (
@@ -670,7 +670,7 @@ export function InputPanel({
                 const preset = BOND_PRESETS.find((b) => b.id === e.target.value);
                 if (preset) handleSelectBondPreset(e.target.value, preset);
               }}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
             >
               {BOND_PRESETS.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -728,7 +728,7 @@ export function InputPanel({
                           step={0.1}
                           value={inflationRate || ''}
                           onChange={(e) => onInflationRateChange(parseFloat(e.target.value) || 0)}
-                          className="w-20 border border-gray-300 rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          className="w-20 border border-gray-300 rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
                         />
                       </div>
                       <div className="flex justify-between border-t border-gray-200 pt-1.5">
@@ -765,7 +765,7 @@ export function InputPanel({
                           value={nbpRefRate || ''}
                           onChange={(e) => onNbpRefRateChange(parseFloat(e.target.value) || 0)}
                           placeholder="np. 5.75"
-                          className="w-20 border border-gray-300 rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          className="w-20 border border-gray-300 rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
                         />
                       </div>
                       <div className="flex justify-between border-t border-gray-200 pt-1.5">
@@ -802,7 +802,7 @@ export function InputPanel({
                       onChange={(e) => {
                         onBondSettingsChange({ ...bondSettings, penalty: parseFloat(e.target.value) || 0 });
                       }}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
                     />
                   </div>
                   <div className="space-y-1">
