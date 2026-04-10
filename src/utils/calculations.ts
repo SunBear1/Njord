@@ -20,6 +20,8 @@ export interface CalcInputs {
   bondReinvestmentRate: number; // annual % for reinvesting coupon payments (typically savings rate)
   // Inflation
   inflationRate: number; // annual CPI % (e.g. 3.6 for 3.6%)
+  // Cost basis for accurate Belka tax (optional — if 0, falls back to current price)
+  avgCostUSD: number;    // average purchase price per share in USD (0 = not set)
 }
 
 function calcCurrentValuePLN(inputs: CalcInputs): number {
@@ -139,17 +141,22 @@ export function calcStockScenario(
 
   // Tax basis at NBP mid rate (Polish tax law)
   const nbpRate = inputs.nbpMidRate || inputs.currentFxRate;
-  const currentValueNbp = inputs.shares * inputs.currentPriceUSD * nbpRate;
   const projectedNbpRate = nbpRate * (1 + params.deltaFx / 100);
   const endValueNbp = inputs.shares * projectedPriceUSD * projectedNbpRate;
-  const taxableProfit = endValueNbp - currentValueNbp;
+
+  // Cost basis: use purchase price if provided, otherwise fall back to current price
+  const costBasisNbp = inputs.avgCostUSD > 0
+    ? inputs.shares * inputs.avgCostUSD * nbpRate  // use current NBP rate as proxy for purchase rate
+    : inputs.shares * inputs.currentPriceUSD * nbpRate;
+
+  const taxableProfit = endValueNbp - costBasisNbp;
 
   let netEndValue: number;
   if (taxableProfit > 0) {
     const tax = taxableProfit * BELKA_TAX;
     netEndValue = rawEndValue - tax;
   } else {
-    netEndValue = rawEndValue; // loss — no tax
+    netEndValue = rawEndValue; // loss vs cost basis — no Belka tax
   }
 
   return { rawEndValue, netEndValue };
@@ -165,6 +172,18 @@ export function calcAllScenarios(inputs: CalcInputs, scenarios: Scenarios): Scen
   const years = inputs.horizonMonths / 12;
   const inflationTotalPercent = (Math.pow(1 + inputs.inflationRate / 100, years) - 1) * 100;
 
+  // Cost basis metrics (computed once, shared across all scenario results)
+  const nbpRate = inputs.nbpMidRate || inputs.currentFxRate;
+  const costBasisValuePLN = inputs.avgCostUSD > 0
+    ? inputs.shares * inputs.avgCostUSD * nbpRate
+    : currentValuePLN; // fallback: current value → no unrealized gain/loss
+  const unrealizedGainPLN = inputs.avgCostUSD > 0
+    ? currentValuePLN - costBasisValuePLN
+    : 0;
+  const unrealizedGainPercent = inputs.avgCostUSD > 0 && costBasisValuePLN > 0
+    ? (unrealizedGainPLN / costBasisValuePLN) * 100
+    : 0;
+
   const labels: Record<ScenarioKey, string> = { bear: 'Bear', base: 'Base', bull: 'Bull' };
 
   return (['bear', 'base', 'bull'] as ScenarioKey[]).map((key) => {
@@ -177,6 +196,14 @@ export function calcAllScenarios(inputs: CalcInputs, scenarios: Scenarios): Scen
     // Real returns: Fisher approximation for small values, exact for larger
     const stockRealReturnNet = ((1 + stockReturnNet / 100) / (1 + inflationTotalPercent / 100) - 1) * 100;
     const benchmarkRealReturnNet = ((1 + bmReturn / 100) / (1 + inflationTotalPercent / 100) - 1) * 100;
+
+    // Whether Belka applies to this scenario — true only if scenario end value > cost basis
+    const projectedPriceUSD = inputs.currentPriceUSD * (1 + scenarios[key].deltaStock / 100);
+    const projectedNbpRate = nbpRate * (1 + scenarios[key].deltaFx / 100);
+    const endValueNbp = inputs.shares * projectedPriceUSD * projectedNbpRate;
+    const belkaTaxedFromCostBasis = inputs.avgCostUSD > 0
+      ? endValueNbp > costBasisValuePLN
+      : endValueNbp > currentValuePLN;
 
     return {
       key,
@@ -194,6 +221,10 @@ export function calcAllScenarios(inputs: CalcInputs, scenarios: Scenarios): Scen
       stockRealReturnNet,
       benchmarkRealReturnNet,
       inflationTotalPercent,
+      costBasisValuePLN,
+      unrealizedGainPLN,
+      unrealizedGainPercent,
+      belkaTaxedFromCostBasis,
     };
   });
 }

@@ -30,6 +30,7 @@ interface InputPanelProps {
   inflationData: InflationData | null;
   inflationLoading: boolean;
   nbpRefRate: number;
+  avgCostUSD: number;
   /** Saved bond preset ID for UI restoration on page reload */
   initialBondPresetId?: string;
   /** Collapsed summary mode */
@@ -44,6 +45,7 @@ interface InputPanelProps {
   onBenchmarkTypeChange: (v: BenchmarkType) => void;
   onBondSettingsChange: (s: BondSettings) => void;
   onBondPresetChange: (id: string) => void;
+  onAvgCostUSDChange: (v: number) => void;
   onInflationRateChange: (v: number) => void;
   onNbpRefRateChange: (v: number) => void;
 }
@@ -69,6 +71,7 @@ export function InputPanel({
   inflationData,
   inflationLoading,
   nbpRefRate,
+  avgCostUSD,
   initialBondPresetId,
   collapsed,
   onToggleCollapse,
@@ -81,6 +84,7 @@ export function InputPanel({
   onBenchmarkTypeChange,
   onBondSettingsChange,
   onBondPresetChange,
+  onAvgCostUSDChange,
   onInflationRateChange,
   onNbpRefRateChange,
 }: InputPanelProps) {
@@ -387,6 +391,39 @@ export function InputPanel({
           placeholder="np. 185.00"
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
+      </div>
+
+      {/* Average cost (optional) */}
+      <div className="space-y-1">
+        <label htmlFor="avg-cost-usd" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+          Cena zakupu (USD)
+          <span className="text-xs font-normal text-gray-400">(opcjonalnie)</span>
+          <Tooltip content="Średnia cena zakupu za akcję. Używana do obliczenia rzeczywistego zysku/straty oraz prawidłowej podstawy podatku Belki — podatek nalicza się od zysku względem ceny zakupu, nie dzisiejszej ceny." />
+        </label>
+        <input
+          id="avg-cost-usd"
+          name="avgCostUsd"
+          autoComplete="off"
+          type="number"
+          min={0}
+          step={0.01}
+          value={avgCostUSD || ''}
+          onChange={(e) => onAvgCostUSDChange(Number(e.target.value))}
+          placeholder="np. 50.00"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        {/* Inline P&L indicator */}
+        {avgCostUSD > 0 && currentPriceUSD > 0 && (
+          <div className={`flex items-center gap-2 text-xs px-2 py-1 rounded-md ${currentPriceUSD >= avgCostUSD ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+            {currentPriceUSD >= avgCostUSD ? '▲' : '▼'}
+            <span>
+              {fmtUSD(currentPriceUSD)} vs. zakup {fmtUSD(avgCostUSD)}
+              {' · '}
+              <strong>{currentPriceUSD >= avgCostUSD ? '+' : ''}{(((currentPriceUSD - avgCostUSD) / avgCostUSD) * 100).toFixed(1)}%</strong>
+              {' '}({currentPriceUSD >= avgCostUSD ? '+' : ''}{fmtUSD((currentPriceUSD - avgCostUSD) * (shares || 0))}/akcję×{shares || 0})
+            </span>
+          </div>
+        )}
       </div>
 
       {/* FX Rate */}

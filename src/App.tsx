@@ -59,6 +59,7 @@ function App() {
   const [inflationRate, setInflationRate] = useState(0);
   const [nbpRefRate, setNbpRefRate] = useState(saved?.nbpRefRate ?? 0);
   const [horizonMonths, setHorizonMonths] = useState(saved?.horizonMonths ?? DEFAULT_HORIZON_MONTHS);
+  const [avgCostUSD, setAvgCostUSD] = useState(saved?.avgCostUSD ?? 0);
   // null = use HMM suggestions when available; non-null = user has manually overridden
   const [userScenarios, setUserScenarios] = useState<Scenarios | null>(saved?.userScenarios ?? null);
   const [scenarioEditKey, setScenarioEditKey] = useState(0);
@@ -107,10 +108,10 @@ function App() {
   // Auto-save user inputs to localStorage (debounced 600ms)
   useEffect(() => {
     const timer = setTimeout(() => {
-      saveState({ ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios });
+      saveState({ ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD });
     }, 600);
     return () => clearTimeout(timer);
-  }, [ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios]);
+  }, [ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD]);
 
   const fetchData = useCallback(async (tickerArg: string) => {
     // Reset scenarios so HMM suggestions auto-apply for the new ticker
@@ -212,7 +213,8 @@ function App() {
     bondCouponFrequency: bondSettings.couponFrequency,
     bondReinvestmentRate: effectiveSavingsRate,
     inflationRate: effectiveInflation,
-  }), [shares, currentPriceUSD, currentFxRate, fxData, wibor3m, deferredHorizon, benchmarkType, bondSettings, computedEffectiveRate, effectiveInflation, effectiveSavingsRate]);
+    avgCostUSD,
+  }), [shares, currentPriceUSD, currentFxRate, fxData, wibor3m, deferredHorizon, benchmarkType, bondSettings, computedEffectiveRate, effectiveInflation, effectiveSavingsRate, avgCostUSD]);
 
   const benchmarkReady = benchmarkType === 'savings' ? wibor3m > 0 : bondSettings.firstYearRate > 0;
   const canCalc = shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && horizonMonths > 0 && benchmarkReady;
@@ -295,6 +297,7 @@ function App() {
               inflationData={inflationData}
               inflationLoading={inflationLoading}
               nbpRefRate={nbpRefRate}
+              avgCostUSD={avgCostUSD}
               initialBondPresetId={bondPresetId}
               collapsed
               onToggleCollapse={() => setInputCollapsed(false)}
@@ -307,6 +310,7 @@ function App() {
               onBenchmarkTypeChange={handleBenchmarkTypeChange}
               onBondSettingsChange={setBondSettings}
               onBondPresetChange={setBondPresetId}
+              onAvgCostUSDChange={setAvgCostUSD}
               onInflationRateChange={setInflationRate}
               onNbpRefRateChange={setNbpRefRate}
             />
@@ -348,6 +352,7 @@ function App() {
                 inflationData={inflationData}
                 inflationLoading={inflationLoading}
                 nbpRefRate={nbpRefRate}
+                avgCostUSD={avgCostUSD}
                 initialBondPresetId={bondPresetId}
                 onToggleCollapse={results ? () => setInputCollapsed(true) : undefined}
                 onTickerChange={setTicker}
@@ -359,6 +364,7 @@ function App() {
                 onBenchmarkTypeChange={handleBenchmarkTypeChange}
                 onBondSettingsChange={setBondSettings}
                 onBondPresetChange={setBondPresetId}
+                onAvgCostUSDChange={setAvgCostUSD}
                 onInflationRateChange={setInflationRate}
                 onNbpRefRateChange={setNbpRefRate}
               />
@@ -421,6 +427,7 @@ function App() {
                 cpiPeriod={inflationData?.period}
                 inflationStale={inflationData?.isStale}
                 horizonMonths={horizonMonths}
+                avgCostUSD={avgCostUSD || undefined}
               />
             </ErrorBoundary>
             <ErrorBoundary>

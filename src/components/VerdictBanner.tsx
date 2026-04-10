@@ -1,5 +1,5 @@
 import type { ScenarioResult } from '../types/scenario';
-import { fmtPLN, fmtDiff, fmtDiffPct } from '../utils/formatting';
+import { fmtPLN, fmtUSD, fmtDiff, fmtDiffPct } from '../utils/formatting';
 import { Trophy, Info, TrendingDown } from 'lucide-react';
 import { NBP_TARGET } from '../utils/inflationProjection';
 import { Tooltip } from './Tooltip';
@@ -14,6 +14,7 @@ interface VerdictBannerProps {
   cpiPeriod?: string;
   inflationStale?: boolean;
   horizonMonths: number;
+  avgCostUSD?: number;
 }
 
 const SCENARIO_STYLE = {
@@ -34,7 +35,7 @@ const SCENARIO_STYLE = {
   },
 };
 
-export function VerdictBanner({ results, inflationRate, currentInflationRate, inflationSource, cpiPeriod, inflationStale, horizonMonths }: VerdictBannerProps) {
+export function VerdictBanner({ results, inflationRate, currentInflationRate, inflationSource, cpiPeriod, inflationStale, horizonMonths, avgCostUSD }: VerdictBannerProps) {
   const bmLabel = results[0]?.benchmarkLabel ?? 'Konto';
   if (results.length === 0) return null;
   const hasInflation = inflationRate > 0;
@@ -67,6 +68,35 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
           Wyniki pokazują wartość po wybranym horyzoncie czasowym.
         </p>
       </div>
+
+      {/* Cost basis P&L — shown only when avgCostUSD is set */}
+      {avgCostUSD && avgCostUSD > 0 && results[0]?.costBasisValuePLN != null && (
+        (() => {
+          const r = results[1] ?? results[0]; // use base scenario
+          const isProfit = (r.unrealizedGainPLN ?? 0) >= 0;
+          const gain = r.unrealizedGainPLN ?? 0;
+          const gainPct = r.unrealizedGainPercent ?? 0;
+          return (
+            <div className={`flex items-start gap-2 px-3 py-2.5 rounded-xl border text-sm ${isProfit ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+              <span className="text-lg leading-tight flex-shrink-0" aria-hidden="true">{isProfit ? '▲' : '▼'}</span>
+              <div className="flex-1">
+                <span className="font-semibold">
+                  {isProfit ? 'Jesteś na plusie' : 'Jesteś pod wodą'}
+                </span>
+                {' '}względem ceny zakupu {fmtUSD(avgCostUSD)}/akcję.{' '}
+                Niezrealizowany {isProfit ? 'zysk' : 'strata'}:{' '}
+                <strong>{fmtDiff(gain)}</strong>{' '}
+                (<strong>{gainPct >= 0 ? '+' : ''}{gainPct.toFixed(1)}%</strong>).
+                {!isProfit && (
+                  <span className="block mt-1 text-xs opacity-80">
+                    Scenariusze gdzie cena sprzedaży nie przekracza {fmtUSD(avgCostUSD)} nie są obciążone podatkiem Belki.
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })()
+      )}
 
       {/* Scenario cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

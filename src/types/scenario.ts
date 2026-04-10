@@ -50,4 +50,9 @@ export interface ScenarioResult {
   stockRealReturnNet: number;
   benchmarkRealReturnNet: number;
   inflationTotalPercent: number; // cumulative inflation over horizon
+  // Cost basis P&L (present only when avgCostUSD > 0)
+  costBasisValuePLN: number;     // purchase value at current NBP rate: shares × avgCostUSD × nbpRate
+  unrealizedGainPLN: number;     // currentValuePLN − costBasisValuePLN (negative = loss)
+  unrealizedGainPercent: number; // unrealizedGainPLN / costBasisValuePLN × 100
+  belkaTaxedFromCostBasis: boolean; // true = Belka applies to sale above cost basis (not just today)
 }

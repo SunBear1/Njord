@@ -14,6 +14,7 @@ export interface PersistedState {
   horizonMonths: number;
   benchmarkType: BenchmarkType;
   userScenarios: Scenarios | null;
+  avgCostUSD: number;
 }
 
 export function loadState(): Partial<PersistedState> | null {
