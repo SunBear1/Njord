@@ -187,7 +187,7 @@ export function InputPanel({
               <span className="text-blue-600 font-medium">{horizonLabel}</span>
             </div>
             <span className="flex items-center gap-1 text-xs text-blue-600 font-medium whitespace-nowrap shrink-0">
-              Rozwiń <ChevronDown size={14} />
+              Rozwiń <ChevronDown size={16} />
             </span>
           </button>
           </div>
@@ -216,7 +216,7 @@ export function InputPanel({
             onClick={onToggleCollapse}
             className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors"
           >
-            Zwiń <ChevronUp size={14} />
+            Zwiń <ChevronUp size={16} />
           </button>
         )}
       </div>
@@ -253,7 +253,7 @@ export function InputPanel({
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-9"
             />
             {assetLoading && (
-              <Loader2 size={15} className="absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin text-blue-500" aria-hidden="true" />
+              <Loader2 size={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin text-blue-500" aria-hidden="true" />
             )}
           </div>
           <button
@@ -262,19 +262,19 @@ export function InputPanel({
             aria-label="Odśwież dane giełdowe"
             className="p-2 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 disabled:opacity-40 transition-colors"
           >
-            <RefreshCw size={15} aria-hidden="true" />
+            <RefreshCw size={16} aria-hidden="true" />
           </button>
         </div>
 
         {assetError && !rateLimited && (
           <p className="flex items-start gap-1.5 text-xs text-red-600 mt-1">
-            <AlertCircle size={13} className="mt-0.5 flex-shrink-0" />
+            <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
             {assetError}
           </p>
         )}
         {assetData && !assetLoading && (
           <p className="flex items-center gap-1.5 text-xs text-green-600 mt-1">
-            <CheckCircle2 size={13} />
+            <CheckCircle2 size={12} />
             {assetData.asset.name} ({assetData.asset.currency}) · {fmtUSD(assetData.asset.currentPrice)}
           </p>
         )}
@@ -385,7 +385,7 @@ export function InputPanel({
           {fxData && !fxLoading && (
             <Tooltip content={`Kurs z Alior Kantor — tyle PLN dostaniesz sprzedając dolary. Podatek Belki po kursie NBP (${fmtNum(fxData.currentRate)} PLN/USD).`} />
           )}
-          {fxLoading && <span className="ml-1 text-xs text-gray-400 inline-flex items-center gap-1"><Loader2 size={11} className="animate-spin" />ładowanie…</span>}
+          {fxLoading && <span className="ml-1 text-xs text-gray-400 inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" />ładowanie…</span>}
         </label>
         <input
           id="fx-rate"
@@ -513,7 +513,7 @@ export function InputPanel({
                 {/* Family bonds hint */}
                 {preset.isFamily && (
                   <div className="flex items-start gap-1.5 bg-purple-50 border border-purple-200 text-purple-800 text-xs rounded-lg p-2.5">
-                    <Info size={13} className="mt-0.5 flex-shrink-0" />
+                    <Info size={12} className="mt-0.5 flex-shrink-0" />
                     Obligacje rodzinne — dostępne tylko dla beneficjentów programu 800+.
                   </div>
                 )}
@@ -534,7 +534,7 @@ export function InputPanel({
                       <div className="flex justify-between items-center">
                         <span className="text-gray-600 flex items-center gap-1">
                           Inflacja CPI
-                          {inflationLoading && <span className="text-gray-400 inline-flex items-center gap-1">· <Loader2 size={11} className="animate-spin" />ładowanie…</span>}
+                          {inflationLoading && <span className="text-gray-400 inline-flex items-center gap-1">· <Loader2 size={12} className="animate-spin" />ładowanie…</span>}
                           {inflationData && !inflationLoading && (
                             <Tooltip
                               content={`Źródło: ${inflationData.source}${inflationData.period ? ` (${inflationData.period})` : ''}. Obligacje indeksowane inflacją w rzeczywistości stosują odczyt CPI sprzed 2-3 miesięcy, nie bieżącą projekcję — przy stabilnej inflacji różnica jest minimalna.`}
@@ -576,7 +576,7 @@ export function InputPanel({
                             title="Sprawdź aktualną stopę NBP"
                             className="text-blue-500 hover:text-blue-700"
                           >
-                            <ExternalLink size={11} />
+                            <ExternalLink size={12} />
                           </a>
                         </span>
                         <input

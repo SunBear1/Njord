@@ -189,7 +189,7 @@ export function ScenarioEditor({
           </div>
           {suggestedScenarios && (
             <button onClick={onApplySuggested} className="flex items-center gap-1.5 text-xs bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-lg hover:bg-purple-100 transition-colors">
-              <Wand2 size={13} />
+              <Wand2 size={12} />
               Przywróć
             </button>
           )}
@@ -240,7 +240,7 @@ export function ScenarioEditor({
               <strong>USD / PLN</strong> — docelowa cena lub kurs
             </span>
           }>
-            <HelpCircle size={14} className="text-gray-300 cursor-help hover:text-gray-500 transition-colors" />
+            <HelpCircle size={16} className="text-gray-300 cursor-help hover:text-gray-500 transition-colors" />
           </Tooltip>
           {volatilityStats?.modelsLoading && (
             <span className="flex items-center gap-1 text-xs text-gray-400">
@@ -254,7 +254,7 @@ export function ScenarioEditor({
             onClick={onApplySuggested}
             className="flex items-center gap-1.5 text-xs bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-lg hover:bg-purple-100 transition-colors"
           >
-            <Wand2 size={13} />
+            <Wand2 size={12} />
             Przywróć z historii
           </button>
         )}
@@ -312,7 +312,7 @@ export function ScenarioEditor({
                         : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-700'
                     }`}
                   >
-                    {isRecommended && <Star size={10} className={isActive ? 'text-amber-300' : 'text-amber-400'} />}
+                    {isRecommended && <Star size={12} className={isActive ? 'text-amber-300' : 'text-amber-400'} />}
                     {m.name}
                     {coverage && <span className={`text-[10px] ${isActive ? 'text-indigo-200' : 'text-gray-400'}`}>{coverage}</span>}
                   </button>
@@ -332,7 +332,7 @@ export function ScenarioEditor({
                 </span>
               }
             >
-              <HelpCircle size={13} className="text-gray-300 cursor-help hover:text-gray-500 transition-colors" />
+              <HelpCircle size={12} className="text-gray-300 cursor-help hover:text-gray-500 transition-colors" />
             </Tooltip>
           </div>
         );
@@ -421,7 +421,7 @@ export function ScenarioEditor({
         <div className="flex-1 min-h-0 flex flex-col border border-indigo-100 rounded-lg overflow-hidden mt-2">
           <div className="w-full flex items-center px-3 py-1.5 bg-indigo-50/60 text-xs text-indigo-800 shrink-0">
             <span className="flex items-center gap-2 flex-wrap">
-              <Info size={11} className="text-indigo-400 shrink-0" />
+              <Info size={12} className="text-indigo-400 shrink-0" />
               <span className="font-medium">Analiza historyczna</span>
               {volatilityStats.regime && (
                 <Tooltip content={`Prawdopodobieństwo: ${Math.round(volatilityStats.regime.posteriorProbability * 100)}%`}>

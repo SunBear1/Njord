@@ -50,7 +50,7 @@ export function Tooltip({ content, children, side = 'top', width = 'w-60' }: Too
     >
       {children ?? (
         <Info
-          size={13}
+          size={12}
           className="text-gray-400 cursor-help hover:text-gray-600 transition-colors"
           aria-hidden="true"
         />

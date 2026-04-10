@@ -45,7 +45,7 @@ export function KantorSidebar({ rates }: KantorSidebarProps) {
     <div className="w-48 space-y-3">
       {/* Header */}
       <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700">
-        <ArrowDownUp size={13} className="text-blue-600" />
+        <ArrowDownUp size={12} className="text-blue-600" />
         <span>USD / PLN</span>
       </div>
 

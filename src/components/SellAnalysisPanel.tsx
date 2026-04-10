@@ -120,7 +120,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           <div className="w-px h-5 bg-gray-300 mx-1 hidden sm:block" aria-hidden="true" />
 
           <div className="flex items-center gap-1">
-            <Calendar size={13} className="text-gray-400 shrink-0" />
+            <Calendar size={12} className="text-gray-400 shrink-0" />
             <div className="flex gap-1 flex-wrap">
               {monthOptions.map((mo) => {
                 const key = `${mo.year}-${mo.month}`;
@@ -374,7 +374,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
 
           {/* Disclaimer */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-            <AlertTriangle size={18} className="text-amber-500 shrink-0 mt-0.5" />
+            <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5" />
             <div className="text-xs text-amber-800 space-y-1">
               <p className="font-semibold">Ograniczenia modelu</p>
               <ul className="list-disc list-inside space-y-0.5">

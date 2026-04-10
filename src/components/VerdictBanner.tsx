@@ -60,7 +60,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
 
       {/* Current value — above cards */}
       <div className="flex items-center gap-2 px-1">
-        <Info size={14} className="text-gray-400 flex-shrink-0" aria-hidden="true" />
+        <Info size={16} className="text-gray-400 flex-shrink-0" aria-hidden="true" />
         <p className="text-sm text-gray-600">
           Aktualnie posiadasz akcje o wartości{' '}
           <strong className="text-gray-900">{fmtPLN(results[0]?.currentValuePLN ?? 0)}</strong>.{' '}
@@ -89,7 +89,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
                 {/* Akcje column */}
                 <div className={`rounded-xl p-3 text-center space-y-1 ${stockWins ? 'bg-white shadow-sm ring-2 ring-amber-300' : 'bg-white/60'}`}>
                   <div className="flex items-center justify-center gap-1 text-xs font-bold text-blue-700 uppercase tracking-wide">
-                    {stockWins && <Trophy size={11} className="text-amber-400" aria-hidden="true" />}
+                    {stockWins && <Trophy size={12} className="text-amber-400" aria-hidden="true" />}
                     Akcje
                   </div>
                   <div className="text-base font-bold text-gray-800">{fmtPLN(r.stockNetEndValuePLN)}</div>
@@ -104,7 +104,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
                 {/* Benchmark column */}
                 <div className={`rounded-xl p-3 text-center space-y-1 ${!stockWins ? 'bg-white shadow-sm ring-2 ring-amber-300' : 'bg-white/60'}`}>
                   <div className="flex items-center justify-center gap-1 text-xs font-bold text-purple-700 uppercase tracking-wide">
-                    {!stockWins && <Trophy size={11} className="text-amber-400" aria-hidden="true" />}
+                    {!stockWins && <Trophy size={12} className="text-amber-400" aria-hidden="true" />}
                     {bmLabel}
                   </div>
                   <div className="text-base font-bold text-gray-800">{fmtPLN(r.benchmarkEndValuePLN)}</div>
@@ -131,7 +131,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
       {/* Inflation projection note */}
       {hasInflation && (
         <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 text-xs text-orange-800 flex items-start gap-2">
-          <TrendingDown size={14} className="mt-0.5 flex-shrink-0 text-orange-500" aria-hidden="true" />
+          <TrendingDown size={16} className="mt-0.5 flex-shrink-0 text-orange-500" aria-hidden="true" />
           <p>
             <strong>Inflacja {currentInflationRate.toFixed(1)}%</strong>
             {cpiPeriod ? ` (${inflationSource ?? 'Eurostat'}, ${cpiPeriod})` : ''}.{' '}
