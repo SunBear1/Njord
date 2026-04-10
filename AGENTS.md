@@ -75,7 +75,7 @@ src/
 functions/
 └── api/
     └── analyze.ts                # Pages Function: GET /api/analyze?ticker=X&horizonMonths=N
-                                  # Fetches Twelve Data (secret key) + NBP FX, runs HMM/GARCH/Bootstrap
+                                  # Fetches Twelve Data (secret key) + NBP FX; scenario models run client-side
 ```
 
 ---
@@ -153,9 +153,9 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 - **Styling:** Tailwind CSS v4 only (utility classes); no CSS modules or styled-components. Semantic color tokens are defined in `src/index.css` via `@theme` — use them when available, add new ones when needed.
 - **Components:** Functional with hooks; no classes; props explicitly typed via interfaces
 - **No routing** — single-page application
-- **No tests** — no test framework configured (vitest, jest)
+- **Testing:** Vitest (`npm test` / `npm run test:watch`). Tests in `src/__tests__/`.
 - **Deploy:** Automatic on `main` push via **Cloudflare Pages** native GitHub integration (no GH Actions workflow)
-- **Backend:** `functions/api/analyze.ts` — Cloudflare Pages Function at `GET /api/analyze?ticker=X&horizonMonths=N`. Fetches Twelve Data (server-side API key) + NBP FX, runs HMM/GARCH/Bootstrap, returns `AnalyzeResponse`.
+- **Backend:** `functions/api/analyze.ts` — Cloudflare Pages Function at `GET /api/analyze?ticker=X&horizonMonths=N`. Fetches Twelve Data (server-side API key) + NBP FX data; returns `ProxyResponse`. All scenario computation (GBM, Bootstrap) runs client-side.
 - **Base path:** `/` (Cloudflare Pages serves from root)
 - **Agent docs:** `AGENTS.md` at repo root — this is the standard location for GitHub Copilot and other AI agents. For monorepo subprojects, nested `AGENTS.md` files can be placed in subdirectories.
 
@@ -219,6 +219,8 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 
 ## Notes for AI agents
 
+- **Prediction engine:** Uses tiered approach — Block Bootstrap for ≤6 months, calibrated GBM for >6 months. Drift is shrunk toward 8% equity prior; volatility is damped for horizons >2 years. All outputs are hard-clamped via `clampScenario()`. See `.github/instructions/financial-forecasting.instructions.md` for full details.
+- **HMM is informational only** — regime detection is displayed but capped at 0.25 confidence. It never drives scenario numbers. GARCH is retired from the pipeline.
 - Historical volatility scenarios are auto-applied on first data load (via `useEffect` + `scenariosAutoApplied` ref in `App.tsx`). The "Przywróć z historii" button restores them after manual edits.
 - Inflation impact is shown as real returns (Fisher formula) alongside nominal values. The orange warning banner appears only when `inflationRate > 0`.
 - The purchasing power line on the timeline chart is a dashed orange line showing value erosion from inflation.

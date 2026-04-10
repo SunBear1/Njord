@@ -3,7 +3,7 @@
  *
  * Thin proxy that fetches stock data from Twelve Data and FX rates from NBP.
  * The Twelve Data API key is kept secret in the CF Pages environment — never
- * exposed to the browser.  All heavy computation (HMM/GARCH/Bootstrap) runs
+ * exposed to the browser.  All heavy computation (GBM, Bootstrap) runs
  * client-side where there is no CPU time limit.
  *
  * Response is cached at the CF edge for 1 hour per ticker.
