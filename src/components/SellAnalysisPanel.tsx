@@ -24,10 +24,10 @@ interface SellAnalysisPanelProps {
   currentFxRate: number;
 }
 
-const HORIZON_PRESETS = [
-  { days: 21, label: '1 mies.' },
-  { days: 63, label: '1 kwartał' },
-  { days: 126, label: '6 mies.' },
+const UNIFIED_PRESETS = [
+  { days: 21,  label: '1 miesiąc' },
+  { days: 63,  label: '1 kwartał' },
+  { days: 126, label: '6 miesięcy' },
   { days: 252, label: '1 rok' },
 ] as const;
 
@@ -36,29 +36,36 @@ const MONTH_NAMES = ['Sty', 'Lut', 'Mar', 'Kwi', 'Maj', 'Cze', 'Lip', 'Sie', 'Wr
 /** Approximate trading days from today to end of a given month/year. */
 function tradingDaysUntil(year: number, month: number): number {
   const now = new Date();
-  const target = new Date(year, month, 0); // last day of month (month is 1-indexed here)
+  const target = new Date(year, month, 0); // last day of month
   const diffMs = target.getTime() - now.getTime();
   const calendarDays = Math.max(1, Math.ceil(diffMs / 86_400_000));
   return Math.round(calendarDays * (252 / 365));
 }
 
-/** Generate next N months as selectable deadline options. */
-function getMonthOptions(count: number): { label: string; year: number; month: number }[] {
+/** Month name label for N trading days from today. */
+function targetMonthLabel(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + Math.round(days * 365 / 252));
+  return `${MONTH_NAMES[d.getMonth()]} '${String(d.getFullYear()).slice(2)}`;
+}
+
+/** Next N calendar months with approx trading-day counts. */
+function getMonthOptions(count: number): { label: string; year: number; month: number; days: number }[] {
   const now = new Date();
-  const options: { label: string; year: number; month: number }[] = [];
-  for (let i = 1; i <= count; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-    const m = d.getMonth();     // 0-based
+  return Array.from({ length: count }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() + i + 1, 1);
+    const m = d.getMonth();
     const y = d.getFullYear();
-    options.push({ label: `${MONTH_NAMES[m]} '${String(y).slice(2)}`, year: y, month: m + 1 });
-  }
-  return options;
+    const days = tradingDaysUntil(y, m + 1);
+    return { label: `${MONTH_NAMES[m]} '${String(y).slice(2)}`, year: y, month: m + 1, days };
+  });
 }
 
 export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonChange, currentFxRate }: SellAnalysisPanelProps) {
   const [showTable, setShowTable] = useState(true);
-  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
-  const monthOptions = useMemo(() => getMonthOptions(6), []);
+  const [isCustomActive, setIsCustomActive] = useState(false);
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
+  const monthOptions = useMemo(() => getMonthOptions(8), []);
 
   // Transform fan chart data into stackable bands
   const fanChartBands = useMemo(() => {
@@ -99,57 +106,63 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           <h2 className="text-lg font-semibold text-gray-900">Optymalna cena sprzedaży</h2>
         </div>
 
-        {/* Unified horizon: duration presets | deadline months */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
-            {HORIZON_PRESETS.map((p) => (
+        {/* Unified horizon chips — each shows duration + dynamically computed target month */}
+        <div className="flex gap-2 flex-wrap items-start">
+          {UNIFIED_PRESETS.map((p) => {
+            const isActive = !isCustomActive && horizonDays === p.days;
+            return (
               <button
                 key={p.days}
-                onClick={() => { onHorizonChange(p.days); setSelectedMonth(null); }}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                  horizonDays === p.days && !selectedMonth
-                    ? 'bg-white text-blue-700 shadow-sm border border-gray-200'
-                    : 'text-gray-500 hover:text-gray-700'
+                onClick={() => { onHorizonChange(p.days); setIsCustomActive(false); setShowCustomPicker(false); }}
+                className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-all ${
+                  isActive
+                    ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
+                    : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
                 }`}
               >
-                {p.label}
+                <span className="text-sm font-semibold leading-snug">{p.label}</span>
+                <span className={`text-[11px] leading-snug ${isActive ? 'text-blue-200' : 'text-gray-400'}`}>
+                  {targetMonthLabel(p.days)}
+                </span>
+              </button>
+            );
+          })}
+
+          {/* Custom deadline chip */}
+          <button
+            onClick={() => setShowCustomPicker((v) => !v)}
+            className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-all ${
+              isCustomActive || showCustomPicker
+                ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
+                : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
+            }`}
+          >
+            <span className="text-sm font-semibold leading-snug">Własny</span>
+            <span className={`text-[11px] leading-snug ${isCustomActive || showCustomPicker ? 'text-blue-200' : 'text-gray-400'}`}>
+              {isCustomActive ? targetMonthLabel(horizonDays) : '↓ wybierz'}
+            </span>
+          </button>
+        </div>
+
+        {/* Custom month picker — expands inline below chip row */}
+        {showCustomPicker && (
+          <div className="flex gap-1.5 flex-wrap pt-1">
+            {monthOptions.map((mo) => (
+              <button
+                key={`${mo.year}-${mo.month}`}
+                onClick={() => {
+                  onHorizonChange(tradingDaysUntil(mo.year, mo.month));
+                  setIsCustomActive(true);
+                  setShowCustomPicker(false);
+                }}
+                className="flex flex-col items-center px-3 py-1.5 rounded-lg border border-gray-200 bg-white hover:border-blue-400 hover:bg-blue-50 transition-colors"
+              >
+                <span className="text-xs font-medium text-gray-800">{mo.label}</span>
+                <span className="text-[10px] text-gray-400">~{Math.round(mo.days / 21)} mies.</span>
               </button>
             ))}
           </div>
-
-          <div className="w-px h-5 bg-gray-300 mx-1 hidden sm:block" aria-hidden="true" />
-
-          <div className="flex items-center gap-1">
-            <Calendar size={12} className="text-gray-400 shrink-0" />
-            <div className="flex gap-1 flex-wrap">
-              {monthOptions.map((mo) => {
-                const key = `${mo.year}-${mo.month}`;
-                const isActive = selectedMonth === key;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => {
-                      setSelectedMonth(key);
-                      onHorizonChange(tradingDaysUntil(mo.year, mo.month));
-                    }}
-                    className={`px-2 py-1.5 text-[11px] font-medium rounded-md transition-colors ${
-                      isActive
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    {mo.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Active horizon info */}
-        <div className="mt-2 text-[11px] text-gray-400">
-          ~{horizonDays} sesji giełdowych ({(horizonDays / 21).toFixed(1)} mies.)
-        </div>
+        )}
 
         {isLoading && (
           <div className="flex items-center gap-2 mt-4 text-sm text-gray-500">
