@@ -92,7 +92,7 @@ export function KantorSidebar({ rates }: KantorSidebarProps) {
       </div>
 
       <p className="text-[9px] text-gray-300 leading-tight">
-        Kupno = ile PLN za 1 USD (sprzedajesz USD). Sprzedaż = ile PLN za 1 USD (kupujesz USD).
+        Aktualnie wspierany jest tylko Alior Kantor.
       </p>
 
       {/* Role explanation — which rate is used where */}

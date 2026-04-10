@@ -434,12 +434,7 @@ export function ScenarioEditor({
                   </span>
                 </Tooltip>
               )}
-              <span className="text-indigo-500">
-                {'\u03c3'} {volatilityStats.stockSigmaAnnual.toFixed(0)}%/r
-              </span>
-              <span className={volatilityStats.stockMeanAnnual >= 0 ? 'text-green-600' : 'text-red-500'}>
-                {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(0)}%/r
-              </span>
+              
             </span>
           </div>
 
