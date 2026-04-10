@@ -31,6 +31,7 @@ interface InputPanelProps {
   inflationLoading: boolean;
   nbpRefRate: number;
   avgCostUSD: number;
+  brokerFeeUSD: number;
   /** Saved bond preset ID for UI restoration on page reload */
   initialBondPresetId?: string;
   /** Collapsed summary mode */
@@ -46,6 +47,7 @@ interface InputPanelProps {
   onBondSettingsChange: (s: BondSettings) => void;
   onBondPresetChange: (id: string) => void;
   onAvgCostUSDChange: (v: number) => void;
+  onBrokerFeeUSDChange: (v: number) => void;
   onInflationRateChange: (v: number) => void;
   onNbpRefRateChange: (v: number) => void;
 }
@@ -72,6 +74,7 @@ export function InputPanel({
   inflationLoading,
   nbpRefRate,
   avgCostUSD,
+  brokerFeeUSD,
   initialBondPresetId,
   collapsed,
   onToggleCollapse,
@@ -85,6 +88,7 @@ export function InputPanel({
   onBondSettingsChange,
   onBondPresetChange,
   onAvgCostUSDChange,
+  onBrokerFeeUSDChange,
   onInflationRateChange,
   onNbpRefRateChange,
 }: InputPanelProps) {
@@ -424,6 +428,27 @@ export function InputPanel({
             </span>
           </div>
         )}
+      </div>
+
+      {/* Broker fee (optional) */}
+      <div className="space-y-1">
+        <label htmlFor="broker-fee" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
+          Prowizja brokera (USD)
+          <span className="text-xs font-normal text-gray-400">(opcjonalnie)</span>
+          <Tooltip content="Łączna prowizja za transakcję sprzedaży w USD. Odejmowana od wartości sprzedaży i zaliczana jako koszt uzyskania przychodu — pomniejsza podstawę podatku Belki. Przykład: IBKR min $1, Exante ~0.02 USD/akcję." />
+        </label>
+        <input
+          id="broker-fee"
+          name="brokerFeeUsd"
+          autoComplete="off"
+          type="number"
+          min={0}
+          step={0.01}
+          value={brokerFeeUSD || ''}
+          onChange={(e) => onBrokerFeeUSDChange(Number(e.target.value))}
+          placeholder="np. 1.00"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
       </div>
 
       {/* FX Rate */}

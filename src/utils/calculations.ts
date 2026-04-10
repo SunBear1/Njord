@@ -22,6 +22,8 @@ export interface CalcInputs {
   inflationRate: number; // annual CPI % (e.g. 3.6 for 3.6%)
   // Cost basis for accurate Belka tax (optional — if 0, falls back to current price)
   avgCostUSD: number;    // average purchase price per share in USD (0 = not set)
+  // Transaction costs (optional — subtracted from end value before tax)
+  brokerFeeUSD: number;  // total broker commission in USD (0 = none)
 }
 
 function calcCurrentValuePLN(inputs: CalcInputs): number {
@@ -136,20 +138,23 @@ export function calcStockScenario(
 ): { rawEndValue: number; netEndValue: number } {
   const projectedPriceUSD = inputs.currentPriceUSD * (1 + params.deltaStock / 100);
   const projectedFxRate = inputs.currentFxRate * (1 + params.deltaFx / 100);
-  // Actual PLN received at kantor conversion rate
-  const rawEndValue = inputs.shares * projectedPriceUSD * projectedFxRate;
+  // Actual PLN received at kantor conversion rate, minus broker fee converted at same rate
+  const feeInPLN = (inputs.brokerFeeUSD || 0) * projectedFxRate;
+  const rawEndValue = inputs.shares * projectedPriceUSD * projectedFxRate - feeInPLN;
 
   // Tax basis at NBP mid rate (Polish tax law)
   const nbpRate = inputs.nbpMidRate || inputs.currentFxRate;
   const projectedNbpRate = nbpRate * (1 + params.deltaFx / 100);
   const endValueNbp = inputs.shares * projectedPriceUSD * projectedNbpRate;
+  // Fee also reduces taxable income (deductible cost of sale)
+  const feeNbp = (inputs.brokerFeeUSD || 0) * projectedNbpRate;
 
   // Cost basis: use purchase price if provided, otherwise fall back to current price
   const costBasisNbp = inputs.avgCostUSD > 0
     ? inputs.shares * inputs.avgCostUSD * nbpRate  // use current NBP rate as proxy for purchase rate
     : inputs.shares * inputs.currentPriceUSD * nbpRate;
 
-  const taxableProfit = endValueNbp - costBasisNbp;
+  const taxableProfit = endValueNbp - feeNbp - costBasisNbp;
 
   let netEndValue: number;
   if (taxableProfit > 0) {

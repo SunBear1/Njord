@@ -15,6 +15,7 @@ export interface PersistedState {
   benchmarkType: BenchmarkType;
   userScenarios: Scenarios | null;
   avgCostUSD: number;
+  brokerFeeUSD: number;
 }
 
 export function loadState(): Partial<PersistedState> | null {
