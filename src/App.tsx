@@ -51,6 +51,7 @@ function App() {
   const [userScenarios, setUserScenarios] = useState<Scenarios | null>(null);
   const [scenarioEditKey, setScenarioEditKey] = useState(0);
   const fxAutoFilled = useRef(false);
+  const aliorAutoFilled = useRef(false);
   const inflationAutoFilled = useRef(false);
 
   const { assetData, proxyFxData, isLoading: assetLoading, error: assetError, fetchData: fetchAsset } = useAssetData();
@@ -72,6 +73,16 @@ function App() {
     horizonMonths,
   );
   const kantorRates = useKantorRates();
+
+  // Primary FX source: Alior Kantor buy rate (actual conversion rate)
+  useEffect(() => {
+    if (kantorRates.alior && !aliorAutoFilled.current) {
+      aliorAutoFilled.current = true;
+      fxAutoFilled.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from async data source
+      setCurrentFxRate(kantorRates.alior.buy);
+    }
+  }, [kantorRates.alior]);
 
   const fetchData = useCallback(async (tickerArg: string) => {
     // Reset scenarios so HMM suggestions auto-apply for the new ticker
@@ -163,6 +174,7 @@ function App() {
     shares,
     currentPriceUSD,
     currentFxRate,
+    nbpMidRate: fxData?.currentRate ?? currentFxRate,
     wibor3mPercent: benchmarkType === 'savings' ? effectiveSavingsRate : wibor3m,
     horizonMonths: deferredHorizon,
     benchmarkType,
@@ -172,7 +184,7 @@ function App() {
     bondCouponFrequency,
     bondReinvestmentRate: effectiveSavingsRate,
     inflationRate: effectiveInflation,
-  }), [shares, currentPriceUSD, currentFxRate, wibor3m, deferredHorizon, benchmarkType, bondFirstYearRate, computedEffectiveRate, bondPenalty, bondCouponFrequency, effectiveInflation, effectiveSavingsRate]);
+  }), [shares, currentPriceUSD, currentFxRate, fxData, wibor3m, deferredHorizon, benchmarkType, bondFirstYearRate, computedEffectiveRate, bondPenalty, bondCouponFrequency, effectiveInflation, effectiveSavingsRate]);
 
   const benchmarkReady = benchmarkType === 'savings' ? wibor3m > 0 : bondFirstYearRate > 0;
   const canCalc = shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && horizonMonths > 0 && benchmarkReady;

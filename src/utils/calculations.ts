@@ -5,7 +5,8 @@ const BELKA_TAX = 0.19;
 export interface CalcInputs {
   shares: number;
   currentPriceUSD: number;
-  currentFxRate: number;
+  currentFxRate: number; // Kantor rate for actual PLN conversion
+  nbpMidRate: number;    // NBP Table A mid rate for Belka tax basis
   horizonMonths: number;
   // Benchmark
   benchmarkType: BenchmarkType;
@@ -136,16 +137,22 @@ export function calcStockScenario(
   inputs: CalcInputs,
   params: ScenarioParams,
 ): { rawEndValue: number; netEndValue: number } {
-  const currentValuePLN = calcCurrentValuePLN(inputs);
   const projectedPriceUSD = inputs.currentPriceUSD * (1 + params.deltaStock / 100);
   const projectedFxRate = inputs.currentFxRate * (1 + params.deltaFx / 100);
+  // Actual PLN received at kantor conversion rate
   const rawEndValue = inputs.shares * projectedPriceUSD * projectedFxRate;
 
+  // Tax basis at NBP mid rate (Polish tax law)
+  const nbpRate = inputs.nbpMidRate || inputs.currentFxRate;
+  const currentValueNbp = inputs.shares * inputs.currentPriceUSD * nbpRate;
+  const projectedNbpRate = nbpRate * (1 + params.deltaFx / 100);
+  const endValueNbp = inputs.shares * projectedPriceUSD * projectedNbpRate;
+  const taxableProfit = endValueNbp - currentValueNbp;
+
   let netEndValue: number;
-  if (rawEndValue > currentValuePLN) {
-    const grossProfit = rawEndValue - currentValuePLN;
-    const netProfit = grossProfit * (1 - BELKA_TAX);
-    netEndValue = currentValuePLN + netProfit;
+  if (taxableProfit > 0) {
+    const tax = taxableProfit * BELKA_TAX;
+    netEndValue = rawEndValue - tax;
   } else {
     netEndValue = rawEndValue; // loss — no tax
   }

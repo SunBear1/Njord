@@ -392,9 +392,9 @@ export function InputPanel({
       {/* FX Rate */}
       <div className="space-y-1">
         <label htmlFor="fx-rate" className="text-sm font-medium text-gray-700 flex items-center gap-1.5">
-          Kurs USD/PLN <span className="text-red-500">*</span>
+          Kurs przewalutowania USD/PLN <span className="text-red-500">*</span>
           {fxData && !fxLoading && (
-            <Tooltip content={`Kurs NBP: ${fmtNum(fxData.currentRate)} PLN/USD, pobierany automatycznie. Możesz wpisać własną wartość.`} />
+            <Tooltip content={`Kurs Alior Kantor (kupno) — używany do wyceny portfela w PLN. Podatek Belki obliczany po kursie NBP (${fmtNum(fxData.currentRate)} PLN/USD).`} />
           )}
           {fxLoading && <span className="ml-1 text-xs text-gray-400 inline-flex items-center gap-1"><Loader2 size={11} className="animate-spin" />ładowanie…</span>}
         </label>
