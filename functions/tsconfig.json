@@ -12,6 +12,7 @@
   },
   "include": [
     "./**/*.ts",
+    "./**/*.d.ts",
     "../src/types/**/*.ts",
     "../src/providers/nbpProvider.ts"
   ]
