@@ -12,10 +12,7 @@ import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 function translateError(code: ErrorCode | undefined, raw: string, ticker?: string): string {
   switch (code) {
     case 'TICKER_NOT_FOUND':
-      return ticker
-        ? `Nie znaleziono tickera: ${ticker}`
-        : raw.replace('Ticker not found', 'Nie znaleziono tickera')
-             .replace('No data found for ticker', 'Nie znaleziono danych dla');
+      return `Nie znaleziono tickera: ${ticker ?? ''}`;
     case 'RATE_LIMITED':
       return 'Przekroczono limit zapytań API. Spróbuj ponownie za minutę.';
     case 'INVALID_TICKER':
@@ -38,12 +35,12 @@ export async function fetchAssetData(
 
   const res = await fetchWithTimeout(url, signal);
 
-  const data = await res.json() as ProxyResponse & ProxyErrorResponse;
+  const body = await res.json().catch(() => null) as (ProxyResponse & ProxyErrorResponse) | null;
 
-  if (!res.ok || data.error) {
-    throw new Error(translateError(data.code, data.error ?? `HTTP ${res.status}`, ticker));
+  if (!res.ok || body?.error) {
+    throw new Error(translateError(body?.code, body?.error ?? `HTTP ${res.status}`, ticker));
   }
 
-  return data;
+  return body!;
 }
 
