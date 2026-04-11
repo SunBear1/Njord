@@ -1,22 +1,33 @@
-import type { ProxyResponse } from '../types/analyze';
+import type { ProxyResponse, ProxyErrorResponse, ErrorCode } from '../types/analyze';
 import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 
 /**
- * Calls the Cloudflare Pages Function at /api/analyze which fetches stock data
- * from Twelve Data and FX rates from NBP server-side (API key never exposed to
- * the browser).  All heavy computation runs client-side.
+ * Calls the Cloudflare Pages Function at /api/analyze which fetches stock/ETF
+ * data from Yahoo Finance (primary) or Twelve Data (fallback on rate limit).
+ * FX rates come from NBP. API key is never exposed to the browser.
+ * All heavy computation runs client-side.
  */
 
-/** Translate English backend errors to Polish for the UI. */
-function translateError(msg: string): string {
-  if (msg === 'RATE_LIMIT') return 'Przekroczono limit zapytań API. Spróbuj ponownie za minutę.';
-  if (msg.startsWith('Ticker not found')) return msg.replace('Ticker not found', 'Nie znaleziono tickera');
-  if (msg.startsWith('No data found for ticker')) return msg.replace('No data found for ticker', 'Nie znaleziono danych dla');
-  if (msg.startsWith('No market price for')) return msg.replace('No market price for', 'Brak ceny rynkowej dla');
-  if (msg.includes('Invalid Twelve Data API key')) return 'Nieprawidłowy klucz API.';
-  if (msg.includes('Failed to fetch USD/PLN')) return 'Błąd pobierania kursu USD/PLN z NBP.';
-  if (msg.includes('Missing required parameter')) return 'Brak wymaganego parametru ticker.';
-  return msg;
+/** Translate structured backend error codes to Polish UI messages. */
+function translateError(code: ErrorCode | undefined, raw: string, ticker?: string): string {
+  switch (code) {
+    case 'TICKER_NOT_FOUND':
+      return ticker
+        ? `Nie znaleziono tickera: ${ticker}`
+        : raw.replace('Ticker not found', 'Nie znaleziono tickera')
+             .replace('No data found for ticker', 'Nie znaleziono danych dla');
+    case 'RATE_LIMITED':
+      return 'Przekroczono limit zapytań API. Spróbuj ponownie za minutę.';
+    case 'INVALID_TICKER':
+      return 'Nieprawidłowy lub brakujący ticker.';
+    case 'UPSTREAM_ERROR':
+      if (raw.includes('USD/PLN') || raw.includes('NBP')) {
+        return 'Błąd pobierania kursu USD/PLN z NBP.';
+      }
+      return 'Błąd pobierania danych. Spróbuj ponownie.';
+    default:
+      return raw;
+  }
 }
 
 export async function fetchAssetData(
@@ -27,13 +38,10 @@ export async function fetchAssetData(
 
   const res = await fetchWithTimeout(url, signal);
 
-  if (res.status === 429) throw new Error(translateError('RATE_LIMIT'));
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json() as ProxyResponse & ProxyErrorResponse;
 
-  const data = await res.json() as ProxyResponse & { error?: string };
-
-  if (data.error) {
-    throw new Error(translateError(data.error));
+  if (!res.ok || data.error) {
+    throw new Error(translateError(data.code, data.error ?? `HTTP ${res.status}`, ticker));
   }
 
   return data;

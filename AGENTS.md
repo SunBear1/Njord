@@ -35,10 +35,12 @@ npm run lint       # ESLint
 npm run preview    # preview production build
 ```
 
-Local dev with Pages Functions (requires `.dev.vars`):
+Local dev with Pages Functions (optional — only needed for Twelve Data fallback):
 ```ini
-TWELVE_DATA_API_KEY=your_key
+# .dev.vars — gitignored, optional
+TWELVE_DATA_API_KEY=your_key  # Only needed as fallback when Yahoo Finance rate-limits
 ```
+Without `.dev.vars`, `/api/analyze` works via Yahoo Finance with no configuration needed.
 
 ---
 
@@ -74,8 +76,9 @@ src/
 │   └── analyze.ts                # AnalyzeResponse, AnalyzeResult (Worker response types)
 functions/
 └── api/
-    └── analyze.ts                # Pages Function: GET /api/analyze?ticker=X&horizonMonths=N
-                                  # Fetches Twelve Data (secret key) + NBP FX; scenario models run client-side
+    └── analyze.ts                # Pages Function: GET /api/analyze?ticker=X
+                                  # Primary: Yahoo Finance (no key). Fallback: Twelve Data on 429.
+                                  # FX history from NBP. All scenario models run client-side.
 ```
 
 ---
@@ -84,11 +87,15 @@ functions/
 
 | API | URL | Purpose | CORS | Auth |
 |-----|-----|---------|------|------|
-| Twelve Data | `api.twelvedata.com/time_series` | Stock prices, 252 sessions | Yes | API key required (server-side secret) |
+| Yahoo Finance | `query1.finance.yahoo.com/v8/finance/chart/` | Stock/ETF prices, 2yr history — **primary** | Server-side only | None (User-Agent required) |
+| Twelve Data | `api.twelvedata.com/time_series` | Stock prices — **fallback on Yahoo 429** | Yes | Optional API key |
 | NBP | `api.nbp.pl/api/exchangerates/...` | USD/PLN rate | Yes | None |
 | ECB HICP | `data-api.ecb.europa.eu/service/data/ICP/...` | Polish CPI inflation | Yes | None |
 
-**Twelve Data free tier:** 800 req/day, 8/min. API key stored as Cloudflare Pages environment secret (`TWELVE_DATA_API_KEY`) — never exposed to the browser. The `/api/analyze` Pages Function reads it server-side.
+**Data source strategy:** Yahoo Finance is the primary source for market data (no key required).
+If Yahoo returns 429 (rate limited), `/api/analyze` falls back to Twelve Data when
+`TWELVE_DATA_API_KEY` is configured. Both sources produce identical response shape.
+The `source` field in `ProxyResponse` indicates which was used.
 
 ---
 
@@ -159,7 +166,7 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 - **No routing** — single-page application
 - **Testing:** Vitest (`npm test` / `npm run test:watch`). Tests in `src/__tests__/`.
 - **Deploy:** Automatic on `main` push via **Cloudflare Pages** native GitHub integration (no GH Actions workflow)
-- **Backend:** `functions/api/analyze.ts` — Cloudflare Pages Function at `GET /api/analyze?ticker=X&horizonMonths=N`. Fetches Twelve Data (server-side API key) + NBP FX data; returns `ProxyResponse`. All scenario computation (GBM, Bootstrap) runs client-side.
+- **Backend:** `functions/api/analyze.ts` — Cloudflare Pages Function at `GET /api/analyze?ticker=X`. Primary: Yahoo Finance (no key). Fallback: Twelve Data on 429. NBP FX history included. Returns `ProxyResponse`. All scenario computation (GBM, Bootstrap) runs client-side.
 - **Base path:** `/` (Cloudflare Pages serves from root)
 - **Agent docs:** `AGENTS.md` at repo root — this is the standard location for GitHub Copilot and other AI agents. For monorepo subprojects, nested `AGENTS.md` files can be placed in subdirectories.
 

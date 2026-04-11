@@ -1,6 +1,6 @@
 # Copilot Instructions — Njord
 
-Polish-language financial comparison SPA: USD stock portfolio vs Polish savings accounts and government bonds. Hosted on Cloudflare Pages with a thin Pages Function backend for API key secrecy.
+Polish-language financial comparison SPA: USD stock portfolio vs Polish savings accounts and government bonds. Hosted on Cloudflare Pages with a thin Pages Function backend.
 
 ## Commands
 
@@ -14,19 +14,20 @@ npm run test:watch   # Vitest — watch mode
 npx vitest run src/__tests__/gbmModel.test.ts  # Single test file
 ```
 
-Local Pages Functions require `.dev.vars` with `TWELVE_DATA_API_KEY=...`.
+Local Pages Functions work without any configuration (Yahoo Finance requires no key).
+To enable the Twelve Data fallback, create `.dev.vars` with `TWELVE_DATA_API_KEY=...`.
 
 ## Architecture
 
 **All state lives in `App.tsx`** — passed via props, no global store. No routing (single page).
 
 **Data flow:**
-1. `useAssetData` → calls `/api/analyze` Pages Function → Twelve Data (stock prices) + NBP (FX history)
+1. `useAssetData` → calls `/api/analyze` Pages Function → Yahoo Finance (primary) or Twelve Data (429 fallback) + NBP (FX history)
 2. `useFxData` → direct NBP call for live USD/PLN sell rate
 3. `useHistoricalVolatility` → runs prediction models client-side (GBM or Bootstrap depending on horizon)
 4. `App.tsx` → passes scenarios + asset data to calculation functions → distributes results to chart/display components
 
-**Backend** (`functions/api/analyze.ts`): Thin proxy that fetches stock data with a server-side API key and caches at the CF edge for 1 hour. All financial computation runs in the browser.
+**Backend** (`functions/api/analyze.ts`): Thin proxy — Yahoo Finance primary (no key), Twelve Data fallback on 429 (optional key). Caches at CF edge for 1 hour. All financial computation runs in the browser.
 
 **Prediction engine:** ≤6 months → Block Bootstrap; >6 months → Calibrated GBM. HMM is used only by the Sell Analysis feature — it does NOT drive bear/base/bull scenarios.
 
