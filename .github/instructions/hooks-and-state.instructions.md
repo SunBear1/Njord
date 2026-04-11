@@ -19,21 +19,25 @@ globs:
 - Child components receive data and callbacks via explicitly typed props interfaces
 - If a new feature needs state, add it to `App.tsx` and thread it down via props
 
-**Auto-apply pattern** (`scenariosAutoApplied` ref):
+**Auto-apply pattern** (`userScenarios === null` guard):
 
 ```typescript
-const scenariosAutoApplied = useRef(false);
+// scenarios is derived: user overrides take priority, then model suggestions, then defaults
+const scenarios = userScenarios ?? suggestedScenarios ?? DEFAULT_SCENARIOS;
 
+// When new model suggestions arrive and user hasn't manually edited, bump the
+// ScenarioEditor key to remount it with fresh values.
 useEffect(() => {
-  if (!scenariosAutoApplied.current && suggestedScenarios) {
-    setScenarios(suggestedScenarios);
-    scenariosAutoApplied.current = true;
+  if (suggestedScenarios && userScenarios === null) {
+    setScenarioEditKey((k) => k + 1);
   }
-}, [suggestedScenarios]);
+}, [suggestedScenarios, userScenarios]);
 ```
 
-The `ref` prevents double-application on StrictMode double-mount. Do not replace it with a
-state variable — that would cause an infinite loop.
+`userScenarios` starts as `null` on every new ticker fetch. It becomes non-null when the user
+manually edits a scenario. This ensures auto-application only fires once — when model output
+first arrives and the user hasn't overridden anything. Do not replace this with a ref-based
+flag — the nullability of `userScenarios` is the mechanism.
 
 ---
 
