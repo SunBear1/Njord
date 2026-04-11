@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Loader2, AlertCircle, CheckCircle2, RefreshCw, Calculator, ExternalLink, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import type { AssetData } from '../types/asset';
-import type { FxData } from '../providers/nbpProvider';
 import type { InflationData } from '../hooks/useInflationData';
 import type { BenchmarkType, BondPreset, BondSettings } from '../types/scenario';
 import { BOND_PRESETS, BOND_PRESETS_LAST_UPDATED, BOND_PRESETS_SOURCE_URL } from '../data/bondPresets';
@@ -13,8 +12,8 @@ interface InputPanelProps {
   assetData: AssetData | null;
   assetLoading: boolean;
   assetError: string | null;
-  fxData: FxData | null;
-  fxLoading: boolean;
+  /** NBP Table A mid rate for Belka tax basis display (0 if not yet loaded) */
+  nbpMidRate: number;
   ticker: string;
   shares: number;
   currentPriceUSD: number;
@@ -63,8 +62,7 @@ export function InputPanel({
   assetData,
   assetLoading,
   assetError,
-  fxData,
-  fxLoading,
+  nbpMidRate,
   ticker,
   shares,
   currentPriceUSD,
@@ -119,7 +117,7 @@ export function InputPanel({
     applyBondPreset(preset);
   };
   const isFirstRender = useRef(true);
-  const rateLimited = assetError === 'RATE_LIMIT';
+  const rateLimited = assetError?.includes('Przekroczono limit') ?? false;
 
   // Apply bond preset
   const applyBondPreset = (preset: BondPreset) => {
@@ -533,10 +531,9 @@ export function InputPanel({
       <div className="space-y-1">
         <label htmlFor="fx-rate" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
           Kurs sprzedaży USD <span className="text-red-500">*</span>
-          {fxData && !fxLoading && (
-            <Tooltip content={`Kurs z Alior Kantor — tyle PLN dostaniesz sprzedając dolary. Podatek Belki po kursie NBP (${fmtNum(fxData.currentRate)} PLN/USD).`} />
+          {nbpMidRate > 0 && (
+            <Tooltip content={`Kurs z Alior Kantor — tyle PLN dostaniesz sprzedając dolary. Podatek Belki po kursie NBP (${fmtNum(nbpMidRate)} PLN/USD).`} />
           )}
-          {fxLoading && <span className="ml-1 text-xs text-gray-400 dark:text-gray-500 inline-flex items-center gap-1"><Loader2 size={12} className="animate-spin" />ładowanie…</span>}
         </label>
         <input
           id="fx-rate"

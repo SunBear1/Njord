@@ -42,14 +42,14 @@ async function fetchStockData(
     values?: Array<{ datetime: string; close: string }>;
   };
 
-  if (data.code === 401) throw new Error('Nieprawidłowy klucz API Twelve Data.');
+  if (data.code === 401) throw new Error('Invalid Twelve Data API key');
   if (data.code === 429) throw new Error('RATE_LIMIT');
-  if (data.status === 'error') throw new Error(data.message || `Nie znaleziono tickera: ${ticker}`);
-  if (!data.meta || !data.values?.length) throw new Error(`Nie znaleziono danych dla: ${ticker}`);
+  if (data.status === 'error') throw new Error(data.message || `Ticker not found: ${ticker}`);
+  if (!data.meta || !data.values?.length) throw new Error(`No data found for ticker: ${ticker}`);
 
   const values = data.values;
   const currentPrice = parseFloat(values[0].close);
-  if (isNaN(currentPrice)) throw new Error(`Brak ceny rynkowej dla ${ticker}`);
+  if (isNaN(currentPrice)) throw new Error(`No market price for ${ticker}`);
 
   const historicalPrices: HistoricalPrice[] = values
     .map((v) => ({ date: v.datetime, close: parseFloat(v.close) }))
@@ -77,7 +77,7 @@ async function fetchFxData(currency = 'USD'): Promise<{ currentRate: number; his
     fetch(`${NBP_BASE}/${currency}/${fmt(oneYearAgo)}/${fmt(now)}/?format=json`),
   ]);
 
-  if (!currentRes.ok) throw new Error('Błąd pobierania kursu USD/PLN z NBP');
+  if (!currentRes.ok) throw new Error('Failed to fetch USD/PLN rate from NBP');
 
   const parseRates = async (r: Response): Promise<FxRate[]> => {
     if (!r.ok) return [];
@@ -86,7 +86,7 @@ async function fetchFxData(currency = 'USD'): Promise<{ currentRate: number; his
   };
 
   const currentData = await currentRes.json() as { rates?: Array<{ mid: number }> };
-  if (!currentData.rates?.length) throw new Error('NBP nie zwrócił bieżącego kursu');
+  if (!currentData.rates?.length) throw new Error('NBP returned no current rate');
 
   const [hist1, hist2] = await Promise.all([parseRates(hist1Res), parseRates(hist2Res)]);
 
@@ -98,26 +98,21 @@ async function fetchFxData(currency = 'USD'): Promise<{ currentRate: number; his
 
 // ── Handler ────────────────────────────────────────────────────────────────────
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-};
-
 export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   const url = new URL(request.url);
   const ticker = url.searchParams.get('ticker')?.trim().toUpperCase();
 
   if (!ticker) {
-    return new Response(JSON.stringify({ error: 'Brak parametru ticker' }), {
+    return new Response(JSON.stringify({ error: 'Missing required parameter: ticker' }), {
       status: 400,
-      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 
   if (!env.TWELVE_DATA_API_KEY) {
     return new Response(JSON.stringify({ error: 'Server configuration error: API key not configured' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 
@@ -157,19 +152,14 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
       headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'max-age=3600',
-        ...CORS_HEADERS,
       },
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Nieznany błąd';
+    const message = err instanceof Error ? err.message : 'Unknown error';
     const isRateLimit = message === 'RATE_LIMIT';
     return new Response(JSON.stringify({ error: message }), {
       status: isRateLimit ? 429 : 500,
-      headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+      headers: { 'Content-Type': 'application/json' },
     });
   }
-};
-
-export const onRequestOptions: PagesFunction = async () => {
-  return new Response(null, { status: 204, headers: CORS_HEADERS });
 };

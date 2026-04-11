@@ -1,16 +1,22 @@
 import type { ProxyResponse } from '../types/analyze';
+import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 
 /**
  * Calls the Cloudflare Pages Function at /api/analyze which fetches stock data
  * from Twelve Data and FX rates from NBP server-side (API key never exposed to
  * the browser).  All heavy computation runs client-side.
  */
-function fetchWithTimeout(url: string, signal?: AbortSignal, timeoutMs = 30_000): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  // Forward external cancellation (e.g. component unmount / new request)
-  signal?.addEventListener('abort', () => controller.abort(), { once: true });
-  return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timer));
+
+/** Translate English backend errors to Polish for the UI. */
+function translateError(msg: string): string {
+  if (msg === 'RATE_LIMIT') return 'Przekroczono limit zapytań API. Spróbuj ponownie za minutę.';
+  if (msg.startsWith('Ticker not found')) return msg.replace('Ticker not found', 'Nie znaleziono tickera');
+  if (msg.startsWith('No data found for ticker')) return msg.replace('No data found for ticker', 'Nie znaleziono danych dla');
+  if (msg.startsWith('No market price for')) return msg.replace('No market price for', 'Brak ceny rynkowej dla');
+  if (msg.includes('Invalid Twelve Data API key')) return 'Nieprawidłowy klucz API.';
+  if (msg.includes('Failed to fetch USD/PLN')) return 'Błąd pobierania kursu USD/PLN z NBP.';
+  if (msg.includes('Missing required parameter')) return 'Brak wymaganego parametru ticker.';
+  return msg;
 }
 
 export async function fetchAssetData(
@@ -21,13 +27,13 @@ export async function fetchAssetData(
 
   const res = await fetchWithTimeout(url, signal);
 
-  if (res.status === 429) throw new Error('RATE_LIMIT');
+  if (res.status === 429) throw new Error(translateError('RATE_LIMIT'));
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
   const data = await res.json() as ProxyResponse & { error?: string };
 
   if (data.error) {
-    throw new Error(data.error);
+    throw new Error(translateError(data.error));
   }
 
   return data;

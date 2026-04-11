@@ -7,11 +7,6 @@ export interface InflationData {
   isStale?: boolean;    // true when data is older than 6 months
 }
 
-// ECB HICP (ICP dataset) — Poland, all items, annual rate of change, monthly
-// CORS-enabled (Access-Control-Allow-Origin: *)
-const ECB_URL =
-  'https://data-api.ecb.europa.eu/service/data/ICP/M.PL.N.000000.4.ANR?format=csvdata&lastNObservations=1';
-
 // NBP official inflation target — used as fallback when API is unavailable
 const NBP_TARGET_RATE = 2.5;
 
@@ -43,6 +38,22 @@ function isStaleData(period: string): boolean {
   return dataDate < sixMonthsAgo;
 }
 
+// ECB direct URL — used as fallback when proxy is unavailable
+const ECB_URL =
+  'https://data-api.ecb.europa.eu/service/data/ICP/M.PL.N.000000.4.ANR?format=csvdata&lastNObservations=1';
+
+async function fetchInflationCsv(signal: AbortSignal): Promise<string> {
+  // Try proxy first (edge-cached), fall back to ECB direct
+  try {
+    const proxyRes = await fetch('/api/inflation', { signal });
+    if (proxyRes.ok) return await proxyRes.text();
+  } catch { /* fall through */ }
+
+  const directRes = await fetch(ECB_URL, { signal });
+  if (!directRes.ok) throw new Error(`ECB HTTP ${directRes.status}`);
+  return await directRes.text();
+}
+
 export function useInflationData() {
   const [data, setData] = useState<InflationData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,10 +67,7 @@ export function useInflationData() {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch(ECB_URL, { signal: controller.signal });
-        if (!res.ok) throw new Error(`ECB HTTP ${res.status}`);
-
-        const csv = await res.text();
+        const csv = await fetchInflationCsv(controller.signal);
         const parsed = parseCsvRow(csv);
         if (!parsed) throw new Error('Failed to parse ECB HICP CSV');
 

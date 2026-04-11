@@ -25,7 +25,18 @@ interface NbpResponse {
   rates: Array<{ bid: number; ask: number; effectiveDate: string }>;
 }
 
-async function fetchAlior(): Promise<KantorRates['alior']> {
+interface ProxyResponse {
+  alior: KantorRates['alior'];
+  nbp: KantorRates['nbp'];
+}
+
+async function fetchViaProxy(): Promise<ProxyResponse> {
+  const res = await fetch('/api/kantor');
+  if (!res.ok) throw new Error(`Proxy HTTP ${res.status}`);
+  return await res.json() as ProxyResponse;
+}
+
+async function fetchAliorDirect(): Promise<KantorRates['alior']> {
   const res = await fetch(ALIOR_URL);
   if (!res.ok) return null;
   const data: AliorResponse = await res.json();
@@ -33,7 +44,7 @@ async function fetchAlior(): Promise<KantorRates['alior']> {
   return { buy: buyNow, sell: sellNow, mid: forexNow, ts: data.ts };
 }
 
-async function fetchNbp(): Promise<KantorRates['nbp']> {
+async function fetchNbpDirect(): Promise<KantorRates['nbp']> {
   const res = await fetch(NBP_URL);
   if (!res.ok) return null;
   const data: NbpResponse = await res.json();
@@ -44,6 +55,7 @@ async function fetchNbp(): Promise<KantorRates['nbp']> {
 
 /**
  * Fetches USD/PLN buy/sell rates from Alior Kantor and NBP Table C.
+ * Tries the /api/kantor proxy first (edge-cached), falls back to direct API calls.
  * Auto-refreshes every 60 seconds.
  */
 export function useKantorRates(): KantorRates {
@@ -60,17 +72,27 @@ export function useKantorRates(): KantorRates {
       setIsLoading(true);
       setError(null);
       try {
-        const [a, n] = await Promise.allSettled([fetchAlior(), fetchNbp()]);
+        // Try proxy first (edge-cached)
+        const proxy = await fetchViaProxy();
         if (cancelled) return;
-        setAlior(a.status === 'fulfilled' ? a.value : null);
-        setNbp(n.status === 'fulfilled' ? n.value : null);
-        if (a.status === 'rejected' && n.status === 'rejected') {
-          setError('Nie udało się pobrać kursów walut.');
-        } else {
-          setLastUpdated(new Date());
-        }
+        setAlior(proxy.alior);
+        setNbp(proxy.nbp);
+        setLastUpdated(new Date());
       } catch {
-        if (!cancelled) setError('Błąd połączenia.');
+        // Fallback to direct API calls
+        try {
+          const [a, n] = await Promise.allSettled([fetchAliorDirect(), fetchNbpDirect()]);
+          if (cancelled) return;
+          setAlior(a.status === 'fulfilled' ? a.value : null);
+          setNbp(n.status === 'fulfilled' ? n.value : null);
+          if (a.status === 'rejected' && n.status === 'rejected') {
+            setError('Nie udało się pobrać kursów walut.');
+          } else {
+            setLastUpdated(new Date());
+          }
+        } catch {
+          if (!cancelled) setError('Błąd połączenia.');
+        }
       } finally {
         if (!cancelled) setIsLoading(false);
       }

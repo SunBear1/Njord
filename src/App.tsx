@@ -10,7 +10,7 @@ import { BreakevenChart } from './components/BreakevenChart';
 import { MethodologyPanel } from './components/MethodologyPanel';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useAssetData } from './hooks/useAssetData';
-import { useFxData } from './hooks/useFxData';
+
 import { useInflationData } from './hooks/useInflationData';
 import { useHistoricalVolatility } from './hooks/useHistoricalVolatility';
 import { useKantorRates } from './hooks/useKantorRates';
@@ -75,11 +75,11 @@ function App() {
   const inflationAutoFilled = useRef(false);
 
   const { assetData, proxyFxData, isLoading: assetLoading, error: assetError, fetchData: fetchAsset } = useAssetData();
-  const { fxData, isLoading: fxLoading } = useFxData();
+  
   const { data: inflationData, isLoading: inflationLoading } = useInflationData();
   const { suggestedScenarios, stats: volatilityStats } = useHistoricalVolatility(
     assetData?.historicalPrices ?? null,
-    proxyFxData?.historicalRates ?? fxData?.historicalRates ?? null,
+    proxyFxData?.historicalRates ?? null,
     horizonMonths,
   );
   const kantorRates = useKantorRates();
@@ -93,15 +93,6 @@ function App() {
       setCurrentFxRate(kantorRates.alior.buy);
     }
   }, [kantorRates.alior]);
-
-  // Secondary FX source: NBP rate (fallback if Alior Kantor not yet available)
-  useEffect(() => {
-    if (fxData?.currentRate && !fxAutoFilled.current) {
-      fxAutoFilled.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from async data source
-      setCurrentFxRate(fxData.currentRate);
-    }
-  }, [fxData?.currentRate]);
 
   // Auto-fill inflation from ECB/NBP data
   useEffect(() => {
@@ -210,7 +201,7 @@ function App() {
     shares,
     currentPriceUSD,
     currentFxRate,
-    nbpMidRate: fxData?.currentRate ?? currentFxRate,
+    nbpMidRate: proxyFxData?.currentRate ?? currentFxRate,
     wibor3mPercent: benchmarkType === 'savings' ? effectiveSavingsRate : wibor3m,
     horizonMonths: deferredHorizon,
     benchmarkType,
@@ -225,7 +216,7 @@ function App() {
     dividendYieldPercent,
     etfAnnualReturnPercent,
     etfTerPercent,
-  }), [shares, currentPriceUSD, currentFxRate, fxData, wibor3m, deferredHorizon, benchmarkType, bondSettings, computedEffectiveRate, effectiveInflation, effectiveSavingsRate, avgCostUSD, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent]);
+  }), [shares, currentPriceUSD, currentFxRate, proxyFxData, wibor3m, deferredHorizon, benchmarkType, bondSettings, computedEffectiveRate, effectiveInflation, effectiveSavingsRate, avgCostUSD, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent]);
 
   const benchmarkReady = benchmarkType === 'savings'
     ? wibor3m > 0
@@ -304,8 +295,7 @@ function App() {
               assetData={assetData}
               assetLoading={assetLoading}
               assetError={assetError}
-              fxData={fxData}
-              fxLoading={fxLoading}
+              nbpMidRate={proxyFxData?.currentRate ?? 0}
               ticker={ticker}
               shares={shares}
               currentPriceUSD={currentPriceUSD}
@@ -367,8 +357,7 @@ function App() {
                 assetData={assetData}
                 assetLoading={assetLoading}
                 assetError={assetError}
-                fxData={fxData}
-                fxLoading={fxLoading}
+                nbpMidRate={proxyFxData?.currentRate ?? 0}
                 ticker={ticker}
                 shares={shares}
                 currentPriceUSD={currentPriceUSD}
