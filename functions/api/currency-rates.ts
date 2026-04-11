@@ -33,7 +33,7 @@ export const onRequestGet: PagesFunction = async () => {
     fetchNbp(),
   ]);
 
-  const response: KantorProxyResponse = {
+  const response: CurrencyRatesProxyResponse = {
     alior: aliorResult.status === 'fulfilled' ? aliorResult.value : null,
     nbp: nbpResult.status === 'fulfilled' ? nbpResult.value : null,
   };
@@ -53,7 +53,7 @@ export const onRequestGet: PagesFunction = async () => {
   });
 };
 
-async function fetchAlior(): Promise<KantorProxyResponse['alior']> {
+async function fetchAlior(): Promise<CurrencyRatesProxyResponse['alior']> {
   const res = await fetch(ALIOR_URL);
   if (!res.ok) return null;
   const data: AliorResponse = await res.json();
@@ -61,7 +61,7 @@ async function fetchAlior(): Promise<KantorProxyResponse['alior']> {
   return { buy: buyNow, sell: sellNow, mid: forexNow, ts: data.ts };
 }
 
-async function fetchNbp(): Promise<KantorProxyResponse['nbp']> {
+async function fetchNbp(): Promise<CurrencyRatesProxyResponse['nbp']> {
   const res = await fetch(NBP_URL);
   if (!res.ok) return null;
   const data: NbpResponse = await res.json();

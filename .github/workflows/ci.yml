@@ -17,4 +17,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm test
+      - run: npm run test:coverage
       - run: npm run build
+      - name: Type-check functions/
+        run: npx tsc --noEmit --skipLibCheck -p functions/tsconfig.json
