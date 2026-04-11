@@ -24,10 +24,10 @@ describe('blendedInflationRate', () => {
   it('returns approximately NBP_TARGET (2.5%) for very long horizons', () => {
     // The BLENDED rate is a time-average over the full path — it converges toward
     // target much slower than the instantaneous rate. After 10 years from 10%,
-    // the blended rate is ~3.5% (early high months still pull the average up).
+    // the blended rate is ~3.58% (early high months still pull the average up).
     const result = blendedInflationRate(10.0, 120); // 10 years
     expect(result).toBeGreaterThan(NBP_TARGET);
-    expect(result).toBeLessThan(5.0); // well below initial 10%
+    expect(result).toBeLessThan(4.0); // well below initial 10%, converging toward 2.5%
   });
 
   it('high inflation blends down toward target over time', () => {
@@ -127,10 +127,10 @@ describe('blendedSavingsRate', () => {
 
   it('returns approximately equilibrium for very long horizons', () => {
     // The BLENDED rate averages the full path from 8% down to 3%.
-    // After 10 years, blended ≈ 4% (still well above equilibrium due to early months).
+    // After 10 years, blended ≈ 3.97% (still above equilibrium due to early months).
     const result = blendedSavingsRate(8.0, 120);
     expect(result).toBeGreaterThan(SAVINGS_EQUILIBRIUM);
-    expect(result).toBeLessThan(6.0); // well below initial 8%
+    expect(result).toBeLessThan(4.5); // well below initial 8%, converging toward 3%
   });
 
   it('returns exactly equilibrium when currentRate equals equilibrium', () => {

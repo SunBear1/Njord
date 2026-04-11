@@ -239,6 +239,28 @@ describe('Coupon bond (couponFrequency > 0)', () => {
     expect(end).toBeLessThan(capEnd);
   });
 
+  it('ROR-style monthly coupon: exact value at zero reinvestment rate', () => {
+    // Use bondReinvestmentRate=0 to isolate the coupon math precisely.
+    // 12 monthly coupons, each = P * (5%/12) * (1 - 0.19), zero reinvestment growth.
+    // End value = P + 12 * (P * 0.05/12 * 0.81) = P + P * 0.05 * 0.81
+    const inputs = baseInputs({
+      shares: 1,
+      benchmarkType: 'bonds' as const,
+      bondFirstYearRate: 5.0,
+      bondEffectiveRate: 5.0,
+      bondPenaltyPercent: 0,
+      bondCouponFrequency: 12,
+      bondReinvestmentRate: 0, // zero reinvestment to isolate coupon math
+      horizonMonths: 12,
+    });
+    const principal = 400;
+    // With zero reinvestment, each net coupon contributes exactly its after-tax value.
+    // 12 coupons of (P * 5%/12) each taxed at 19% = P * 5% * 81% total
+    const expectedEnd = principal + principal * (5.0 / 100) * (1 - BELKA);
+    const results = calcAllScenarios(inputs, NEUTRAL_SCENARIOS);
+    expect(results[0].benchmarkEndValuePLN).toBeCloseTo(expectedEnd, 4); // 416.2 PLN
+  });
+
   it('penalty is deducted from coupon bond end value', () => {
     const noPenalty = baseInputs({
       benchmarkType: 'bonds' as const,
@@ -403,26 +425,25 @@ describe('Stock scenario (calcStockScenario via calcAllScenarios)', () => {
   });
 
   it('broker fee reduces both raw end value and taxable income', () => {
-    const inputs = baseInputs({
-      shares: 1,
-      currentPriceUSD: 100,
-      currentFxRate: 4.0,
-      nbpMidRate: 4.0,
-      brokerFeeUSD: 5, // $5 fee
-    });
-    const noFee = baseInputs({
-      shares: 1,
-      currentPriceUSD: 100,
-      currentFxRate: 4.0,
-      nbpMidRate: 4.0,
-      brokerFeeUSD: 0,
-    });
-    const r1 = calcAllScenarios(inputs, NEUTRAL_SCENARIOS)[0].stockNetEndValuePLN;
-    const r2 = calcAllScenarios(noFee, NEUTRAL_SCENARIOS)[0].stockNetEndValuePLN;
-    // Fee of $5 × 4.0 = 20 PLN reduces end value (and also reduces taxable gain)
-    // difference < 20 because less taxable income means less Belka
-    expect(r2 - r1).toBeGreaterThan(0);
-    expect(r2 - r1).toBeLessThanOrEqual(20);
+    // Use +20% stock delta to create a realized capital gain, so we can verify the
+    // fee actually reduces taxable income (and therefore saves some Belka).
+    const gainScenarios: Scenarios = {
+      bear: { deltaStock: 20, deltaFx: 0 },
+      base: { deltaStock: 20, deltaFx: 0 },
+      bull: { deltaStock: 20, deltaFx: 0 },
+    };
+    const withFee = baseInputs({ shares: 1, currentPriceUSD: 100, currentFxRate: 4.0, nbpMidRate: 4.0, brokerFeeUSD: 5 });
+    const noFee  = baseInputs({ shares: 1, currentPriceUSD: 100, currentFxRate: 4.0, nbpMidRate: 4.0, brokerFeeUSD: 0 });
+
+    const netWithFee = calcAllScenarios(withFee, gainScenarios)[0].stockNetEndValuePLN;
+    const netNoFee   = calcAllScenarios(noFee,  gainScenarios)[0].stockNetEndValuePLN;
+
+    // endNbp = 1 * 120 * 4.0 = 480; costBasis = 1 * 100 * 4.0 = 400
+    // No fee: taxableGain = 480-0-400 = 80, tax = 15.2, net = 480-15.2 = 464.8
+    // With fee: taxableGain = 480-20-400 = 60, tax = 11.4, net = 460-11.4 = 448.6
+    // Difference = 464.8 - 448.6 = 16.2 PLN (< 20 because fee saved 3.8 in Belka)
+    expect(netNoFee - netWithFee).toBeCloseTo(16.2, 1);
+    expect(netNoFee - netWithFee).toBeLessThan(20); // fee reduced taxable income → saved Belka
   });
 
   it('dividends accumulate proportionally to yield and horizon', () => {

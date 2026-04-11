@@ -333,13 +333,14 @@ describe('analyzePaths', () => {
     expect(result.medianFinalPrice).toBeCloseTo(result.finalPriceDistribution.p50, 6);
   });
 
-  it('peakDistribution.p50 >= finalPriceDistribution.p50 on average', () => {
-    // Peak is always >= final along any given path
+  it('peakDistribution.p50 >= finalPriceDistribution.p50', () => {
+    // Mathematical guarantee: peak_i >= final_i for every single path by definition
+    // (peak = max over all days >= last day value). By stochastic dominance this implies
+    // every order statistic satisfies peak_(k) >= final_(k), including the median.
     const model = realisticModel();
     const paths = simulateFullPaths(model, 0, 100, 30, 300, 42);
     const result = analyzePaths(paths);
-    // Median peak >= median final (not guaranteed but statistically reliable)
-    expect(result.peakDistribution.p50).toBeGreaterThanOrEqual(result.finalPriceDistribution.p50 * 0.95);
+    expect(result.peakDistribution.p50).toBeGreaterThanOrEqual(result.finalPriceDistribution.p50);
   });
 
   it('all distribution stats are positive and finite', () => {
