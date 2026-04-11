@@ -3,7 +3,7 @@ import { Loader2, AlertCircle, CheckCircle2, RefreshCw, Calculator, ExternalLink
 import type { AssetData } from '../types/asset';
 import type { InflationData } from '../hooks/useInflationData';
 import type { BenchmarkType, BondPreset, BondSettings } from '../types/scenario';
-import { BOND_PRESETS, BOND_PRESETS_LAST_UPDATED, BOND_PRESETS_SOURCE_URL } from '../data/bondPresets';
+import { BOND_PRESETS_LAST_UPDATED, BOND_PRESETS_SOURCE_URL } from '../data/bondPresets';
 import { fmtUSD, fmtNum } from '../utils/formatting';
 import { Tooltip } from './Tooltip';
 
@@ -36,6 +36,10 @@ interface InputPanelProps {
   etfTerPercent: number;
   /** Saved bond preset ID for UI restoration on page reload */
   initialBondPresetId?: string;
+  /** Bond presets loaded from the API */
+  bondPresets: BondPreset[];
+  /** True while bond presets are being fetched */
+  bondPresetsLoading?: boolean;
   /** Collapsed summary mode */
   collapsed?: boolean;
   onToggleCollapse?: () => void;
@@ -83,6 +87,8 @@ export function InputPanel({
   etfAnnualReturnPercent,
   etfTerPercent,
   initialBondPresetId,
+  bondPresets,
+  bondPresetsLoading,
   collapsed,
   onToggleCollapse,
   onTickerChange,
@@ -106,7 +112,7 @@ export function InputPanel({
   const [wiborStr, setWiborStr] = useState(wibor3m > 0 ? String(wibor3m) : '');
   const [showValueCalc, setShowValueCalc] = useState(false);
   const [totalValueStr, setTotalValueStr] = useState('');
-  const [selectedBondId, setSelectedBondId] = useState(initialBondPresetId ?? BOND_PRESETS[0].id);
+  const [selectedBondId, setSelectedBondId] = useState(initialBondPresetId ?? 'OTS');
   const [showAdvanced, setShowAdvanced] = useState(
     () => (avgCostUSD > 0 || brokerFeeUSD > 0 || dividendYieldPercent > 0),
   );
@@ -132,15 +138,15 @@ export function InputPanel({
     });
   };
 
-  // Re-evaluate penalty whenever horizon changes
+  // Re-evaluate penalty whenever horizon or presets change
   useEffect(() => {
     if (benchmarkType !== 'bonds') return;
-    const preset = BOND_PRESETS.find((b) => b.id === selectedBondId);
+    const preset = bondPresets.find((b) => b.id === selectedBondId);
     if (!preset) return;
     const earlyExit = horizonMonths < preset.maturityMonths;
     const penalty = earlyExit && preset.earlyRedemptionAllowed ? preset.earlyRedemptionPenalty : 0;
     onBondSettingsChange({ ...bondSettings, penalty });
-  }, [horizonMonths, selectedBondId, benchmarkType]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [horizonMonths, selectedBondId, benchmarkType, bondPresets]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-fetch with 800ms debounce, requires ticker + API key
   useEffect(() => {
@@ -695,22 +701,26 @@ export function InputPanel({
               name="bondType"
               value={selectedBondId}
               onChange={(e) => {
-                const preset = BOND_PRESETS.find((b) => b.id === e.target.value);
+                const preset = bondPresets.find((b) => b.id === e.target.value);
                 if (preset) handleSelectBondPreset(e.target.value, preset);
               }}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
             >
-              {BOND_PRESETS.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name} — {b.description}{b.isFamily ? ' (800+)' : ''}
-                </option>
-              ))}
+              {bondPresetsLoading ? (
+                <option disabled>Ładowanie…</option>
+              ) : (
+                bondPresets.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name} — {b.description}{b.isFamily ? ' (800+)' : ''}
+                  </option>
+                ))
+              )}
             </select>
           </div>
 
           {/* Bond rate details */}
           {(() => {
-            const preset = BOND_PRESETS.find((b) => b.id === selectedBondId);
+            const preset = bondPresets.find((b) => b.id === selectedBondId);
             if (!preset) return null;
             const earlyExit = horizonMonths < preset.maturityMonths;
 

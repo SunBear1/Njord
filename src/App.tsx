@@ -16,6 +16,7 @@ import { useHistoricalVolatility } from './hooks/useHistoricalVolatility';
 import { useCurrencyRates } from './hooks/useCurrencyRates';
 import { useSellAnalysis } from './hooks/useSellAnalysis';
 import { useDarkMode } from './hooks/useDarkMode';
+import { useBondPresets } from './hooks/useBondPresets';
 import { KantorSidebar } from './components/KantorSidebar';
 import {
   calcAllScenarios,
@@ -75,6 +76,7 @@ function App() {
   const inflationAutoFilled = useRef(false);
 
   const { assetData, proxyFxData, isLoading: assetLoading, error: assetError, fetchData: fetchAsset } = useAssetData();
+  const { presets: bondPresets, isLoading: bondPresetsLoading } = useBondPresets();
   
   const { data: inflationData, isLoading: inflationLoading } = useInflationData();
   const { suggestedScenarios, stats: volatilityStats } = useHistoricalVolatility(
@@ -318,6 +320,8 @@ function App() {
               initialBondPresetId={bondPresetId}
               collapsed
               onToggleCollapse={() => setInputCollapsed(false)}
+              bondPresets={bondPresets}
+              bondPresetsLoading={bondPresetsLoading}
               onTickerChange={setTicker}
               onSharesChange={setShares}
               onPriceChange={setCurrentPriceUSD}
@@ -379,6 +383,8 @@ function App() {
                 etfTerPercent={etfTerPercent}
                 initialBondPresetId={bondPresetId}
                 onToggleCollapse={results ? () => setInputCollapsed(true) : undefined}
+                bondPresets={bondPresets}
+                bondPresetsLoading={bondPresetsLoading}
                 onTickerChange={setTicker}
                 onSharesChange={setShares}
                 onPriceChange={setCurrentPriceUSD}
