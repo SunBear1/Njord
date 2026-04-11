@@ -1,6 +1,6 @@
 ---
 description: Toolkit for testing web applications using Playwright. Use when verifying frontend functionality, debugging UI behavior, or capturing screenshots.
-globs: "tests/**/*.{ts,js,py}"
+globs: "src/__tests__/**/*.{ts,js,py}"
 ---
 
 # Web Application Testing
@@ -13,7 +13,7 @@ Source: [anthropics/skills](https://github.com/anthropics/skills/tree/main/skill
 Start the dev server, then run Playwright against it:
 
 ```bash
-# Start dev server (port 5173, base path /Njord/)
+# Start dev server (port 5173, base path /)
 npm run dev &
 
 # Run Playwright script
@@ -28,7 +28,7 @@ from playwright.sync_api import sync_playwright
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
     page = browser.new_page()
-    page.goto('http://localhost:5173/Njord/')
+    page.goto('http://localhost:5173/')
     page.wait_for_load_state('networkidle')  # CRITICAL: Wait for JS to execute
 
     # ... your test logic
@@ -53,7 +53,7 @@ Is the dev server running?
 
 1. **Inspect rendered DOM**:
    ```python
-   page.screenshot(path='/tmp/inspect.png', full_page=True)
+   page.screenshot(path='screenshot.png', full_page=True)
    content = page.content()
    page.locator('button').all()
    ```
@@ -66,7 +66,7 @@ Is the dev server running?
 
 - ❌ Don't inspect DOM before waiting for `networkidle` on dynamic apps
 - ✅ Always `page.wait_for_load_state('networkidle')` before inspection
-- ❌ Don't forget the base path `/Njord/` in URLs
+- ❌ Don't use `/Njord/` in URLs — base path is `/` (Cloudflare Pages)
 - ✅ Always close the browser when done
 
 ## Best Practices

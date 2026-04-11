@@ -10,10 +10,7 @@ import { describe, it, expect } from 'vitest';
 import { syntheticLogReturns } from './scenarioSanity.test';
 import { gbmPredict } from '../utils/models/gbmModel';
 import { bootstrapPredict } from '../utils/models/bootstrap';
-import { selectBestModel } from '../utils/models/modelSelector';
 import { mulberry32, boxMuller } from '../utils/models/types';
-import { garchPredict } from '../utils/models/garch';
-import { hmmPredict } from '../utils/models/hmmModel';
 
 // ── GBM Coverage Calibration ─────────────────────────────────────────────────
 
@@ -128,27 +125,6 @@ describe('Stability — volatility perturbation', () => {
 });
 
 // ── Model Selector ───────────────────────────────────────────────────────────
-
-describe('Model selector returns valid result', () => {
-  it('recommendedIndex is valid and recommended model has confidence > 0', () => {
-    const logReturns = syntheticLogReturns(0.08, 0.30, 252, 42);
-    const horizonDays = 63;
-    const seed = 42;
-
-    // Pre-compute predictions for all 3 model factories used by selectBestModel
-    const fullPredictions = [
-      bootstrapPredict(logReturns, horizonDays, seed),
-      garchPredict(logReturns, horizonDays, seed),
-      hmmPredict(logReturns, horizonDays, seed).prediction,
-    ];
-
-    const scoring = selectBestModel(logReturns, horizonDays, seed, fullPredictions);
-
-    expect(scoring.recommendedIndex).toBeGreaterThanOrEqual(0);
-    expect(scoring.recommendedIndex).toBeLessThanOrEqual(2);
-    expect(scoring.scored[scoring.recommendedIndex].confidence).toBeGreaterThan(0);
-  });
-});
 
 // ── Determinism ──────────────────────────────────────────────────────────────
 

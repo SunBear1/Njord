@@ -2,7 +2,12 @@
  * Gaussian Hidden Markov Model (2-state) with Baum-Welch EM
  * and regime-conditioned Monte Carlo scenario generation.
  *
- * Implements the algorithm described in .github/instructions/bull-bear-scenarios.md
+ * Used by: Sell Analysis feature (useSellAnalysis → sellAnalysis.ts)
+ * NOT used by: Scenario prediction pipeline (bear/base/bull uses GBM + Bootstrap only)
+ *
+ * The prediction pipeline labels HMM as "informational only" because it does NOT
+ * drive scenario numbers. However, this module IS actively used for the Sell Analysis
+ * Monte Carlo simulation and regime detection display.
  */
 
 import { mulberry32, boxMuller } from './models/types';

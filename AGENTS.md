@@ -92,14 +92,16 @@ functions/
 
 ---
 
-## Calculation logic (`src/utils/calculations.ts`)
+## Calculation logic
 
-- **Belka tax:** 19% on profit (constant `BELKA_TAX = 0.19`)
-- **Savings account:** Monthly compounding: `(1 + r/12)^n`, tax on gross interest
-- **Bonds:** Year-by-year compounding; different rate for year 1 vs years 2+; early redemption penalty subtracted before tax
-- **Stocks:** `shares × priceUSD × fxRate`; profit/loss after Belka tax; scenarios scale deltas linearly over time for timeline chart
-- **Heatmap:** Grid of deltaStock × deltaFx (−20% to +20%, step 4%)
-- **Inflation impact:** Real return computed via Fisher approximation (`realReturn ≈ nominalReturn − inflation`). Displayed alongside nominal values in results UI.
+All financial logic is in `src/utils/calculations.ts` (pure functions). Key rules:
+- **Belka tax:** 19% on profit only — never applied to principal
+- **Bonds:** year-by-year compounding, early redemption penalty subtracted **before** tax
+- **FX + stock deltas are multiplicative**, not additive: `(1 + dS) × (1 + dFX) - 1`
+- **Timeline interpolation is geometric**, not linear
+
+> For complete rules (tax basis, bond math, compound interest, anti-patterns):
+> see `.github/instructions/financial-math-guardian.instructions.md`
 
 ---
 
@@ -166,13 +168,13 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 ## Common tasks
 
 ### Adding a new bond type
-1. Add object to `BOND_PRESETS` array in `src/components/InputPanel.tsx`
+1. Add object to `BOND_PRESETS` array in `src/data/bondPresets.ts`
 2. Ensure `rateType` is one of `'fixed' | 'reference' | 'inflation'`
 3. Verify `maturityMonths <= 144` (slider max for bonds mode)
 
 ### Changing horizon slider range
-- `src/components/InputPanel.tsx` line ~584: `max={benchmarkType === 'savings' ? 60 : 144}`
-- `src/App.tsx` line ~92: clamping on savings mode switch
+- `src/components/InputPanel.tsx`: find the `max=` prop on the horizon slider — `max={benchmarkType === 'savings' ? 60 : 144}`
+- `src/App.tsx`: find the clamping logic on savings mode switch (search for `Math.min` near `horizonMonths`)
 - Slider ticks are absolutely positioned — update tick arrays accordingly
 
 ### Changing calculation logic
@@ -193,7 +195,7 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 2. Add a new calculation function in `src/utils/calculations.ts` (e.g., `calcETFEndValue`)
 3. Extend `calcBenchmarkEndValue()` with the new branch
 4. Add ETF-specific UI inputs in `src/components/InputPanel.tsx` (expense ratio, etc.)
-5. Add third button in benchmark selector (`InputPanel.tsx`, line ~349)
+5. Add third button in benchmark selector (`InputPanel.tsx`, search for the existing `savings`/`bonds` button group)
 6. Handle new state variables in `App.tsx`
 7. Layout (2-col grid) does not need changes — it accommodates new benchmark types well
 
@@ -221,8 +223,11 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 
 ## Notes for AI agents
 
-- **Prediction engine:** Uses tiered approach — Block Bootstrap for ≤6 months, calibrated GBM for >6 months. Drift is shrunk toward 8% equity prior; volatility is damped for horizons >2 years. All outputs are hard-clamped via `clampScenario()`. See `.github/instructions/financial-forecasting.instructions.md` for full details.
-- **HMM is informational only** — regime detection is displayed but capped at 0.25 confidence. It never drives scenario numbers. GARCH is retired from the pipeline.
+- **Prediction engine:** Tiered — Block Bootstrap (≤6 months), calibrated GBM (>6 months). Drift shrunk toward 8% prior; volatility damped for horizons >2 years. All outputs clamped via `clampScenario()`. See `.github/instructions/financial-forecasting.instructions.md` for full details.
+- **HMM** (`src/utils/hmm.ts`) is used by the **Sell Analysis feature only** — it does NOT drive the bear/base/bull scenario pipeline. The scenario pipeline uses GBM + Bootstrap exclusively.
+- **Financial math:** Belka tax, bond math, FX multiplicative structure, compound interest rules — see `.github/instructions/financial-math-guardian.instructions.md`.
+- **Hooks and state:** AbortController patterns, localStorage guards, App.tsx state architecture — see `.github/instructions/hooks-and-state.instructions.md`.
+- **Backend (Pages Functions):** API key secrecy, CF constraints, caching strategy — see `.github/instructions/backend-api.instructions.md`.
 - Historical volatility scenarios are auto-applied on first data load (via `useEffect` + `scenariosAutoApplied` ref in `App.tsx`). The "Przywróć z historii" button restores them after manual edits.
 - Inflation impact is shown as real returns (Fisher formula) alongside nominal values. The orange warning banner appears only when `inflationRate > 0`.
 - The purchasing power line on the timeline chart is a dashed orange line showing value erosion from inflation.
@@ -231,10 +236,17 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 
 ### Validation loop
 
-After modifying any file in `src/utils/models/` or `src/hooks/useHistoricalVolatility.ts`:
-1. Run `npm test` — all tests must pass (includes model calibration tests: coverage, cross-model consistency, stability, determinism)
+After modifying any file in `src/utils/`, `src/hooks/`, or `functions/`:
+1. Run `npm test` — all tests must pass
 2. Run `npm run lint` — zero errors
 3. Run `npm run build` — must compile cleanly
 
-The CI pipeline (`.github/workflows/ci.yml`) enforces this automatically on every push and pull request.
+For type-checking only (faster): `npx tsc --noEmit`
+
+After modifying any file in `src/components/`:
+1. Run `npm run lint && npm test && npm run build`
+2. Start dev server (`npm run dev`) and visually verify the component renders correctly
+3. Check layout at mobile (375px) and desktop (1280px) widths
+
+The CI pipeline (`.github/workflows/ci.yml`) enforces lint + test + build automatically on every push and pull request.
 The Copilot cloud coding agent environment is configured via `.github/copilot-setup-steps.yml`.

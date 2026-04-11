@@ -28,13 +28,9 @@ Local Pages Functions require `.dev.vars` with `TWELVE_DATA_API_KEY=...`.
 
 **Backend** (`functions/api/analyze.ts`): Thin proxy that fetches stock data with a server-side API key and caches at the CF edge for 1 hour. All financial computation runs in the browser.
 
-**Prediction engine** (tiered):
-- ≤6 months: Block Bootstrap (empirical, no parametric assumptions)
-- \>6 months: Calibrated GBM with drift shrinkage toward 8% equity prior and damped volatility for long horizons
-- All outputs clamped via `clampScenario()` — see `src/utils/models/gbmModel.ts`
-- HMM regime detection is informational only (confidence capped at 0.25)
+**Prediction engine:** ≤6 months → Block Bootstrap; >6 months → Calibrated GBM. HMM is used only by the Sell Analysis feature — it does NOT drive bear/base/bull scenarios.
 
-**Financial calculations** (`src/utils/calculations.ts`): Pure functions — `calcAllScenarios`, `calcTimeline`, `calcHeatmap`. Polish 19% Belka tax applied to all profit. Bond logic handles 8 preset types with fixed/reference/inflation rate types.
+**Financial calculations** (`src/utils/calculations.ts`): Pure functions — `calcAllScenarios`, `calcTimeline`, `calcHeatmap`. Polish 19% Belka tax applied to all profit.
 
 ## Conventions
 
