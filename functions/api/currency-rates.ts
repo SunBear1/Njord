@@ -1,5 +1,5 @@
 /**
- * Pages Function: GET /api/kantor
+ * Pages Function: GET /api/currency-rates
  *
  * Proxies Alior Kantor and NBP Table C exchange rates with 1-minute edge cache.
  * Keeps third-party API traffic server-side for resilience.
@@ -22,7 +22,7 @@ interface NbpResponse {
   rates: Array<{ bid: number; ask: number; effectiveDate: string }>;
 }
 
-export interface KantorProxyResponse {
+export interface CurrencyRatesProxyResponse {
   alior: { buy: number; sell: number; mid: number; ts: string } | null;
   nbp: { buy: number; sell: number; mid: number; date: string } | null;
 }

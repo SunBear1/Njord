@@ -13,7 +13,7 @@ import { useAssetData } from './hooks/useAssetData';
 
 import { useInflationData } from './hooks/useInflationData';
 import { useHistoricalVolatility } from './hooks/useHistoricalVolatility';
-import { useKantorRates } from './hooks/useKantorRates';
+import { useCurrencyRates } from './hooks/useCurrencyRates';
 import { useSellAnalysis } from './hooks/useSellAnalysis';
 import { useDarkMode } from './hooks/useDarkMode';
 import { KantorSidebar } from './components/KantorSidebar';
@@ -82,17 +82,17 @@ function App() {
     proxyFxData?.historicalRates ?? null,
     horizonMonths,
   );
-  const kantorRates = useKantorRates();
+  const currencyRates = useCurrencyRates();
 
   // Primary FX source: Alior Kantor buy rate (actual conversion rate)
   useEffect(() => {
-    if (kantorRates.alior && !aliorAutoFilled.current) {
+    if (currencyRates.alior && !aliorAutoFilled.current) {
       aliorAutoFilled.current = true;
       fxAutoFilled.current = true;
       // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from async data source
-      setCurrentFxRate(kantorRates.alior.buy);
+      setCurrentFxRate(currencyRates.alior.buy);
     }
-  }, [kantorRates.alior]);
+  }, [currencyRates.alior]);
 
   // Auto-fill inflation from ECB/NBP data
   useEffect(() => {
@@ -282,7 +282,7 @@ function App() {
         {/* Kantor rates sticky sidebar — xl+ only */}
         <aside className="hidden xl:block shrink-0 pt-6 pl-4">
           <div className="sticky top-4">
-            <KantorSidebar rates={kantorRates} />
+            <KantorSidebar rates={currencyRates} />
           </div>
         </aside>
 

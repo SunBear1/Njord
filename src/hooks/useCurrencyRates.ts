@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export interface KantorRates {
+export interface CurrencyRates {
   alior: { buy: number; sell: number; mid: number; ts: string } | null;
   nbp: { buy: number; sell: number; mid: number; date: string } | null;
   isLoading: boolean;
@@ -26,17 +26,17 @@ interface NbpResponse {
 }
 
 interface ProxyResponse {
-  alior: KantorRates['alior'];
-  nbp: KantorRates['nbp'];
+  alior: CurrencyRates['alior'];
+  nbp: CurrencyRates['nbp'];
 }
 
 async function fetchViaProxy(): Promise<ProxyResponse> {
-  const res = await fetch('/api/kantor');
+  const res = await fetch('/api/currency-rates');
   if (!res.ok) throw new Error(`Proxy HTTP ${res.status}`);
   return await res.json() as ProxyResponse;
 }
 
-async function fetchAliorDirect(): Promise<KantorRates['alior']> {
+async function fetchAliorDirect(): Promise<CurrencyRates['alior']> {
   const res = await fetch(ALIOR_URL);
   if (!res.ok) return null;
   const data: AliorResponse = await res.json();
@@ -44,7 +44,7 @@ async function fetchAliorDirect(): Promise<KantorRates['alior']> {
   return { buy: buyNow, sell: sellNow, mid: forexNow, ts: data.ts };
 }
 
-async function fetchNbpDirect(): Promise<KantorRates['nbp']> {
+async function fetchNbpDirect(): Promise<CurrencyRates['nbp']> {
   const res = await fetch(NBP_URL);
   if (!res.ok) return null;
   const data: NbpResponse = await res.json();
@@ -55,12 +55,12 @@ async function fetchNbpDirect(): Promise<KantorRates['nbp']> {
 
 /**
  * Fetches USD/PLN buy/sell rates from Alior Kantor and NBP Table C.
- * Tries the /api/kantor proxy first (edge-cached), falls back to direct API calls.
+ * Tries the /api/currency-rates proxy first (edge-cached), falls back to direct API calls.
  * Auto-refreshes every 60 seconds.
  */
-export function useKantorRates(): KantorRates {
-  const [alior, setAlior] = useState<KantorRates['alior']>(null);
-  const [nbp, setNbp] = useState<KantorRates['nbp']>(null);
+export function useCurrencyRates(): CurrencyRates {
+  const [alior, setAlior] = useState<CurrencyRates['alior']>(null);
+  const [nbp, setNbp] = useState<CurrencyRates['nbp']>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);

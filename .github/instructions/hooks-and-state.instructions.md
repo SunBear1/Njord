@@ -119,7 +119,7 @@ const debouncedHorizon = useDebouncedValue(horizonMonths, 300);
 Several hooks implement a **proxy-first, direct-fallback** pattern:
 
 ```
-/api/kantor (CF edge, 1-min cached) → direct Alior API → direct NBP API
+/api/currency-rates (CF edge, 1-min cached) → direct Alior API → direct NBP API
 /api/inflation (CF edge, cached) → direct ECB HICP API → NBP target constant
 ```
 

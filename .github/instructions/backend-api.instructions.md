@@ -50,7 +50,7 @@ Pages Functions run on the **Cloudflare Workers runtime** (V8 isolates), not Nod
 | Route | Cache duration | Reason |
 |-------|---------------|--------|
 | `/api/analyze` | 1 hour (`max-age=3600`) | Stock prices change infrequently during market hours; saves API quota |
-| `/api/kantor` | 1 minute (`max-age=60`) | Exchange rates update frequently |
+| `/api/currency-rates` | 1 minute (`max-age=60`) | Exchange rates update frequently |
 | `/api/inflation` | 24 hours | CPI data is published monthly |
 
 Set via `Cache-Control` response header:
@@ -126,7 +126,7 @@ functions/
 ├── _middleware.ts        # Global CORS + Content-Type for all /api/* routes
 └── api/
     ├── analyze.ts        # GET /api/analyze?ticker=X — stock data proxy (Twelve Data + NBP)
-    ├── kantor.ts         # GET /api/kantor — exchange rates proxy (Alior + NBP Table C)
+    ├── currency-rates.ts # GET /api/currency-rates — exchange rates proxy (Alior + NBP Table C)
     └── inflation.ts      # GET /api/inflation — ECB HICP CPI proxy
 ```
 

@@ -1,8 +1,8 @@
 import { ArrowDownUp } from 'lucide-react';
-import type { KantorRates } from '../hooks/useKantorRates';
+import type { CurrencyRates } from '../hooks/useCurrencyRates';
 
 interface KantorSidebarProps {
-  rates: KantorRates;
+  rates: CurrencyRates;
 }
 
 function spreadPct(buy: number, sell: number): string {
