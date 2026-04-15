@@ -8,8 +8,13 @@ on:
 jobs:
   backtest:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to push backtest-history.csv back to main
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
@@ -19,6 +24,40 @@ jobs:
 
       - name: Run NASDAQ backtest
         run: npm run test:backtest | tee backtest-report.txt
+
+      - name: Append metrics to time-series history
+        if: always()
+        run: |
+          node -e "
+          const fs = require('fs');
+          const metrics = JSON.parse(fs.readFileSync('backtest-metrics.json', 'utf8'));
+          const csvFile = 'backtest-history.csv';
+          const header = 'date,coverage_pct,above_bull_pct,below_bear_pct,bias_ratio,base_mae_pp,stocks,overall';
+          const row = [
+            metrics.date,
+            metrics.coverage_pct,
+            metrics.above_bull_pct,
+            metrics.below_bear_pct,
+            metrics.bias_ratio,
+            metrics.base_mae_pp,
+            metrics.stocks,
+            metrics.overall,
+          ].join(',');
+          if (!fs.existsSync(csvFile)) {
+            fs.writeFileSync(csvFile, header + '\n');
+          }
+          fs.appendFileSync(csvFile, row + '\n');
+          console.log('Appended:', row);
+          "
+
+      - name: Commit history back to main
+        if: always()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add backtest-history.csv
+          git diff --cached --quiet || git commit -m "chore: backtest metrics $(date -u +%Y-%m-%d)"
+          git push
 
       - name: Upload report
         if: always()

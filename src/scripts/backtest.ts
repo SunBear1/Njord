@@ -25,6 +25,7 @@
  */
 
 import { gbmPredict } from '../utils/models/gbmModel.js';
+import { writeFileSync } from 'fs';
 
 // ── Configuration ─────────────────────────────────────────────────────────────
 
@@ -309,17 +310,31 @@ function backtest(stock: YahooResult): BacktestResult | null {
   };
 }
 
+// ── Metrics record (written to backtest-metrics.json for CI time-series) ─────
+
+interface RunMetrics {
+  date: string;
+  coverage_pct: number;
+  above_bull_pct: number;
+  below_bear_pct: number;
+  bias_ratio: number;
+  base_mae_pp: number;
+  stocks: number;
+  overall: 'PASS' | 'FAIL';
+}
+
 // ── Reporting ─────────────────────────────────────────────────────────────────
 
 function fmt(n: number, digits = 1): string {
   return (n >= 0 ? '+' : '') + n.toFixed(digits) + '%';
 }
 
-function printReport(results: BacktestResult[]): boolean {
+function printReport(results: BacktestResult[]): { passed: boolean; metrics: RunMetrics } {
   const n = results.length;
   if (n === 0) {
     console.log('No results — all fetches failed.');
-    return false;
+    const metrics: RunMetrics = { date: new Date().toISOString().slice(0, 10), coverage_pct: 0, above_bull_pct: 0, below_bear_pct: 0, bias_ratio: 0, base_mae_pp: 0, stocks: 0, overall: 'FAIL' };
+    return { passed: false, metrics };
   }
 
   // Aggregate metrics
@@ -460,7 +475,18 @@ function printReport(results: BacktestResult[]): boolean {
 
   console.log(`\n  OVERALL: ${allGatesPass ? '✓ PASS' : '✗ FAIL'}\n`);
 
-  return allGatesPass;
+  const metrics: RunMetrics = {
+    date: new Date().toISOString().slice(0, 10),
+    coverage_pct: parseFloat(coverageRate.toFixed(1)),
+    above_bull_pct: parseFloat((aboveBull / n * 100).toFixed(1)),
+    below_bear_pct: parseFloat((belowBear / n * 100).toFixed(1)),
+    bias_ratio: parseFloat((isFinite(biasRatio) ? biasRatio : 0).toFixed(2)),
+    base_mae_pp: parseFloat(baseMAE.toFixed(1)),
+    stocks: n,
+    overall: allGatesPass ? 'PASS' : 'FAIL',
+  };
+
+  return { passed: allGatesPass, metrics };
 }
 
 // ── Entry point ───────────────────────────────────────────────────────────────
@@ -492,7 +518,12 @@ async function main(): Promise<void> {
   }
 
   const results = stocks.map(backtest).filter((r): r is BacktestResult => r !== null);
-  const passed = printReport(results);
+  const { passed, metrics } = printReport(results);
+
+  // Write machine-readable metrics for CI time-series tracking.
+  // The workflow reads this file and appends a row to backtest-history.csv.
+  writeFileSync('backtest-metrics.json', JSON.stringify(metrics, null, 2));
+
   process.exit(passed ? 0 : 1);
 }
 
