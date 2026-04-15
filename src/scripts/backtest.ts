@@ -379,13 +379,18 @@ function printReport(results: BacktestResult[]): boolean {
   console.log('\n── CALIBRATION METRICS ─────────────────────────────────────\n');
   console.log(`  Coverage rate (actual in [bear, bull]):    ${coverageRate.toFixed(1)}%`);
   console.log(`  Expected for well-calibrated p25/p75:      ~50%`);
-  console.log(`  Verdict: ${
-    coverageRate >= 45 && coverageRate <= 65
-      ? '✓ GOOD — model is well-calibrated'
-      : coverageRate > 65
-        ? '⚠ WIDE — model is overconservative (range too broad)'
-        : '✗ BAD — model is overconfident (range too narrow)'
-  }\n`);
+
+  // Verdict is derived from G1 gate thresholds — never contradicts the gate result.
+  const coverageVerdict =
+    coverageRate >= 45 && coverageRate <= 55
+      ? '✓ EXCELLENT — well-calibrated'
+      : coverageRate >= GATES.coverageMin && coverageRate <= GATES.coverageMax
+        ? '⚠ ACCEPTABLE — within gate, slight overconfidence'
+        : coverageRate > GATES.coverageMax
+          ? '✗ FAIL — model is overconservative (range too broad, G1 failed)'
+          : '✗ FAIL — model is overconfident (range too narrow, G1 failed)';
+
+  console.log(`  Verdict: ${coverageVerdict}\n`);
 
   console.log('  Quantile bucket distribution (ideal: ~25% each):');
   console.log(`    < bear:       ${zones.below_bear} stocks  (${(zones.below_bear / n * 100).toFixed(1)}%)  [expected ~25%]`);
@@ -395,6 +400,30 @@ function printReport(results: BacktestResult[]): boolean {
 
   console.log(`  Bear sign accuracy (bear < 0):             ${bearSignPct.toFixed(1)}%  (should be 100%)`);
   console.log(`  Base scenario MAE vs actual:               ${baseMAE.toFixed(1)}pp`);
+
+  // ── Directional Bias ────────────────────────────────────────────────────────
+  console.log('\n── DIRECTIONAL BIAS ────────────────────────────────────────\n');
+
+  const aboveBull  = zones.above_bull;
+  const belowBear  = zones.below_bear;
+  const biasRatio  = belowBear > 0 ? aboveBull / belowBear : Infinity;
+
+  console.log(`  Misses above bull:  ${aboveBull} stocks  (${(aboveBull / n * 100).toFixed(1)}%)  [expected ~25%]`);
+  console.log(`  Misses below bear:  ${belowBear} stocks  (${(belowBear / n * 100).toFixed(1)}%)  [expected ~25%]`);
+  console.log(`  Above/Below ratio:  ${isFinite(biasRatio) ? biasRatio.toFixed(2) : '∞'}  (ideal: ~1.0)\n`);
+
+  if (biasRatio > 2.0) {
+    console.log('  ⚠ POSSIBLE DRIFT UNDERESTIMATION — significantly more misses above bull than below bear.');
+    console.log('    Possible causes: (a) bull market period, (b) drift shrinkage too aggressive,');
+    console.log('    (c) survivorship bias. Collect multiple runs across different market regimes');
+    console.log('    before adjusting the model.\n');
+  } else if (biasRatio < 0.5) {
+    console.log('  ⚠ POSSIBLE DRIFT OVERESTIMATION — significantly more misses below bear than above bull.');
+    console.log('    Possible causes: (a) bear market period, (b) drift prior too optimistic.');
+    console.log('    Collect multiple runs before adjusting the model.\n');
+  } else {
+    console.log('  ✓ SYMMETRIC — no systematic directional bias detected.\n');
+  }
 
   console.log('\n── WORST MISSES ────────────────────────────────────────────\n');
   const misses = results
@@ -440,9 +469,19 @@ async function main(): Promise<void> {
   const seed = dateSeed();
   const tickers = sampleTickers(SAMPLE_SIZE, seed);
 
+  // Approximate calendar dates for the calibration / test windows.
+  // Yahoo returns ~252 trading days per year; we use the last TOTAL_DAYS_NEEDED points.
+  const now = new Date();
+  const msPerTradingDay = 365.25 / 252 * 24 * 60 * 60 * 1000;
+  const testStart  = new Date(now.getTime() - TEST_DAYS * msPerTradingDay);
+  const calibStart = new Date(now.getTime() - TOTAL_DAYS_NEEDED * msPerTradingDay);
+  const fmt2 = (d: Date) => d.toISOString().slice(0, 7); // YYYY-MM
+
   console.log(`\nNjord NASDAQ Backtest — ${new Date().toISOString().slice(0, 10)}`);
   console.log(`Seed: ${seed} | Sampled ${tickers.length} tickers from ${TICKERS.length}-stock universe`);
-  console.log(`Fetching 4yr price history from Yahoo Finance...\n`);
+  console.log(`Calibration window: ~${fmt2(calibStart)} → ~${fmt2(testStart)}`);
+  console.log(`Test window:        ~${fmt2(testStart)} → ~${fmt2(now)}`);
+  console.log(`Fetching 5yr price history from Yahoo Finance...\n`);
 
   const stocks = await fetchAll(tickers);
   console.log(`\n  ${stocks.length} tickers had sufficient data (≥${TOTAL_DAYS_NEEDED} trading days)\n`);
