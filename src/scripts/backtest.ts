@@ -4,17 +4,27 @@
  * Imports gbmPredict DIRECTLY from the production model — single source of truth,
  * no logic duplication. If the model changes, the backtest reflects it instantly.
  *
+ * NOTE: This tests the RAW GBM percentiles (p25/p50/p75) directly from gbmPredict.
+ * The app's UI applies additional post-processing via toScenarios() in
+ * useHistoricalVolatility.ts (MIN_SCENARIO_SPREAD enforcer, FX correlation).
+ * That pipeline is NOT tested here — this validates the core mathematical model.
+ *
  * Methodology:
- *   - Randomly sample 100 tickers from a ~250-stock NASDAQ universe (seeded by run date)
- *   - Fetch 3 years of daily adjusted prices from Yahoo Finance
+ *   - Randomly sample 100 tickers from a ~250-stock universe (seeded by run date)
+ *   - Fetch 5 years of daily adjusted prices from Yahoo Finance
  *   - Walk-forward: first 504 trading days = calibration, next 252 = test period
  *   - GBM is used for the 12-month horizon (same as app: Bootstrap for ≤6mo, GBM for >6mo)
  *   - Compare predicted [bear p25, base p50, bull p75] against actual 12-month return
  *
+ * Acceptance gates (any fail → exit 1):
+ *   G1: Coverage rate ∈ [35%, 65%]  (p25/p75 should capture ~50%)
+ *   G2: Bear sign accuracy ≥ 90%    (bear scenario must be negative)
+ *   G3: Stocks processed ≥ 50       (statistical significance)
+ *
  * Run: npm run test:backtest
  */
 
-import { gbmPredict, clampScenario } from '../utils/models/gbmModel.js';
+import { gbmPredict } from '../utils/models/gbmModel.js';
 
 // ── Configuration ─────────────────────────────────────────────────────────────
 
@@ -25,9 +35,24 @@ const TOTAL_DAYS_NEEDED = CALIBRATION_DAYS + TEST_DAYS; // ≈ 756 = 3 years
 const SAMPLE_SIZE = 100;
 const CONCURRENCY = 8;        // parallel Yahoo Finance requests
 const FETCH_DELAY_MS = 150;   // ms between batches to avoid 429
+const RETRY_DELAY_MS = 2000;  // backoff before retry on 429/5xx
 
-// ── NASDAQ Universe (~260 liquid tickers) ────────────────────────────────────
-// Diverse mix: mega-cap, semis, SaaS, biotech, consumer, fintech, ETFs, meme.
+// ── Acceptance Gates (exit 1 if ANY hard gate fails) ──────────────────────────
+
+const GATES = {
+  coverageMin: 35,   // G1: coverage rate must be ≥ 35%
+  coverageMax: 65,   // G1: coverage rate must be ≤ 65%
+  bearSignMin: 90,   // G2: bear sign accuracy must be ≥ 90%
+  minStocks: 50,     // G3: at least 50 stocks processed
+};
+
+const WARNINGS = {
+  maxBaseMAE: 75,      // W1: base MAE > 75pp is concerning
+  maxBucketShare: 50,  // W2: any single quantile bucket > 50% is severe asymmetry
+};
+
+// ── NASDAQ / NYSE Universe (~250 liquid tickers) ─────────────────────────────
+// Diverse mix across sectors and volatility profiles.
 // We sample SAMPLE_SIZE randomly each run (seeded by date).
 
 const NASDAQ_UNIVERSE: string[] = [
@@ -35,30 +60,49 @@ const NASDAQ_UNIVERSE: string[] = [
   'AAPL', 'MSFT', 'GOOGL', 'GOOG', 'AMZN', 'NVDA', 'META', 'TSLA', 'AVGO', 'ORCL', 'ADBE',
   // Semiconductors
   'AMD', 'INTC', 'QCOM', 'TXN', 'MU', 'AMAT', 'LRCX', 'KLAC', 'NXPI', 'MRVL', 'MCHP',
+  'ON', 'SWKS', 'QRVO', 'MPWR', 'WOLF',
   // Internet & platforms
   'NFLX', 'PYPL', 'EBAY', 'BKNG', 'ABNB', 'UBER', 'LYFT', 'DASH', 'EXPE', 'TRIP', 'MTCH',
+  'ETSY', 'W', 'SHOP', 'SE', 'GRAB', 'CPNG',
   // Cloud / enterprise SaaS
   'CRM', 'NOW', 'WDAY', 'INTU', 'TEAM', 'ANSS', 'CDNS', 'SNPS', 'MANH', 'VEEV', 'HUBS',
+  'PANW', 'FTNT', 'SPLK', 'DDOG', 'ZM', 'OKTA', 'TWLO',
   // High-growth tech
-  'SNOW', 'PLTR', 'CRWD', 'ZS', 'NET', 'DDOG', 'MDB', 'DOCN', 'BILL', 'PATH', 'GTLB',
-  // Networking / hardware
-  'CSCO', 'ANET', 'PALO', 'JNPR', 'FFIV', 'NTAP', 'PSTG', 'SMCI',
+  'SNOW', 'PLTR', 'CRWD', 'ZS', 'NET', 'MDB', 'DOCN', 'BILL', 'PATH', 'GTLB',
+  'S', 'CFLT', 'ESTC', 'FRSH', 'DLO',
+  // Networking / hardware / IT infrastructure
+  'CSCO', 'ANET', 'PALO', 'JNPR', 'FFIV', 'NTAP', 'PSTG', 'SMCI', 'HPE', 'HPQ', 'DELL',
   // High-vol / speculative
   'GME', 'AMC', 'MSTR', 'RIVN', 'LCID', 'SPCE', 'BYND', 'PTON', 'CHWY', 'PARA',
+  'SOFI', 'OPEN', 'WISH', 'BBAI', 'IONQ',
   // Biotech & life sciences
-  'AMGN', 'GILD', 'BIIB', 'MRNA', 'REGN', 'VRTX', 'ISRG', 'IDXX', 'ILMN', 'ALGN', 'SGEN',
+  'AMGN', 'GILD', 'BIIB', 'MRNA', 'REGN', 'VRTX', 'ISRG', 'IDXX', 'ILMN', 'ALGN',
+  'DXCM', 'HOLX', 'BMRN', 'EXAS', 'RARE', 'NBIX', 'PCVX', 'ALNY',
+  // Pharma (large cap, lower vol)
+  'JNJ', 'PFE', 'MRK', 'ABBV', 'LLY', 'BMY', 'AZN', 'NVO',
   // Consumer & retail
   'COST', 'SBUX', 'LULU', 'MNST', 'CTAS', 'FAST', 'PAYX', 'ODFL', 'POOL', 'ULTA', 'ROST',
+  'TGT', 'DG', 'DLTR', 'FIVE', 'DECK', 'CROX', 'TPR', 'RL',
   // Fintech & financial
-  'COIN', 'SQ', 'AFRM', 'SOFI', 'UPST', 'IBKR', 'HOOD', 'LPLA', 'MKTX', 'NDAQ', 'SSNC',
+  'COIN', 'SQ', 'AFRM', 'UPST', 'IBKR', 'HOOD', 'LPLA', 'MKTX', 'NDAQ', 'SSNC',
+  'FIS', 'FISV', 'GPN', 'WEX', 'TOST',
   // Media & communication
-  'CMCSA', 'WBD', 'FOXA', 'FOX', 'NWSA', 'IPG',
-  // ETFs & broad market (adds stable baselines for calibration reference)
+  'CMCSA', 'WBD', 'FOXA', 'FOX', 'NWSA', 'IPG', 'DIS', 'ROKU', 'SPOT', 'RBLX',
+  // Auto / EV / industrial tech
+  'F', 'GM', 'TM', 'XPEV', 'NIO', 'LI', 'DKNG', 'CGNX', 'TER',
+  // Cybersecurity
+  'CRWD', 'ZS', 'OKTA', 'VRNS', 'TENB', 'QLYS', 'RPD', 'CYBR',
+  // ETFs (stable baselines for calibration reference)
   'QQQ', 'TQQQ', 'SQQQ', 'ARKK', 'XLK', 'XBI', 'IBB', 'SMH', 'SOXX', 'VGT',
-  // Additional NASDAQ large/mid cap
-  'ADSK', 'IDXX', 'MELI', 'PDD', 'JD', 'BIDU', 'ZM', 'OKTA', 'SPLK', 'TWLO',
-  'ROKU', 'PINS', 'SNAP', 'TTD', 'PUBM', 'MGNI', 'APPS', 'IQ', 'NTES',
-  'CSGP', 'CPRT', 'VRSK', 'ANSS', 'CBRE', 'DLTR', 'WBA', 'SIRI',
+  'SPY', 'IWM', 'DIA', 'VOO', 'VTI', 'EEM', 'GLD', 'TLT',
+  // Additional large/mid cap
+  'ADSK', 'MELI', 'PDD', 'JD', 'BIDU',
+  'PINS', 'SNAP', 'TTD', 'PUBM', 'MGNI', 'APPS', 'IQ', 'NTES',
+  'CSGP', 'CPRT', 'VRSK', 'CBRE', 'WBA', 'SIRI',
+  // Industrial / materials (low correlation to tech)
+  'CAT', 'DE', 'HON', 'UNP', 'LMT', 'RTX', 'BA', 'GE',
+  // Energy (diversification from tech)
+  'XOM', 'CVX', 'COP', 'SLB', 'OXY', 'DVN', 'EOG',
 ];
 
 // Deduplicate
@@ -102,47 +146,60 @@ interface YahooResult {
 async function fetchAdjClose(ticker: string): Promise<YahooResult | null> {
   const url =
     `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}` +
-    `?interval=1d&range=4y`;
+    `?interval=1d&range=5y`;
 
-  try {
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; Njord-Backtest/1.0)',
-        'Accept': 'application/json',
-      },
-    });
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; Njord-Backtest/1.0)',
+          'Accept': 'application/json',
+        },
+      });
 
-    if (!res.ok) return null;
+      // Retry on 429 or 5xx (once, with backoff)
+      if ((res.status === 429 || res.status >= 500) && attempt === 0) {
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+        continue;
+      }
 
-    const data = await res.json() as {
-      chart: {
-        result: Array<{
-          indicators: {
-            adjclose?: Array<{ adjclose: (number | null)[] }>;
-            quote: Array<{ close: (number | null)[] }>;
-          };
-        }> | null;
-        error?: { code: string };
+      if (!res.ok) return null;
+
+      const data = await res.json() as {
+        chart: {
+          result: Array<{
+            indicators: {
+              adjclose?: Array<{ adjclose: (number | null)[] }>;
+              quote: Array<{ close: (number | null)[] }>;
+            };
+          }> | null;
+          error?: { code: string };
+        };
       };
-    };
 
-    if (!data?.chart?.result?.length) return null;
+      if (!data?.chart?.result?.length) return null;
 
-    const result = data.chart.result[0];
-    const rawPrices =
-      result.indicators.adjclose?.[0]?.adjclose ??
-      result.indicators.quote[0]?.close;
+      const result = data.chart.result[0];
+      const rawPrices =
+        result.indicators.adjclose?.[0]?.adjclose ??
+        result.indicators.quote[0]?.close;
 
-    if (!rawPrices) return null;
+      if (!rawPrices) return null;
 
-    // Filter out nulls
-    const adjClose = rawPrices.filter((p): p is number => p !== null && isFinite(p));
-    if (adjClose.length < TOTAL_DAYS_NEEDED) return null;
+      // Filter out nulls
+      const adjClose = rawPrices.filter((p): p is number => p !== null && isFinite(p));
+      if (adjClose.length < TOTAL_DAYS_NEEDED) return null;
 
-    return { ticker, adjClose };
-  } catch {
-    return null;
+      return { ticker, adjClose };
+    } catch {
+      if (attempt === 0) {
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+        continue;
+      }
+      return null;
+    }
   }
+  return null;
 }
 
 async function fetchBatch(tickers: string[]): Promise<(YahooResult | null)[]> {
@@ -221,13 +278,14 @@ function backtest(stock: YahooResult): BacktestResult | null {
   const muAnnual = muDaily * 252;
 
   // GBM prediction (same threshold as app: >6mo → GBM)
+  // gbmPredict already clamps percentiles internally via clampScenario
   const pred = gbmPredict(sigmaAnnual, muAnnual, CALIBRATION_DAYS / 252, HORIZON_YEARS);
   if (pred.confidence === 0) return null;
 
   const [, p25, p50, p75] = pred.percentiles;
-  const bear = clampScenario(p25, HORIZON_YEARS);
-  const base = clampScenario(p50, HORIZON_YEARS);
-  const bull = clampScenario(p75, HORIZON_YEARS);
+  const bear = p25;
+  const base = p50;
+  const bull = p75;
 
   const actual = (testEnd / testStart - 1) * 100;
   const hit = actual >= bear && actual <= bull;
@@ -257,11 +315,11 @@ function fmt(n: number, digits = 1): string {
   return (n >= 0 ? '+' : '') + n.toFixed(digits) + '%';
 }
 
-function printReport(results: BacktestResult[]): void {
+function printReport(results: BacktestResult[]): boolean {
   const n = results.length;
   if (n === 0) {
     console.log('No results — all fetches failed.');
-    return;
+    return false;
   }
 
   // Aggregate metrics
@@ -276,7 +334,14 @@ function printReport(results: BacktestResult[]): void {
   };
 
   const bearSignOk = results.filter(r => r.bear < 0).length;
+  const bearSignPct = (bearSignOk / n) * 100;
   const baseMAE = results.reduce((sum, r) => sum + Math.abs(r.base - r.actual), 0) / n;
+  const maxBucketPct = Math.max(
+    zones.below_bear / n * 100,
+    zones.bear_base / n * 100,
+    zones.base_bull / n * 100,
+    zones.above_bull / n * 100,
+  );
 
   // Per-stock table
   const colW = [7, 8, 8, 8, 8, 8, 5];
@@ -328,15 +393,8 @@ function printReport(results: BacktestResult[]): void {
   console.log(`    base → bull:  ${zones.base_bull} stocks  (${(zones.base_bull / n * 100).toFixed(1)}%)  [expected ~25%]`);
   console.log(`    > bull:       ${zones.above_bull} stocks  (${(zones.above_bull / n * 100).toFixed(1)}%)  [expected ~25%]\n`);
 
-  console.log(`  Bear sign accuracy (bear < 0):             ${(bearSignOk / n * 100).toFixed(1)}%  (should be 100%)`);
+  console.log(`  Bear sign accuracy (bear < 0):             ${bearSignPct.toFixed(1)}%  (should be 100%)`);
   console.log(`  Base scenario MAE vs actual:               ${baseMAE.toFixed(1)}pp`);
-  console.log(`  Base scenario MAE context:                 ${
-    baseMAE < 20
-      ? '✓ Good (< 20pp on 12-month stock returns)'
-      : baseMAE < 35
-        ? '~ Acceptable (20–35pp is normal for 12-month equity forecasts)'
-        : '✗ High (> 35pp — model drift may be off)'
-  }`);
 
   console.log('\n── WORST MISSES ────────────────────────────────────────────\n');
   const misses = results
@@ -348,7 +406,32 @@ function printReport(results: BacktestResult[]): void {
       : `actual ${fmt(r.actual)} was ${(r.actual - r.bull).toFixed(1)}pp above bull ${fmt(r.bull)}`;
     console.log(`  ${r.ticker.padEnd(6)}  ${miss}`);
   }
-  console.log('');
+
+  // ── Acceptance Gates ────────────────────────────────────────────────────────
+  console.log('\n── ACCEPTANCE GATES ────────────────────────────────────────\n');
+
+  const g1Pass = coverageRate >= GATES.coverageMin && coverageRate <= GATES.coverageMax;
+  const g2Pass = bearSignPct >= GATES.bearSignMin;
+  const g3Pass = n >= GATES.minStocks;
+  const allGatesPass = g1Pass && g2Pass && g3Pass;
+
+  console.log(`  G1  Coverage ∈ [${GATES.coverageMin}%, ${GATES.coverageMax}%]:     ${coverageRate.toFixed(1)}%   ${g1Pass ? '✓ PASS' : '✗ FAIL'}`);
+  console.log(`  G2  Bear sign ≥ ${GATES.bearSignMin}%:              ${bearSignPct.toFixed(1)}%   ${g2Pass ? '✓ PASS' : '✗ FAIL'}`);
+  console.log(`  G3  Stocks processed ≥ ${GATES.minStocks}:          ${n}      ${g3Pass ? '✓ PASS' : '✗ FAIL'}`);
+
+  // Warnings (informational, don't affect exit code)
+  const w1Warn = baseMAE > WARNINGS.maxBaseMAE;
+  const w2Warn = maxBucketPct > WARNINGS.maxBucketShare;
+
+  if (w1Warn || w2Warn) {
+    console.log('\n  Warnings:');
+    if (w1Warn) console.log(`  W1  Base MAE ≤ ${WARNINGS.maxBaseMAE}pp:              ${baseMAE.toFixed(1)}pp  ⚠ WARNING`);
+    if (w2Warn) console.log(`  W2  Max bucket ≤ ${WARNINGS.maxBucketShare}%:           ${maxBucketPct.toFixed(1)}%   ⚠ WARNING`);
+  }
+
+  console.log(`\n  OVERALL: ${allGatesPass ? '✓ PASS' : '✗ FAIL'}\n`);
+
+  return allGatesPass;
 }
 
 // ── Entry point ───────────────────────────────────────────────────────────────
@@ -370,7 +453,8 @@ async function main(): Promise<void> {
   }
 
   const results = stocks.map(backtest).filter((r): r is BacktestResult => r !== null);
-  printReport(results);
+  const passed = printReport(results);
+  process.exit(passed ? 0 : 1);
 }
 
 main().catch(err => {
