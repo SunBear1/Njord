@@ -18,7 +18,7 @@ export const onRequestGet: PagesFunction = async () => {
     return new Response(csv, {
       headers: {
         'Content-Type': 'text/csv',
-        'Cache-Control': 'max-age=21600', // 6 hours
+        'Cache-Control': 'max-age=86400', // 24 hours
       },
     });
   } catch (err) {

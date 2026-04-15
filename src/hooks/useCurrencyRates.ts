@@ -69,6 +69,7 @@ export function useCurrencyRates(): CurrencyRates {
     let cancelled = false;
 
     async function load() {
+      if (cancelled) return;
       setIsLoading(true);
       setError(null);
       try {

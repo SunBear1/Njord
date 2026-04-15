@@ -116,6 +116,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
             const isActive = !isCustomActive && horizonDays === p.days;
             return (
               <button
+                type="button"
                 key={p.days}
                 onClick={() => { onHorizonChange(p.days); setIsCustomActive(false); setShowCustomPicker(false); }}
                 className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-all ${
@@ -134,6 +135,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
 
           {/* Custom deadline chip */}
           <button
+            type="button"
             onClick={() => setShowCustomPicker((v) => !v)}
             className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-all ${
               isCustomActive || showCustomPicker
@@ -153,6 +155,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           <div className="flex gap-1.5 flex-wrap pt-1">
             {monthOptions.map((mo) => (
               <button
+                type="button"
                 key={`${mo.year}-${mo.month}`}
                 onClick={() => {
                   onHorizonChange(tradingDaysUntil(mo.year, mo.month));
@@ -170,7 +173,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
 
         {isLoading && (
           <div className="flex items-center gap-2 mt-4 text-sm text-gray-500 dark:text-gray-400">
-            <Loader2 size={16} className="animate-spin" />
+            <Loader2 size={16} className="animate-spin motion-reduce:animate-none" />
             Symulacja Monte Carlo (10 000 ścieżek)…
           </div>
         )}
@@ -333,6 +336,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
             <div className="flex items-center justify-between">
               <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Tabela celów sprzedaży</h3>
               <button
+                type="button"
                 onClick={() => setShowTable((v) => !v)}
                 className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800"
               >

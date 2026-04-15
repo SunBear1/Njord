@@ -27,6 +27,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           Wystąpił błąd podczas renderowania tego komponentu.
           <button
+            type="button"
             onClick={() => this.setState({ hasError: false })}
             className="ml-2 underline hover:text-red-900"
           >

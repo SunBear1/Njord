@@ -60,10 +60,12 @@ function initValues(s: Scenarios) {
 function ModeToggle({ mode, onToggle, labelA, labelB, disabled }: { mode: InputMode; onToggle: () => void; labelA: string; labelB: string; disabled?: boolean }) {
   return (
     <button
+      type="button"
       onClick={onToggle}
       disabled={disabled}
       className={`flex w-full rounded border border-gray-200 dark:border-gray-600 overflow-hidden text-[11px] font-medium ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
       title={disabled ? 'Wpisz ticker, aby przełączyć tryb' : 'Przełącz tryb wpisywania'}
+      aria-label={disabled ? 'Przełącz tryb wpisywania (brak danych)' : `Tryb: ${mode === 'pct' ? labelA : labelB} — kliknij, aby zmienić`}
     >
       <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'pct' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>{labelA}</span>
       <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'fixed' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>{labelB}</span>
@@ -91,9 +93,12 @@ export function ScenarioEditor({
   // without remounting the component (preserves stockMode/fxMode/activeModelId).
   // Must convert % deltas to the current display mode (USD/PLN) when in fixed mode.
   const prevScenariosRef = useRef(scenarios);
+  // Track whether any scenario input is currently focused — skip external syncs while editing
+  const anyInputFocused = useRef(false);
   useEffect(() => {
     if (scenarios !== prevScenariosRef.current) {
       prevScenariosRef.current = scenarios;
+      if (anyInputFocused.current) return; // user is typing — don't overwrite their input
       const keys: ScenarioKey[] = ['bear', 'base', 'bull'];
       const updated = {} as Record<ScenarioKey, { stock: string; fx: string }>;
       for (const key of keys) {
@@ -120,6 +125,28 @@ export function ScenarioEditor({
     if (currentVal <= 0) return 0;
     return Math.max(-100, (n / currentVal - 1) * 100);
   }, []);
+
+  const handleStockBlur = useCallback((key: ScenarioKey) => {
+    anyInputFocused.current = false;
+    setLocalValues(prev => {
+      const n = parseFloat(prev[key].stock);
+      const formatted = isNaN(n)
+        ? (stockMode === 'fixed' && currentPriceUSD > 0 ? currentPriceUSD.toFixed(2) : '0')
+        : stockMode === 'fixed' ? n.toFixed(2) : String(parseFloat(n.toFixed(2)));
+      return { ...prev, [key]: { ...prev[key], stock: formatted } };
+    });
+  }, [stockMode, currentPriceUSD]);
+
+  const handleFxBlur = useCallback((key: ScenarioKey) => {
+    anyInputFocused.current = false;
+    setLocalValues(prev => {
+      const n = parseFloat(prev[key].fx);
+      const formatted = isNaN(n)
+        ? (fxMode === 'fixed' && currentFxRate > 0 ? currentFxRate.toFixed(4) : '0')
+        : fxMode === 'fixed' ? n.toFixed(4) : String(parseFloat(n.toFixed(2)));
+      return { ...prev, [key]: { ...prev[key], fx: formatted } };
+    });
+  }, [fxMode, currentFxRate]);
 
   const handleStockChange = (key: ScenarioKey, raw: string) => {
     setLocalValues(prev => ({ ...prev, [key]: { ...prev[key], stock: raw } }));
@@ -183,12 +210,12 @@ export function ScenarioEditor({
             <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">Scenariusze</h2>
             {volatilityStats?.modelsLoading && (
               <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
-                <Loader2 size={12} className="animate-spin" aria-hidden="true" />
+                <Loader2 size={12} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
               </span>
             )}
           </div>
           {suggestedScenarios && (
-            <button onClick={onApplySuggested} className="flex items-center gap-1.5 text-xs bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 px-3 py-1.5 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors">
+            <button type="button" onClick={onApplySuggested} className="flex items-center gap-1.5 text-xs bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 px-3 py-1.5 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors">
               <Wand2 size={12} aria-hidden="true" />
               Przywróć
             </button>
@@ -209,7 +236,9 @@ export function ScenarioEditor({
             <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Akcje ({stockUnit})</span>
             {SCENARIO_CONFIG.map(({ key, label, inputBorder }) => (
               <input key={key} type="text" inputMode="decimal" value={localValues[key].stock}
-                onChange={(e) => handleStockChange(key, e.target.value)} onFocus={(e) => e.target.select()}
+                onChange={(e) => handleStockChange(key, e.target.value)}
+                onFocus={(e) => { anyInputFocused.current = true; e.target.select(); }}
+                onBlur={() => handleStockBlur(key)}
                 aria-label={`${label} — zmiana akcji (${stockUnit})`}
                 className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white dark:bg-gray-700 dark:text-gray-100`} />
             ))}
@@ -218,7 +247,9 @@ export function ScenarioEditor({
             <span className="text-xs font-medium text-gray-600 dark:text-gray-400">USD/PLN ({fxUnit})</span>
             {SCENARIO_CONFIG.map(({ key, label, inputBorder }) => (
               <input key={key} type="text" inputMode="decimal" value={localValues[key].fx}
-                onChange={(e) => handleFxChange(key, e.target.value)} onFocus={(e) => e.target.select()}
+                onChange={(e) => handleFxChange(key, e.target.value)}
+                onFocus={(e) => { anyInputFocused.current = true; e.target.select(); }}
+                onBlur={() => handleFxBlur(key)}
                 aria-label={`${label} — zmiana kursu (${fxUnit})`}
                 className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white dark:bg-gray-700 dark:text-gray-100`} />
             ))}
@@ -246,13 +277,14 @@ export function ScenarioEditor({
           </Tooltip>
           {volatilityStats?.modelsLoading && (
             <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
-              <Loader2 size={12} className="animate-spin" aria-hidden="true" />
+              <Loader2 size={12} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
               przeliczam…
             </span>
           )}
         </div>
         {suggestedScenarios && (
           <button
+            type="button"
             onClick={onApplySuggested}
             className="flex items-center gap-1.5 text-xs bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 px-3 py-1.5 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors"
           >
@@ -303,6 +335,7 @@ export function ScenarioEditor({
                   }
                 >
                   <button
+                    type="button"
                     onClick={() => {
                       setActiveModelId(m.id);
                       const s = volatilityStats.modelScenarios[m.id];
@@ -368,7 +401,8 @@ export function ScenarioEditor({
                     inputMode="decimal"
                     value={localValues[key].stock}
                     onChange={(e) => handleStockChange(key, e.target.value)}
-                    onFocus={(e) => e.target.select()}
+                    onFocus={(e) => { anyInputFocused.current = true; e.target.select(); }}
+                    onBlur={() => handleStockBlur(key)}
                     placeholder={stockMode === 'pct' ? '0' : String(currentPriceUSD || '')}
                     className={`w-full border ${inputBorder} rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 bg-white dark:bg-gray-700 dark:text-gray-100`}
                   />
@@ -413,7 +447,8 @@ export function ScenarioEditor({
                     inputMode="decimal"
                     value={localValues[key].fx}
                     onChange={(e) => handleFxChange(key, e.target.value)}
-                    onFocus={(e) => e.target.select()}
+                    onFocus={(e) => { anyInputFocused.current = true; e.target.select(); }}
+                    onBlur={() => handleFxBlur(key)}
                     placeholder={fxMode === 'pct' ? '0' : String(currentFxRate || '')}
                     className={`w-full border ${inputBorder} rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 bg-white dark:bg-gray-700 dark:text-gray-100`}
                   />

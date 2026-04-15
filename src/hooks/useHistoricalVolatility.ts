@@ -79,19 +79,32 @@ function dataSeed(prices: number[]): number {
   return Math.abs(h);
 }
 
+/** Minimum percentage spread enforced between bear/base/bull scenarios */
+const MIN_SCENARIO_SPREAD = 5;
+
 /**
  * Convert a PredictionResult's percentiles into Scenarios with FX correlation.
  *
  * Uses p25/p75 for bear/bull (inter-quartile range — more stable than p5/p95).
  * p50 (median) becomes the base scenario.
  * All values clamped through the GBM sanity bounds.
+ * Minimum spread of 5pp is enforced between scenarios to prevent collapse
+ * (e.g. for severely declining stocks where multiple percentiles hit the floor).
  */
 function toScenarios(pred: PredictionResult, rho: number, fxMagPct: number, horizonYears: number): Scenarios {
   const [, p25, p50, p75] = pred.percentiles;
+  const bear = clampScenario(p25, horizonYears);
+  let base = clampScenario(p50, horizonYears);
+  let bull = clampScenario(p75, horizonYears);
+
+  // Enforce minimum spread so scenarios are always distinct
+  if (base < bear + MIN_SCENARIO_SPREAD) base = bear + MIN_SCENARIO_SPREAD;
+  if (bull < base + MIN_SCENARIO_SPREAD) bull = base + MIN_SCENARIO_SPREAD;
+
   return {
-    bear:  { deltaStock: clampScenario(p25, horizonYears), deltaFx: clampScenario(-rho * fxMagPct, horizonYears) },
-    base:  { deltaStock: clampScenario(p50, horizonYears), deltaFx: 0 },
-    bull:  { deltaStock: clampScenario(p75, horizonYears), deltaFx: clampScenario(+rho * fxMagPct, horizonYears) },
+    bear:  { deltaStock: bear, deltaFx: clampScenario(-rho * fxMagPct, horizonYears) },
+    base:  { deltaStock: base, deltaFx: 0 },
+    bull:  { deltaStock: bull, deltaFx: clampScenario(+rho * fxMagPct, horizonYears) },
   };
 }
 
