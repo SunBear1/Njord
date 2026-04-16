@@ -127,15 +127,34 @@ function calcBondEndValue(inputs: CalcInputs): number {
   return effectiveGross;
 }
 
+/**
+ * ETF benchmark with double Belka:
+ *  - Stock proceeds stay in USD → full USD principal reinvested in ETF (no PLN conversion)
+ *  - First Belka: paid in PLN from a separate account when liquidating stocks today
+ *  - ETF compounds on full principal (first Belka does NOT reduce the invested amount)
+ *  - Second Belka: applied on ETF gain at horizon exit
+ *  Net = grossEtfEnd − secondBelkaTax − firstBelkaTax
+ */
 function calcEtfEndValue(inputs: CalcInputs): number {
   const currentValuePLN = calcCurrentValuePLN(inputs);
   const netAnnualRate = Math.max((inputs.etfAnnualReturnPercent - inputs.etfTerPercent) / 100, -1);
-  const months = inputs.horizonMonths;
-  const grossEndValue = currentValuePLN * Math.pow(1 + netAnnualRate, months / 12);
-  const gain = grossEndValue - currentValuePLN;
-  return gain > 0
-    ? currentValuePLN + gain * (1 - BELKA_TAX)
-    : grossEndValue;
+  const grossEndValue = currentValuePLN * Math.pow(1 + netAnnualRate, inputs.horizonMonths / 12);
+
+  // Second Belka: on ETF gain
+  const etfGain = grossEndValue - currentValuePLN;
+  const secondBelkaTax = etfGain > 0 ? etfGain * BELKA_TAX : 0;
+
+  // First Belka: upfront PLN cost from liquidating stocks today at NBP mid rate
+  const nbpRate = inputs.nbpMidRate || inputs.currentFxRate;
+  const currentStockNBP = inputs.shares * inputs.currentPriceUSD * nbpRate;
+  const costBasisNBP = inputs.avgCostUSD > 0
+    ? inputs.shares * inputs.avgCostUSD * nbpRate
+    : currentStockNBP; // no unrealized gain → first Belka = 0
+  const firstBelkaTax = currentStockNBP > costBasisNBP
+    ? (currentStockNBP - costBasisNBP) * BELKA_TAX
+    : 0;
+
+  return grossEndValue - secondBelkaTax - firstBelkaTax;
 }
 
 function calcBenchmarkEndValue(inputs: CalcInputs): number {

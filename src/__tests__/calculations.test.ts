@@ -314,6 +314,7 @@ describe('ETF benchmark', () => {
     const principal = 4000;
     const netRate = (8.0 - 0.07) / 100;
     const grossEnd = principal * Math.pow(1 + netRate, 1);
+    // avgCostUSD=0 → firstBelkaTax=0; only second Belka on ETF gain
     const expectedNet = principal + (grossEnd - principal) * (1 - BELKA);
 
     const results = calcAllScenarios(inputs, NEUTRAL_SCENARIOS);
@@ -329,9 +330,63 @@ describe('ETF benchmark', () => {
     });
     const principal = 4000;
     const grossEnd = principal * 1.10;
+    // avgCostUSD=0 → firstBelkaTax=0; only second Belka on ETF gain
     const expectedNet = principal + (grossEnd - principal) * (1 - BELKA);
     const results = calcAllScenarios(inputs, NEUTRAL_SCENARIOS);
     expect(results[0].benchmarkEndValuePLN).toBeCloseTo(expectedNet, 3);
+  });
+
+  it('double Belka: applies first Belka on stock gain when avgCostUSD is set', () => {
+    // shares=10, price=100 USD, fx=4 PLN/USD → currentValue=4000 PLN
+    // avgCostUSD=80 → costBasis = 10 × 80 × 4 = 3200 PLN
+    // unrealizedGain = 4000 − 3200 = 800 PLN
+    // firstBelkaTax = 800 × 0.19 = 152 PLN
+    const inputs = baseInputs({
+      benchmarkType: 'etf' as const,
+      etfAnnualReturnPercent: 0,   // no ETF growth → isolate first Belka
+      etfTerPercent: 0,
+      horizonMonths: 12,
+      avgCostUSD: 80,
+    });
+    const principal = 4000;
+    const firstBelkaTax = (4000 - 3200) * BELKA; // 152
+    // grossEtfEnd = 4000 (no growth), secondBelkaTax = 0
+    const expectedNet = principal - firstBelkaTax;
+    const results = calcAllScenarios(inputs, NEUTRAL_SCENARIOS);
+    expect(results[0].benchmarkEndValuePLN).toBeCloseTo(expectedNet, 2);
+  });
+
+  it('double Belka: no first Belka when stock is at a loss (avgCostUSD > currentPrice)', () => {
+    // avgCostUSD=120 > currentPriceUSD=100 → no stock gain → firstBelkaTax=0
+    const inputs = baseInputs({
+      benchmarkType: 'etf' as const,
+      etfAnnualReturnPercent: 0,
+      etfTerPercent: 0,
+      horizonMonths: 12,
+      avgCostUSD: 120,
+    });
+    const principal = 4000;
+    const results = calcAllScenarios(inputs, NEUTRAL_SCENARIOS);
+    // Only second Belka (ETF gain = 0), firstBelkaTax = 0
+    expect(results[0].benchmarkEndValuePLN).toBeCloseTo(principal, 2);
+  });
+
+  it('double Belka: both Belkas applied correctly together', () => {
+    // shares=10, price=100, fx=4 → currentValue=4000; avgCostUSD=50 → costBasis=2000
+    // firstBelkaTax = (4000 − 2000) × 0.19 = 380
+    // ETF 10%/yr no TER: grossEnd = 4000 × 1.10 = 4400
+    // secondBelkaTax = (4400 − 4000) × 0.19 = 76
+    // netEnd = 4400 − 76 − 380 = 3944
+    const inputs = baseInputs({
+      benchmarkType: 'etf' as const,
+      etfAnnualReturnPercent: 10.0,
+      etfTerPercent: 0,
+      horizonMonths: 12,
+      avgCostUSD: 50,
+    });
+    const expected = 4400 - 400 * BELKA - 2000 * BELKA; // 4400 − 76 − 380 = 3944
+    const results = calcAllScenarios(inputs, NEUTRAL_SCENARIOS);
+    expect(results[0].benchmarkEndValuePLN).toBeCloseTo(expected, 2);
   });
 });
 

@@ -19,6 +19,7 @@ interface PersistedState {
   dividendYieldPercent: number;
   etfAnnualReturnPercent: number;
   etfTerPercent: number;
+  etfTicker: string;
   activeSection: string;
 }
 

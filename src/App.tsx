@@ -11,6 +11,7 @@ import { MethodologyPanel } from './components/MethodologyPanel';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { TaxCalculatorPanel } from './components/TaxCalculatorPanel';
 import { useAssetData } from './hooks/useAssetData';
+import { useEtfData } from './hooks/useEtfData';
 
 import { useInflationData } from './hooks/useInflationData';
 import { useHistoricalVolatility } from './hooks/useHistoricalVolatility';
@@ -69,18 +70,21 @@ function App() {
   const [dividendYieldPercent, setDividendYieldPercent] = useState(saved?.dividendYieldPercent ?? 0);
   const [etfAnnualReturnPercent, setEtfAnnualReturnPercent] = useState(saved?.etfAnnualReturnPercent ?? 8);
   const [etfTerPercent, setEtfTerPercent] = useState(saved?.etfTerPercent ?? 0.07);
+  const [etfTicker, setEtfTicker] = useState(saved?.etfTicker ?? '');
   // null = use HMM suggestions when available; non-null = user has manually overridden
   const [userScenarios, setUserScenarios] = useState<Scenarios | null>(saved?.userScenarios ?? null);
   const [scenarioEditKey, setScenarioEditKey] = useState(0);
   const fxAutoFilled = useRef(false);
   const aliorAutoFilled = useRef(false);
   const inflationAutoFilled = useRef(false);
+  const etfReturnAutoFilled = useRef(false);
 
   // Top-level section: investment comparison vs standalone tax calculator
   type AppSection = 'investment' | 'tax';
   const [activeSection, setActiveSection] = useState<AppSection>(saved?.activeSection as AppSection ?? 'investment');
 
   const { assetData, proxyFxData, isLoading: assetLoading, error: assetError, fetchData: fetchAsset } = useAssetData();
+  const { etfData, etfAnnualizedReturn, isLoading: etfLoading, error: etfError, fetchEtf } = useEtfData();
   const { presets: bondPresets, isLoading: bondPresetsLoading } = useBondPresets();
   
   const { data: inflationData, isLoading: inflationLoading } = useInflationData();
@@ -110,13 +114,22 @@ function App() {
     }
   }, [inflationData?.currentRate]);
 
+  // Auto-fill ETF annual return from historical CAGR when ETF ticker data arrives
+  useEffect(() => {
+    if (etfAnnualizedReturn !== null && !etfReturnAutoFilled.current) {
+      etfReturnAutoFilled.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from async data source
+      setEtfAnnualReturnPercent(parseFloat(etfAnnualizedReturn.toFixed(2)));
+    }
+  }, [etfAnnualizedReturn]);
+
   // Auto-save user inputs to localStorage (debounced 600ms)
   useEffect(() => {
     const timer = setTimeout(() => {
-      saveState({ ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent, activeSection });
+      saveState({ ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent, etfTicker, activeSection });
     }, 600);
     return () => clearTimeout(timer);
-  }, [ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent, activeSection]);
+  }, [ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent, etfTicker, activeSection]);
 
   const fetchData = useCallback(async (tickerArg: string) => {
     // Reset scenarios so HMM suggestions auto-apply for the new ticker
@@ -128,6 +141,11 @@ function App() {
       setCurrentPriceUSD(data.asset.currentPrice);
     }
   }, [fetchAsset]);
+
+  const handleFetchEtf = useCallback(async (tickerArg: string) => {
+    etfReturnAutoFilled.current = false; // allow auto-fill for the new ETF ticker
+    await fetchEtf(tickerArg);
+  }, [fetchEtf]);
 
   const handleScenarioChange = useCallback(
     (key: ScenarioKey, field: 'deltaStock' | 'deltaFx', value: number) => {
@@ -353,6 +371,10 @@ function App() {
               dividendYieldPercent={dividendYieldPercent}
               etfAnnualReturnPercent={etfAnnualReturnPercent}
               etfTerPercent={etfTerPercent}
+              etfTicker={etfTicker}
+              etfLoading={etfLoading}
+              etfError={etfError}
+              etfName={etfData?.asset.name ?? null}
               initialBondPresetId={bondPresetId}
               collapsed
               onToggleCollapse={() => setInputCollapsed(false)}
@@ -372,6 +394,8 @@ function App() {
               onDividendYieldChange={setDividendYieldPercent}
               onEtfAnnualReturnChange={setEtfAnnualReturnPercent}
               onEtfTerChange={setEtfTerPercent}
+              onEtfTickerChange={setEtfTicker}
+              onFetchEtf={handleFetchEtf}
               onInflationRateChange={setInflationRate}
               onNbpRefRateChange={setNbpRefRate}
             />
@@ -417,6 +441,10 @@ function App() {
                 dividendYieldPercent={dividendYieldPercent}
                 etfAnnualReturnPercent={etfAnnualReturnPercent}
                 etfTerPercent={etfTerPercent}
+                etfTicker={etfTicker}
+                etfLoading={etfLoading}
+                etfError={etfError}
+                etfName={etfData?.asset.name ?? null}
                 initialBondPresetId={bondPresetId}
                 onToggleCollapse={results ? () => setInputCollapsed(true) : undefined}
                 bondPresets={bondPresets}
@@ -435,6 +463,8 @@ function App() {
                 onDividendYieldChange={setDividendYieldPercent}
                 onEtfAnnualReturnChange={setEtfAnnualReturnPercent}
                 onEtfTerChange={setEtfTerPercent}
+                onEtfTickerChange={setEtfTicker}
+                onFetchEtf={handleFetchEtf}
                 onInflationRateChange={setInflationRate}
                 onNbpRefRateChange={setNbpRefRate}
               />

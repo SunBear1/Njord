@@ -34,6 +34,10 @@ interface InputPanelProps {
   dividendYieldPercent: number;
   etfAnnualReturnPercent: number;
   etfTerPercent: number;
+  etfTicker: string;
+  etfLoading: boolean;
+  etfError: string | null;
+  etfName: string | null;
   /** Saved bond preset ID for UI restoration on page reload */
   initialBondPresetId?: string;
   /** Bond presets loaded from the API */
@@ -57,6 +61,8 @@ interface InputPanelProps {
   onDividendYieldChange: (v: number) => void;
   onEtfAnnualReturnChange: (v: number) => void;
   onEtfTerChange: (v: number) => void;
+  onEtfTickerChange: (v: string) => void;
+  onFetchEtf: (ticker: string) => void;
   onInflationRateChange: (v: number) => void;
   onNbpRefRateChange: (v: number) => void;
 }
@@ -86,6 +92,10 @@ export function InputPanel({
   dividendYieldPercent,
   etfAnnualReturnPercent,
   etfTerPercent,
+  etfTicker,
+  etfLoading,
+  etfError,
+  etfName,
   initialBondPresetId,
   bondPresets,
   bondPresetsLoading,
@@ -105,10 +115,13 @@ export function InputPanel({
   onDividendYieldChange,
   onEtfAnnualReturnChange,
   onEtfTerChange,
+  onEtfTickerChange,
+  onFetchEtf,
   onInflationRateChange,
   onNbpRefRateChange,
 }: InputPanelProps) {
   const [localTicker, setLocalTicker] = useState(ticker);
+  const [localEtfTicker, setLocalEtfTicker] = useState(etfTicker);
   const [wiborStr, setWiborStr] = useState(wibor3m > 0 ? String(wibor3m) : '');
   const [showValueCalc, setShowValueCalc] = useState(false);
   const [totalValueStr, setTotalValueStr] = useState('');
@@ -189,7 +202,9 @@ export function InputPanel({
   const bmSummary = benchmarkType === 'savings'
     ? `Konto ${wibor3m > 0 ? wibor3m.toFixed(1) + '%' : '—'}`
     : benchmarkType === 'etf'
-      ? `ETF ${etfAnnualReturnPercent > 0 ? etfAnnualReturnPercent.toFixed(1) + '%' : '—'}`
+      ? etfTicker
+        ? `ETF ${etfTicker} ${etfAnnualReturnPercent > 0 ? etfAnnualReturnPercent.toFixed(1) + '%' : '—'}`
+        : `ETF ${etfAnnualReturnPercent > 0 ? etfAnnualReturnPercent.toFixed(1) + '%' : '—'}`
       : `Obligacje ${bondSettings.firstYearRate.toFixed(1)}%`;
 
   /* ────── Animated layout: both summary + form always in DOM ────── */
@@ -645,10 +660,57 @@ export function InputPanel({
       ) : benchmarkType === 'etf' ? (
         /* ETF benchmark */
         <div className="space-y-3">
+          {/* ETF ticker input */}
+          <div className="space-y-1">
+            <label htmlFor="etf-ticker" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+              Ticker ETF
+              <Tooltip content="Ticker funduszu ETF, w który reinwestujesz zyski ze sprzedaży akcji. Przykłady: VWCE, IWDA, CSPX, SPY. Dane historyczne pobierane z Yahoo Finance." />
+            </label>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const t = localEtfTicker.trim().toUpperCase();
+                if (t) { onEtfTickerChange(t); onFetchEtf(t); }
+              }}
+              className="flex gap-2"
+            >
+              <input
+                id="etf-ticker"
+                name="etfTicker"
+                autoComplete="off"
+                spellCheck={false}
+                type="text"
+                value={localEtfTicker}
+                onChange={(e) => setLocalEtfTicker(e.target.value.toUpperCase())}
+                placeholder="np. VWCE"
+                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
+              />
+              <button
+                type="submit"
+                disabled={etfLoading || !localEtfTicker.trim()}
+                className="flex items-center gap-1.5 px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                aria-label="Pobierz dane ETF"
+              >
+                {etfLoading ? <Loader2 size={14} className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <RefreshCw size={14} aria-hidden="true" />}
+                Pobierz
+              </button>
+            </form>
+            {etfError && (
+              <p className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
+                <AlertCircle size={12} aria-hidden="true" /> {etfError}
+              </p>
+            )}
+            {etfName && !etfError && !etfLoading && (
+              <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                <CheckCircle2 size={12} aria-hidden="true" /> {etfName}
+              </p>
+            )}
+          </div>
+
           <div className="space-y-1">
             <label htmlFor="etf-return" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-              Oczekiwany zwrot ETF (% rocznie) <span className="text-red-500">*</span>
-              <Tooltip content="Historyczny średnioroczny zwrot funduszu przed odliczeniem TER. Przykład: VWCE/IWDA ≈ 8–10% (długoterminowa średnia S&P 500). Używana do projekcji wartości portfela." />
+              Roczny zwrot ETF (% p.a.)
+              <Tooltip content="Historyczny CAGR funduszu przed odliczeniem TER — wypełniany automatycznie po pobraniu danych. Możesz go nadpisać własną wartością. Przykład: VWCE/IWDA ≈ 8–10% długoterminowo." />
             </label>
             <input
               id="etf-return"
@@ -666,7 +728,7 @@ export function InputPanel({
           </div>
           <div className="space-y-1">
             <label htmlFor="etf-ter" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-              TER — opłata za zarządzanie (% rocznie) <span className="text-red-500">*</span>
+              TER — opłata za zarządzanie (% rocznie)
               <Tooltip content="Total Expense Ratio — roczna opłata funduszu za zarządzanie, automatycznie odejmowana od wartości. Przykład: VWCE 0.22%, CSPX/IWDA 0.07%, iShares Core S&P 500 0.07%." />
             </label>
             <input
@@ -686,7 +748,7 @@ export function InputPanel({
           {etfAnnualReturnPercent > 0 && (
             <p className="text-xs text-gray-500 dark:text-gray-400 px-1">
               Efektywny zwrot netto: <strong>{(etfAnnualReturnPercent - etfTerPercent).toFixed(2)}%</strong>/rok (przed Belką).
-              Belka 19% naliczona od zysku przy sprzedaży.
+              Podwójna Belka 19%: przy sprzedaży akcji i przy wyjściu z ETF.
             </p>
           )}
         </div>
