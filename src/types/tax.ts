@@ -1,10 +1,10 @@
 /** Tax calculation types for the standalone Belka tax calculator. */
 
 export interface TaxInputs {
-  shares: number;
-  sellPriceUSD: number;
-  /** Average purchase price per share in USD. 0 for RSU/grants (full proceeds taxable). */
-  costBasisUSD: number;
+  /** Total sale proceeds in USD (from broker confirmation — "Proceeds"). */
+  totalProceedsUSD: number;
+  /** Total purchase cost in USD (from broker confirmation — "Cost Basis"). 0 for RSU/grants. */
+  totalCostBasisUSD: number;
   /** Total broker commission in USD (deductible cost). 0 if none. */
   brokerFeeUSD: number;
   /** NBP Table A mid rate on the sell date (tax basis for revenue). */
@@ -17,9 +17,9 @@ export interface TaxInputs {
 
 export interface TaxResult {
   // --- NBP-based tax calculation (Polish tax law) ---
-  /** Gross revenue at NBP sell-date rate: shares × sellPrice × nbpRateSell */
+  /** Gross revenue at NBP sell-date rate: totalProceedsUSD × nbpRateSell */
   revenueNbpPLN: number;
-  /** Cost basis at NBP buy-date rate: shares × costBasis × nbpRateBuy (0 for RSU) */
+  /** Cost basis at NBP buy-date rate: totalCostBasisUSD × nbpRateBuy (0 for RSU) */
   costBasisNbpPLN: number;
   /** Broker fee at NBP sell-date rate: brokerFee × nbpRateSell (deductible) */
   brokerFeeNbpPLN: number;
@@ -29,7 +29,7 @@ export interface TaxResult {
   belkaTaxPLN: number;
 
   // --- Kantor-based actual cash ---
-  /** Gross proceeds at kantor rate: shares × sellPrice × kantorRate */
+  /** Gross proceeds at kantor rate: totalProceedsUSD × kantorRate */
   grossProceedsKantorPLN: number;
   /** Broker fee at kantor rate: brokerFee × kantorRate */
   brokerFeeKantorPLN: number;

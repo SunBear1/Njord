@@ -18,9 +18,8 @@ function fmtSigned(v: number): string {
 }
 
 export function TaxCalculatorPanel({ currencyRates }: TaxCalculatorPanelProps) {
-  const [shares, setShares] = useState(0);
-  const [sellPriceUSD, setSellPriceUSD] = useState(0);
-  const [costBasisUSD, setCostBasisUSD] = useState(0);
+  const [totalProceedsUSD, setTotalProceedsUSD] = useState(0);
+  const [totalCostBasisUSD, setTotalCostBasisUSD] = useState(0);
   const [isRSU, setIsRSU] = useState(false);
   const [brokerFeeUSD, setBrokerFeeUSD] = useState(0);
   const [nbpRateSell, setNbpRateSell] = useState(0);
@@ -34,20 +33,19 @@ export function TaxCalculatorPanel({ currencyRates }: TaxCalculatorPanelProps) {
   const effectiveNbpSell = nbpSellTouched ? nbpRateSell : (currencyRates.nbp?.mid ? Math.round(currencyRates.nbp.mid * 10000) / 10000 : nbpRateSell);
   const effectiveKantor = kantorTouched ? kantorRate : (currencyRates.alior?.buy ? Math.round(currencyRates.alior.buy * 10000) / 10000 : kantorRate);
 
-  const canCalc = shares > 0 && sellPriceUSD > 0 && effectiveNbpSell > 0 && effectiveKantor > 0;
+  const canCalc = totalProceedsUSD > 0 && effectiveNbpSell > 0 && effectiveKantor > 0;
 
   const result = useMemo(() => {
     if (!canCalc) return null;
     return calcBelkaTax({
-      shares,
-      sellPriceUSD,
-      costBasisUSD: isRSU ? 0 : costBasisUSD,
+      totalProceedsUSD,
+      totalCostBasisUSD: isRSU ? 0 : totalCostBasisUSD,
       brokerFeeUSD,
       nbpRateSell: effectiveNbpSell,
       nbpRateBuy: nbpRateBuy || effectiveNbpSell,
       kantorRate: effectiveKantor,
     });
-  }, [canCalc, shares, sellPriceUSD, costBasisUSD, isRSU, brokerFeeUSD, effectiveNbpSell, nbpRateBuy, effectiveKantor]);
+  }, [canCalc, totalProceedsUSD, totalCostBasisUSD, isRSU, brokerFeeUSD, effectiveNbpSell, nbpRateBuy, effectiveKantor]);
 
   return (
     <div className="space-y-5">
@@ -67,40 +65,22 @@ export function TaxCalculatorPanel({ currencyRates }: TaxCalculatorPanelProps) {
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 space-y-4">
           <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 uppercase tracking-wider">Dane transakcji</h3>
 
-          {/* Shares */}
+          {/* Total proceeds */}
           <div className="space-y-1">
-            <label htmlFor="tax-shares" className={LABEL_CLS}>
-              Liczba sprzedanych akcji <span className="text-red-500">*</span>
+            <label htmlFor="tax-total-proceeds" className={LABEL_CLS}>
+              Kwota zlecenia sprzedaży (USD) <span className="text-red-500">*</span>
+              <Tooltip content="Łączna kwota sprzedaży z potwierdzenia brokera — pole &quot;Proceeds&quot; lub &quot;Total Sale Amount&quot;." />
             </label>
             <input
-              id="tax-shares"
-              name="tax-shares"
-              autoComplete="off"
-              type="number"
-              min={0}
-              step={1}
-              value={shares || ''}
-              onChange={(e) => setShares(Number(e.target.value))}
-              placeholder="np. 100"
-              className={INPUT_CLS}
-            />
-          </div>
-
-          {/* Sell price */}
-          <div className="space-y-1">
-            <label htmlFor="tax-sell-price" className={LABEL_CLS}>
-              Cena sprzedaży za akcję (USD) <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="tax-sell-price"
-              name="tax-sell-price"
+              id="tax-total-proceeds"
+              name="tax-total-proceeds"
               autoComplete="off"
               type="number"
               min={0}
               step={0.01}
-              value={sellPriceUSD || ''}
-              onChange={(e) => setSellPriceUSD(Number(e.target.value))}
-              placeholder="np. 195.00"
+              value={totalProceedsUSD || ''}
+              onChange={(e) => setTotalProceedsUSD(Number(e.target.value))}
+              placeholder="np. 19 500.00"
               className={INPUT_CLS}
             />
           </div>
@@ -108,8 +88,8 @@ export function TaxCalculatorPanel({ currencyRates }: TaxCalculatorPanelProps) {
           {/* Cost basis + RSU toggle */}
           <div className="space-y-1">
             <label htmlFor="tax-cost-basis" className={LABEL_CLS}>
-              Cena zakupu za akcję (USD)
-              <Tooltip content="Średnia cena zakupu (cost basis). Dla akcji z wynagrodzenia (RSU/grant) zaznacz opcję poniżej." />
+              Łączny koszt nabycia (USD)
+              <Tooltip content="Łączna kwota zakupu z potwierdzenia brokera — pole &quot;Cost Basis&quot;. Dla akcji z wynagrodzenia (RSU/grant) zaznacz opcję poniżej." />
             </label>
             <input
               id="tax-cost-basis"
@@ -118,10 +98,10 @@ export function TaxCalculatorPanel({ currencyRates }: TaxCalculatorPanelProps) {
               type="number"
               min={0}
               step={0.01}
-              value={isRSU ? '' : (costBasisUSD || '')}
-              onChange={(e) => setCostBasisUSD(Number(e.target.value))}
+              value={isRSU ? '' : (totalCostBasisUSD || '')}
+              onChange={(e) => setTotalCostBasisUSD(Number(e.target.value))}
               disabled={isRSU}
-              placeholder={isRSU ? 'RSU — koszt $0' : 'np. 150.00'}
+              placeholder={isRSU ? 'RSU — koszt $0' : 'np. 15 000.00'}
               className={`${INPUT_CLS} ${isRSU ? 'bg-gray-100 dark:bg-gray-600 opacity-60' : ''}`}
             />
             <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 cursor-pointer mt-1.5">
@@ -130,7 +110,7 @@ export function TaxCalculatorPanel({ currencyRates }: TaxCalculatorPanelProps) {
                 checked={isRSU}
                 onChange={(e) => {
                   setIsRSU(e.target.checked);
-                  if (e.target.checked) setCostBasisUSD(0);
+                  if (e.target.checked) setTotalCostBasisUSD(0);
                 }}
                 className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
               />
@@ -283,13 +263,13 @@ export function TaxCalculatorPanel({ currencyRates }: TaxCalculatorPanelProps) {
                 <div className="space-y-2 text-sm">
                   <Row
                     label="Przychód ze sprzedaży"
-                    detail={`${shares} × ${fmtUSD(sellPriceUSD)} × ${effectiveNbpSell.toFixed(4)}`}
+                    detail={`${fmtUSD(totalProceedsUSD)} × ${effectiveNbpSell.toFixed(4)}`}
                     value={fmtPLN(result.revenueNbpPLN)}
                   />
                   {!result.isRSU && (
                     <Row
                       label="Koszt uzyskania przychodu"
-                      detail={`${shares} × ${fmtUSD(isRSU ? 0 : costBasisUSD)} × ${(nbpRateBuy || effectiveNbpSell).toFixed(4)}`}
+                      detail={`${fmtUSD(isRSU ? 0 : totalCostBasisUSD)} × ${(nbpRateBuy || effectiveNbpSell).toFixed(4)}`}
                       value={`−${fmtPLN(result.costBasisNbpPLN)}`}
                       muted
                     />
@@ -333,7 +313,7 @@ export function TaxCalculatorPanel({ currencyRates }: TaxCalculatorPanelProps) {
                 <div className="space-y-2 text-sm">
                   <Row
                     label="Przychód brutto"
-                    detail={`${shares} × ${fmtUSD(sellPriceUSD)} × ${effectiveKantor.toFixed(4)}`}
+                    detail={`${fmtUSD(totalProceedsUSD)} × ${effectiveKantor.toFixed(4)}`}
                     value={fmtPLN(result.grossProceedsKantorPLN)}
                   />
                   {brokerFeeUSD > 0 && (
@@ -391,7 +371,7 @@ export function TaxCalculatorPanel({ currencyRates }: TaxCalculatorPanelProps) {
                 {/* Flow visualization */}
                 <div className="flex items-center justify-center gap-2 text-xs text-gray-400 dark:text-gray-500 pt-2">
                   <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded font-medium">
-                    {fmtUSD(shares * sellPriceUSD)}
+                    {fmtUSD(totalProceedsUSD)}
                   </span>
                   <ArrowRight size={12} aria-hidden="true" />
                   <span className="text-gray-500 dark:text-gray-400">−{fmtPLN(result.belkaTaxPLN)} podatek</span>

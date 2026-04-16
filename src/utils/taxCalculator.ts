@@ -9,20 +9,20 @@ const BELKA_TAX = 0.19;
  * - NBP Table A mid rate → tax basis (revenue and cost)
  * - Kantor rate → actual PLN cash received
  *
- * Handles RSU/grant shares (costBasisUSD = 0 → full proceeds taxable).
+ * Handles RSU/grant shares (totalCostBasisUSD = 0 → full proceeds taxable).
  */
 export function calcBelkaTax(inputs: TaxInputs): TaxResult {
-  const { shares, sellPriceUSD, costBasisUSD, brokerFeeUSD, nbpRateSell, nbpRateBuy, kantorRate } = inputs;
+  const { totalProceedsUSD, totalCostBasisUSD, brokerFeeUSD, nbpRateSell, nbpRateBuy, kantorRate } = inputs;
 
   // NBP-based tax calculation (Polish tax law requirement)
-  const revenueNbpPLN = shares * sellPriceUSD * nbpRateSell;
-  const costBasisNbpPLN = shares * costBasisUSD * nbpRateBuy;
+  const revenueNbpPLN = totalProceedsUSD * nbpRateSell;
+  const costBasisNbpPLN = totalCostBasisUSD * nbpRateBuy;
   const brokerFeeNbpPLN = brokerFeeUSD * nbpRateSell;
   const taxableGainPLN = revenueNbpPLN - costBasisNbpPLN - brokerFeeNbpPLN;
   const belkaTaxPLN = taxableGainPLN > 0 ? taxableGainPLN * BELKA_TAX : 0;
 
   // Kantor-based actual cash
-  const grossProceedsKantorPLN = shares * sellPriceUSD * kantorRate;
+  const grossProceedsKantorPLN = totalProceedsUSD * kantorRate;
   const brokerFeeKantorPLN = brokerFeeUSD * kantorRate;
   const netProceedsPLN = grossProceedsKantorPLN - brokerFeeKantorPLN - belkaTaxPLN;
 
@@ -42,6 +42,6 @@ export function calcBelkaTax(inputs: TaxInputs): TaxResult {
     netProceedsPLN,
     effectiveTaxRate,
     isLoss: taxableGainPLN <= 0,
-    isRSU: costBasisUSD === 0,
+    isRSU: totalCostBasisUSD === 0,
   };
 }
