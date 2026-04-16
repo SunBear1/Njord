@@ -18,10 +18,12 @@ interface CalcInputs {
   bondPenaltyPercent: number;
   bondCouponFrequency: number; // coupon payments/year: 0=capitalized at maturity, 1=annual, 12=monthly
   bondReinvestmentRate: number; // annual % for reinvesting coupon payments (typically savings rate)
+  bondMaturityMonths: number;  // bond term length — penalty only applies when horizonMonths < this
   // Inflation
   inflationRate: number; // annual CPI % (e.g. 3.6 for 3.6%)
-  // Cost basis for accurate Belka tax (optional — if 0, falls back to current price)
-  avgCostUSD: number;    // average purchase price per share in USD (0 = not set)
+  // Cost basis for accurate Belka tax
+  avgCostUSD: number;    // average purchase price per share in USD (0 = not set, unless isRSU)
+  isRSU: boolean;        // RSU shares: cost basis is $0 (full proceeds taxable)
   // Transaction costs (optional — subtracted from end value before tax)
   brokerFeeUSD: number;  // total broker commission in USD (0 = none)
   // Dividend yield (optional — accumulated as net cash over horizon)
@@ -33,6 +35,13 @@ interface CalcInputs {
 
 function calcCurrentValuePLN(inputs: CalcInputs): number {
   return inputs.shares * inputs.currentPriceUSD * inputs.currentFxRate;
+}
+
+/** Resolve cost basis per share in USD: RSU → $0, explicit → avgCostUSD, not set → currentPrice. */
+function resolveCostBasisUSD(inputs: CalcInputs): { costPerShareUSD: number; hasCostBasis: boolean } {
+  if (inputs.isRSU) return { costPerShareUSD: 0, hasCostBasis: true };
+  if (inputs.avgCostUSD > 0) return { costPerShareUSD: inputs.avgCostUSD, hasCostBasis: true };
+  return { costPerShareUSD: inputs.currentPriceUSD, hasCostBasis: false };
 }
 
 function calcSavingsEndValue(inputs: CalcInputs): number {
@@ -104,9 +113,12 @@ function bondCouponEndValue(
 }
 
 function calcBondEndValue(inputs: CalcInputs): number {
-  const { bondFirstYearRate, bondEffectiveRate, bondPenaltyPercent, bondCouponFrequency, bondReinvestmentRate, horizonMonths } = inputs;
+  const { bondFirstYearRate, bondEffectiveRate, bondPenaltyPercent, bondCouponFrequency, bondReinvestmentRate, bondMaturityMonths, horizonMonths } = inputs;
   const currentValuePLN = calcCurrentValuePLN(inputs);
-  const penalty = currentValuePLN * (bondPenaltyPercent / 100);
+  // Penalty only applies on early redemption (before maturity)
+  const penalty = horizonMonths < bondMaturityMonths
+    ? currentValuePLN * (bondPenaltyPercent / 100)
+    : 0;
 
   if (bondCouponFrequency > 0) {
     // Coupon bond: coupons already taxed per-payout inside bondCouponEndValue
@@ -147,9 +159,10 @@ function calcEtfEndValue(inputs: CalcInputs): number {
   // First Belka: upfront PLN cost from liquidating stocks today at NBP mid rate
   const nbpRate = inputs.nbpMidRate || inputs.currentFxRate;
   const currentStockNBP = inputs.shares * inputs.currentPriceUSD * nbpRate;
-  const costBasisNBP = inputs.avgCostUSD > 0
-    ? inputs.shares * inputs.avgCostUSD * nbpRate
-    : currentStockNBP; // no unrealized gain → first Belka = 0
+  const { costPerShareUSD, hasCostBasis } = resolveCostBasisUSD(inputs);
+  const costBasisNBP = hasCostBasis
+    ? inputs.shares * costPerShareUSD * nbpRate
+    : currentStockNBP; // no cost basis set → first Belka = 0
   const firstBelkaTax = currentStockNBP > costBasisNBP
     ? (currentStockNBP - costBasisNBP) * BELKA_TAX
     : 0;
@@ -186,10 +199,9 @@ function calcStockScenario(
   // Fee also reduces taxable income (deductible cost of sale)
   const feeNbp = (inputs.brokerFeeUSD || 0) * projectedNbpRate;
 
-  // Cost basis: use purchase price if provided, otherwise fall back to current price
-  const costBasisNbp = inputs.avgCostUSD > 0
-    ? inputs.shares * inputs.avgCostUSD * nbpRate  // use current NBP rate as proxy for purchase rate
-    : inputs.shares * inputs.currentPriceUSD * nbpRate;
+  // Cost basis: use purchase price if provided, RSU=$0, otherwise current price
+  const { costPerShareUSD } = resolveCostBasisUSD(inputs);
+  const costBasisNbp = inputs.shares * costPerShareUSD * nbpRate;
 
   const taxableCapGain = endValueNbp - feeNbp - costBasisNbp;
   const capitalGainTax = taxableCapGain > 0 ? taxableCapGain * BELKA_TAX : 0;
@@ -219,13 +231,14 @@ export function calcAllScenarios(inputs: CalcInputs, scenarios: Scenarios): Scen
 
   // Cost basis metrics (computed once, shared across all scenario results)
   const nbpRate = inputs.nbpMidRate || inputs.currentFxRate;
-  const costBasisValuePLN = inputs.avgCostUSD > 0
-    ? inputs.shares * inputs.avgCostUSD * nbpRate
+  const { costPerShareUSD, hasCostBasis } = resolveCostBasisUSD(inputs);
+  const costBasisValuePLN = hasCostBasis
+    ? inputs.shares * costPerShareUSD * nbpRate
     : currentValuePLN; // fallback: current value → no unrealized gain/loss
-  const unrealizedGainPLN = inputs.avgCostUSD > 0
+  const unrealizedGainPLN = hasCostBasis
     ? currentValuePLN - costBasisValuePLN
     : 0;
-  const unrealizedGainPercent = inputs.avgCostUSD > 0 && costBasisValuePLN > 0
+  const unrealizedGainPercent = hasCostBasis && costBasisValuePLN > 0
     ? (unrealizedGainPLN / costBasisValuePLN) * 100
     : 0;
 
@@ -246,7 +259,7 @@ export function calcAllScenarios(inputs: CalcInputs, scenarios: Scenarios): Scen
     const projectedPriceUSD = inputs.currentPriceUSD * (1 + scenarios[key].deltaStock / 100);
     const projectedNbpRate = nbpRate * (1 + scenarios[key].deltaFx / 100);
     const endValueNbp = inputs.shares * projectedPriceUSD * projectedNbpRate;
-    const belkaTaxedFromCostBasis = inputs.avgCostUSD > 0
+    const belkaTaxedFromCostBasis = hasCostBasis
       ? endValueNbp > costBasisValuePLN
       : endValueNbp > currentValuePLN;
 
@@ -294,7 +307,10 @@ export function calcTimeline(inputs: CalcInputs, scenarios: Scenarios): Timeline
     const bmInputs = { ...inputs, horizonMonths: m };
     let benchmarkVal: number;
     if (inputs.benchmarkType === 'bonds') {
-      const penalty = currentValuePLN * (inputs.bondPenaltyPercent / 100);
+      // Penalty only applies on early redemption (before maturity)
+      const penalty = m < inputs.bondMaturityMonths
+        ? currentValuePLN * (inputs.bondPenaltyPercent / 100)
+        : 0;
 
       if (inputs.bondCouponFrequency > 0) {
         // Coupon bond: use coupon model (tax already handled per-coupon)

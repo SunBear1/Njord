@@ -24,3 +24,4 @@ coverage
 *.sln
 *.sw?
 backtest-metrics.json
+.wrangler/

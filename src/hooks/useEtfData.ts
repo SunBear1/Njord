@@ -11,7 +11,7 @@ interface UseEtfDataReturn {
 }
 
 /** Compute CAGR from sorted historical prices (oldest→newest). */
-function computeCAGR(prices: HistoricalPrice[]): number | null {
+export function computeCAGR(prices: HistoricalPrice[]): number | null {
   if (prices.length < 2) return null;
   const sorted = [...prices].sort((a, b) => a.date.localeCompare(b.date));
   const first = sorted[0].close;

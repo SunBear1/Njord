@@ -17,6 +17,7 @@ export interface BondSettings {
   rateType: BondRateType;
   margin: number;           // added to base rate for years 2+
   couponFrequency: number;  // payments/year: 0=capitalized, 1=annual, 12=monthly
+  maturityMonths: number;   // bond term length — penalty only applies when redeemed before this
 }
 
 export interface BondPreset {

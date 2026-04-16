@@ -11,6 +11,7 @@ import {
   calcHeatmap,
 } from '../utils/calculations';
 import type { Scenarios } from '../types/scenario';
+import { computeCAGR } from '../hooks/useEtfData';
 
 const BELKA = 0.19;
 
@@ -32,8 +33,10 @@ function baseInputs(overrides: Record<string, unknown> = {}) {
     bondPenaltyPercent: 0,
     bondCouponFrequency: 0,
     bondReinvestmentRate: 5.0,
+    bondMaturityMonths: 36, // default: 3-year bond
     inflationRate: 0,
     avgCostUSD: 0,
+    isRSU: false,
     brokerFeeUSD: 0,
     dividendYieldPercent: 0,
     etfAnnualReturnPercent: 8,
@@ -186,22 +189,50 @@ describe('Capitalized bond (couponFrequency=0)', () => {
     expect(results[0].benchmarkEndValuePLN).toBeCloseTo(expectedNet, 2);
   });
 
-  it('handles partial year correctly via monthly sub-compounding', () => {
+  it('does NOT apply penalty when horizonMonths equals maturity', () => {
+    // A 36-month bond held to maturity — penalty should be zero
     const inputs = baseInputs({
       benchmarkType: 'bonds' as const,
       bondFirstYearRate: 6.0,
       bondEffectiveRate: 6.0,
-      bondPenaltyPercent: 0,
+      bondPenaltyPercent: 2.0, // 2% penalty would be significant if applied
       bondCouponFrequency: 0,
-      horizonMonths: 6, // half year
+      bondMaturityMonths: 36,
+      horizonMonths: 36,
     });
     const principal = 4000;
-    const monthlyRate = 0.06 / 12;
-    const gross = principal * Math.pow(1 + monthlyRate, 6);
-    const expectedNet = principal + (gross - principal) * (1 - BELKA);
+    // Year 1: 6% monthly compound for 12 months
+    const after12 = principal * Math.pow(1 + 0.06 / 12, 12);
+    // Year 2: same
+    const after24 = after12 * Math.pow(1 + 0.06 / 12, 12);
+    // Year 3: same
+    const after36 = after24 * Math.pow(1 + 0.06 / 12, 12);
+    // No penalty at maturity
+    const expectedNet = principal + (after36 - principal) * (1 - BELKA);
 
     const results = calcAllScenarios(inputs, NEUTRAL_SCENARIOS);
-    expect(results[0].benchmarkEndValuePLN).toBeCloseTo(expectedNet, 4);
+    expect(results[0].benchmarkEndValuePLN).toBeCloseTo(expectedNet, 2);
+  });
+
+  it('applies penalty when horizonMonths is less than maturity', () => {
+    const inputs = baseInputs({
+      benchmarkType: 'bonds' as const,
+      bondFirstYearRate: 6.0,
+      bondEffectiveRate: 6.0,
+      bondPenaltyPercent: 2.0,
+      bondCouponFrequency: 0,
+      bondMaturityMonths: 36,
+      horizonMonths: 24, // early redemption
+    });
+    const principal = 4000;
+    const after12 = principal * Math.pow(1 + 0.06 / 12, 12);
+    const after24 = after12 * Math.pow(1 + 0.06 / 12, 12);
+    const penalty = principal * 0.02;
+    const effectiveGross = after24 - penalty;
+    const expectedNet = principal + (effectiveGross - principal) * (1 - BELKA);
+
+    const results = calcAllScenarios(inputs, NEUTRAL_SCENARIOS);
+    expect(results[0].benchmarkEndValuePLN).toBeCloseTo(expectedNet, 2);
   });
 });
 
@@ -388,11 +419,64 @@ describe('ETF benchmark', () => {
     const results = calcAllScenarios(inputs, NEUTRAL_SCENARIOS);
     expect(results[0].benchmarkEndValuePLN).toBeCloseTo(expected, 2);
   });
-});
 
-// ---------------------------------------------------------------------------
-// Stock scenario — FX multiplicative math & Belka
-// ---------------------------------------------------------------------------
+  it('RSU: full proceeds taxable as first Belka when isRSU=true', () => {
+    // RSU shares: cost basis = $0, entire current value is taxable gain
+    // shares=10, price=100, fx=4 → currentValue=4000; costBasis=0
+    // firstBelkaTax = (4000 − 0) × 0.19 = 760
+    // ETF 0% → grossEnd=4000, secondBelkaTax=0
+    // netEnd = 4000 − 0 − 760 = 3240
+    const inputs = baseInputs({
+      benchmarkType: 'etf' as const,
+      etfAnnualReturnPercent: 0,
+      etfTerPercent: 0,
+      horizonMonths: 12,
+      avgCostUSD: 0,
+      isRSU: true,
+    });
+    const principal = 4000;
+    const firstBelkaTax = principal * BELKA; // 760
+    const expectedNet = principal - firstBelkaTax; // 3240
+    const results = calcAllScenarios(inputs, NEUTRAL_SCENARIOS);
+    expect(results[0].benchmarkEndValuePLN).toBeCloseTo(expectedNet, 2);
+  });
+
+  it('RSU: stock scenario treats full proceeds as taxable', () => {
+    // isRSU=true → cost basis = $0, so entire sale price is taxable gain
+    const inputs = baseInputs({
+      avgCostUSD: 0,
+      isRSU: true,
+    });
+    // +10% stock, 0% FX: end = 10 * 110 * 4.0 = 4400
+    // cost basis NBP = 10 * 0 * 4.0 = 0
+    // taxable = 4400 - 0 = 4400
+    // tax = 4400 * 0.19 = 836
+    // net = 4400 - 836 = 3564
+    const scenarios: Scenarios = {
+      bear: { deltaStock: 10, deltaFx: 0 },
+      base: { deltaStock: 10, deltaFx: 0 },
+      bull: { deltaStock: 10, deltaFx: 0 },
+    };
+    const results = calcAllScenarios(inputs, scenarios);
+    expect(results[0].stockNetEndValuePLN).toBeCloseTo(4400 - 4400 * BELKA, 2);
+  });
+
+  it('non-RSU with avgCostUSD=0 means "not set" (no Belka from cost basis)', () => {
+    // isRSU=false, avgCostUSD=0 → falls back to current price → 0 taxable gain
+    const inputs = baseInputs({
+      benchmarkType: 'etf' as const,
+      etfAnnualReturnPercent: 0,
+      etfTerPercent: 0,
+      horizonMonths: 12,
+      avgCostUSD: 0,
+      isRSU: false,
+    });
+    const principal = 4000;
+    // No first Belka (cost basis = current price → no gain)
+    const results = calcAllScenarios(inputs, NEUTRAL_SCENARIOS);
+    expect(results[0].benchmarkEndValuePLN).toBeCloseTo(principal, 2);
+  });
+});
 
 describe('Stock scenario (calcStockScenario via calcAllScenarios)', () => {
   it('zero deltas produce current value equal to starting PLN value', () => {
@@ -723,5 +807,266 @@ describe('calcHeatmap', () => {
     const costNbp = 100 * 4.0; // 400
     const expectedNet = endNbp - (endNbp - costNbp) * BELKA;
     expect(cell!.stockNetEnd).toBeCloseTo(expectedNet, 4);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ETF benchmark — additional coverage
+// ---------------------------------------------------------------------------
+
+describe('ETF benchmark — edge cases', () => {
+  it('negative ETF return: benchmark below principal, no Belka on loss', () => {
+    const inputs = baseInputs({
+      benchmarkType: 'etf' as const,
+      etfAnnualReturnPercent: -10, // 10% annual loss
+      etfTerPercent: 0,
+      horizonMonths: 12,
+    });
+    const principal = 4000;
+    const grossEnd = principal * Math.pow(1 + (-10 / 100), 1);
+    // Loss → no Belka, no first Belka (avgCostUSD=0)
+    const results = calcAllScenarios(inputs, NEUTRAL_SCENARIOS);
+    expect(results[0].benchmarkEndValuePLN).toBeCloseTo(grossEnd, 2);
+    expect(results[0].benchmarkEndValuePLN).toBeLessThan(principal);
+  });
+
+  it('zero ETF return: benchmark equals principal minus first Belka only', () => {
+    const inputs = baseInputs({
+      benchmarkType: 'etf' as const,
+      etfAnnualReturnPercent: 0,
+      etfTerPercent: 0,
+      horizonMonths: 12,
+    });
+    // No first Belka (avgCostUSD=0), no second Belka (no ETF gain)
+    const results = calcAllScenarios(inputs, NEUTRAL_SCENARIOS);
+    expect(results[0].benchmarkEndValuePLN).toBeCloseTo(4000, 2);
+  });
+
+  it('long horizon (120 months): compound growth with double Belka', () => {
+    const inputs = baseInputs({
+      benchmarkType: 'etf' as const,
+      etfAnnualReturnPercent: 8,
+      etfTerPercent: 0.2,
+      horizonMonths: 120, // 10 years
+      avgCostUSD: 50, // cost basis: 10 * 50 * 4 = 2000
+    });
+    const principal = 4000;
+    const netRate = (8 - 0.2) / 100; // 7.8%
+    const grossEnd = principal * Math.pow(1 + netRate, 10);
+    const secondBelka = (grossEnd - principal) * BELKA;
+    const firstBelka = (4000 - 2000) * BELKA; // unrealized stock gain
+    const expected = grossEnd - secondBelka - firstBelka;
+    const results = calcAllScenarios(inputs, NEUTRAL_SCENARIOS);
+    expect(results[0].benchmarkEndValuePLN).toBeCloseTo(expected, 0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Bond — additional edge cases
+// ---------------------------------------------------------------------------
+
+describe('Bond — additional edge cases', () => {
+  it('short horizon <12 months: uses first-year rate only', () => {
+    const inputs = baseInputs({
+      benchmarkType: 'bonds' as const,
+      bondFirstYearRate: 6.0,
+      bondEffectiveRate: 10.0, // ignored for <12 months
+      bondPenaltyPercent: 0,
+      bondCouponFrequency: 0,
+      bondMaturityMonths: 36,
+      horizonMonths: 6,
+    });
+    const principal = 4000;
+    const gross = principal * Math.pow(1 + 0.06 / 12, 6);
+    const expectedNet = principal + (gross - principal) * (1 - BELKA);
+    const results = calcAllScenarios(inputs, NEUTRAL_SCENARIOS);
+    expect(results[0].benchmarkEndValuePLN).toBeCloseTo(expectedNet, 4);
+  });
+
+  it('0% rate: bond returns principal exactly (no gain, no tax)', () => {
+    const inputs = baseInputs({
+      benchmarkType: 'bonds' as const,
+      bondFirstYearRate: 0,
+      bondEffectiveRate: 0,
+      bondPenaltyPercent: 0,
+      bondCouponFrequency: 0,
+      horizonMonths: 12,
+    });
+    const results = calcAllScenarios(inputs, NEUTRAL_SCENARIOS);
+    expect(results[0].benchmarkEndValuePLN).toBeCloseTo(4000, 6);
+  });
+
+  it('coupon reinvestment at 0%: coupons accumulate but do not grow', () => {
+    const inputs = baseInputs({
+      benchmarkType: 'bonds' as const,
+      bondFirstYearRate: 6.0,
+      bondEffectiveRate: 6.0,
+      bondPenaltyPercent: 0,
+      bondCouponFrequency: 12, // monthly coupons
+      bondReinvestmentRate: 0,
+      horizonMonths: 12,
+    });
+    // Each month: grossCoupon = principal × rate / 12
+    // Net coupon (after Belka) accumulated but not reinvested
+    const principal = 4000;
+    const monthlyGross = principal * (0.06 / 12);
+    const monthlyNet = monthlyGross * (1 - BELKA);
+    const totalCoupons = monthlyNet * 12; // no reinvestment growth
+    const results = calcAllScenarios(inputs, NEUTRAL_SCENARIOS);
+    expect(results[0].benchmarkEndValuePLN).toBeCloseTo(principal + totalCoupons, 1);
+  });
+
+  it('coupon bond penalty: deducted from total, not from coupons', () => {
+    const noPenalty = baseInputs({
+      benchmarkType: 'bonds' as const,
+      bondFirstYearRate: 6.0,
+      bondEffectiveRate: 6.0,
+      bondPenaltyPercent: 0,
+      bondCouponFrequency: 12,
+      bondReinvestmentRate: 5.0,
+      bondMaturityMonths: 36,
+      horizonMonths: 12,
+    });
+    const withPenalty = baseInputs({
+      ...noPenalty,
+      bondPenaltyPercent: 0.5,
+    });
+    const r1 = calcAllScenarios(noPenalty, NEUTRAL_SCENARIOS)[0].benchmarkEndValuePLN;
+    const r2 = calcAllScenarios(withPenalty, NEUTRAL_SCENARIOS)[0].benchmarkEndValuePLN;
+    expect(r2).toBeCloseTo(r1 - 4000 * 0.005, 2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeCAGR
+// ---------------------------------------------------------------------------
+
+describe('computeCAGR', () => {
+  it('computes correct CAGR for known data', () => {
+    // 252 days: price goes from 100 to 110 → ~10% annual return
+    const prices: { date: string; close: number }[] = [];
+    for (let i = 0; i < 252; i++) {
+      const d = new Date(2024, 0, 1);
+      d.setDate(d.getDate() + i);
+      const t = i / 251;
+      prices.push({ date: d.toISOString().slice(0, 10), close: 100 + 10 * t });
+    }
+    const cagr = computeCAGR(prices);
+    expect(cagr).not.toBeNull();
+    expect(cagr!).toBeCloseTo(10, 0); // ~10% annual
+  });
+
+  it('returns null for single data point', () => {
+    expect(computeCAGR([{ date: '2024-01-01', close: 100 }])).toBeNull();
+  });
+
+  it('returns null for zero or negative prices', () => {
+    const prices = [
+      { date: '2024-01-01', close: 0 },
+      { date: '2024-12-31', close: 100 },
+    ];
+    expect(computeCAGR(prices)).toBeNull();
+  });
+
+  it('handles negative return (price decreased)', () => {
+    const prices: { date: string; close: number }[] = [];
+    for (let i = 0; i < 252; i++) {
+      const d = new Date(2024, 0, 1);
+      d.setDate(d.getDate() + i);
+      const t = i / 251;
+      prices.push({ date: d.toISOString().slice(0, 10), close: 100 - 20 * t });
+    }
+    const cagr = computeCAGR(prices);
+    expect(cagr).not.toBeNull();
+    expect(cagr!).toBeLessThan(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Interaction / edge cases
+// ---------------------------------------------------------------------------
+
+describe('Interaction and edge case tests', () => {
+  it('dividends on a losing stock: net includes dividend income', () => {
+    const inputs = baseInputs({ dividendYieldPercent: 3.0 });
+    const scenarios: Scenarios = {
+      bear: { deltaStock: -20, deltaFx: 0 },
+      base: { deltaStock: -20, deltaFx: 0 },
+      bull: { deltaStock: -20, deltaFx: 0 },
+    };
+    const results = calcAllScenarios(inputs, scenarios);
+    // Stock loses 20% but dividends add value
+    expect(results[0].stockNetEndValuePLN).toBeGreaterThan(0);
+    expect(results[0].dividendsNetPLN).toBeGreaterThan(0);
+  });
+
+  it('extreme FX +50%: multiplicative structure works', () => {
+    const inputs = baseInputs();
+    const scenarios: Scenarios = {
+      bear: { deltaStock: 0, deltaFx: 50 },
+      base: { deltaStock: 0, deltaFx: 50 },
+      bull: { deltaStock: 0, deltaFx: 50 },
+    };
+    const results = calcAllScenarios(inputs, scenarios);
+    // FX +50%: end = 10 * 100 * (4.0 * 1.5) = 6000
+    // Projected NBP = 4.0 * 1.5 = 6.0
+    // endValueNbp = 10 * 100 * 6.0 = 6000
+    // taxable = 6000 - 4000 = 2000
+    // tax = 2000 * 0.19 = 380
+    // net = 6000 - 380 = 5620
+    expect(results[0].stockNetEndValuePLN).toBeCloseTo(5620, 0);
+  });
+
+  it('extreme FX -50%: stock value halved', () => {
+    const inputs = baseInputs();
+    const scenarios: Scenarios = {
+      bear: { deltaStock: 0, deltaFx: -50 },
+      base: { deltaStock: 0, deltaFx: -50 },
+      bull: { deltaStock: 0, deltaFx: -50 },
+    };
+    const results = calcAllScenarios(inputs, scenarios);
+    // FX -50%: end = 10 * 100 * (4.0 * 0.5) = 2000 → no tax on loss
+    expect(results[0].stockNetEndValuePLN).toBeCloseTo(2000, 0);
+  });
+
+  it('broker fee exceeding gain: no negative tax', () => {
+    const inputs = baseInputs({ brokerFeeUSD: 20 }); // $20 fee
+    const scenarios: Scenarios = {
+      bear: { deltaStock: 1, deltaFx: 0 },
+      base: { deltaStock: 1, deltaFx: 0 },
+      bull: { deltaStock: 1, deltaFx: 0 },
+    };
+    const results = calcAllScenarios(inputs, scenarios);
+    // +1%: rawEnd = 10 * 101 * 4.0 = 4040; fee = 20 * 4.0 = 80
+    // rawCapital = 4040 - 80 = 3960
+    // taxable = 4040 - 80 - 4000 = -40 → no tax
+    expect(results[0].stockNetEndValuePLN).toBeCloseTo(3960, 0);
+  });
+
+  it('Fisher real return: inflation erodes nominal gain', () => {
+    const inputs = baseInputs({ inflationRate: 5.0, horizonMonths: 12 });
+    const scenarios: Scenarios = {
+      bear: { deltaStock: 5, deltaFx: 0 },
+      base: { deltaStock: 5, deltaFx: 0 },
+      bull: { deltaStock: 5, deltaFx: 0 },
+    };
+    const results = calcAllScenarios(inputs, scenarios);
+    expect(results[0].stockRealReturnNet).toBeDefined();
+    // Real return should be less than nominal
+    expect(results[0].stockRealReturnNet).toBeLessThan(results[0].stockReturnNet);
+  });
+
+  it('120-month compound: savings compound grows faster than linear', () => {
+    const inputs = baseInputs({
+      benchmarkType: 'savings' as const,
+      wibor3mPercent: 5.0,
+      horizonMonths: 120,
+    });
+    const principal = 4000;
+    const linearEstimate = principal * (1 + 0.05 * 10);
+    const grossEnd = principal * Math.pow(1 + 0.05 / 12, 120);
+    expect(grossEnd).toBeGreaterThan(linearEstimate);
+    const results = calcAllScenarios(inputs, NEUTRAL_SCENARIOS);
+    expect(results[0].benchmarkEndValuePLN).toBeGreaterThan(principal);
   });
 });

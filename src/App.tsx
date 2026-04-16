@@ -44,6 +44,7 @@ const DEFAULT_BOND_SETTINGS: BondSettings = {
   rateType: 'fixed',
   margin: 0,
   couponFrequency: 0,
+  maturityMonths: 12,
 };
 
 const ROOT_STYLE = { backgroundColor: 'var(--color-bg-primary)' } as const;
@@ -66,11 +67,12 @@ function App() {
   const [nbpRefRate, setNbpRefRate] = useState(saved?.nbpRefRate ?? 0);
   const [horizonMonths, setHorizonMonths] = useState(saved?.horizonMonths ?? DEFAULT_HORIZON_MONTHS);
   const [avgCostUSD, setAvgCostUSD] = useState(saved?.avgCostUSD ?? 0);
+  const [isRSU, setIsRSU] = useState(saved?.isRSU ?? false);
   const [brokerFeeUSD, setBrokerFeeUSD] = useState(saved?.brokerFeeUSD ?? 0);
   const [dividendYieldPercent, setDividendYieldPercent] = useState(saved?.dividendYieldPercent ?? 0);
   const [etfAnnualReturnPercent, setEtfAnnualReturnPercent] = useState(saved?.etfAnnualReturnPercent ?? 8);
   const [etfTerPercent, setEtfTerPercent] = useState(saved?.etfTerPercent ?? 0.07);
-  const [etfTicker, setEtfTicker] = useState(saved?.etfTicker ?? '');
+  const [etfTicker, setEtfTicker] = useState(saved?.etfTicker ?? 'IWDA.L');
   // null = use HMM suggestions when available; non-null = user has manually overridden
   const [userScenarios, setUserScenarios] = useState<Scenarios | null>(saved?.userScenarios ?? null);
   const [scenarioEditKey, setScenarioEditKey] = useState(0);
@@ -126,10 +128,10 @@ function App() {
   // Auto-save user inputs to localStorage (debounced 600ms)
   useEffect(() => {
     const timer = setTimeout(() => {
-      saveState({ ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent, etfTicker, activeSection });
+      saveState({ ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, isRSU, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent, etfTicker, activeSection });
     }, 600);
     return () => clearTimeout(timer);
-  }, [ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent, etfTicker, activeSection]);
+  }, [ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, isRSU, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent, etfTicker, activeSection]);
 
   const fetchData = useCallback(async (tickerArg: string) => {
     // Reset scenarios so HMM suggestions auto-apply for the new ticker
@@ -234,14 +236,16 @@ function App() {
     bondEffectiveRate: computedEffectiveRate,
     bondPenaltyPercent: bondSettings.penalty,
     bondCouponFrequency: bondSettings.couponFrequency,
+    bondMaturityMonths: bondSettings.maturityMonths,
     bondReinvestmentRate: effectiveSavingsRate,
     inflationRate: effectiveInflation,
     avgCostUSD,
+    isRSU,
     brokerFeeUSD,
     dividendYieldPercent,
     etfAnnualReturnPercent,
     etfTerPercent,
-  }), [shares, currentPriceUSD, currentFxRate, proxyFxData, wibor3m, deferredHorizon, benchmarkType, bondSettings, computedEffectiveRate, effectiveInflation, effectiveSavingsRate, avgCostUSD, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent]);
+  }), [shares, currentPriceUSD, currentFxRate, proxyFxData, wibor3m, deferredHorizon, benchmarkType, bondSettings, computedEffectiveRate, effectiveInflation, effectiveSavingsRate, avgCostUSD, isRSU, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent]);
 
   const benchmarkReady = benchmarkType === 'savings'
     ? wibor3m > 0
@@ -367,6 +371,7 @@ function App() {
               inflationLoading={inflationLoading}
               nbpRefRate={nbpRefRate}
               avgCostUSD={avgCostUSD}
+              isRSU={isRSU}
               brokerFeeUSD={brokerFeeUSD}
               dividendYieldPercent={dividendYieldPercent}
               etfAnnualReturnPercent={etfAnnualReturnPercent}
@@ -390,6 +395,7 @@ function App() {
               onBondSettingsChange={setBondSettings}
               onBondPresetChange={setBondPresetId}
               onAvgCostUSDChange={setAvgCostUSD}
+              onIsRSUChange={setIsRSU}
               onBrokerFeeUSDChange={setBrokerFeeUSD}
               onDividendYieldChange={setDividendYieldPercent}
               onEtfAnnualReturnChange={setEtfAnnualReturnPercent}
@@ -437,6 +443,7 @@ function App() {
                 inflationLoading={inflationLoading}
                 nbpRefRate={nbpRefRate}
                 avgCostUSD={avgCostUSD}
+                isRSU={isRSU}
                 brokerFeeUSD={brokerFeeUSD}
                 dividendYieldPercent={dividendYieldPercent}
                 etfAnnualReturnPercent={etfAnnualReturnPercent}
@@ -459,6 +466,7 @@ function App() {
                 onBondSettingsChange={setBondSettings}
                 onBondPresetChange={setBondPresetId}
                 onAvgCostUSDChange={setAvgCostUSD}
+                onIsRSUChange={setIsRSU}
                 onBrokerFeeUSDChange={setBrokerFeeUSD}
                 onDividendYieldChange={setDividendYieldPercent}
                 onEtfAnnualReturnChange={setEtfAnnualReturnPercent}

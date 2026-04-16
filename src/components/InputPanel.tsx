@@ -30,6 +30,7 @@ interface InputPanelProps {
   inflationLoading: boolean;
   nbpRefRate: number;
   avgCostUSD: number;
+  isRSU: boolean;
   brokerFeeUSD: number;
   dividendYieldPercent: number;
   etfAnnualReturnPercent: number;
@@ -57,6 +58,7 @@ interface InputPanelProps {
   onBondSettingsChange: (s: BondSettings) => void;
   onBondPresetChange: (id: string) => void;
   onAvgCostUSDChange: (v: number) => void;
+  onIsRSUChange: (v: boolean) => void;
   onBrokerFeeUSDChange: (v: number) => void;
   onDividendYieldChange: (v: number) => void;
   onEtfAnnualReturnChange: (v: number) => void;
@@ -88,6 +90,7 @@ export function InputPanel({
   inflationLoading,
   nbpRefRate,
   avgCostUSD,
+  isRSU,
   brokerFeeUSD,
   dividendYieldPercent,
   etfAnnualReturnPercent,
@@ -111,6 +114,7 @@ export function InputPanel({
   onBondSettingsChange,
   onBondPresetChange,
   onAvgCostUSDChange,
+  onIsRSUChange,
   onBrokerFeeUSDChange,
   onDividendYieldChange,
   onEtfAnnualReturnChange,
@@ -127,7 +131,7 @@ export function InputPanel({
   const [totalValueStr, setTotalValueStr] = useState('');
   const [selectedBondId, setSelectedBondId] = useState(initialBondPresetId ?? 'OTS');
   const [showAdvanced, setShowAdvanced] = useState(
-    () => (avgCostUSD > 0 || brokerFeeUSD > 0 || dividendYieldPercent > 0),
+    () => (avgCostUSD > 0 || isRSU || brokerFeeUSD > 0 || dividendYieldPercent > 0),
   );
 
   const handleSelectBondPreset = (id: string, preset: BondPreset) => {
@@ -148,6 +152,7 @@ export function InputPanel({
       margin: preset.margin,
       couponFrequency: preset.couponFrequency,
       penalty,
+      maturityMonths: preset.maturityMonths,
     });
   };
 
@@ -444,7 +449,7 @@ export function InputPanel({
         >
           <span className="flex items-center gap-1.5">
             Ustawienia zaawansowane
-            {(avgCostUSD > 0 || brokerFeeUSD > 0 || dividendYieldPercent > 0) && (
+            {(avgCostUSD > 0 || isRSU || brokerFeeUSD > 0 || dividendYieldPercent > 0) && (
               <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
             )}
           </span>
@@ -471,13 +476,33 @@ export function InputPanel({
           type="number"
           min={0}
           step={0.01}
-          value={avgCostUSD || ''}
+          value={isRSU ? '' : (avgCostUSD || '')}
           onChange={(e) => onAvgCostUSDChange(Number(e.target.value))}
-          placeholder="np. 50.00"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
+          placeholder={isRSU ? 'RSU: $0' : 'np. 50.00'}
+          disabled={isRSU}
+          className={`w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 ${isRSU ? 'opacity-50 cursor-not-allowed' : ''}`}
         />
+        {/* RSU toggle */}
+        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer mt-1">
+          <input
+            type="checkbox"
+            checked={isRSU}
+            onChange={(e) => {
+              onIsRSUChange(e.target.checked);
+              if (e.target.checked) onAvgCostUSDChange(0);
+            }}
+            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+          />
+          <span>RSU / akcje przyznane (koszt nabycia = $0)</span>
+          <Tooltip content="Restricted Stock Units — akcje przyznane przez pracodawcę. Cena nabycia wynosi $0, więc cały przychód ze sprzedaży podlega opodatkowaniu podatkiem Belki." />
+        </label>
         {/* Inline P&L indicator */}
-        {avgCostUSD > 0 && currentPriceUSD > 0 && (
+        {isRSU && currentPriceUSD > 0 && (
+          <div className="flex items-center gap-2 text-xs px-2 py-1 rounded-md bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400">
+            <span>RSU — cały przychód ({fmtUSD(currentPriceUSD * (shares || 0))}) podlega Belce 19%</span>
+          </div>
+        )}
+        {!isRSU && avgCostUSD > 0 && currentPriceUSD > 0 && (
           <div className={`flex items-center gap-2 text-xs px-2 py-1 rounded-md ${currentPriceUSD >= avgCostUSD ? 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400'}`}>
             {currentPriceUSD >= avgCostUSD ? '▲' : '▼'}
             <span>
@@ -664,7 +689,7 @@ export function InputPanel({
           <div className="space-y-1">
             <label htmlFor="etf-ticker" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
               Ticker ETF
-              <Tooltip content="Ticker funduszu ETF, w który reinwestujesz zyski ze sprzedaży akcji. Przykłady: VWCE, IWDA, CSPX, SPY. Dane historyczne pobierane z Yahoo Finance." />
+              <Tooltip content="Ticker funduszu ETF, w który reinwestujesz zyski ze sprzedaży akcji. Przykłady: IWDA.L, VWCE.DE, CSPX.L, SPY. Europejskie ETF wymagają sufiksu giełdy (np. .L, .AS, .DE)." />
             </label>
             <form
               onSubmit={(e) => {
@@ -682,7 +707,7 @@ export function InputPanel({
                 type="text"
                 value={localEtfTicker}
                 onChange={(e) => setLocalEtfTicker(e.target.value.toUpperCase())}
-                placeholder="np. VWCE"
+                placeholder="np. IWDA.L"
                 className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
               />
               <button

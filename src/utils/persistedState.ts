@@ -1,7 +1,7 @@
 import type { BenchmarkType, BondSettings, Scenarios } from '../types/scenario';
 
 const STORAGE_KEY = 'njord_state';
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 interface PersistedState {
   _v: number;
@@ -15,6 +15,7 @@ interface PersistedState {
   benchmarkType: BenchmarkType;
   userScenarios: Scenarios | null;
   avgCostUSD: number;
+  isRSU: boolean;
   brokerFeeUSD: number;
   dividendYieldPercent: number;
   etfAnnualReturnPercent: number;
@@ -28,11 +29,18 @@ export function loadState(): Partial<PersistedState> | null {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PersistedState;
-    // Accept both current and previous schema versions
-    if (parsed._v !== SCHEMA_VERSION && parsed._v !== 1) return null;
+    // Accept current and previous schema versions
+    if (parsed._v !== SCHEMA_VERSION && parsed._v !== 2 && parsed._v !== 1) return null;
     // Migration: v1 → v2 — add activeSection default
     if (parsed._v === 1) {
       parsed.activeSection = 'investment';
+    }
+    // Migration: v2 → v3 — add maturityMonths to bondSettings, add isRSU
+    if ((parsed._v === 1 || parsed._v === 2) && parsed.bondSettings && !('maturityMonths' in parsed.bondSettings)) {
+      (parsed.bondSettings as BondSettings).maturityMonths = 12;
+    }
+    if ((parsed._v === 1 || parsed._v === 2) && !('isRSU' in parsed)) {
+      (parsed as PersistedState).isRSU = false;
     }
     return parsed;
   } catch {
