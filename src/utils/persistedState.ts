@@ -1,7 +1,7 @@
 import type { BenchmarkType, BondSettings, Scenarios } from '../types/scenario';
 
 const STORAGE_KEY = 'njord_state';
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 interface PersistedState {
   _v: number;
@@ -19,6 +19,7 @@ interface PersistedState {
   dividendYieldPercent: number;
   etfAnnualReturnPercent: number;
   etfTerPercent: number;
+  activeSection: string;
 }
 
 export function loadState(): Partial<PersistedState> | null {
@@ -26,8 +27,12 @@ export function loadState(): Partial<PersistedState> | null {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PersistedState;
-    // Discard data from incompatible schema versions
-    if (parsed._v !== SCHEMA_VERSION) return null;
+    // Accept both current and previous schema versions
+    if (parsed._v !== SCHEMA_VERSION && parsed._v !== 1) return null;
+    // Migration: v1 → v2 — add activeSection default
+    if (parsed._v === 1) {
+      parsed.activeSection = 'investment';
+    }
     return parsed;
   } catch {
     return null;

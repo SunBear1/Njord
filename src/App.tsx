@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useMemo, useDeferredValue, lazy, Suspense } from 'react';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, BarChart3, Receipt } from 'lucide-react';
 import { HowItWorks } from './components/HowItWorks';
 import { InputPanel } from './components/InputPanel';
 import { ScenarioEditor } from './components/ScenarioEditor';
@@ -9,6 +9,7 @@ import { TimelineChart } from './components/TimelineChart';
 import { BreakevenChart } from './components/BreakevenChart';
 import { MethodologyPanel } from './components/MethodologyPanel';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { TaxCalculatorPanel } from './components/TaxCalculatorPanel';
 import { useAssetData } from './hooks/useAssetData';
 
 import { useInflationData } from './hooks/useInflationData';
@@ -75,6 +76,10 @@ function App() {
   const aliorAutoFilled = useRef(false);
   const inflationAutoFilled = useRef(false);
 
+  // Top-level section: investment comparison vs standalone tax calculator
+  type AppSection = 'investment' | 'tax';
+  const [activeSection, setActiveSection] = useState<AppSection>(saved?.activeSection as AppSection ?? 'investment');
+
   const { assetData, proxyFxData, isLoading: assetLoading, error: assetError, fetchData: fetchAsset } = useAssetData();
   const { presets: bondPresets, isLoading: bondPresetsLoading } = useBondPresets();
   
@@ -108,10 +113,10 @@ function App() {
   // Auto-save user inputs to localStorage (debounced 600ms)
   useEffect(() => {
     const timer = setTimeout(() => {
-      saveState({ ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent });
+      saveState({ ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent, activeSection });
     }, 600);
     return () => clearTimeout(timer);
-  }, [ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent]);
+  }, [ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent, activeSection]);
 
   const fetchData = useCallback(async (tickerArg: string) => {
     // Reset scenarios so HMM suggestions auto-apply for the new ticker
@@ -280,6 +285,34 @@ function App() {
         </div>
       </header>
 
+      {/* Section toggle — investment comparison vs tax calculator */}
+      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 flex items-center gap-1 py-1.5">
+          <button
+            onClick={() => setActiveSection('investment')}
+            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+              activeSection === 'investment'
+                ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-sm border border-blue-200 dark:border-blue-800'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <BarChart3 size={16} aria-hidden="true" />
+            Kalkulator inwestycyjny
+          </button>
+          <button
+            onClick={() => setActiveSection('tax')}
+            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+              activeSection === 'tax'
+                ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-sm border border-blue-200 dark:border-blue-800'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <Receipt size={16} aria-hidden="true" />
+            Kalkulator podatku Belki
+          </button>
+        </div>
+      </nav>
+
       <div className="flex justify-center">
         {/* Kantor rates sticky sidebar — xl+ only */}
         <aside className="hidden xl:block shrink-0 pt-6 pl-4">
@@ -289,7 +322,10 @@ function App() {
         </aside>
 
       <main className="flex-1 min-w-0 max-w-7xl mx-auto px-4 py-4 space-y-4">
-        {inputCollapsed ? (
+        {activeSection === 'tax' ? (
+          /* ── Tax calculator section ── */
+          <TaxCalculatorPanel currencyRates={currencyRates} />
+        ) : inputCollapsed ? (
           /* ── Collapsed layout: summary bar → ScenarioEditor (full-width) → Results ── */
           <>
             <InputPanel
@@ -425,7 +461,7 @@ function App() {
         )}
 
         {/* View toggle — only show when stock data is loaded */}
-        {currentPriceUSD > 0 && assetData && (
+        {activeSection === 'investment' && currentPriceUSD > 0 && assetData && (
           <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5 w-fit">
             <button
               onClick={() => setActiveView('comparison')}
@@ -450,7 +486,7 @@ function App() {
           </div>
         )}
 
-        {activeView === 'comparison' && results && (
+        {activeSection === 'investment' && activeView === 'comparison' && results && (
           <>
             <ErrorBoundary>
               <VerdictBanner
@@ -490,7 +526,7 @@ function App() {
           </>
         )}
 
-        {activeView === 'sellAnalysis' && (
+        {activeSection === 'investment' && activeView === 'sellAnalysis' && (
           <ErrorBoundary>
             <Suspense fallback={<div className="text-center py-8 text-gray-400">Ładowanie modułu…</div>}>
               <SellAnalysisPanel
@@ -505,8 +541,12 @@ function App() {
           </ErrorBoundary>
         )}
 
-        <MethodologyPanel />
-        <HowItWorks />
+        {activeSection === 'investment' && (
+          <>
+            <MethodologyPanel />
+            <HowItWorks />
+          </>
+        )}
       </main>
       </div>
 
