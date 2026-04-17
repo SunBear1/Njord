@@ -2,3 +2,4 @@ date,coverage_pct,above_bull_pct,below_bear_pct,bias_ratio,base_mae_pp,stocks,ov
 2026-04-15,37.9,44.2,17.9,2.47,47.3,95,PASS
 2026-04-15,37.9,44.2,17.9,2.47,47.8,95,PASS
 2026-04-16,36.5,43.8,19.8,2.21,53.7,96,PASS
+2026-04-17,36.8,48.4,14.7,3.29,61.5,95,PASS
