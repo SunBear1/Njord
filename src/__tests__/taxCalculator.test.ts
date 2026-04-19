@@ -232,14 +232,12 @@ describe('calcTransactionResult', () => {
     expect(r!.gainPLN).toBeCloseTo(19_726.98, 1);
   });
 
-  it('falls back to sell rate when acquisition rate is absent', () => {
+  it('returns null when acquisition rate is absent (no fallback to sell rate)', () => {
     const tx: TaxTransaction = {
       ...BASE_TX,
       exchangeRateAcquisitionToPLN: null,
     };
-    const r = calcTransactionResult(tx);
-    // costPLN = 15,000 × 4.0215 (sell rate fallback)
-    expect(r!.costPLN).toBeCloseTo(15_000 * 4.0215);
+    expect(calcTransactionResult(tx)).toBeNull();
   });
 });
 

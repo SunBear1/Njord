@@ -63,9 +63,9 @@ function fmtGain(gain: number): { text: string; cls: string } {
   return { text: fmtPLN(0), cls: 'text-gray-600 dark:text-gray-300' };
 }
 
-/** Returns YYYY-MM-DD of (date − 1 day), or undefined if date is empty. */
-function subtractOneDay(dateStr: string): string | undefined {
-  if (!dateStr) return undefined;
+/** Returns YYYY-MM-DD of (date − 1 day), or '' if date is empty. */
+function subtractOneDay(dateStr: string): string {
+  if (!dateStr) return '';
   const d = new Date(dateStr);
   d.setDate(d.getDate() - 1);
   return d.toISOString().split('T')[0];
@@ -77,6 +77,116 @@ function fmtDatePL(dateStr: string): string {
   const [year, month, day] = dateStr.split('-');
   const d = new Date(Number(year), Number(month) - 1, Number(day));
   return d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+/** Parses DD/MM/RRRR → YYYY-MM-DD, or null if invalid. */
+function parsePLDate(value: string): string | null {
+  if (!value || value.length < 10) return null;
+  const parts = value.split('/');
+  if (parts.length !== 3) return null;
+  const [dd, mm, yyyy] = parts;
+  if (dd.length !== 2 || mm.length !== 2 || yyyy.length !== 4) return null;
+  const day = parseInt(dd, 10);
+  const month = parseInt(mm, 10);
+  const year = parseInt(yyyy, 10);
+  if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  if (year < 1900 || year > 2100) return null;
+  const d = new Date(year, month - 1, day);
+  if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) return null;
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+/** Converts YYYY-MM-DD → DD/MM/RRRR for display. */
+function isoToPLDate(iso: string): string {
+  if (!iso || iso.length !== 10) return '';
+  const [yyyy, mm, dd] = iso.split('-');
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+// ─── Polish Date Input ────────────────────────────────────────────────────────
+
+/**
+ * Text input that accepts dates in Polish DD/MM/RRRR format.
+ * Auto-inserts slashes. Validates on complete entry.
+ * Calls onChange(isoDate) when valid, onChange('') when cleared/invalid.
+ */
+function PolishDateInput({
+  id,
+  value,
+  onChange,
+  maxDate,
+  maxDateMessage,
+  className = '',
+}: {
+  id?: string;
+  value: string;
+  onChange: (isoDate: string) => void;
+  maxDate?: string;
+  maxDateMessage?: string;
+  className?: string;
+}) {
+  const [display, setDisplay] = useState(() => isoToPLDate(value));
+  const [error, setError] = useState<string | undefined>();
+
+  // Sync display when the ISO value changes externally (e.g. transaction cleared).
+  useEffect(() => {
+    const currentISO = parsePLDate(display) ?? '';
+    if (currentISO !== value) {
+      setDisplay(isoToPLDate(value));
+      setError(undefined);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    const digits = raw.replace(/\D/g, '');
+
+    let formatted: string;
+    if (digits.length <= 2) formatted = digits;
+    else if (digits.length <= 4) formatted = `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    else formatted = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
+
+    setDisplay(formatted);
+
+    if (!formatted) { setError(undefined); onChange(''); return; }
+    if (formatted.length < 10) { setError(undefined); onChange(''); return; }
+
+    const parsed = parsePLDate(formatted);
+    if (!parsed) { setError('Nieprawidłowa data — oczekiwany format DD/MM/RRRR'); onChange(''); return; }
+    if (maxDate && parsed > maxDate) {
+      setError(maxDateMessage ?? `Data nie może być późniejsza niż ${isoToPLDate(maxDate)}`);
+      onChange('');
+      return;
+    }
+    setError(undefined);
+    onChange(parsed);
+  }, [onChange, maxDate, maxDateMessage]);
+
+  const hasError = !!error;
+  return (
+    <div className="space-y-0.5">
+      <input
+        id={id}
+        type="text"
+        inputMode="numeric"
+        value={display}
+        onChange={handleChange}
+        placeholder="DD/MM/RRRR"
+        maxLength={10}
+        autoComplete="off"
+        spellCheck={false}
+        className={`${className} ${hasError ? '!border-red-400 dark:!border-red-500 focus:!ring-red-500' : ''}`}
+      />
+      {hasError && (
+        <p className="text-[11px] text-red-600 dark:text-red-400 flex items-center gap-1">
+          <AlertTriangle size={10} aria-hidden="true" />
+          {error}
+        </p>
+      )}
+    </div>
+  );
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -110,10 +220,6 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
     } catch { /* ignore quota errors */ }
   }, [transactions]);
 
-  const summary: MultiTaxSummary = useMemo(
-    () => calcMultiTaxSummary(transactions),
-    [transactions],
-  );
 
   const updateTransaction = useCallback((id: string, patch: Partial<TaxTransaction>) => {
     setTransactions((prev) => prev.map((tx) => (tx.id === id ? { ...tx, ...patch } : tx)));
@@ -192,7 +298,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
       </button>
 
       {/* Year summary */}
-      {readyCount > 0 && <YearSummary summary={summary} transactions={transactions} />}
+      {readyCount > 0 && <YearSummary transactions={transactions} />}
 
       {/* Disclaimer */}
       <p className="text-xs text-gray-400 dark:text-gray-500 text-center pb-1">
@@ -363,11 +469,6 @@ function TaxTransactionCard({
     [onUpdate],
   );
 
-  const acqDateError =
-    tx.acquisitionDate && tx.saleDate && tx.acquisitionDate > tx.saleDate
-      ? 'Data nabycia nie może być późniejsza niż data sprzedaży.'
-      : undefined;
-
   const gainInfo = result ? fmtGain(result.gainPLN) : null;
   const hasCommissions =
     (tx.saleBrokerFee ?? 0) > 0 || (tx.acquisitionBrokerFee ?? 0) > 0;
@@ -441,12 +542,13 @@ function TaxTransactionCard({
 
           {/* Row 0: Ticker (optional) */}
           <div className="space-y-1">
-            <label className={LABEL_CLS}>
+            <label htmlFor={`${tx.id}-ticker`} className={LABEL_CLS}>
               Ticker giełdowy
               <span className="ml-1 text-gray-400 dark:text-gray-500 font-normal">(opcjonalne)</span>
             </label>
             <div className="relative">
               <input
+                id={`${tx.id}-ticker`}
                 type="text"
                 value={tx.ticker ?? ''}
                 onChange={(e) => handleTickerChange(e.target.value)}
@@ -482,14 +584,15 @@ function TaxTransactionCard({
           {/* Row 1: Sale date, sale amount, currency */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <div className="space-y-1">
-              <label className={LABEL_CLS}>
+              <label htmlFor={`${tx.id}-sale-date`} className={LABEL_CLS}>
                 Data sprzedaży <span className="text-red-500">*</span>
               </label>
-              <input
-                type="date"
+              <PolishDateInput
+                id={`${tx.id}-sale-date`}
                 value={tx.saleDate}
-                onChange={(e) => handleSaleDateChange(e.target.value)}
-                max={new Date().toISOString().split('T')[0]}
+                onChange={handleSaleDateChange}
+                maxDate={new Date().toISOString().split('T')[0]}
+                maxDateMessage="Data sprzedaży nie może być w przyszłości"
                 className={INPUT_CLS}
               />
               <RateStatusBadge
@@ -505,10 +608,11 @@ function TaxTransactionCard({
             </div>
 
             <div className="space-y-1">
-              <label className={LABEL_CLS}>
+              <label htmlFor={`${tx.id}-sale-amount`} className={LABEL_CLS}>
                 Kwota sprzedaży brutto <span className="text-red-500">*</span>
               </label>
               <input
+                id={`${tx.id}-sale-amount`}
                 type="number"
                 min={0}
                 step={0.01}
@@ -520,10 +624,11 @@ function TaxTransactionCard({
             </div>
 
             <div className="space-y-1 col-span-2 sm:col-span-1">
-              <label className={LABEL_CLS}>
+              <label htmlFor={`${tx.id}-currency`} className={LABEL_CLS}>
                 Waluta <span className="text-red-500">*</span>
               </label>
               <select
+                id={`${tx.id}-currency`}
                 value={tx.currency}
                 onChange={(e) => handleCurrencyChange(e.target.value)}
                 className={INPUT_CLS}
@@ -565,40 +670,35 @@ function TaxTransactionCard({
           {!tx.zeroCostFlag && (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 pt-2 border-t border-dashed border-gray-200 dark:border-gray-700">
               <div className="space-y-1">
-                <label className={LABEL_CLS}>
+                <label htmlFor={`${tx.id}-acq-date`} className={LABEL_CLS}>
                   Data nabycia <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="date"
+                <PolishDateInput
+                  id={`${tx.id}-acq-date`}
                   value={tx.acquisitionDate ?? ''}
-                  onChange={(e) => handleAcqDateChange(e.target.value)}
-                  max={subtractOneDay(tx.saleDate)}
-                  className={`${INPUT_CLS} ${acqDateError ? 'border-red-400 dark:border-red-500' : ''}`}
+                  onChange={handleAcqDateChange}
+                  maxDate={subtractOneDay(tx.saleDate)}
+                  maxDateMessage="Data nabycia musi być wcześniejsza niż data sprzedaży"
+                  className={INPUT_CLS}
                 />
-                {acqDateError ? (
-                  <p className="text-[11px] text-red-600 dark:text-red-400 flex items-center gap-1">
-                    <AlertTriangle size={10} aria-hidden="true" />
-                    {acqDateError}
-                  </p>
-                ) : (
-                  <RateStatusBadge
-                    rate={tx.exchangeRateAcquisitionToPLN ?? null}
-                    effectiveDate={tx.rateAcquisitionEffectiveDate}
-                    isLoading={tx.isLoadingRateAcquisition}
-                    error={tx.rateAcquisitionError}
-                    currency={tx.currency}
-                    onManualChange={(rate) =>
-                      onUpdate({ exchangeRateAcquisitionToPLN: rate, rateAcquisitionError: undefined })
-                    }
-                  />
-                )}
+                <RateStatusBadge
+                  rate={tx.exchangeRateAcquisitionToPLN ?? null}
+                  effectiveDate={tx.rateAcquisitionEffectiveDate}
+                  isLoading={tx.isLoadingRateAcquisition}
+                  error={tx.rateAcquisitionError}
+                  currency={tx.currency}
+                  onManualChange={(rate) =>
+                    onUpdate({ exchangeRateAcquisitionToPLN: rate, rateAcquisitionError: undefined })
+                  }
+                />
               </div>
 
               <div className="space-y-1">
-                <label className={LABEL_CLS}>
+                <label htmlFor={`${tx.id}-acq-cost`} className={LABEL_CLS}>
                   Koszt nabycia <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id={`${tx.id}-acq-cost`}
                   type="number"
                   min={0}
                   step={0.01}
@@ -637,8 +737,9 @@ function TaxTransactionCard({
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className={LABEL_CLS}>Prowizja sprzedaży</label>
+                    <label htmlFor={`${tx.id}-sale-fee`} className={LABEL_CLS}>Prowizja sprzedaży</label>
                     <input
+                      id={`${tx.id}-sale-fee`}
                       type="number"
                       min={0}
                       step={0.01}
@@ -650,8 +751,9 @@ function TaxTransactionCard({
                   </div>
                   {!tx.zeroCostFlag && (
                     <div className="space-y-1">
-                      <label className={LABEL_CLS}>Prowizja zakupu</label>
+                      <label htmlFor={`${tx.id}-acq-fee`} className={LABEL_CLS}>Prowizja zakupu</label>
                       <input
+                        id={`${tx.id}-acq-fee`}
                         type="number"
                         min={0}
                         step={0.01}
@@ -668,7 +770,7 @@ function TaxTransactionCard({
           </div>
 
           {/* Result row */}
-          {result && !acqDateError && (
+          {result && (
             <div className="flex flex-wrap items-stretch gap-px bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 mt-1">
               <ResultCell label="Przychód" value={fmtPLN(result.revenuePLN)} />
               <ResultCell label="Koszt" value={fmtPLN(result.costPLN)} subtract />
@@ -689,7 +791,7 @@ function TaxTransactionCard({
           )}
 
           {/* Not-ready hint */}
-          {!result && tx.saleGrossAmount > 0 && tx.saleDate && !acqDateError && (
+          {!result && tx.saleGrossAmount > 0 && tx.saleDate && (
             <p className="text-xs text-gray-400 dark:text-gray-500">
               {tx.isLoadingRateSale || tx.isLoadingRateAcquisition
                 ? 'Pobieranie kursu NBP…'
@@ -765,11 +867,11 @@ function RateStatusBadge({
 
   if (rate !== null && rate > 0) {
     return (
-      <p className="text-[11px] text-green-600 dark:text-green-400 flex items-center gap-1">
-        <CheckCircle2 size={10} aria-hidden="true" />
-        Kurs NBP: {rate.toFixed(4)}
+      <p className="text-[11px] text-green-600 dark:text-green-400 flex items-center gap-1 flex-wrap">
+        <CheckCircle2 size={10} aria-hidden="true" className="flex-shrink-0" />
+        <span>Kurs NBP: {rate.toFixed(4)}</span>
         {effectiveDate && (
-          <span className="text-gray-400 dark:text-gray-500"> z {effectiveDate}</span>
+          <span className="text-gray-400 dark:text-gray-500">z {fmtDatePL(effectiveDate)}</span>
         )}
       </p>
     );
@@ -812,73 +914,107 @@ function ResultCell({
 
 // ─── Year Summary ─────────────────────────────────────────────────────────────
 
-function YearSummary({
-  summary,
+function YearSummary({ transactions }: { transactions: TaxTransaction[] }) {
+  const byYear = useMemo(() => {
+    const groups = new Map<string, TaxTransaction[]>();
+    for (const tx of transactions) {
+      if (!calcTransactionResult(tx)) continue;
+      const year = tx.saleDate.slice(0, 4) || 'Brak roku';
+      if (!groups.has(year)) groups.set(year, []);
+      groups.get(year)!.push(tx);
+    }
+    return [...groups.entries()].sort(([a], [b]) => b.localeCompare(a));
+  }, [transactions]);
+
+  if (byYear.length === 0) return null;
+
+  return (
+    <div className="space-y-4">
+      {byYear.map(([year, txsForYear], groupIdx) => {
+        const summary = calcMultiTaxSummary(txsForYear);
+        return (
+          <YearSummarySection
+            key={year}
+            year={year}
+            transactions={txsForYear}
+            allTransactions={transactions}
+            summary={summary}
+            showYearHeader={byYear.length > 1}
+            isFirst={groupIdx === 0}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function YearSummarySection({
+  year,
   transactions,
+  allTransactions,
+  summary,
+  showYearHeader,
+  isFirst,
 }: {
-  summary: MultiTaxSummary;
+  year: string;
   transactions: TaxTransaction[];
+  allTransactions: TaxTransaction[];
+  summary: MultiTaxSummary;
+  showYearHeader: boolean;
+  isFirst: boolean;
 }) {
   return (
     <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-4">
       <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-1.5">
         <Info size={14} className="text-gray-400" aria-hidden="true" />
-        Podsumowanie roczne (PIT-38)
+        {showYearHeader ? `Rok podatkowy ${year} — PIT-38` : 'Podsumowanie roczne (PIT-38)'}
       </h3>
 
-      {/* Per-transaction summary rows */}
-      {transactions.some((tx) => calcTransactionResult(tx) !== null) && (
-        <div className="space-y-1.5">
-          {transactions.map((tx, idx) => {
-            const r = calcTransactionResult(tx);
-            if (!r) return null;
-            const g = fmtGain(r.gainPLN);
-            return (
-              <div
-                key={tx.id}
-                className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400"
-              >
-                <span className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-[10px] font-bold flex items-center justify-center flex-shrink-0">
-                  {idx + 1}
+      {/* Per-transaction rows */}
+      <div className="space-y-1.5">
+        {transactions.map((tx) => {
+          const r = calcTransactionResult(tx);
+          if (!r) return null;
+          const g = fmtGain(r.gainPLN);
+          const globalIdx = allTransactions.indexOf(tx) + 1;
+          return (
+            <div key={tx.id} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+              <span className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-[10px] font-bold flex items-center justify-center flex-shrink-0">
+                {globalIdx}
+              </span>
+              {tx.ticker && (
+                <span className="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide flex-shrink-0">
+                  {tx.ticker}
                 </span>
-                {tx.ticker && (
-                  <span className="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide flex-shrink-0">
-                    {tx.ticker}
-                  </span>
-                )}
-                {tx.tickerName && (
-                  <span className="truncate text-gray-500 dark:text-gray-500 hidden sm:block max-w-[140px]">
-                    {tx.tickerName}
-                  </span>
-                )}
-                <span className="text-gray-400 dark:text-gray-500 flex-shrink-0">
-                  {tx.saleDate ? fmtDatePL(tx.saleDate) : '—'}
+              )}
+              {tx.tickerName && (
+                <span className="truncate text-gray-500 dark:text-gray-500 hidden sm:block max-w-[140px]">
+                  {tx.tickerName}
                 </span>
-                <span className={`ml-auto font-semibold tabular-nums flex-shrink-0 ${g.cls}`}>
-                  {g.text}
+              )}
+              <span className="text-gray-400 dark:text-gray-500 flex-shrink-0">
+                {tx.saleDate ? fmtDatePL(tx.saleDate) : '—'}
+              </span>
+              <span className={`ml-auto font-semibold tabular-nums flex-shrink-0 ${g.cls}`}>
+                {g.text}
+              </span>
+              {!r.isLoss && (
+                <span className="text-amber-700 dark:text-amber-400 tabular-nums flex-shrink-0 font-medium">
+                  {fmtPLN(r.taxEstimatePLN)}
                 </span>
-                {!r.isLoss && (
-                  <span className="text-amber-700 dark:text-amber-400 tabular-nums flex-shrink-0 font-medium">
-                    {fmtPLN(r.taxEstimatePLN)}
-                  </span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+              )}
+            </div>
+          );
+        })}
+      </div>
 
       <hr className="border-gray-200 dark:border-gray-600" />
 
-      {/* 4-cell totals grid */}
+      {/* 4-cell totals */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <SummaryCell label="Suma przychodów" value={fmtPLN(summary.totalRevenuePLN)} />
         <SummaryCell label="Suma kosztów" value={fmtPLN(summary.totalCostPLN)} />
-        <SummaryCell
-          label="Zyski"
-          value={fmtPLN(summary.totalGainPLN)}
-          cls="text-green-700 dark:text-green-400"
-        />
+        <SummaryCell label="Zyski" value={fmtPLN(summary.totalGainPLN)} cls="text-green-700 dark:text-green-400" />
         <SummaryCell
           label="Straty"
           value={summary.totalLossPLN > 0 ? `−${fmtPLN(summary.totalLossPLN)}` : fmtPLN(0)}
@@ -890,39 +1026,33 @@ function YearSummary({
       <div className="border-t border-gray-200 dark:border-gray-600 pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Dochód netto (PIT-38)</p>
-          <p
-            className={`text-lg font-bold tabular-nums ${
-              summary.netIncomePLN >= 0
-                ? 'text-gray-800 dark:text-gray-100'
-                : 'text-red-600 dark:text-red-400'
-            }`}
-          >
-            {summary.netIncomePLN >= 0 ? '+' : ''}
-            {fmtPLN(summary.netIncomePLN)}
+          <p className={`text-lg font-bold tabular-nums ${summary.netIncomePLN >= 0 ? 'text-gray-800 dark:text-gray-100' : 'text-red-600 dark:text-red-400'}`}>
+            {summary.netIncomePLN >= 0 ? '+' : ''}{fmtPLN(summary.netIncomePLN)}
           </p>
         </div>
 
         <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl px-5 py-3 text-center min-w-[160px]">
-          <p className="text-xs text-amber-700 dark:text-amber-400 font-medium mb-1">
-            Podatek należny
-          </p>
+          <p className="text-xs text-amber-700 dark:text-amber-400 font-medium mb-1">Podatek należny</p>
           <p className="text-2xl font-bold text-amber-800 dark:text-amber-300 tabular-nums">
             {fmtPLN(summary.taxDuePLN)}
           </p>
           <p className="text-[11px] text-amber-600/70 dark:text-amber-500/70 mt-0.5">
-            {summary.netIncomePLN > 0
-              ? `19% od ${fmtPLN(summary.netIncomePLN)}`
-              : 'brak podatku'}
+            {summary.netIncomePLN > 0 ? `19% od ${fmtPLN(summary.netIncomePLN)}` : 'brak podatku'}
           </p>
         </div>
       </div>
 
-      {/* Loss carryforward note */}
       {summary.netIncomePLN < 0 && (
         <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-lg px-3 py-2 text-xs text-blue-700 dark:text-blue-300">
           Łączna strata może być odliczona od zysków kapitałowych w PIT-38 przez kolejne 5 lat
           (maksymalnie 50% straty rocznie).
         </div>
+      )}
+
+      {isFirst && !showYearHeader && summary.taxDuePLN > 0 && (
+        <p className="text-[11px] text-gray-400 dark:text-gray-500">
+          Powyższy podatek to szacunek — rzeczywisty podatek obliczany jest na formularzu PIT-38.
+        </p>
       )}
     </div>
   );

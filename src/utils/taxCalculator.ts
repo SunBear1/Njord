@@ -14,10 +14,11 @@ export function calcTransactionResult(tx: TaxTransaction): TransactionTaxResult 
   const sellRate = tx.exchangeRateSaleToPLN;
   if (sellRate === null || sellRate === undefined || sellRate <= 0) return null;
 
-  // Acquisition rate: fall back to sell rate if not provided (simplification).
+  // Require acquisition rate when not zero-cost — without it we can't compute a meaningful result.
   const buyRate = tx.zeroCostFlag
     ? sellRate
-    : ((tx.exchangeRateAcquisitionToPLN ?? null) || sellRate);
+    : tx.exchangeRateAcquisitionToPLN ?? null;
+  if (!tx.zeroCostFlag && (buyRate === null || buyRate <= 0)) return null;
 
   const revenuePLN = tx.saleGrossAmount * sellRate;
 
@@ -30,7 +31,7 @@ export function calcTransactionResult(tx: TaxTransaction): TransactionTaxResult 
     const acquisitionFee = tx.acquisitionBrokerFee ?? 0;
     const saleFee = tx.saleBrokerFee ?? 0;
     costPLN =
-      (acquisitionCost + acquisitionFee) * buyRate +
+      (acquisitionCost + acquisitionFee) * buyRate! +
       saleFee * sellRate;
   }
 
