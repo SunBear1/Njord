@@ -338,7 +338,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
               Kalkulator podatku Belki
             </h2>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Oblicz podatek 19% od zysku ze sprzedaży akcji, ETF i innych papierów wartościowych
+              Podatek 19% (Belka) od sprzedaży papierów wartościowych · kurs NBP Tabela A
             </p>
           </div>
         </div>
@@ -569,8 +569,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
 
       {/* Disclaimer */}
       <p className="text-xs text-gray-400 dark:text-gray-500 text-center pb-1">
-        Kalkulator uproszczony — służy do szacowania podatku Belki.
-        Nie zastępuje doradztwa podatkowego ani pełnej ewidencji PIT-38.
+        Wyniki na podstawie kursów NBP Tabela A. Ostateczna kwota podatku wynika z pełnej dokumentacji i formularza PIT-38.
       </p>
     </div>
   );
@@ -1099,7 +1098,7 @@ function TaxTransactionCard({
               />
               {!result.isLoss && (
                 <ResultCell
-                  label="Podatek (est.)"
+                  label="Podatek"
                   value={fmtPLN(result.taxEstimatePLN)}
                   valueClass="text-amber-700 dark:text-amber-400"
                 />
@@ -1247,7 +1246,7 @@ function YearSummary({ transactions }: { transactions: TaxTransaction[] }) {
 
   return (
     <div className="space-y-4">
-      {byYear.map(([year, txsForYear], groupIdx) => {
+      {byYear.map(([year, txsForYear]) => {
         const summary = calcMultiTaxSummary(txsForYear);
         return (
           <YearSummarySection
@@ -1257,7 +1256,6 @@ function YearSummary({ transactions }: { transactions: TaxTransaction[] }) {
             allTransactions={transactions}
             summary={summary}
             showYearHeader={byYear.length > 1}
-            isFirst={groupIdx === 0}
           />
         );
       })}
@@ -1271,14 +1269,12 @@ function YearSummarySection({
   allTransactions,
   summary,
   showYearHeader,
-  isFirst,
 }: {
   year: string;
   transactions: TaxTransaction[];
   allTransactions: TaxTransaction[];
   summary: MultiTaxSummary;
   showYearHeader: boolean;
-  isFirst: boolean;
 }) {
   return (
     <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-4">
@@ -1366,11 +1362,6 @@ function YearSummarySection({
         </div>
       )}
 
-      {isFirst && !showYearHeader && summary.taxDuePLN > 0 && (
-        <p className="text-[11px] text-gray-400 dark:text-gray-500">
-          Powyższy podatek to szacunek — rzeczywisty podatek obliczany jest na formularzu PIT-38.
-        </p>
-      )}
     </div>
   );
 }

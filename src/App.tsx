@@ -294,7 +294,7 @@ function App() {
           </svg>
           <div className="flex-1">
             <h1 className="text-2xl font-bold tracking-tight">Njord</h1>
-            <p className="text-sm text-slate-400">Kalkulator: akcje vs. konto oszczędnościowe / obligacje skarbowe</p>
+            <p className="text-sm text-slate-400">Akcje · Obligacje · Konto oszczędnościowe · Podatek Belki</p>
           </div>
           <button
             type="button"
@@ -319,7 +319,7 @@ function App() {
             }`}
           >
             <BarChart3 size={16} aria-hidden="true" />
-            Kalkulator inwestycyjny
+            Porównanie inwestycji
           </button>
           <button
             onClick={() => setActiveSection('tax')}
@@ -330,7 +330,7 @@ function App() {
             }`}
           >
             <Receipt size={16} aria-hidden="true" />
-            Kalkulator podatku Belki
+            Podatek Belki
           </button>
         </div>
       </nav>
@@ -493,8 +493,8 @@ function App() {
 
             {!canCalc && (
               <div className="bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-10 text-center text-gray-400 dark:text-gray-500 space-y-2">
-                <p className="text-lg">Uzupełnij dane wejściowe, aby zobaczyć wyniki</p>
-                <p className="text-sm">Wpisz ticker, liczbę akcji i oprocentowanie {benchmarkType === 'bonds' ? 'obligacji' : 'konta oszczędnościowego'}.</p>
+                <p className="text-lg">Wprowadź ticker i dane portfela, aby zobaczyć wyniki</p>
+                <p className="text-sm">Podaj ticker spółki lub ETF, liczbę akcji i parametry benchmarku.</p>
               </div>
             )}
           </>
@@ -591,7 +591,7 @@ function App() {
       </div>
 
       <footer className="mt-10 py-5 text-center text-xs" style={FOOTER_STYLE}>
-        Njord — wyłącznie do celów edukacyjnych. Nie stanowi doradztwa inwestycyjnego.
+        Dane informacyjne — nie stanowią doradztwa inwestycyjnego ani podatkowego.
       </footer>
     </div>
   );
