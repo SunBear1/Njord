@@ -307,8 +307,10 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 
 ## Notes for AI agents
 
+- **Two tabs:** `activeSection === 'investment'` (default) shows the investment comparison; `activeSection === 'tax'` shows the Belka tax calculator. KantorSidebar is hidden on the tax tab.
 - **Prediction engine:** Tiered — Block Bootstrap (≤6 months), calibrated GBM (>6 months). Drift shrunk toward 8% prior; volatility damped for horizons >2 years. All outputs clamped via `clampScenario()`. See `.github/instructions/financial-forecasting.instructions.md` for full details.
 - **HMM** (`src/utils/hmm.ts`) is used by the **Sell Analysis feature only** — it does NOT drive the bear/base/bull scenario pipeline. The scenario pipeline uses GBM + Bootstrap exclusively.
+- **Belka tax calculator:** Multi-transaction, supports USD/EUR/GBP/CHF/DKK/SEK/PLN. Fetches NBP Table A mid rate automatically for each transaction date. Transactions persisted to `localStorage` under `njord_tax_transactions`. Groups results by tax year for PIT-38. Commission fields hidden by default (checkbox). See `src/components/TaxCalculatorPanel.tsx` and `src/utils/taxCalculator.ts`.
 - **Financial math:** Belka tax, bond math, FX multiplicative structure, compound interest rules — see `.github/instructions/financial-math-guardian.instructions.md`.
 - **Hooks and state:** AbortController patterns, localStorage guards, App.tsx state architecture — see `.github/instructions/hooks-and-state.instructions.md`.
 - **Backend (Pages Functions):** API key secrecy, CF constraints, caching strategy — see `.github/instructions/backend-api.instructions.md`.
@@ -316,7 +318,8 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 - Inflation impact is shown as real returns (Fisher formula) alongside nominal values. The orange warning banner appears only when `inflationRate > 0`.
 - The purchasing power line on the timeline chart is a dashed orange line showing value erosion from inflation.
 - `wibor3m` state variable in `App.tsx` represents the savings account interest rate (not the raw WIBOR 3M index). Help text in the UI clarifies this.
-- All financial calculations are pure functions in `calculations.ts` — easy to unit test.
+- All financial calculations are pure functions — easy to unit test.
+- **State persistence:** `persistedState.ts` — schema v3. Migrations: v1→v2 adds `activeSection`, v2→v3 adds `bondSettings.maturityMonths` + `isRSU`. Always bump version and add migration when adding new persisted fields.
 
 ### Validation loop
 

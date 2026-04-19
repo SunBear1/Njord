@@ -73,6 +73,7 @@ Pages Functions run on the **Cloudflare Workers runtime** (V8 isolates), not Nod
 | Route | Cache duration | Reason |
 |-------|---------------|--------|
 | `/api/analyze` | 1 hour (`max-age=3600`) | Stock prices change infrequently; reduces Yahoo requests |
+| `/api/bonds` | 24 hours (`max-age=86400`) | Bond rates change at most monthly (new issuance) |
 | `/api/currency-rates` | 1 minute (`max-age=60`) | Exchange rates update frequently |
 | `/api/inflation` | 24 hours | CPI data is published monthly |
 
@@ -142,6 +143,7 @@ functions/
 ├── _middleware.ts        # Global CORS + Content-Type for all /api/* routes
 └── api/
     ├── analyze.ts        # GET /api/analyze?ticker=X — Yahoo Finance (primary), Twelve Data (429 fallback) + NBP FX
+    ├── bonds.ts          # GET /api/bonds — serves bond presets from CSV (max-age=86400)
     ├── currency-rates.ts # GET /api/currency-rates — exchange rates proxy (Alior + NBP Table C)
     └── inflation.ts      # GET /api/inflation — ECB HICP CPI proxy
 ```
