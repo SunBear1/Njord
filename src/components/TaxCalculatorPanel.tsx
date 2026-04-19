@@ -71,6 +71,14 @@ function subtractOneDay(dateStr: string): string | undefined {
   return d.toISOString().split('T')[0];
 }
 
+/** Formats YYYY-MM-DD → "19 kwietnia 2026" (Polish locale). */
+function fmtDatePL(dateStr: string): string {
+  if (!dateStr) return '';
+  const [year, month, day] = dateStr.split('-');
+  const d = new Date(Number(year), Number(month) - 1, Number(day));
+  return d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -395,7 +403,7 @@ function TaxTransactionCard({
             </span>
           )}
           {tx.saleDate ? (
-            <span className="text-gray-700 dark:text-gray-200 font-medium">{tx.saleDate}</span>
+            <span className="text-gray-700 dark:text-gray-200 font-medium">{fmtDatePL(tx.saleDate)}</span>
           ) : (
             <span className="text-gray-400 dark:text-gray-500 italic">Brak daty sprzedaży</span>
           )}
@@ -844,7 +852,7 @@ function YearSummary({
                   </span>
                 )}
                 <span className="text-gray-400 dark:text-gray-500 flex-shrink-0">
-                  {tx.saleDate || '—'}
+                  {tx.saleDate ? fmtDatePL(tx.saleDate) : '—'}
                 </span>
                 <span className={`ml-auto font-semibold tabular-nums flex-shrink-0 ${g.cls}`}>
                   {g.text}

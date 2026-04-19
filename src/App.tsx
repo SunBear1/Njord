@@ -336,12 +336,14 @@ function App() {
       </nav>
 
       <div className="flex justify-center">
-        {/* Kantor rates sticky sidebar — xl+ only */}
-        <aside className="hidden xl:block shrink-0 pt-6 pl-4">
-          <div className="sticky top-4">
-            <KantorSidebar rates={currencyRates} />
-          </div>
-        </aside>
+        {/* Kantor rates sticky sidebar — xl+ only, hidden in tax calculator */}
+        {activeSection !== 'tax' && (
+          <aside className="hidden xl:block shrink-0 pt-6 pl-4">
+            <div className="sticky top-4">
+              <KantorSidebar rates={currencyRates} />
+            </div>
+          </aside>
+        )}
 
       <main className="flex-1 min-w-0 max-w-7xl mx-auto px-4 py-4 space-y-4">
         {activeSection === 'tax' ? (
