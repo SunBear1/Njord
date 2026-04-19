@@ -4,7 +4,12 @@ Instructions for AI agents working with this repository.
 
 ## Project overview
 
-**Njord** is a React/TypeScript SPA (Single Page Application) that compares holding a USD-denominated stock portfolio against Polish savings instruments: savings accounts or government bonds (obligacje skarbowe). All computations run in the browser — no backend.
+**Njord** is a React/TypeScript SPA (Single Page Application) with two main tabs:
+
+1. **Investment comparison** — compares a USD-denominated stock/ETF portfolio against Polish savings instruments (savings accounts or government bonds).
+2. **Belka tax calculator** — calculates Polish 19% capital gains tax (Belka) for multiple stock sale transactions, with automatic NBP Table A rate fetching and PIT-38 grouping.
+
+All computations run in the browser — no backend.
 
 - **Live demo:** https://njord.pages.dev
 - **UI language:** Polish
@@ -48,7 +53,7 @@ Without `.dev.vars`, `/api/analyze` works via Yahoo Finance with no configuratio
 
 ```
 src/
-├── App.tsx                       # Root component, all app state lives here
+├── App.tsx                       # Root component, all app state lives here; two tabs: investment + tax
 ├── components/
 │   ├── InputPanel.tsx            # Left panel: ticker, shares, FX, benchmark selector, horizon slider
 │   ├── ScenarioEditor.tsx        # 3-scenario editor (bear/base/bull) + historical volatility suggestions
@@ -56,29 +61,60 @@ src/
 │   ├── ComparisonChart.tsx       # Bar chart: stocks vs benchmark end value
 │   ├── TimelineChart.tsx         # Line chart: portfolio value over time
 │   ├── BreakevenChart.tsx        # Heatmap: stock delta × FX delta — where stocks beat benchmark
+│   ├── SellAnalysisPanel.tsx     # Optimal sell-price analysis (lazy-loaded, uses HMM Monte Carlo)
+│   ├── TaxCalculatorPanel.tsx    # Belka tax calculator — multi-transaction, NBP auto-fetch, PIT-38
+│   ├── KantorSidebar.tsx         # Exchange rate sidebar (shown on investment tab only)
+│   ├── ErrorBoundary.tsx         # React error boundary wrapper
 │   ├── MethodologyPanel.tsx      # Calculation methodology explanation
-│   └── HowItWorks.tsx           # User guide / how-to
+│   └── HowItWorks.tsx            # User guide / how-to
 ├── hooks/
 │   ├── useAssetData.ts           # Fetch stock + analysis data from /api/analyze
-│   ├── useFxData.ts              # PLN/USD rate from NBP API (auto-refresh for current rate)
-│   ├── useCpiGus.ts              # CPI inflation from GUS BDL API (auto-fetch on mount)
-│   └── useHistoricalVolatility.ts # Accepts precomputed scenarios from Worker; local recompute on horizon change
+│   ├── useEtfData.ts             # Fetch ETF data from /api/analyze
+│   ├── useCurrencyRates.ts       # Multi-currency rates via /api/currency-rates (Alior + NBP fallback)
+│   ├── useInflationData.ts       # ECB HICP CPI for Poland via /api/inflation
+│   ├── useBondPresets.ts         # Bond presets from /api/bonds (CSV-backed)
+│   ├── useSellAnalysis.ts        # HMM-based sell-price Monte Carlo analysis
+│   ├── useHistoricalVolatility.ts # GBM/Bootstrap scenario suggestions from price history
+│   ├── useDarkMode.ts            # Dark mode toggle with localStorage persistence
+│   └── useDebouncedValue.ts      # Debounce helper for slider/model inputs
 ├── providers/
-│   ├── twelveDataProvider.ts     # Calls /api/analyze (Cloudflare Pages Function)
-│   └── nbpProvider.ts            # NBP USD/PLN exchange rate fetch (direct, for current rate refresh)
+│   ├── twelveDataProvider.ts     # Calls /api/analyze and translates errors to Polish messages
+│   └── nbpProvider.ts            # NBP USD/PLN mid rate (direct, for live FX display)
+├── data/
+│   └── bondPresets.ts            # Static fallback bond presets (used when /api/bonds unavailable)
 ├── utils/
-│   ├── calculations.ts           # All financial logic (pure functions)
+│   ├── calculations.ts           # Investment comparison logic (pure functions)
+│   ├── taxCalculator.ts          # Belka tax logic: calcTransactionResult, calcMultiTaxSummary
+│   ├── fetchNbpTableARate.ts     # NBP Table A mid rate fetch (last business day before date)
+│   ├── fetchTickerName.ts        # Resolves ticker symbol → company name via /api/analyze
+│   ├── etradeParser.ts           # Parses Etrade "Gains & Losses" .xlsx exports into TaxTransaction[]
+│   ├── parseBondPresets.ts       # Parses bond presets from CSV
+│   ├── sellAnalysis.ts           # Monte Carlo sell analysis (HMM paths, target generation)
+│   ├── inflationProjection.ts    # Mean-reversion CPI projection (Fisher formula)
+│   ├── hmm.ts                    # 2-state Gaussian HMM (Baum-Welch EM) for regime detection
+│   ├── persistedState.ts         # localStorage persistence (njord_state v3, with migrations)
 │   ├── assetConfig.ts            # Constants (DEFAULT_HORIZON_MONTHS = 12)
-│   └── formatting.ts             # Number formatting (fmtUSD, fmtPLN, fmtNum)
+│   ├── formatting.ts             # Number formatting (fmtUSD, fmtPLN, fmtNum)
+│   ├── fetchWithTimeout.ts       # fetch() wrapper with configurable timeout
+│   ├── brokerParsers/types.ts    # Shared types for broker import parsers
+│   └── models/
+│       ├── gbmModel.ts           # Calibrated GBM with drift shrinkage + damped volatility
+│       ├── bootstrap.ts          # Block Bootstrap for short horizons (≤6 months)
+│       ├── hmmModel.ts           # HMM-based scenario generation (informational only)
+│       └── types.ts              # Shared model types (ModelOutput, ScenarioSuggestion)
 ├── types/
 │   ├── scenario.ts               # ScenarioKey, BenchmarkType, BondPreset, ScenarioResult
 │   ├── asset.ts                  # AssetData, HistoricalPrice
-│   └── analyze.ts                # AnalyzeResponse, AnalyzeResult (Worker response types)
+│   ├── analyze.ts                # AnalyzeResponse, AnalyzeResult (Pages Function response types)
+│   ├── tax.ts                    # TaxTransaction, TransactionTaxResult, MultiTaxSummary, TaxInputs
+│   └── sellAnalysis.ts           # SellAnalysisResult, TargetPrice, PathDistribution
 functions/
+├── _middleware.ts                # Global CORS + Content-Type for all /api/* routes
 └── api/
-    └── analyze.ts                # Pages Function: GET /api/analyze?ticker=X
-                                  # Primary: Yahoo Finance (no key). Fallback: Twelve Data on 429.
-                                  # FX history from NBP. All scenario models run client-side.
+    ├── analyze.ts                # GET /api/analyze?ticker=X — Yahoo Finance + NBP FX
+    ├── bonds.ts                  # GET /api/bonds — serves bond presets CSV (cached 24h)
+    ├── currency-rates.ts         # GET /api/currency-rates — Alior Kantor + NBP Table C proxy
+    └── inflation.ts              # GET /api/inflation — ECB HICP CPI proxy (cached 24h)
 ```
 
 ---
@@ -89,7 +125,9 @@ functions/
 |-----|-----|---------|------|------|
 | Yahoo Finance | `query1.finance.yahoo.com/v8/finance/chart/` | Stock/ETF prices, 2yr history — **primary** | Server-side only | None (User-Agent required) |
 | Twelve Data | `api.twelvedata.com/time_series` | Stock prices — **fallback on Yahoo 429** | Yes | Optional API key |
-| NBP | `api.nbp.pl/api/exchangerates/...` | USD/PLN rate | Yes | None |
+| NBP Table A | `api.nbp.pl/api/exchangerates/rates/a/` | Mid rate for tax basis (Belka calculator) | Yes | None |
+| NBP Table C | `api.nbp.pl/api/exchangerates/rates/c/` | Sell/buy rates for display (KantorSidebar) | Yes | None |
+| Alior Kantor | `klient.internetowykantor.pl/api/public/marketBrief/` | Live kantor rates (USD/EUR/GBP/CHF/etc.) | Yes | None |
 | ECB HICP | `data-api.ecb.europa.eu/service/data/ICP/...` | Polish CPI inflation | Yes | None |
 
 **Data source strategy:** Yahoo Finance is the primary source for market data (no key required).
@@ -140,18 +178,41 @@ Effective rate for years 2+:
 
 ## App state (App.tsx)
 
-All state lives in `App.tsx` and is passed to components via props. No global store (Redux/Zustand). Key state:
+All state lives in `App.tsx` and is passed to components via props. No global store (Redux/Zustand).
+
+**Active section:**
 
 | State | Type | Description |
 |-------|------|-------------|
+| `activeSection` | `'investment' \| 'tax'` | Which tab is shown; persisted to localStorage |
+
+**Investment comparison inputs:**
+
+| State | Type | Description |
+|-------|------|-------------|
+| `ticker` | `string` | Stock/ETF symbol (e.g. `'AAPL'`) |
+| `shares` | `number` | Number of shares held |
+| `avgCostUSD` | `number` | Average purchase price per share in USD |
+| `isRSU` | `boolean` | RSU/grant shares — zero cost basis flag |
+| `brokerFeeUSD` | `number` | Total broker commission on the sale in USD |
+| `dividendYieldPercent` | `number` | Annual dividend yield % (for return calculation) |
 | `horizonMonths` | `number` | 1–144, default 12; max 60 for savings mode |
-| `benchmarkType` | `BenchmarkType` | `'savings'` or `'bonds'` |
+| `benchmarkType` | `BenchmarkType` | `'savings'`, `'bonds'`, or `'etf'` |
 | `scenarios` | `Scenarios` | bear/base/bull: deltaStock + deltaFx in % |
 | `wibor3m` | `number` | Savings account interest rate, % annual |
-| `bondFirstYearRate` | `number` | Bond year-1 rate in % |
-| `bondPenalty` | `number` | Early redemption penalty, % of principal |
-| `inflationRate` | `number` | CPI inflation, % annual (auto-fetched from GUS) |
+| `bondSettings` | `BondSettings` | Bond rate, penalty, maturity months |
 | `nbpRefRate` | `number` | NBP reference rate in % |
+| `inflationRate` | `number` | CPI inflation, % annual (auto-fetched from ECB) |
+
+**ETF benchmark inputs:**
+
+| State | Type | Description |
+|-------|------|-------------|
+| `etfTicker` | `string` | ETF symbol for benchmark |
+| `etfAnnualReturnPercent` | `number` | Manual override for ETF annual return |
+| `etfTerPercent` | `number` | ETF total expense ratio % |
+
+**State persistence:** `src/utils/persistedState.ts` — `njord_state` key, schema v3. All investment inputs are persisted. Tax transactions are stored separately under `njord_tax_transactions`.
 
 ---
 
@@ -163,12 +224,12 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 - **Documentation:** English (README.md, AGENTS.md, code comments, JSDoc)
 - **Styling:** Tailwind CSS v4 only (utility classes); no CSS modules or styled-components. Semantic color tokens are defined in `src/index.css` via `@theme` — use them when available, add new ones when needed.
 - **Components:** Functional with hooks; no classes; props explicitly typed via interfaces
-- **No routing** — single-page application
-- **Testing:** Vitest (`npm test` / `npm run test:watch`). Tests in `src/__tests__/`.
+- **No routing** — single-page application with two tabs (`activeSection` state)
+- **Testing:** Vitest (`npm test` / `npm run test:watch`). Tests in `src/__tests__/`. 217 tests across 11 files.
 - **Deploy:** Automatic on `main` push via **Cloudflare Pages** native GitHub integration (no GH Actions workflow)
-- **Backend:** `functions/api/analyze.ts` — Cloudflare Pages Function at `GET /api/analyze?ticker=X`. Primary: Yahoo Finance (no key). Fallback: Twelve Data on 429. NBP FX history included. Returns `ProxyResponse`. All scenario computation (GBM, Bootstrap) runs client-side.
+- **Backend:** `functions/api/analyze.ts` — CF Pages Function. Primary: Yahoo Finance (no key). Fallback: Twelve Data on 429. All financial computation runs client-side.
 - **Base path:** `/` (Cloudflare Pages serves from root)
-- **Agent docs:** `AGENTS.md` at repo root — this is the standard location for GitHub Copilot and other AI agents. For monorepo subprojects, nested `AGENTS.md` files can be placed in subdirectories.
+- **Agent docs:** `AGENTS.md` at repo root — this is the standard location for GitHub Copilot and other AI agents.
 
 ---
 
@@ -192,6 +253,20 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 - Create component in `src/components/`
 - Data from `calcTimeline`/`calcHeatmap`/`calcAllScenarios` — pass via props from App.tsx
 - Use Recharts (see existing chart components as examples)
+
+### Working on the Belka tax calculator
+- **UI:** `src/components/TaxCalculatorPanel.tsx` — all UI and state for the tax tab lives here. Tax transactions are stored in `localStorage` under `njord_tax_transactions` (separate from the main app state).
+- **Calculations:** `src/utils/taxCalculator.ts` — pure functions `calcTransactionResult` and `calcMultiTaxSummary`. Logic: NBP mid rates for tax basis, Belka = 19% on gain, losses offset gains per PIT-38.
+- **NBP rate fetch:** `src/utils/fetchNbpTableARate.ts` — queries NBP Table A for the last business day strictly before the transaction date. Returns `{ rate, effectiveDate }`.
+- **Ticker lookup:** `src/utils/fetchTickerName.ts` — resolves a ticker symbol to a company name via `/api/analyze`.
+- **Etrade import:** `src/utils/etradeParser.ts` — parses Etrade "Gains & Losses" `.xlsx` exports into `TaxTransaction[]`. SheetJS is dynamically imported on first use (lazy chunk).
+- **Tax law rule:** Use NBP Table A mid rate from the **last business day before** the transaction date, not the transaction date itself. This is a Polish tax law requirement.
+- **KantorSidebar is hidden on the tax tab** — `App.tsx` conditionally renders it only when `activeSection !== 'tax'`.
+
+### Persisted state schema
+- `src/utils/persistedState.ts` — schema v3, key `njord_state`
+- When adding new fields, bump `SCHEMA_VERSION` and add a migration in `loadState()`
+- Tax transactions are NOT in the main persisted state — they live under `njord_tax_transactions`
 
 ---
 
@@ -223,10 +298,12 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 
 ## Future planned features
 
-- **ETFs as benchmark** — third option alongside savings and bonds
-- **Dark theme** — light/dark toggle with localStorage persistence; CSS custom properties already extracted in `index.css`, commented-out dark values ready
+- **ETFs as benchmark** — third option alongside savings and bonds (useEtfData hook already exists)
+- **Dark theme** — light/dark toggle; `useDarkMode` hook exists, CSS tokens partially defined in `index.css`; full component migration still needed
 - **Multiple investment indicators** — Sharpe ratio, max drawdown, VaR, Sortino from historical data
 - **Dividend support** — incorporate stock dividend yields into return calculations
+- **Tax calculator: export** — CSV/PDF export of PIT-38 summary
+- **Tax calculator: FIFO** — automatic cost-basis calculation for partial sells of the same ticker
 
 ## Notes for AI agents
 

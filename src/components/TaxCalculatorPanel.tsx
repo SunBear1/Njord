@@ -13,11 +13,13 @@ import {
   Upload,
   Shield,
   HelpCircle,
+  Undo2,
+  X,
 } from 'lucide-react';
 import { calcTransactionResult, calcMultiTaxSummary } from '../utils/taxCalculator';
 import { fetchNbpTableARate } from '../utils/fetchNbpTableARate';
 import { fetchTickerName } from '../utils/fetchTickerName';
-import { parseEtradeFile } from '../utils/etradeParser';
+import { BROKER_PARSERS } from '../utils/brokerParsers/index';
 import { fmtPLN } from '../utils/formatting';
 import type { TaxTransaction, TransactionTaxResult, MultiTaxSummary } from '../types/tax';
 import type { CurrencyRates } from '../hooks/useCurrencyRates';
@@ -226,6 +228,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
 
 
   const updateTransaction = useCallback((id: string, patch: Partial<TaxTransaction>) => {
+    undoInvalidatedRef.current = true;
     setTransactions((prev) => prev.map((tx) => (tx.id === id ? { ...tx, ...patch } : tx)));
   }, []);
 
@@ -255,21 +258,38 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
 
   const readyCount = transactions.filter((tx) => calcTransactionResult(tx) !== null).length;
 
-  // ─── Etrade import ────────────────────────────────────────────────────────
+  // ─── Broker import ────────────────────────────────────────────────────────
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importLoading, setImportLoading] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
-  const [showImportHelp, setShowImportHelp] = useState(false);
+  const [showImportDropdown, setShowImportDropdown] = useState(false);
+  const [selectedBrokerId, setSelectedBrokerId] = useState(BROKER_PARSERS[0]?.id ?? '');
+  const [showBrokerHelp, setShowBrokerHelp] = useState(false);
+  /** IDs of the last successfully imported batch — used by "Cofnij import". */
+  const [lastImportIds, setLastImportIds] = useState<string[] | null>(null);
+  const [lastImportCount, setLastImportCount] = useState(0);
+  /** When user edits any imported transaction, undo is no longer meaningful. */
+  const undoInvalidatedRef = useRef(false);
+  /** Inline confirm state for "Wyczyść wszystkie". */
+  const [confirmClearAll, setConfirmClearAll] = useState(false);
+
+  const selectedBroker = BROKER_PARSERS.find((b) => b.id === selectedBrokerId) ?? BROKER_PARSERS[0];
 
   const handleImportFile = useCallback(
     async (file: File) => {
+      if (!selectedBroker) return;
       setImportError(null);
       setImportLoading(true);
+      setLastImportIds(null);
+      undoInvalidatedRef.current = false;
       try {
         const buffer = await file.arrayBuffer();
-        const imported = await parseEtradeFile(buffer);
+        const imported = await selectedBroker.parse(buffer);
         setTransactions((prev) => [...prev, ...imported]);
         setExpandedIds((prev) => new Set([...prev, ...imported.map((t) => t.id)]));
+        setLastImportIds(imported.map((t) => t.id));
+        setLastImportCount(imported.length);
+        setShowImportDropdown(false);
       } catch (err) {
         setImportError(err instanceof Error ? err.message : 'Nieznany błąd podczas importu.');
       } finally {
@@ -277,7 +297,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
         if (fileInputRef.current) fileInputRef.current.value = '';
       }
     },
-    [],
+    [selectedBroker],
   );
 
   const onFileChange = useCallback(
@@ -288,20 +308,198 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
     [handleImportFile],
   );
 
+  const handleUndoImport = useCallback(() => {
+    if (!lastImportIds) return;
+    const ids = new Set(lastImportIds);
+    setTransactions((prev) => prev.filter((tx) => !ids.has(tx.id)));
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => next.delete(id));
+      return next;
+    });
+    setLastImportIds(null);
+  }, [lastImportIds]);
+
+  const handleClearAll = useCallback(() => {
+    setTransactions([]);
+    setExpandedIds(new Set());
+    setLastImportIds(null);
+    setConfirmClearAll(false);
+  }, []);
+
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center gap-2.5">
-        <Receipt size={22} className="text-blue-600 dark:text-blue-400" aria-hidden="true" />
-        <div>
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-            Kalkulator podatku Belki
-          </h2>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Oblicz podatek 19% od zysku ze sprzedaży akcji, ETF i innych papierów wartościowych
-          </p>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <Receipt size={22} className="text-blue-600 dark:text-blue-400 flex-shrink-0" aria-hidden="true" />
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+              Kalkulator podatku Belki
+            </h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Oblicz podatek 19% od zysku ze sprzedaży akcji, ETF i innych papierów wartościowych
+            </p>
+          </div>
+        </div>
+
+        {/* Privacy badge + Import button */}
+        <div className="flex items-center gap-1.5 flex-shrink-0 relative">
+          <span
+            title="Plik przetwarzany lokalnie — nigdy nie opuszcza urządzenia. Jedyne zapytania sieciowe to publiczne kursy walut z NBP."
+            className="flex items-center gap-1 text-[11px] text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-md px-1.5 py-0.5 cursor-default select-none"
+            aria-label="Prywatność: plik przetwarzany lokalnie"
+          >
+            <Shield size={11} aria-hidden="true" />
+            <span className="hidden sm:inline">Prywatność</span>
+          </span>
+
+          <button
+            type="button"
+            onClick={() => { setShowImportDropdown((v) => !v); setImportError(null); }}
+            disabled={importLoading}
+            className="flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 border border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 rounded-lg px-2.5 py-1.5 transition-colors disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            aria-expanded={showImportDropdown}
+            aria-haspopup="true"
+            aria-label="Importuj transakcje z pliku brokera"
+          >
+            {importLoading ? (
+              <Loader2 size={13} className="animate-spin" aria-hidden="true" />
+            ) : (
+              <Upload size={13} aria-hidden="true" />
+            )}
+            Import
+          </button>
+
+          {/* Broker import dropdown */}
+          {showImportDropdown && (
+            <div className="absolute top-full right-0 mt-1 z-20 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-200">Importuj historię transakcji</p>
+                <button
+                  type="button"
+                  onClick={() => setShowImportDropdown(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
+                  aria-label="Zamknij"
+                >
+                  <X size={14} aria-hidden="true" />
+                </button>
+              </div>
+
+              {/* Broker selector */}
+              <div className="space-y-1">
+                {BROKER_PARSERS.map((broker) => (
+                  <button
+                    key={broker.id}
+                    type="button"
+                    onClick={() => { setSelectedBrokerId(broker.id); setShowBrokerHelp(false); }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors flex items-center justify-between ${
+                      selectedBrokerId === broker.id
+                        ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-transparent'
+                    }`}
+                  >
+                    <span className="font-medium">{broker.name}</span>
+                    <span className="text-gray-400 dark:text-gray-500">{broker.fileLabel}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Per-broker download help */}
+              {selectedBroker && (
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setShowBrokerHelp((v) => !v)}
+                    className="flex items-center gap-1 text-[11px] text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                  >
+                    <HelpCircle size={12} aria-hidden="true" />
+                    Jak pobrać plik?
+                    {showBrokerHelp ? <ChevronUp size={12} aria-hidden="true" /> : <ChevronDown size={12} aria-hidden="true" />}
+                  </button>
+                  {showBrokerHelp && (
+                    <div className="mt-1.5 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2.5 text-[11px] text-gray-600 dark:text-gray-400 space-y-1">
+                      <ol className="list-decimal list-inside space-y-0.5">
+                        {selectedBroker.downloadInstructions.map((step, i) => (
+                          <li key={i}>{step}</li>
+                        ))}
+                      </ol>
+                      {selectedBroker.formatNote && (
+                        <p className="mt-1.5 text-[10px] text-gray-400 dark:text-gray-500">{selectedBroker.formatNote}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Privacy note inside dropdown */}
+              <div className="flex items-start gap-1.5 text-[11px] text-gray-500 dark:text-gray-400">
+                <Shield size={11} className="mt-0.5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                <span>Plik przetwarzany lokalnie — nigdy nie opuszcza urządzenia. Jedyne zapytania sieciowe to publiczne kursy walut z NBP.</span>
+              </div>
+
+              {/* File trigger */}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={importLoading || !selectedBroker}
+                className="w-full flex items-center justify-center gap-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg px-3 py-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              >
+                {importLoading ? (
+                  <><Loader2 size={13} className="animate-spin" aria-hidden="true" /> Importowanie…</>
+                ) : (
+                  <><Upload size={13} aria-hidden="true" /> Wybierz plik {selectedBroker?.fileLabel}</>
+                )}
+              </button>
+
+              {importError && (
+                <div className="flex items-start gap-1.5 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2 text-[11px] text-red-800 dark:text-red-300">
+                  <AlertTriangle size={12} className="mt-0.5 flex-shrink-0 text-red-500" aria-hidden="true" />
+                  <span>{importError}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={selectedBroker?.fileAccept ?? '.xlsx'}
+            onChange={onFileChange}
+            className="hidden"
+            aria-hidden="true"
+            tabIndex={-1}
+          />
         </div>
       </div>
+
+      {/* Undo last import banner */}
+      {lastImportIds && !undoInvalidatedRef.current && (
+        <div className="flex items-center justify-between gap-2 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2 text-xs text-emerald-800 dark:text-emerald-300">
+          <div className="flex items-center gap-1.5">
+            <CheckCircle2 size={13} className="flex-shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+            <span>Zaimportowano <strong>{lastImportCount}</strong> {lastImportCount === 1 ? 'transakcję' : lastImportCount < 5 ? 'transakcje' : 'transakcji'} z {selectedBroker?.name ?? 'brokera'}.</span>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              type="button"
+              onClick={handleUndoImport}
+              className="flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-300 hover:text-red-600 dark:hover:text-red-400 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 rounded"
+            >
+              <Undo2 size={12} aria-hidden="true" />
+              Cofnij import
+            </button>
+            <button
+              type="button"
+              onClick={() => setLastImportIds(null)}
+              aria-label="Zamknij"
+              className="text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 rounded"
+            >
+              <X size={13} aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Transaction cards */}
       <div className="space-y-3">
@@ -324,90 +522,46 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
         ))}
       </div>
 
-      {/* Add + Import buttons */}
-      <div className="flex gap-2">
+      {/* Add transaction + Clear all */}
+      <div className="space-y-2">
         <button
           type="button"
           onClick={addTransaction}
-          className="flex-1 flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg px-3 py-2 border border-dashed border-blue-300 dark:border-blue-700 hover:border-blue-500 dark:hover:border-blue-500 justify-center transition-colors"
+          className="w-full flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg px-3 py-2 border border-dashed border-blue-300 dark:border-blue-700 hover:border-blue-500 dark:hover:border-blue-500 justify-center transition-colors"
         >
           <Plus size={16} aria-hidden="true" />
           Dodaj transakcję
         </button>
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={importLoading}
-          className="flex-1 flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg px-3 py-2 border border-dashed border-emerald-300 dark:border-emerald-700 hover:border-emerald-500 dark:hover:border-emerald-500 justify-center transition-colors disabled:opacity-50"
-          aria-label="Importuj transakcje z pliku Etrade Gains & Losses (.xlsx)"
-        >
-          {importLoading ? (
-            <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+
+        {transactions.length > 0 && (
+          confirmClearAll ? (
+            <div className="flex items-center justify-center gap-2 text-xs">
+              <span className="text-gray-500 dark:text-gray-400">Na pewno usunąć wszystkie {transactions.length} transakcje?</span>
+              <button
+                type="button"
+                onClick={handleClearAll}
+                className="font-semibold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded transition-colors"
+              >
+                Tak, usuń
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmClearAll(false)}
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-400 rounded transition-colors"
+              >
+                Anuluj
+              </button>
+            </div>
           ) : (
-            <Upload size={16} aria-hidden="true" />
-          )}
-          {importLoading ? 'Importowanie…' : 'Importuj z Etrade (.xlsx)'}
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".xlsx"
-          onChange={onFileChange}
-          className="hidden"
-          aria-hidden="true"
-          tabIndex={-1}
-        />
-      </div>
-
-      {/* Import error */}
-      {importError && (
-        <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3 text-xs text-red-800 dark:text-red-300 flex items-start gap-2">
-          <AlertTriangle size={16} className="mt-0.5 flex-shrink-0 text-red-500" aria-hidden="true" />
-          <div>
-            <p className="font-semibold">Błąd importu</p>
-            <p className="mt-0.5">{importError}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Etrade import help & privacy */}
-      <div className="space-y-2">
-        <button
-          type="button"
-          onClick={() => setShowImportHelp((v) => !v)}
-          className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-        >
-          <HelpCircle size={14} aria-hidden="true" />
-          Jak pobrać plik z Etrade?
-          {showImportHelp ? <ChevronUp size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
-        </button>
-
-        {showImportHelp && (
-          <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3 text-xs text-gray-600 dark:text-gray-400 space-y-1.5">
-            <p className="font-semibold text-gray-700 dark:text-gray-300">Instrukcja eksportu z Etrade:</p>
-            <ol className="list-decimal list-inside space-y-0.5">
-              <li>Zaloguj się na konto Etrade</li>
-              <li>Przejdź do: <strong>Stock Plan → My Account → Tax Center</strong></li>
-              <li>Wybierz rok podatkowy</li>
-              <li>W sekcji <strong>„Gains & Losses"</strong> kliknij <strong>„Export"</strong> → <strong>„Export Expanded"</strong></li>
-              <li>Zapisz plik <code>.xlsx</code> i kliknij przycisk „Importuj z Etrade" powyżej</li>
-            </ol>
-            <p className="mt-2 text-[11px] text-gray-500 dark:text-gray-500">
-              Akceptujemy wyłącznie raport <strong>Gains & Losses (Expanded)</strong> z Etrade w formacie <code>.xlsx</code>.
-              Inne raporty (1099-B, potwierdzenia transakcji, wyciągi) nie są obsługiwane.
-            </p>
-          </div>
+            <button
+              type="button"
+              onClick={() => setConfirmClearAll(true)}
+              className="w-full text-center text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-red-400 rounded py-0.5"
+            >
+              Wyczyść wszystkie transakcje ({transactions.length})
+            </button>
+          )
         )}
-
-        {/* Privacy banner */}
-        <div className="flex items-start gap-2 bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded-lg px-3 py-2.5 text-[11px] text-gray-600 dark:text-gray-400">
-          <Shield size={14} className="mt-0.5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-          <p>
-            <strong className="text-emerald-700 dark:text-emerald-300">Prywatność:</strong>{' '}
-            Twoje dane nie opuszczają przeglądarki. Plik jest przetwarzany lokalnie na Twoim urządzeniu.
-            Jedyne zapytania sieciowe to publiczne kursy walut z NBP.
-          </p>
-        </div>
       </div>
 
       {/* Year summary */}
