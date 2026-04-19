@@ -1,51 +1,129 @@
-import { useState, useMemo } from 'react';
-import { Receipt, Info, AlertTriangle, CheckCircle2, ArrowRight } from 'lucide-react';
-import { calcBelkaTax } from '../utils/taxCalculator';
-import { fmtPLN, fmtUSD } from '../utils/formatting';
-import { Tooltip } from './Tooltip';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import {
+  Receipt,
+  Plus,
+  Trash2,
+  Info,
+  AlertTriangle,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+} from 'lucide-react';
+import { calcTransactionResult, calcMultiTaxSummary } from '../utils/taxCalculator';
+import { fetchNbpTableARate } from '../utils/fetchNbpTableARate';
+import { fmtPLN } from '../utils/formatting';
+import type { TaxTransaction, TransactionTaxResult, MultiTaxSummary } from '../types/tax';
 import type { CurrencyRates } from '../hooks/useCurrencyRates';
 
 export interface TaxCalculatorPanelProps {
-  currencyRates: CurrencyRates;
+  // Kept for backward compatibility with App.tsx — not used in the new multi-transaction UI.
+  currencyRates?: CurrencyRates;
 }
 
-const INPUT_CLS = 'w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400';
-const LABEL_CLS = 'text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5';
+const STORAGE_KEY = 'njord_tax_transactions';
+const INPUT_CLS =
+  'w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm ' +
+  'focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 ' +
+  'dark:placeholder-gray-400';
+const LABEL_CLS = 'text-xs font-medium text-gray-600 dark:text-gray-400';
+const DEBOUNCE_MS = 500;
 
-/** Format a positive number with a sign prefix for display. */
-function fmtSigned(v: number): string {
-  return v >= 0 ? `+${fmtPLN(v)}` : fmtPLN(v);
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function generateId(): string {
+  return `tx-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-export function TaxCalculatorPanel({ currencyRates }: TaxCalculatorPanelProps) {
-  const [totalProceedsUSD, setTotalProceedsUSD] = useState(0);
-  const [totalCostBasisUSD, setTotalCostBasisUSD] = useState(0);
-  const [isRSU, setIsRSU] = useState(false);
-  const [brokerFeeUSD, setBrokerFeeUSD] = useState(0);
-  const [nbpRateSell, setNbpRateSell] = useState(0);
-  const [nbpRateBuy, setNbpRateBuy] = useState(0);
-  const [kantorRate, setKantorRate] = useState(0);
+function newTransaction(): TaxTransaction {
+  return {
+    id: generateId(),
+    tradeType: 'sale',
+    acquisitionMode: 'purchase',
+    zeroCostFlag: false,
+    saleDate: '',
+    currency: 'USD',
+    saleGrossAmount: 0,
+    acquisitionCostAmount: 0,
+    saleBrokerFee: 0,
+    acquisitionBrokerFee: 0,
+    exchangeRateSaleToPLN: null,
+    exchangeRateAcquisitionToPLN: null,
+  };
+}
 
-  // Auto-populate FX rates from live data (only if user hasn't typed yet)
-  const [nbpSellTouched, setNbpSellTouched] = useState(false);
-  const [kantorTouched, setKantorTouched] = useState(false);
+function fmtGain(gain: number): { text: string; cls: string } {
+  if (gain > 0) return { text: `+${fmtPLN(gain)}`, cls: 'text-green-700 dark:text-green-400' };
+  if (gain < 0) return { text: fmtPLN(gain), cls: 'text-red-600 dark:text-red-400' };
+  return { text: fmtPLN(0), cls: 'text-gray-600 dark:text-gray-300' };
+}
 
-  const effectiveNbpSell = nbpSellTouched ? nbpRateSell : (currencyRates.nbp?.mid ? Math.round(currencyRates.nbp.mid * 10000) / 10000 : nbpRateSell);
-  const effectiveKantor = kantorTouched ? kantorRate : (currencyRates.alior?.buy ? Math.round(currencyRates.alior.buy * 10000) / 10000 : kantorRate);
+// ─── Main Component ───────────────────────────────────────────────────────────
 
-  const canCalc = totalProceedsUSD > 0 && effectiveNbpSell > 0 && effectiveKantor > 0;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
+  const [transactions, setTransactions] = useState<TaxTransaction[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? (JSON.parse(stored) as TaxTransaction[]) : [];
+    } catch {
+      return [];
+    }
+  });
 
-  const result = useMemo(() => {
-    if (!canCalc) return null;
-    return calcBelkaTax({
-      totalProceedsUSD,
-      totalCostBasisUSD: isRSU ? 0 : totalCostBasisUSD,
-      brokerFeeUSD,
-      nbpRateSell: effectiveNbpSell,
-      nbpRateBuy: nbpRateBuy || effectiveNbpSell,
-      kantorRate: effectiveKantor,
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
+    // Expand all on first load
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const txs = JSON.parse(stored) as TaxTransaction[];
+        return new Set(txs.map((t) => t.id));
+      }
+    } catch { /* ignore */ }
+    return new Set();
+  });
+
+  // Persist to localStorage on every change.
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
+    } catch { /* ignore quota errors */ }
+  }, [transactions]);
+
+  const summary: MultiTaxSummary = useMemo(
+    () => calcMultiTaxSummary(transactions),
+    [transactions],
+  );
+
+  const updateTransaction = useCallback((id: string, patch: Partial<TaxTransaction>) => {
+    setTransactions((prev) => prev.map((tx) => (tx.id === id ? { ...tx, ...patch } : tx)));
+  }, []);
+
+  const addTransaction = useCallback(() => {
+    const tx = newTransaction();
+    setTransactions((prev) => [...prev, tx]);
+    setExpandedIds((prev) => new Set([...prev, tx.id]));
+  }, []);
+
+  const removeTransaction = useCallback((id: string) => {
+    setTransactions((prev) => prev.filter((tx) => tx.id !== id));
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
     });
-  }, [canCalc, totalProceedsUSD, totalCostBasisUSD, isRSU, brokerFeeUSD, effectiveNbpSell, nbpRateBuy, effectiveKantor]);
+  }, []);
+
+  const toggleExpanded = useCallback((id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const readyCount = transactions.filter((tx) => calcTransactionResult(tx) !== null).length;
 
   return (
     <div className="space-y-5">
@@ -53,389 +131,644 @@ export function TaxCalculatorPanel({ currencyRates }: TaxCalculatorPanelProps) {
       <div className="flex items-center gap-2.5">
         <Receipt size={22} className="text-blue-600 dark:text-blue-400" aria-hidden="true" />
         <div>
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Kalkulator podatku Belki</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+            Kalkulator podatku Belki
+          </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Oblicz podatek 19% od zysku ze sprzedaży akcji w USD
+            Oblicz podatek 19% od zysku ze sprzedaży akcji, ETF i innych papierów wartościowych
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* ────── Left: Inputs ────── */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 uppercase tracking-wider">Dane transakcji</h3>
-
-          {/* Total proceeds */}
-          <div className="space-y-1">
-            <label htmlFor="tax-total-proceeds" className={LABEL_CLS}>
-              Kwota zlecenia sprzedaży (USD) <span className="text-red-500">*</span>
-              <Tooltip content="Łączna kwota sprzedaży z potwierdzenia brokera — pole &quot;Proceeds&quot; lub &quot;Total Sale Amount&quot;." />
-            </label>
-            <input
-              id="tax-total-proceeds"
-              name="tax-total-proceeds"
-              autoComplete="off"
-              type="number"
-              min={0}
-              step={0.01}
-              value={totalProceedsUSD || ''}
-              onChange={(e) => setTotalProceedsUSD(Number(e.target.value))}
-              placeholder="np. 19 500.00"
-              className={INPUT_CLS}
-            />
+      {/* Transaction cards */}
+      <div className="space-y-3">
+        {transactions.length === 0 && (
+          <div className="rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-10 text-center text-gray-400 dark:text-gray-500 space-y-2">
+            <Receipt size={32} className="mx-auto opacity-30" aria-hidden="true" />
+            <p className="text-sm">Nie masz jeszcze żadnych transakcji. Dodaj pierwszą transakcję sprzedaży.</p>
           </div>
-
-          {/* Cost basis + RSU toggle */}
-          <div className="space-y-1">
-            <label htmlFor="tax-cost-basis" className={LABEL_CLS}>
-              Łączny koszt nabycia (USD)
-              <Tooltip content="Łączna kwota zakupu z potwierdzenia brokera — pole &quot;Cost Basis&quot;. Dla akcji z wynagrodzenia (RSU/grant) zaznacz opcję poniżej." />
-            </label>
-            <input
-              id="tax-cost-basis"
-              name="tax-cost-basis"
-              autoComplete="off"
-              type="number"
-              min={0}
-              step={0.01}
-              value={isRSU ? '' : (totalCostBasisUSD || '')}
-              onChange={(e) => setTotalCostBasisUSD(Number(e.target.value))}
-              disabled={isRSU}
-              placeholder={isRSU ? 'RSU — koszt $0' : 'np. 15 000.00'}
-              className={`${INPUT_CLS} ${isRSU ? 'bg-gray-100 dark:bg-gray-600 opacity-60' : ''}`}
-            />
-            <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 cursor-pointer mt-1.5">
-              <input
-                type="checkbox"
-                checked={isRSU}
-                onChange={(e) => {
-                  setIsRSU(e.target.checked);
-                  if (e.target.checked) setTotalCostBasisUSD(0);
-                }}
-                className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
-              />
-              Akcje z wynagrodzenia (RSU/grant) — koszt uzyskania = $0
-            </label>
-          </div>
-
-          {/* Broker fee */}
-          <div className="space-y-1">
-            <label htmlFor="tax-broker-fee" className={LABEL_CLS}>
-              Prowizja brokera (USD)
-              <Tooltip content="Łączna prowizja za transakcję sprzedaży. Odliczana od dochodu jako koszt uzyskania przychodu." />
-            </label>
-            <input
-              id="tax-broker-fee"
-              name="tax-broker-fee"
-              autoComplete="off"
-              type="number"
-              min={0}
-              step={0.01}
-              value={brokerFeeUSD || ''}
-              onChange={(e) => setBrokerFeeUSD(Number(e.target.value))}
-              placeholder="np. 4.95 (opcjonalne)"
-              className={INPUT_CLS}
-            />
-          </div>
-
-          <hr className="border-gray-200 dark:border-gray-700" />
-          <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 uppercase tracking-wider">Kursy walut</h3>
-
-          {/* NBP sell date rate */}
-          <div className="space-y-1">
-            <label htmlFor="tax-nbp-sell" className={LABEL_CLS}>
-              Kurs NBP średni — data sprzedaży <span className="text-red-500">*</span>
-              <Tooltip content="Kurs średni z tabeli A NBP z dnia poprzedzającego dzień sprzedaży. Używany do obliczenia podstawy podatkowej (przychodu)." width="w-72" />
-            </label>
-            <input
-              id="tax-nbp-sell"
-              name="tax-nbp-sell"
-              autoComplete="off"
-              type="number"
-              min={0}
-              step={0.0001}
-              value={nbpSellTouched ? (nbpRateSell || '') : (effectiveNbpSell || '')}
-              onChange={(e) => { setNbpSellTouched(true); setNbpRateSell(Number(e.target.value)); }}
-              placeholder="np. 3.9785"
-              className={INPUT_CLS}
-            />
-            {!nbpSellTouched && effectiveNbpSell > 0 && (
-              <p className="text-[11px] text-green-600 dark:text-green-400">Auto: NBP {effectiveNbpSell.toFixed(4)}</p>
-            )}
-          </div>
-
-          {/* NBP buy date rate */}
-          <div className="space-y-1">
-            <label htmlFor="tax-nbp-buy" className={LABEL_CLS}>
-              Kurs NBP średni — data zakupu
-              <Tooltip content="Kurs średni z tabeli A NBP z dnia poprzedzającego dzień zakupu. Używany do obliczenia kosztu uzyskania przychodu. Jeśli nie podasz, użyty zostanie kurs z daty sprzedaży." width="w-72" />
-            </label>
-            <input
-              id="tax-nbp-buy"
-              name="tax-nbp-buy"
-              autoComplete="off"
-              type="number"
-              min={0}
-              step={0.0001}
-              value={nbpRateBuy || ''}
-              onChange={(e) => setNbpRateBuy(Number(e.target.value))}
-              placeholder="np. 3.8500 (domyślnie = kurs sprzedaży)"
-              className={INPUT_CLS}
-            />
-          </div>
-
-          {/* Kantor rate */}
-          <div className="space-y-1">
-            <label htmlFor="tax-kantor" className={LABEL_CLS}>
-              Kurs kantor / bank — faktyczna wymiana <span className="text-red-500">*</span>
-              <Tooltip content="Kurs po jakim faktycznie wymieniasz USD na PLN (kantor internetowy, bank, broker). Wpływa na realną kwotę wypłaty." width="w-72" />
-            </label>
-            <input
-              id="tax-kantor"
-              name="tax-kantor"
-              autoComplete="off"
-              type="number"
-              min={0}
-              step={0.0001}
-              value={kantorTouched ? (kantorRate || '') : (effectiveKantor || '')}
-              onChange={(e) => { setKantorTouched(true); setKantorRate(Number(e.target.value)); }}
-              placeholder="np. 3.9543"
-              className={INPUT_CLS}
-            />
-            {!kantorTouched && effectiveKantor > 0 && (
-              <p className="text-[11px] text-green-600 dark:text-green-400">Auto: Alior Kantor {effectiveKantor.toFixed(4)}</p>
-            )}
-          </div>
-
-          {/* Dual-rate explanation */}
-          <div className="bg-blue-50/60 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-lg px-3 py-2.5 text-[11px] text-gray-600 dark:text-gray-400 space-y-1">
-            <div className="font-semibold text-blue-700 dark:text-blue-300 text-xs">Dlaczego dwa kursy?</div>
-            <p>
-              <strong className="text-gray-700 dark:text-gray-300">Kurs NBP</strong> — wymagany przez prawo podatkowe do obliczenia podstawy opodatkowania (PIT-38).
-            </p>
-            <p>
-              <strong className="text-gray-700 dark:text-gray-300">Kurs kantor</strong> — faktyczny kurs po jakim wymieniasz walutę. Wpływa na realną kwotę, którą otrzymasz.
-            </p>
-          </div>
-        </div>
-
-        {/* ────── Right: Results ────── */}
-        <div className="space-y-4">
-          {!canCalc ? (
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-10 text-center text-gray-400 dark:text-gray-500 space-y-2">
-              <Receipt size={32} className="mx-auto opacity-40" aria-hidden="true" />
-              <p className="text-sm">Uzupełnij dane transakcji, aby zobaczyć rozliczenie podatkowe</p>
-            </div>
-          ) : result ? (
-            <>
-              {/* RSU banner */}
-              {result.isRSU && (
-                <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
-                  <AlertTriangle size={16} className="mt-0.5 flex-shrink-0 text-amber-500" aria-hidden="true" />
-                  <p>
-                    <strong>Akcje z wynagrodzenia (RSU/grant)</strong> — koszt uzyskania przychodu wynosi 0 PLN.
-                    Podatek Belki naliczany jest od pełnej kwoty przychodu ze sprzedaży.
-                  </p>
-                </div>
-              )}
-
-              {/* Loss banner */}
-              {result.isLoss && !result.isRSU && (
-                <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-xl px-4 py-3 text-xs text-green-800 dark:text-green-300 flex items-start gap-2">
-                  <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-green-500" aria-hidden="true" />
-                  <div>
-                    <p><strong>Brak podatku</strong> — transakcja przyniosła stratę ({fmtPLN(result.taxableGainPLN)}).</p>
-                    <p className="mt-1 opacity-80">
-                      Stratę można odliczyć od zysków kapitałowych w PIT-38 w ciągu kolejnych 5 lat podatkowych
-                      (maks. 50% straty rocznie).
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Tax basis card (NBP) */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
-                  <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">Podstawa opodatkowania (kurs NBP)</h3>
-                </div>
-
-                <div className="space-y-2 text-sm">
-                  <Row
-                    label="Przychód ze sprzedaży"
-                    detail={`${fmtUSD(totalProceedsUSD)} × ${effectiveNbpSell.toFixed(4)}`}
-                    value={fmtPLN(result.revenueNbpPLN)}
-                  />
-                  {!result.isRSU && (
-                    <Row
-                      label="Koszt uzyskania przychodu"
-                      detail={`${fmtUSD(isRSU ? 0 : totalCostBasisUSD)} × ${(nbpRateBuy || effectiveNbpSell).toFixed(4)}`}
-                      value={`−${fmtPLN(result.costBasisNbpPLN)}`}
-                      muted
-                    />
-                  )}
-                  {result.isRSU && (
-                    <Row label="Koszt uzyskania przychodu" detail="RSU/grant" value="0 PLN" muted />
-                  )}
-                  {brokerFeeUSD > 0 && (
-                    <Row
-                      label="Prowizja brokera"
-                      detail={`${fmtUSD(brokerFeeUSD)} × ${effectiveNbpSell.toFixed(4)}`}
-                      value={`−${fmtPLN(result.brokerFeeNbpPLN)}`}
-                      muted
-                    />
-                  )}
-
-                  <hr className="border-gray-200 dark:border-gray-700" />
-
-                  <Row
-                    label="Dochód do opodatkowania"
-                    value={fmtSigned(result.taxableGainPLN)}
-                    bold
-                    highlight={result.isLoss ? 'loss' : 'gain'}
-                  />
-                  <Row
-                    label="Podatek Belki (19%)"
-                    value={fmtPLN(result.belkaTaxPLN)}
-                    bold
-                    highlight={result.belkaTaxPLN > 0 ? 'tax' : undefined}
-                  />
-                </div>
-              </div>
-
-              {/* Payout card (kantor) */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
-                  <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">Faktyczna wypłata (kurs kantor)</h3>
-                </div>
-
-                <div className="space-y-2 text-sm">
-                  <Row
-                    label="Przychód brutto"
-                    detail={`${fmtUSD(totalProceedsUSD)} × ${effectiveKantor.toFixed(4)}`}
-                    value={fmtPLN(result.grossProceedsKantorPLN)}
-                  />
-                  {brokerFeeUSD > 0 && (
-                    <Row
-                      label="Prowizja brokera"
-                      detail={`${fmtUSD(brokerFeeUSD)} × ${effectiveKantor.toFixed(4)}`}
-                      value={`−${fmtPLN(result.brokerFeeKantorPLN)}`}
-                      muted
-                    />
-                  )}
-                  <Row
-                    label="Podatek Belki"
-                    value={`−${fmtPLN(result.belkaTaxPLN)}`}
-                    muted
-                  />
-
-                  <hr className="border-gray-200 dark:border-gray-700" />
-
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-lg px-4 py-3 flex items-center justify-between">
-                    <span className="font-semibold text-gray-800 dark:text-gray-100">Do wypłaty netto</span>
-                    <span className="text-lg font-bold text-green-700 dark:text-green-400 tabular-nums">{fmtPLN(result.netProceedsPLN)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Summary card */}
-              <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-3">
-                <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-1.5">
-                  <Info size={14} className="text-gray-400" aria-hidden="true" />
-                  Podsumowanie
-                </h3>
-
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                  <div className="text-gray-500 dark:text-gray-400">Efektywna stawka podatkowa</div>
-                  <div className="text-right font-semibold text-gray-800 dark:text-gray-100 tabular-nums">
-                    {result.effectiveTaxRate.toFixed(2)}%
-                    <span className="text-xs text-gray-400 dark:text-gray-500 font-normal ml-1">od brutto</span>
-                  </div>
-
-                  <div className="text-gray-500 dark:text-gray-400">Różnica kursowa (kantor vs NBP)</div>
-                  <div className="text-right font-medium tabular-nums text-gray-800 dark:text-gray-100">
-                    {fmtPLN(result.grossProceedsKantorPLN - result.revenueNbpPLN)}
-                  </div>
-
-                  {!result.isLoss && (
-                    <>
-                      <div className="text-gray-500 dark:text-gray-400">Zysk netto po podatku</div>
-                      <div className="text-right font-semibold text-green-700 dark:text-green-400 tabular-nums">
-                        {fmtPLN(result.netProceedsPLN - result.costBasisNbpPLN)}
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* Flow visualization */}
-                <div className="flex items-center justify-center gap-2 text-xs text-gray-400 dark:text-gray-500 pt-2">
-                  <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded font-medium">
-                    {fmtUSD(totalProceedsUSD)}
-                  </span>
-                  <ArrowRight size={12} aria-hidden="true" />
-                  <span className="text-gray-500 dark:text-gray-400">−{fmtPLN(result.belkaTaxPLN)} podatek</span>
-                  <ArrowRight size={12} aria-hidden="true" />
-                  <span className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-2 py-0.5 rounded font-medium">
-                    {fmtPLN(result.netProceedsPLN)}
-                  </span>
-                </div>
-              </div>
-
-              {/* PIT-38 note */}
-              <div className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/40 rounded-lg px-4 py-3 space-y-1.5 border border-gray-100 dark:border-gray-700">
-                <p className="font-semibold text-gray-700 dark:text-gray-300">📋 Rozliczenie PIT-38</p>
-                <p>
-                  Zyski kapitałowe z akcji zagranicznych rozliczasz w rocznym zeznaniu PIT-38 (termin: 30 kwietnia).
-                  Broker zagraniczny (np. E*TRADE, Interactive Brokers) nie odprowadza podatku automatycznie — to Twój obowiązek.
-                </p>
-                {result.isLoss && (
-                  <p>
-                    Strata z inwestycji może być odliczona od zysków kapitałowych w PIT-38 w ciągu 5 kolejnych lat
-                    (maksymalnie 50% straty w jednym roku).
-                  </p>
-                )}
-              </div>
-            </>
-          ) : null}
-        </div>
+        )}
+        {transactions.map((tx, idx) => (
+          <TaxTransactionCard
+            key={tx.id}
+            tx={tx}
+            index={idx + 1}
+            isExpanded={expandedIds.has(tx.id)}
+            onToggle={() => toggleExpanded(tx.id)}
+            onUpdate={(patch) => updateTransaction(tx.id, patch)}
+            onDelete={() => removeTransaction(tx.id)}
+          />
+        ))}
       </div>
+
+      {/* Add button */}
+      <button
+        type="button"
+        onClick={addTransaction}
+        className="flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg px-3 py-2 border border-dashed border-blue-300 dark:border-blue-700 hover:border-blue-500 dark:hover:border-blue-500 w-full justify-center transition-colors"
+      >
+        <Plus size={16} aria-hidden="true" />
+        Dodaj transakcję
+      </button>
+
+      {/* Year summary — only show when at least one transaction is ready */}
+      {readyCount > 0 && <YearSummary summary={summary} />}
+
+      {/* Disclaimer */}
+      <p className="text-xs text-gray-400 dark:text-gray-500 text-center pb-1">
+        Kalkulator uproszczony — służy do szacowania podatku Belki.
+        Nie zastępuje doradztwa podatkowego ani pełnej ewidencji PIT-38.
+      </p>
     </div>
   );
 }
 
-/** Reusable row component for the breakdown tables. */
-function Row({ label, detail, value, bold, muted, highlight }: {
-  label: string;
-  detail?: string;
-  value: string;
-  bold?: boolean;
-  muted?: boolean;
-  highlight?: 'gain' | 'loss' | 'tax';
-}) {
-  const valueColor = highlight === 'gain'
-    ? 'text-green-700 dark:text-green-400'
-    : highlight === 'loss'
-      ? 'text-red-600 dark:text-red-400'
-      : highlight === 'tax'
-        ? 'text-amber-700 dark:text-amber-400'
-        : muted
-          ? 'text-gray-500 dark:text-gray-400'
-          : 'text-gray-800 dark:text-gray-100';
+// ─── Transaction Card ─────────────────────────────────────────────────────────
+
+interface TaxTransactionCardProps {
+  tx: TaxTransaction;
+  index: number;
+  isExpanded: boolean;
+  onToggle: () => void;
+  onUpdate: (patch: Partial<TaxTransaction>) => void;
+  onDelete: () => void;
+}
+
+function TaxTransactionCard({
+  tx,
+  index,
+  isExpanded,
+  onToggle,
+  onUpdate,
+  onDelete,
+}: TaxTransactionCardProps) {
+  const result: TransactionTaxResult | null = useMemo(
+    () => calcTransactionResult(tx),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      tx.saleGrossAmount,
+      tx.acquisitionCostAmount,
+      tx.saleBrokerFee,
+      tx.acquisitionBrokerFee,
+      tx.zeroCostFlag,
+      tx.exchangeRateSaleToPLN,
+      tx.exchangeRateAcquisitionToPLN,
+    ],
+  );
+
+  const saleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const acqTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clean up debounce timers on unmount.
+  useEffect(() => {
+    return () => {
+      if (saleTimerRef.current) clearTimeout(saleTimerRef.current);
+      if (acqTimerRef.current) clearTimeout(acqTimerRef.current);
+    };
+  }, []);
+
+  const triggerFetchSale = useCallback(
+    (date: string, currency: string) => {
+      if (!date) return;
+      if (currency.toUpperCase() === 'PLN') {
+        onUpdate({ exchangeRateSaleToPLN: 1, rateSaleEffectiveDate: date, isLoadingRateSale: false });
+        return;
+      }
+      onUpdate({ isLoadingRateSale: true, rateSaleError: undefined });
+      fetchNbpTableARate(date, currency)
+        .then(({ rate, effectiveDate }) => {
+          onUpdate({
+            exchangeRateSaleToPLN: rate,
+            rateSaleEffectiveDate: effectiveDate,
+            isLoadingRateSale: false,
+            rateSaleError: undefined,
+          });
+        })
+        .catch((err: Error) => {
+          onUpdate({ isLoadingRateSale: false, rateSaleError: err.message });
+        });
+    },
+    [onUpdate],
+  );
+
+  const triggerFetchAcq = useCallback(
+    (date: string, currency: string) => {
+      if (!date || tx.zeroCostFlag) return;
+      if (currency.toUpperCase() === 'PLN') {
+        onUpdate({ exchangeRateAcquisitionToPLN: 1, rateAcquisitionEffectiveDate: date, isLoadingRateAcquisition: false });
+        return;
+      }
+      onUpdate({ isLoadingRateAcquisition: true, rateAcquisitionError: undefined });
+      fetchNbpTableARate(date, currency)
+        .then(({ rate, effectiveDate }) => {
+          onUpdate({
+            exchangeRateAcquisitionToPLN: rate,
+            rateAcquisitionEffectiveDate: effectiveDate,
+            isLoadingRateAcquisition: false,
+            rateAcquisitionError: undefined,
+          });
+        })
+        .catch((err: Error) => {
+          onUpdate({ isLoadingRateAcquisition: false, rateAcquisitionError: err.message });
+        });
+    },
+    [onUpdate, tx.zeroCostFlag],
+  );
+
+  const handleSaleDateChange = useCallback(
+    (date: string) => {
+      onUpdate({
+        saleDate: date,
+        exchangeRateSaleToPLN: null,
+        rateSaleEffectiveDate: undefined,
+        rateSaleError: undefined,
+      });
+      if (saleTimerRef.current) clearTimeout(saleTimerRef.current);
+      saleTimerRef.current = setTimeout(() => triggerFetchSale(date, tx.currency), DEBOUNCE_MS);
+    },
+    [onUpdate, tx.currency, triggerFetchSale],
+  );
+
+  const handleAcqDateChange = useCallback(
+    (date: string) => {
+      onUpdate({
+        acquisitionDate: date,
+        exchangeRateAcquisitionToPLN: null,
+        rateAcquisitionEffectiveDate: undefined,
+        rateAcquisitionError: undefined,
+      });
+      if (acqTimerRef.current) clearTimeout(acqTimerRef.current);
+      acqTimerRef.current = setTimeout(() => triggerFetchAcq(date, tx.currency), DEBOUNCE_MS);
+    },
+    [onUpdate, tx.currency, triggerFetchAcq],
+  );
+
+  const handleCurrencyChange = useCallback(
+    (currency: string) => {
+      onUpdate({
+        currency,
+        exchangeRateSaleToPLN: null,
+        exchangeRateAcquisitionToPLN: null,
+        rateSaleEffectiveDate: undefined,
+        rateAcquisitionEffectiveDate: undefined,
+        rateSaleError: undefined,
+        rateAcquisitionError: undefined,
+      });
+      if (tx.saleDate) {
+        if (saleTimerRef.current) clearTimeout(saleTimerRef.current);
+        saleTimerRef.current = setTimeout(() => triggerFetchSale(tx.saleDate, currency), DEBOUNCE_MS);
+      }
+      if (tx.acquisitionDate && !tx.zeroCostFlag) {
+        if (acqTimerRef.current) clearTimeout(acqTimerRef.current);
+        acqTimerRef.current = setTimeout(() => triggerFetchAcq(tx.acquisitionDate!, currency), DEBOUNCE_MS);
+      }
+    },
+    [onUpdate, tx.saleDate, tx.acquisitionDate, tx.zeroCostFlag, triggerFetchSale, triggerFetchAcq],
+  );
+
+  const gainInfo = result ? fmtGain(result.gainPLN) : null;
 
   return (
-    <div className="flex items-baseline justify-between gap-2">
-      <div className="min-w-0">
-        <span className={`${bold ? 'font-semibold text-gray-800 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400'}`}>
-          {label}
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+      {/* Card header */}
+      <div
+        className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 select-none"
+        onClick={onToggle}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => e.key === 'Enter' && onToggle()}
+        aria-expanded={isExpanded}
+        aria-label={`Transakcja ${index}`}
+      >
+        <span className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-bold flex items-center justify-center flex-shrink-0">
+          {index}
         </span>
-        {detail && (
-          <span className="block text-[11px] text-gray-400 dark:text-gray-500 tabular-nums">{detail}</span>
-        )}
+
+        <div className="flex-1 min-w-0 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+          {tx.saleDate ? (
+            <span className="text-gray-700 dark:text-gray-200 font-medium">{tx.saleDate}</span>
+          ) : (
+            <span className="text-gray-400 dark:text-gray-500 italic">Brak daty sprzedaży</span>
+          )}
+          {tx.saleGrossAmount > 0 && (
+            <span className="text-gray-500 dark:text-gray-400 tabular-nums">
+              {tx.saleGrossAmount.toLocaleString('pl-PL', { maximumFractionDigits: 2 })} {tx.currency}
+            </span>
+          )}
+          {gainInfo && (
+            <span className={`font-semibold tabular-nums ${gainInfo.cls}`}>
+              {gainInfo.text}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="p-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
+            aria-label="Usuń transakcję"
+          >
+            <Trash2 size={15} aria-hidden="true" />
+          </button>
+          {isExpanded
+            ? <ChevronUp size={15} className="text-gray-400" aria-hidden="true" />
+            : <ChevronDown size={15} className="text-gray-400" aria-hidden="true" />
+          }
+        </div>
       </div>
-      <span className={`whitespace-nowrap tabular-nums font-mono text-sm ${bold ? 'font-bold' : 'font-medium'} ${valueColor}`}>
+
+      {/* Card body */}
+      {isExpanded && (
+        <div className="border-t border-gray-100 dark:border-gray-700 px-4 py-4 space-y-4">
+          {/* Row 1: Sale date, sale amount, currency, sale commission */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="space-y-1">
+              <label className={LABEL_CLS}>
+                Data sprzedaży <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={tx.saleDate}
+                onChange={(e) => handleSaleDateChange(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
+                className={INPUT_CLS}
+              />
+              <RateStatusBadge
+                rate={tx.exchangeRateSaleToPLN}
+                effectiveDate={tx.rateSaleEffectiveDate}
+                isLoading={tx.isLoadingRateSale}
+                error={tx.rateSaleError}
+                currency={tx.currency}
+                onManualChange={(rate) =>
+                  onUpdate({ exchangeRateSaleToPLN: rate, rateSaleError: undefined })
+                }
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className={LABEL_CLS}>
+                Kwota sprzedaży brutto <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                min={0}
+                step={0.01}
+                value={tx.saleGrossAmount || ''}
+                onChange={(e) => onUpdate({ saleGrossAmount: Number(e.target.value) })}
+                placeholder="np. 19 500.00"
+                className={INPUT_CLS}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className={LABEL_CLS}>
+                Waluta <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={tx.currency}
+                onChange={(e) => handleCurrencyChange(e.target.value.toUpperCase().slice(0, 3))}
+                placeholder="USD"
+                maxLength={3}
+                list="tax-currency-list"
+                className={INPUT_CLS}
+                autoComplete="off"
+                spellCheck={false}
+              />
+              <datalist id="tax-currency-list">
+                <option value="USD" />
+                <option value="EUR" />
+                <option value="GBP" />
+                <option value="CHF" />
+                <option value="DKK" />
+                <option value="SEK" />
+                <option value="PLN" />
+              </datalist>
+            </div>
+
+            <div className="space-y-1">
+              <label className={LABEL_CLS}>Prowizja sprzedaży</label>
+              <input
+                type="number"
+                min={0}
+                step={0.01}
+                value={tx.saleBrokerFee || ''}
+                onChange={(e) => onUpdate({ saleBrokerFee: Number(e.target.value) })}
+                placeholder="np. 4.95"
+                className={INPUT_CLS}
+              />
+            </div>
+          </div>
+
+          {/* Zero cost toggle */}
+          <label className="flex items-center gap-2.5 text-sm cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={tx.zeroCostFlag}
+              onChange={(e) => {
+                const zeroCostFlag = e.target.checked;
+                onUpdate({
+                  zeroCostFlag,
+                  acquisitionMode: zeroCostFlag ? 'grant' : 'purchase',
+                  acquisitionCostAmount: zeroCostFlag ? 0 : tx.acquisitionCostAmount,
+                  acquisitionBrokerFee: zeroCostFlag ? 0 : tx.acquisitionBrokerFee,
+                  acquisitionDate: zeroCostFlag ? undefined : tx.acquisitionDate,
+                  exchangeRateAcquisitionToPLN: zeroCostFlag ? null : tx.exchangeRateAcquisitionToPLN,
+                });
+              }}
+              className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+            />
+            <span className="text-gray-700 dark:text-gray-300">
+              Koszt nabycia = 0
+              <span className="ml-1.5 text-gray-400 dark:text-gray-500 text-xs font-normal">
+                (grant, RSU, akcje przyznane nieodpłatnie)
+              </span>
+            </span>
+          </label>
+
+          {/* Row 2: Acquisition fields (conditional) */}
+          {!tx.zeroCostFlag && (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 pt-2 border-t border-dashed border-gray-200 dark:border-gray-700">
+              <div className="space-y-1">
+                <label className={LABEL_CLS}>
+                  Data nabycia <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={tx.acquisitionDate ?? ''}
+                  onChange={(e) => handleAcqDateChange(e.target.value)}
+                  max={tx.saleDate || undefined}
+                  className={INPUT_CLS}
+                />
+                <RateStatusBadge
+                  rate={tx.exchangeRateAcquisitionToPLN ?? null}
+                  effectiveDate={tx.rateAcquisitionEffectiveDate}
+                  isLoading={tx.isLoadingRateAcquisition}
+                  error={tx.rateAcquisitionError}
+                  currency={tx.currency}
+                  onManualChange={(rate) =>
+                    onUpdate({ exchangeRateAcquisitionToPLN: rate, rateAcquisitionError: undefined })
+                  }
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className={LABEL_CLS}>
+                  Koszt nabycia <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={tx.acquisitionCostAmount || ''}
+                  onChange={(e) => onUpdate({ acquisitionCostAmount: Number(e.target.value) })}
+                  placeholder="np. 15 000.00"
+                  className={INPUT_CLS}
+                />
+              </div>
+
+              <div className="hidden sm:block" /> {/* Grid spacer */}
+
+              <div className="space-y-1">
+                <label className={LABEL_CLS}>Prowizja zakupu</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={tx.acquisitionBrokerFee || ''}
+                  onChange={(e) => onUpdate({ acquisitionBrokerFee: Number(e.target.value) })}
+                  placeholder="np. 4.95"
+                  className={INPUT_CLS}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Result row */}
+          {result && (
+            <div className="flex flex-wrap items-stretch gap-px bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 mt-1">
+              <ResultCell label="Przychód" value={fmtPLN(result.revenuePLN)} />
+              <ResultCell label="Koszt" value={fmtPLN(result.costPLN)} subtract />
+              <ResultCell
+                label={result.isLoss ? 'Strata' : 'Zysk'}
+                value={fmtGain(result.gainPLN).text}
+                valueClass={fmtGain(result.gainPLN).cls}
+                total
+              />
+              {!result.isLoss && (
+                <ResultCell
+                  label="Podatek (est.)"
+                  value={fmtPLN(result.taxEstimatePLN)}
+                  valueClass="text-amber-700 dark:text-amber-400"
+                />
+              )}
+            </div>
+          )}
+
+          {/* Not-ready hint */}
+          {!result && tx.saleGrossAmount > 0 && tx.saleDate && (
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              {tx.isLoadingRateSale || tx.isLoadingRateAcquisition
+                ? 'Pobieranie kursu NBP…'
+                : !tx.exchangeRateSaleToPLN
+                  ? 'Oczekiwanie na kurs NBP dla daty sprzedaży.'
+                  : !tx.zeroCostFlag && !tx.acquisitionDate
+                    ? 'Podaj datę nabycia, aby obliczyć wynik.'
+                    : !tx.zeroCostFlag && !tx.exchangeRateAcquisitionToPLN
+                      ? 'Oczekiwanie na kurs NBP dla daty nabycia.'
+                      : 'Uzupełnij brakujące pola, aby zobaczyć wynik.'}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Rate Status Badge ─────────────────────────────────────────────────────────
+
+function RateStatusBadge({
+  rate,
+  effectiveDate,
+  isLoading,
+  error,
+  currency,
+  onManualChange,
+}: {
+  rate: number | null;
+  effectiveDate?: string;
+  isLoading?: boolean;
+  error?: string;
+  currency: string;
+  onManualChange: (rate: number) => void;
+}) {
+  if (currency.toUpperCase() === 'PLN') {
+    return (
+      <p className="text-[11px] text-gray-400 dark:text-gray-500">PLN — brak przeliczenia</p>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <p className="text-[11px] text-blue-500 dark:text-blue-400 flex items-center gap-1">
+        <Loader2 size={10} className="animate-spin" aria-hidden="true" />
+        Pobieranie kursu NBP…
+      </p>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-1">
+        <p className="text-[11px] text-red-600 dark:text-red-400 flex items-start gap-1">
+          <AlertTriangle size={10} className="mt-0.5 flex-shrink-0" aria-hidden="true" />
+          <span>{error}</span>
+        </p>
+        <input
+          type="number"
+          min={0}
+          step={0.0001}
+          defaultValue={rate ?? undefined}
+          onChange={(e) => {
+            const v = Number(e.target.value);
+            if (v > 0) onManualChange(v);
+          }}
+          placeholder="Kurs ręcznie (np. 3.9785)"
+          className="w-full border border-red-300 dark:border-red-700 rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-red-500 dark:bg-gray-700 dark:text-gray-100"
+        />
+      </div>
+    );
+  }
+
+  if (rate !== null && rate > 0) {
+    return (
+      <p className="text-[11px] text-green-600 dark:text-green-400 flex items-center gap-1">
+        <CheckCircle2 size={10} aria-hidden="true" />
+        NBP: {rate.toFixed(4)}
+        {effectiveDate && <span className="text-gray-400 dark:text-gray-500"> ({effectiveDate})</span>}
+      </p>
+    );
+  }
+
+  return null;
+}
+
+// ─── Result Cell ──────────────────────────────────────────────────────────────
+
+function ResultCell({
+  label,
+  value,
+  valueClass,
+  subtract,
+  total,
+}: {
+  label: string;
+  value: string;
+  valueClass?: string;
+  subtract?: boolean;
+  total?: boolean;
+}) {
+  return (
+    <div
+      className={`flex-1 min-w-[90px] bg-white dark:bg-gray-800 px-3 py-2 text-center ${total ? 'ring-1 ring-inset ring-gray-300 dark:ring-gray-600 rounded-sm' : ''}`}
+    >
+      <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-0.5">
+        {subtract && '− '}
+        {label}
+      </p>
+      <p
+        className={`text-sm font-semibold tabular-nums ${valueClass ?? 'text-gray-800 dark:text-gray-100'}`}
+      >
         {value}
-      </span>
+      </p>
+    </div>
+  );
+}
+
+// ─── Year Summary ─────────────────────────────────────────────────────────────
+
+function YearSummary({ summary }: { summary: MultiTaxSummary }) {
+  return (
+    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-4">
+      <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-1.5">
+        <Info size={14} className="text-gray-400" aria-hidden="true" />
+        Podsumowanie roczne (PIT-38)
+      </h3>
+
+      {/* 4-cell summary grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <SummaryCell label="Suma przychodów" value={fmtPLN(summary.totalRevenuePLN)} />
+        <SummaryCell label="Suma kosztów" value={fmtPLN(summary.totalCostPLN)} />
+        <SummaryCell
+          label="Zyski"
+          value={fmtPLN(summary.totalGainPLN)}
+          cls="text-green-700 dark:text-green-400"
+        />
+        <SummaryCell
+          label="Straty"
+          value={summary.totalLossPLN > 0 ? `−${fmtPLN(summary.totalLossPLN)}` : fmtPLN(0)}
+          cls={summary.totalLossPLN > 0 ? 'text-red-600 dark:text-red-400' : undefined}
+        />
+      </div>
+
+      {/* Net income + tax due */}
+      <div className="border-t border-gray-200 dark:border-gray-600 pt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Dochód netto (PIT-38)</p>
+          <p
+            className={`text-lg font-bold tabular-nums ${
+              summary.netIncomePLN >= 0
+                ? 'text-gray-800 dark:text-gray-100'
+                : 'text-red-600 dark:text-red-400'
+            }`}
+          >
+            {summary.netIncomePLN >= 0 ? '+' : ''}
+            {fmtPLN(summary.netIncomePLN)}
+          </p>
+        </div>
+
+        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl px-5 py-3 text-center min-w-[160px]">
+          <p className="text-xs text-amber-700 dark:text-amber-400 font-medium mb-1">
+            Podatek należny
+          </p>
+          <p className="text-2xl font-bold text-amber-800 dark:text-amber-300 tabular-nums">
+            {fmtPLN(summary.taxDuePLN)}
+          </p>
+          <p className="text-[11px] text-amber-600/70 dark:text-amber-500/70 mt-0.5">
+            {summary.netIncomePLN > 0
+              ? `19% od ${fmtPLN(summary.netIncomePLN)}`
+              : 'brak podatku'}
+          </p>
+        </div>
+      </div>
+
+      {/* Loss carryforward note */}
+      {summary.netIncomePLN < 0 && (
+        <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-lg px-3 py-2 text-xs text-blue-700 dark:text-blue-300">
+          Łączna strata może być odliczona od zysków kapitałowych w PIT-38 przez kolejne 5 lat
+          (maksymalnie 50% straty rocznie).
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SummaryCell({
+  label,
+  value,
+  cls,
+}: {
+  label: string;
+  value: string;
+  cls?: string;
+}) {
+  return (
+    <div>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{label}</p>
+      <p className={`text-sm font-semibold tabular-nums ${cls ?? 'text-gray-800 dark:text-gray-100'}`}>
+        {value}
+      </p>
     </div>
   );
 }

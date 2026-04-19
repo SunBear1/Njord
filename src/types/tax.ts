@@ -1,5 +1,99 @@
 /** Tax calculation types for the standalone Belka tax calculator. */
 
+// ─── Multi-transaction types ──────────────────────────────────────────────────
+
+/** How the asset was originally acquired. */
+export type AcquisitionMode = 'purchase' | 'grant' | 'other_zero_cost';
+
+/**
+ * A single securities sale transaction for Belka tax calculation.
+ *
+ * Progressive disclosure model: when `zeroCostFlag = true`, all acquisition
+ * fields (`acquisitionDate`, `acquisitionCostAmount`, `acquisitionBrokerFee`,
+ * `exchangeRateAcquisitionToPLN`) are ignored in calculations.
+ */
+export interface TaxTransaction {
+  /** Auto-generated unique identifier. */
+  id: string;
+  tradeType: 'sale';
+  acquisitionMode: AcquisitionMode;
+  /** When true, acquisition cost = 0 (grant, RSU, free shares). */
+  zeroCostFlag: boolean;
+
+  /** Sale date — YYYY-MM-DD. Required. */
+  saleDate: string;
+  /** Acquisition date — YYYY-MM-DD. Required when zeroCostFlag = false. */
+  acquisitionDate?: string;
+
+  /** Currency of the transaction, ISO 4217 (e.g. 'USD', 'EUR'). */
+  currency: string;
+
+  /** Gross sale proceeds in the transaction currency. Required, > 0. */
+  saleGrossAmount: number;
+  /** Purchase cost in the transaction currency. Required when zeroCostFlag = false. */
+  acquisitionCostAmount?: number;
+  /** Broker commission on the sale in the transaction currency. Optional. */
+  saleBrokerFee?: number;
+  /** Broker commission on the purchase in the transaction currency. Optional. */
+  acquisitionBrokerFee?: number;
+
+  // NBP Table A mid rates — auto-fetched from NBP, manual override allowed.
+  // Rule: rate from the last business day BEFORE the transaction date.
+  /** NBP rate for the sale date (last business day before saleDate). */
+  exchangeRateSaleToPLN: number | null;
+  /** NBP rate for the acquisition date. Falls back to sale rate when absent. */
+  exchangeRateAcquisitionToPLN?: number | null;
+  /** Actual NBP effective date used for the sale rate. */
+  rateSaleEffectiveDate?: string;
+  /** Actual NBP effective date used for the acquisition rate. */
+  rateAcquisitionEffectiveDate?: string;
+
+  // Async state for rate auto-fetch.
+  isLoadingRateSale?: boolean;
+  isLoadingRateAcquisition?: boolean;
+  rateSaleError?: string;
+  rateAcquisitionError?: string;
+
+  /** Optional human-readable description. */
+  note?: string;
+}
+
+/** Calculated result for a single transaction. */
+export interface TransactionTaxResult {
+  /** Sale proceeds converted to PLN at the NBP sell rate. */
+  revenuePLN: number;
+  /** Total cost (acquisition + commissions) converted to PLN. */
+  costPLN: number;
+  /** Net gain (positive) or loss (negative) in PLN. */
+  gainPLN: number;
+  /**
+   * Per-transaction tax estimate: max(0, gainPLN) × 19%.
+   * Note: actual PIT-38 tax is calculated on the net income across all transactions.
+   */
+  taxEstimatePLN: number;
+  isLoss: boolean;
+  isZeroCost: boolean;
+}
+
+/** Aggregate summary across multiple transactions (PIT-38 level). */
+export interface MultiTaxSummary {
+  totalRevenuePLN: number;
+  totalCostPLN: number;
+  /** Sum of positive gains only. */
+  totalGainPLN: number;
+  /** Sum of losses (as a positive number). */
+  totalLossPLN: number;
+  /** Net income = totalGain − totalLoss (may be negative). */
+  netIncomePLN: number;
+  /**
+   * Tax due per PIT-38: max(0, netIncomePLN) × 19%.
+   * Losses from one transaction offset gains from others.
+   */
+  taxDuePLN: number;
+}
+
+// ─── Legacy single-transaction types (kept for backward compat) ───────────────
+
 export interface TaxInputs {
   /** Total sale proceeds in USD (from broker confirmation — "Proceeds"). */
   totalProceedsUSD: number;

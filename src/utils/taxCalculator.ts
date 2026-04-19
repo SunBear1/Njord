@@ -1,6 +1,91 @@
-import type { TaxInputs, TaxResult } from '../types/tax';
+import type { TaxInputs, TaxResult, TaxTransaction, TransactionTaxResult, MultiTaxSummary } from '../types/tax';
 
 const BELKA_TAX = 0.19;
+
+// ─── Multi-transaction functions ──────────────────────────────────────────────
+
+/**
+ * Calculates the tax result for a single `TaxTransaction`.
+ *
+ * Exchange rates must already be populated on the transaction object.
+ * Returns null if required rates are missing (transaction not yet ready).
+ */
+export function calcTransactionResult(tx: TaxTransaction): TransactionTaxResult | null {
+  const sellRate = tx.exchangeRateSaleToPLN;
+  if (sellRate === null || sellRate === undefined || sellRate <= 0) return null;
+
+  // Acquisition rate: fall back to sell rate if not provided (simplification).
+  const buyRate = tx.zeroCostFlag
+    ? sellRate
+    : ((tx.exchangeRateAcquisitionToPLN ?? null) || sellRate);
+
+  const revenuePLN = tx.saleGrossAmount * sellRate;
+
+  let costPLN: number;
+  if (tx.zeroCostFlag) {
+    // Grant / RSU — only sale commission is a deductible cost.
+    costPLN = (tx.saleBrokerFee ?? 0) * sellRate;
+  } else {
+    const acquisitionCost = tx.acquisitionCostAmount ?? 0;
+    const acquisitionFee = tx.acquisitionBrokerFee ?? 0;
+    const saleFee = tx.saleBrokerFee ?? 0;
+    costPLN =
+      (acquisitionCost + acquisitionFee) * buyRate +
+      saleFee * sellRate;
+  }
+
+  const gainPLN = revenuePLN - costPLN;
+  const taxEstimatePLN = gainPLN > 0 ? gainPLN * BELKA_TAX : 0;
+
+  return {
+    revenuePLN,
+    costPLN,
+    gainPLN,
+    taxEstimatePLN,
+    isLoss: gainPLN < 0,
+    isZeroCost: tx.zeroCostFlag,
+  };
+}
+
+/**
+ * Aggregates results across multiple transactions.
+ *
+ * Per PIT-38 rules: losses in one transaction offset gains in others.
+ * Only transactions with fully populated exchange rates are included.
+ */
+export function calcMultiTaxSummary(transactions: TaxTransaction[]): MultiTaxSummary {
+  let totalRevenuePLN = 0;
+  let totalCostPLN = 0;
+  let totalGainPLN = 0;
+  let totalLossPLN = 0;
+
+  for (const tx of transactions) {
+    const result = calcTransactionResult(tx);
+    if (!result) continue;
+
+    totalRevenuePLN += result.revenuePLN;
+    totalCostPLN += result.costPLN;
+    if (result.gainPLN > 0) {
+      totalGainPLN += result.gainPLN;
+    } else {
+      totalLossPLN += -result.gainPLN;
+    }
+  }
+
+  const netIncomePLN = totalGainPLN - totalLossPLN;
+  const taxDuePLN = netIncomePLN > 0 ? netIncomePLN * BELKA_TAX : 0;
+
+  return {
+    totalRevenuePLN,
+    totalCostPLN,
+    totalGainPLN,
+    totalLossPLN,
+    netIncomePLN,
+    taxDuePLN,
+  };
+}
+
+// ─── Legacy single-transaction function ───────────────────────────────────────
 
 /**
  * Calculate Polish Belka tax (19% capital gains tax) for a stock sale.
