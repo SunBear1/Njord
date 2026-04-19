@@ -10,10 +10,14 @@ import {
   ChevronUp,
   Loader2,
   TrendingUp,
+  Upload,
+  Shield,
+  HelpCircle,
 } from 'lucide-react';
 import { calcTransactionResult, calcMultiTaxSummary } from '../utils/taxCalculator';
 import { fetchNbpTableARate } from '../utils/fetchNbpTableARate';
 import { fetchTickerName } from '../utils/fetchTickerName';
+import { parseEtradeFile } from '../utils/etradeParser';
 import { fmtPLN } from '../utils/formatting';
 import type { TaxTransaction, TransactionTaxResult, MultiTaxSummary } from '../types/tax';
 import type { CurrencyRates } from '../hooks/useCurrencyRates';
@@ -251,6 +255,39 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
 
   const readyCount = transactions.filter((tx) => calcTransactionResult(tx) !== null).length;
 
+  // ─── Etrade import ────────────────────────────────────────────────────────
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [showImportHelp, setShowImportHelp] = useState(false);
+
+  const handleImportFile = useCallback(
+    async (file: File) => {
+      setImportError(null);
+      setImportLoading(true);
+      try {
+        const buffer = await file.arrayBuffer();
+        const imported = await parseEtradeFile(buffer);
+        setTransactions((prev) => [...prev, ...imported]);
+        setExpandedIds((prev) => new Set([...prev, ...imported.map((t) => t.id)]));
+      } catch (err) {
+        setImportError(err instanceof Error ? err.message : 'Nieznany błąd podczas importu.');
+      } finally {
+        setImportLoading(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+    },
+    [],
+  );
+
+  const onFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) handleImportFile(file);
+    },
+    [handleImportFile],
+  );
+
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -287,15 +324,91 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
         ))}
       </div>
 
-      {/* Add button */}
-      <button
-        type="button"
-        onClick={addTransaction}
-        className="flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg px-3 py-2 border border-dashed border-blue-300 dark:border-blue-700 hover:border-blue-500 dark:hover:border-blue-500 w-full justify-center transition-colors"
-      >
-        <Plus size={16} aria-hidden="true" />
-        Dodaj transakcję
-      </button>
+      {/* Add + Import buttons */}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={addTransaction}
+          className="flex-1 flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg px-3 py-2 border border-dashed border-blue-300 dark:border-blue-700 hover:border-blue-500 dark:hover:border-blue-500 justify-center transition-colors"
+        >
+          <Plus size={16} aria-hidden="true" />
+          Dodaj transakcję
+        </button>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={importLoading}
+          className="flex-1 flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg px-3 py-2 border border-dashed border-emerald-300 dark:border-emerald-700 hover:border-emerald-500 dark:hover:border-emerald-500 justify-center transition-colors disabled:opacity-50"
+          aria-label="Importuj transakcje z pliku Etrade Gains & Losses (.xlsx)"
+        >
+          {importLoading ? (
+            <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+          ) : (
+            <Upload size={16} aria-hidden="true" />
+          )}
+          {importLoading ? 'Importowanie…' : 'Importuj z Etrade (.xlsx)'}
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".xlsx"
+          onChange={onFileChange}
+          className="hidden"
+          aria-hidden="true"
+          tabIndex={-1}
+        />
+      </div>
+
+      {/* Import error */}
+      {importError && (
+        <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-xl px-4 py-3 text-xs text-red-800 dark:text-red-300 flex items-start gap-2">
+          <AlertTriangle size={16} className="mt-0.5 flex-shrink-0 text-red-500" aria-hidden="true" />
+          <div>
+            <p className="font-semibold">Błąd importu</p>
+            <p className="mt-0.5">{importError}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Etrade import help & privacy */}
+      <div className="space-y-2">
+        <button
+          type="button"
+          onClick={() => setShowImportHelp((v) => !v)}
+          className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+        >
+          <HelpCircle size={14} aria-hidden="true" />
+          Jak pobrać plik z Etrade?
+          {showImportHelp ? <ChevronUp size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
+        </button>
+
+        {showImportHelp && (
+          <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3 text-xs text-gray-600 dark:text-gray-400 space-y-1.5">
+            <p className="font-semibold text-gray-700 dark:text-gray-300">Instrukcja eksportu z Etrade:</p>
+            <ol className="list-decimal list-inside space-y-0.5">
+              <li>Zaloguj się na konto Etrade</li>
+              <li>Przejdź do: <strong>Stock Plan → My Account → Tax Center</strong></li>
+              <li>Wybierz rok podatkowy</li>
+              <li>W sekcji <strong>„Gains & Losses"</strong> kliknij <strong>„Export"</strong> → <strong>„Export Expanded"</strong></li>
+              <li>Zapisz plik <code>.xlsx</code> i kliknij przycisk „Importuj z Etrade" powyżej</li>
+            </ol>
+            <p className="mt-2 text-[11px] text-gray-500 dark:text-gray-500">
+              Akceptujemy wyłącznie raport <strong>Gains & Losses (Expanded)</strong> z Etrade w formacie <code>.xlsx</code>.
+              Inne raporty (1099-B, potwierdzenia transakcji, wyciągi) nie są obsługiwane.
+            </p>
+          </div>
+        )}
+
+        {/* Privacy banner */}
+        <div className="flex items-start gap-2 bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded-lg px-3 py-2.5 text-[11px] text-gray-600 dark:text-gray-400">
+          <Shield size={14} className="mt-0.5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+          <p>
+            <strong className="text-emerald-700 dark:text-emerald-300">Prywatność:</strong>{' '}
+            Twoje dane nie opuszczają przeglądarki. Plik jest przetwarzany lokalnie na Twoim urządzeniu.
+            Jedyne zapytania sieciowe to publiczne kursy walut z NBP.
+          </p>
+        </div>
+      </div>
 
       {/* Year summary */}
       {readyCount > 0 && <YearSummary transactions={transactions} />}
@@ -352,6 +465,56 @@ function TaxTransactionCard({
       if (acqTimerRef.current) clearTimeout(acqTimerRef.current);
       if (tickerTimerRef.current) clearTimeout(tickerTimerRef.current);
     };
+  }, []);
+
+  // Auto-fetch NBP rates on mount when dates are set but rates are null (e.g., imported from Etrade file).
+  const mountFetchedRef = useRef(false);
+  useEffect(() => {
+    if (mountFetchedRef.current) return;
+    mountFetchedRef.current = true;
+    if (tx.saleDate && tx.exchangeRateSaleToPLN === null && !tx.isLoadingRateSale) {
+      saleTimerRef.current = setTimeout(() => {
+        onUpdate({ isLoadingRateSale: true, rateSaleError: undefined });
+        fetchNbpTableARate(tx.saleDate, tx.currency)
+          .then(({ rate, effectiveDate }) => {
+            onUpdate({
+              exchangeRateSaleToPLN: rate,
+              rateSaleEffectiveDate: effectiveDate,
+              isLoadingRateSale: false,
+              rateSaleError: undefined,
+            });
+          })
+          .catch((err: Error) => {
+            onUpdate({ isLoadingRateSale: false, rateSaleError: err.message });
+          });
+      }, 50); // small delay to stagger concurrent requests from batch import
+    }
+    if (tx.acquisitionDate && !tx.zeroCostFlag && tx.exchangeRateAcquisitionToPLN === null && !tx.isLoadingRateAcquisition) {
+      acqTimerRef.current = setTimeout(() => {
+        onUpdate({ isLoadingRateAcquisition: true, rateAcquisitionError: undefined });
+        fetchNbpTableARate(tx.acquisitionDate!, tx.currency)
+          .then(({ rate, effectiveDate }) => {
+            onUpdate({
+              exchangeRateAcquisitionToPLN: rate,
+              rateAcquisitionEffectiveDate: effectiveDate,
+              isLoadingRateAcquisition: false,
+              rateAcquisitionError: undefined,
+            });
+          })
+          .catch((err: Error) => {
+            onUpdate({ isLoadingRateAcquisition: false, rateAcquisitionError: err.message });
+          });
+      }, 100);
+    }
+    if (tx.ticker && !tx.tickerName && !tx.isLoadingTicker) {
+      tickerTimerRef.current = setTimeout(() => {
+        onUpdate({ isLoadingTicker: true, tickerError: undefined });
+        fetchTickerName(tx.ticker!)
+          .then((name) => onUpdate({ tickerName: name, isLoadingTicker: false, tickerError: undefined }))
+          .catch((err: Error) => onUpdate({ isLoadingTicker: false, tickerError: err.message }));
+      }, 150);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const triggerFetchSale = useCallback(
