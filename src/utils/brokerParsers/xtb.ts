@@ -97,11 +97,13 @@ async function parse(buffer: ArrayBuffer): Promise<TaxTransaction[]> {
   const sheet = workbook.Sheets[sheetName];
   const rows: unknown[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
 
-  // Find the header row: first row where column B (index 1) === 'Position'.
+  // Find the header row: scan up to first 25 rows for the row that contains
+  // all three sentinel column names. SheetJS drops the leading empty column
+  // that openpyxl sees, so 'Position' can appear at any index — we check by value.
   let headerRowIdx = -1;
-  for (let i = 0; i < Math.min(rows.length, 20); i++) {
+  for (let i = 0; i < Math.min(rows.length, 25); i++) {
     const row = rows[i] as unknown[];
-    if (row[1] === 'Position') {
+    if (row.includes('Position') && row.includes('Symbol') && row.includes('Type')) {
       headerRowIdx = i;
       break;
     }
