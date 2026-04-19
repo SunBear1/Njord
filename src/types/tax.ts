@@ -62,6 +62,8 @@ export interface TaxTransaction {
   tickerError?: string;
   /** Whether the broker commission section is expanded in the UI. */
   showCommissions?: boolean;
+  /** Name of the broker that imported this transaction (e.g. 'E*TRADE', 'XTB'). */
+  importSource?: string;
 }
 
 /** Calculated result for a single transaction. */

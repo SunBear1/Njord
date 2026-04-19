@@ -110,9 +110,10 @@ describe('parseEtradeFile', () => {
     expect(rsu.acquisitionMode).toBe('grant');
     expect(rsu.saleDate).toBe('2025-02-03');
     expect(rsu.acquisitionDate).toBeUndefined();
-    expect(rsu.saleGrossAmount).toBeCloseTo(2882.89);
+    expect(rsu.saleGrossAmount).toBe(2882.89); // exact — no floating-point drift
     expect(rsu.acquisitionCostAmount).toBeUndefined();
     expect(rsu.exchangeRateSaleToPLN).toBeNull();
+    expect(rsu.importSource).toBe('E*TRADE');
 
     // Purchase trade
     const purchase = result[1];
@@ -121,8 +122,9 @@ describe('parseEtradeFile', () => {
     expect(purchase.acquisitionMode).toBe('purchase');
     expect(purchase.saleDate).toBe('2024-06-20');
     expect(purchase.acquisitionDate).toBe('2024-01-15');
-    expect(purchase.saleGrossAmount).toBeCloseTo(1950);
-    expect(purchase.acquisitionCostAmount).toBeCloseTo(1500);
+    expect(purchase.saleGrossAmount).toBe(1950);
+    expect(purchase.acquisitionCostAmount).toBe(1500);
+    expect(purchase.importSource).toBe('E*TRADE');
   });
 
   it('skips Summary rows and non-Sell rows', async () => {
@@ -175,7 +177,7 @@ describe('parseEtradeFile', () => {
 
     const result = await parseEtradeFile(new ArrayBuffer(0));
     expect(result).toHaveLength(1);
-    expect(result[0].saleGrossAmount).toBeCloseTo(1950);
+    expect(result[0].saleGrossAmount).toBe(1950);
   });
 
   it('generates unique IDs for each transaction', async () => {
@@ -192,5 +194,13 @@ describe('parseEtradeFile', () => {
       expect(tx.exchangeRateSaleToPLN).toBeNull();
       expect(tx.exchangeRateAcquisitionToPLN).toBeNull();
     }
+  });
+
+  it('rounds imprecise float amounts to 2 decimal places', async () => {
+    const impreciseRow = [...SELL_ROW_RSU];
+    impreciseRow[13] = 2882.89001; // SheetJS float imprecision
+    setMockRows([HEADERS, impreciseRow]);
+    const result = await parseEtradeFile(new ArrayBuffer(0));
+    expect(result[0].saleGrossAmount).toBe(2882.89);
   });
 });

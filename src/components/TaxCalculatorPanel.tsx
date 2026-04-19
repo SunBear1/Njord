@@ -814,6 +814,12 @@ function TaxTransactionCard({
               {tx.ticker}
             </span>
           )}
+          {/* Broker source badge */}
+          {tx.importSource && (
+            <span className="inline-flex items-center bg-gray-100 dark:bg-gray-700/60 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide">
+              {tx.importSource}
+            </span>
+          )}
           {tx.tickerName && (
             <span className="text-gray-500 dark:text-gray-400 text-xs truncate max-w-[180px]">
               {tx.tickerName}

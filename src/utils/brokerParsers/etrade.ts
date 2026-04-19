@@ -83,6 +83,9 @@ async function parse(buffer: ArrayBuffer): Promise<TaxTransaction[]> {
 
     if (isNaN(proceeds) || proceeds <= 0) continue; // skip invalid rows
 
+    // Round to 2dp — SheetJS can produce IEEE 754 imprecision (e.g. 2882.89001 instead of 2882.89).
+    const round2 = (n: number) => Math.round(n * 100) / 100;
+
     trades.push({
       id: crypto.randomUUID(),
       tradeType: 'sale',
@@ -92,10 +95,11 @@ async function parse(buffer: ArrayBuffer): Promise<TaxTransaction[]> {
       currency: 'USD',
       saleDate,
       acquisitionDate: isRSU ? undefined : acquisitionDate,
-      saleGrossAmount: proceeds,
-      acquisitionCostAmount: isRSU ? undefined : (isNaN(costBasis) ? undefined : costBasis),
+      saleGrossAmount: round2(proceeds),
+      acquisitionCostAmount: isRSU ? undefined : (isNaN(costBasis) ? undefined : round2(costBasis)),
       exchangeRateSaleToPLN: null,
       exchangeRateAcquisitionToPLN: null,
+      importSource: 'E*TRADE',
     });
   }
 
