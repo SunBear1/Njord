@@ -9,9 +9,11 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
+  TrendingUp,
 } from 'lucide-react';
 import { calcTransactionResult, calcMultiTaxSummary } from '../utils/taxCalculator';
 import { fetchNbpTableARate } from '../utils/fetchNbpTableARate';
+import { fetchTickerName } from '../utils/fetchTickerName';
 import { fmtPLN } from '../utils/formatting';
 import type { TaxTransaction, TransactionTaxResult, MultiTaxSummary } from '../types/tax';
 import type { CurrencyRates } from '../hooks/useCurrencyRates';
@@ -28,6 +30,8 @@ const INPUT_CLS =
   'dark:placeholder-gray-400';
 const LABEL_CLS = 'text-xs font-medium text-gray-600 dark:text-gray-400';
 const DEBOUNCE_MS = 500;
+
+const CURRENCIES = ['USD', 'EUR', 'GBP', 'CHF', 'DKK', 'SEK', 'PLN'] as const;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -49,6 +53,7 @@ function newTransaction(): TaxTransaction {
     acquisitionBrokerFee: 0,
     exchangeRateSaleToPLN: null,
     exchangeRateAcquisitionToPLN: null,
+    showCommissions: false,
   };
 }
 
@@ -56,6 +61,14 @@ function fmtGain(gain: number): { text: string; cls: string } {
   if (gain > 0) return { text: `+${fmtPLN(gain)}`, cls: 'text-green-700 dark:text-green-400' };
   if (gain < 0) return { text: fmtPLN(gain), cls: 'text-red-600 dark:text-red-400' };
   return { text: fmtPLN(0), cls: 'text-gray-600 dark:text-gray-300' };
+}
+
+/** Returns YYYY-MM-DD of (date − 1 day), or undefined if date is empty. */
+function subtractOneDay(dateStr: string): string | undefined {
+  if (!dateStr) return undefined;
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().split('T')[0];
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -72,7 +85,6 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
   });
 
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
-    // Expand all on first load
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -171,8 +183,8 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
         Dodaj transakcję
       </button>
 
-      {/* Year summary — only show when at least one transaction is ready */}
-      {readyCount > 0 && <YearSummary summary={summary} />}
+      {/* Year summary */}
+      {readyCount > 0 && <YearSummary summary={summary} transactions={transactions} />}
 
       {/* Disclaimer */}
       <p className="text-xs text-gray-400 dark:text-gray-500 text-center pb-1">
@@ -218,12 +230,13 @@ function TaxTransactionCard({
 
   const saleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const acqTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tickerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Clean up debounce timers on unmount.
   useEffect(() => {
     return () => {
       if (saleTimerRef.current) clearTimeout(saleTimerRef.current);
       if (acqTimerRef.current) clearTimeout(acqTimerRef.current);
+      if (tickerTimerRef.current) clearTimeout(tickerTimerRef.current);
     };
   }, []);
 
@@ -326,13 +339,37 @@ function TaxTransactionCard({
     [onUpdate, tx.saleDate, tx.acquisitionDate, tx.zeroCostFlag, triggerFetchSale, triggerFetchAcq],
   );
 
+  const handleTickerChange = useCallback(
+    (ticker: string) => {
+      const t = ticker.toUpperCase();
+      onUpdate({ ticker: t, tickerName: undefined, tickerError: undefined, isLoadingTicker: false });
+      if (tickerTimerRef.current) clearTimeout(tickerTimerRef.current);
+      if (!t) return;
+      tickerTimerRef.current = setTimeout(() => {
+        onUpdate({ isLoadingTicker: true, tickerError: undefined });
+        fetchTickerName(t)
+          .then((name) => onUpdate({ tickerName: name, isLoadingTicker: false, tickerError: undefined }))
+          .catch((err: Error) => onUpdate({ isLoadingTicker: false, tickerError: err.message }));
+      }, DEBOUNCE_MS);
+    },
+    [onUpdate],
+  );
+
+  const acqDateError =
+    tx.acquisitionDate && tx.saleDate && tx.acquisitionDate > tx.saleDate
+      ? 'Data nabycia nie może być późniejsza niż data sprzedaży.'
+      : undefined;
+
   const gainInfo = result ? fmtGain(result.gainPLN) : null;
+  const hasCommissions =
+    (tx.saleBrokerFee ?? 0) > 0 || (tx.acquisitionBrokerFee ?? 0) > 0;
+  const showCommissions = tx.showCommissions || hasCommissions;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
       {/* Card header */}
       <div
-        className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 select-none"
+        className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 select-none"
         onClick={onToggle}
         role="button"
         tabIndex={0}
@@ -345,6 +382,18 @@ function TaxTransactionCard({
         </span>
 
         <div className="flex-1 min-w-0 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+          {/* Ticker badge */}
+          {tx.ticker && (
+            <span className="inline-flex items-center gap-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded font-semibold text-xs tracking-wide">
+              <TrendingUp size={10} aria-hidden="true" />
+              {tx.ticker}
+            </span>
+          )}
+          {tx.tickerName && (
+            <span className="text-gray-500 dark:text-gray-400 text-xs truncate max-w-[180px]">
+              {tx.tickerName}
+            </span>
+          )}
           {tx.saleDate ? (
             <span className="text-gray-700 dark:text-gray-200 font-medium">{tx.saleDate}</span>
           ) : (
@@ -381,8 +430,49 @@ function TaxTransactionCard({
       {/* Card body */}
       {isExpanded && (
         <div className="border-t border-gray-100 dark:border-gray-700 px-4 py-4 space-y-4">
-          {/* Row 1: Sale date, sale amount, currency, sale commission */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+
+          {/* Row 0: Ticker (optional) */}
+          <div className="space-y-1">
+            <label className={LABEL_CLS}>
+              Ticker giełdowy
+              <span className="ml-1 text-gray-400 dark:text-gray-500 font-normal">(opcjonalne)</span>
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={tx.ticker ?? ''}
+                onChange={(e) => handleTickerChange(e.target.value)}
+                placeholder="np. AAPL, NVDA, SPY"
+                maxLength={12}
+                autoCapitalize="characters"
+                spellCheck={false}
+                autoComplete="off"
+                className={INPUT_CLS}
+              />
+              {tx.isLoadingTicker && (
+                <Loader2
+                  size={14}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-blue-400"
+                  aria-hidden="true"
+                />
+              )}
+            </div>
+            {tx.tickerName && !tx.isLoadingTicker && (
+              <p className="text-[11px] text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                <CheckCircle2 size={10} aria-hidden="true" />
+                {tx.tickerName}
+              </p>
+            )}
+            {tx.tickerError && !tx.isLoadingTicker && (
+              <p className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                <AlertTriangle size={10} aria-hidden="true" />
+                {tx.tickerError}
+              </p>
+            )}
+          </div>
+
+          {/* Row 1: Sale date, sale amount, currency */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <div className="space-y-1">
               <label className={LABEL_CLS}>
                 Data sprzedaży <span className="text-red-500">*</span>
@@ -421,43 +511,19 @@ function TaxTransactionCard({
               />
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1 col-span-2 sm:col-span-1">
               <label className={LABEL_CLS}>
                 Waluta <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
+              <select
                 value={tx.currency}
-                onChange={(e) => handleCurrencyChange(e.target.value.toUpperCase().slice(0, 3))}
-                placeholder="USD"
-                maxLength={3}
-                list="tax-currency-list"
+                onChange={(e) => handleCurrencyChange(e.target.value)}
                 className={INPUT_CLS}
-                autoComplete="off"
-                spellCheck={false}
-              />
-              <datalist id="tax-currency-list">
-                <option value="USD" />
-                <option value="EUR" />
-                <option value="GBP" />
-                <option value="CHF" />
-                <option value="DKK" />
-                <option value="SEK" />
-                <option value="PLN" />
-              </datalist>
-            </div>
-
-            <div className="space-y-1">
-              <label className={LABEL_CLS}>Prowizja sprzedaży</label>
-              <input
-                type="number"
-                min={0}
-                step={0.01}
-                value={tx.saleBrokerFee || ''}
-                onChange={(e) => onUpdate({ saleBrokerFee: Number(e.target.value) })}
-                placeholder="np. 4.95"
-                className={INPUT_CLS}
-              />
+              >
+                {CURRENCIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
             </div>
           </div>
 
@@ -487,9 +553,9 @@ function TaxTransactionCard({
             </span>
           </label>
 
-          {/* Row 2: Acquisition fields (conditional) */}
+          {/* Acquisition fields (conditional) */}
           {!tx.zeroCostFlag && (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 pt-2 border-t border-dashed border-gray-200 dark:border-gray-700">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 pt-2 border-t border-dashed border-gray-200 dark:border-gray-700">
               <div className="space-y-1">
                 <label className={LABEL_CLS}>
                   Data nabycia <span className="text-red-500">*</span>
@@ -498,19 +564,26 @@ function TaxTransactionCard({
                   type="date"
                   value={tx.acquisitionDate ?? ''}
                   onChange={(e) => handleAcqDateChange(e.target.value)}
-                  max={tx.saleDate || undefined}
-                  className={INPUT_CLS}
+                  max={subtractOneDay(tx.saleDate)}
+                  className={`${INPUT_CLS} ${acqDateError ? 'border-red-400 dark:border-red-500' : ''}`}
                 />
-                <RateStatusBadge
-                  rate={tx.exchangeRateAcquisitionToPLN ?? null}
-                  effectiveDate={tx.rateAcquisitionEffectiveDate}
-                  isLoading={tx.isLoadingRateAcquisition}
-                  error={tx.rateAcquisitionError}
-                  currency={tx.currency}
-                  onManualChange={(rate) =>
-                    onUpdate({ exchangeRateAcquisitionToPLN: rate, rateAcquisitionError: undefined })
-                  }
-                />
+                {acqDateError ? (
+                  <p className="text-[11px] text-red-600 dark:text-red-400 flex items-center gap-1">
+                    <AlertTriangle size={10} aria-hidden="true" />
+                    {acqDateError}
+                  </p>
+                ) : (
+                  <RateStatusBadge
+                    rate={tx.exchangeRateAcquisitionToPLN ?? null}
+                    effectiveDate={tx.rateAcquisitionEffectiveDate}
+                    isLoading={tx.isLoadingRateAcquisition}
+                    error={tx.rateAcquisitionError}
+                    currency={tx.currency}
+                    onManualChange={(rate) =>
+                      onUpdate({ exchangeRateAcquisitionToPLN: rate, rateAcquisitionError: undefined })
+                    }
+                  />
+                )}
               </div>
 
               <div className="space-y-1">
@@ -527,26 +600,67 @@ function TaxTransactionCard({
                   className={INPUT_CLS}
                 />
               </div>
-
-              <div className="hidden sm:block" /> {/* Grid spacer */}
-
-              <div className="space-y-1">
-                <label className={LABEL_CLS}>Prowizja zakupu</label>
-                <input
-                  type="number"
-                  min={0}
-                  step={0.01}
-                  value={tx.acquisitionBrokerFee || ''}
-                  onChange={(e) => onUpdate({ acquisitionBrokerFee: Number(e.target.value) })}
-                  placeholder="np. 4.95"
-                  className={INPUT_CLS}
-                />
-              </div>
             </div>
           )}
 
+          {/* Commissions (optional, collapsed by default) */}
+          <div className="pt-1">
+            {!showCommissions ? (
+              <button
+                type="button"
+                onClick={() => onUpdate({ showCommissions: true })}
+                className="text-xs text-gray-400 dark:text-gray-500 hover:text-blue-500 dark:hover:text-blue-400 underline underline-offset-2 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
+              >
+                + Dodaj prowizję brokera
+              </button>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Prowizje brokera</span>
+                  {!hasCommissions && (
+                    <button
+                      type="button"
+                      onClick={() => onUpdate({ showCommissions: false })}
+                      className="text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
+                    >
+                      Ukryj
+                    </button>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className={LABEL_CLS}>Prowizja sprzedaży</label>
+                    <input
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      value={tx.saleBrokerFee || ''}
+                      onChange={(e) => onUpdate({ saleBrokerFee: Number(e.target.value) })}
+                      placeholder="np. 4.95"
+                      className={INPUT_CLS}
+                    />
+                  </div>
+                  {!tx.zeroCostFlag && (
+                    <div className="space-y-1">
+                      <label className={LABEL_CLS}>Prowizja zakupu</label>
+                      <input
+                        type="number"
+                        min={0}
+                        step={0.01}
+                        value={tx.acquisitionBrokerFee || ''}
+                        onChange={(e) => onUpdate({ acquisitionBrokerFee: Number(e.target.value) })}
+                        placeholder="np. 4.95"
+                        className={INPUT_CLS}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Result row */}
-          {result && (
+          {result && !acqDateError && (
             <div className="flex flex-wrap items-stretch gap-px bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 mt-1">
               <ResultCell label="Przychód" value={fmtPLN(result.revenuePLN)} />
               <ResultCell label="Koszt" value={fmtPLN(result.costPLN)} subtract />
@@ -567,7 +681,7 @@ function TaxTransactionCard({
           )}
 
           {/* Not-ready hint */}
-          {!result && tx.saleGrossAmount > 0 && tx.saleDate && (
+          {!result && tx.saleGrossAmount > 0 && tx.saleDate && !acqDateError && (
             <p className="text-xs text-gray-400 dark:text-gray-500">
               {tx.isLoadingRateSale || tx.isLoadingRateAcquisition
                 ? 'Pobieranie kursu NBP…'
@@ -645,8 +759,10 @@ function RateStatusBadge({
     return (
       <p className="text-[11px] text-green-600 dark:text-green-400 flex items-center gap-1">
         <CheckCircle2 size={10} aria-hidden="true" />
-        NBP: {rate.toFixed(4)}
-        {effectiveDate && <span className="text-gray-400 dark:text-gray-500"> ({effectiveDate})</span>}
+        Kurs NBP: {rate.toFixed(4)}
+        {effectiveDate && (
+          <span className="text-gray-400 dark:text-gray-500"> z {effectiveDate}</span>
+        )}
       </p>
     );
   }
@@ -688,7 +804,13 @@ function ResultCell({
 
 // ─── Year Summary ─────────────────────────────────────────────────────────────
 
-function YearSummary({ summary }: { summary: MultiTaxSummary }) {
+function YearSummary({
+  summary,
+  transactions,
+}: {
+  summary: MultiTaxSummary;
+  transactions: TaxTransaction[];
+}) {
   return (
     <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-4">
       <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-1.5">
@@ -696,7 +818,51 @@ function YearSummary({ summary }: { summary: MultiTaxSummary }) {
         Podsumowanie roczne (PIT-38)
       </h3>
 
-      {/* 4-cell summary grid */}
+      {/* Per-transaction summary rows */}
+      {transactions.some((tx) => calcTransactionResult(tx) !== null) && (
+        <div className="space-y-1.5">
+          {transactions.map((tx, idx) => {
+            const r = calcTransactionResult(tx);
+            if (!r) return null;
+            const g = fmtGain(r.gainPLN);
+            return (
+              <div
+                key={tx.id}
+                className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400"
+              >
+                <span className="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-[10px] font-bold flex items-center justify-center flex-shrink-0">
+                  {idx + 1}
+                </span>
+                {tx.ticker && (
+                  <span className="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide flex-shrink-0">
+                    {tx.ticker}
+                  </span>
+                )}
+                {tx.tickerName && (
+                  <span className="truncate text-gray-500 dark:text-gray-500 hidden sm:block max-w-[140px]">
+                    {tx.tickerName}
+                  </span>
+                )}
+                <span className="text-gray-400 dark:text-gray-500 flex-shrink-0">
+                  {tx.saleDate || '—'}
+                </span>
+                <span className={`ml-auto font-semibold tabular-nums flex-shrink-0 ${g.cls}`}>
+                  {g.text}
+                </span>
+                {!r.isLoss && (
+                  <span className="text-amber-700 dark:text-amber-400 tabular-nums flex-shrink-0 font-medium">
+                    {fmtPLN(r.taxEstimatePLN)}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <hr className="border-gray-200 dark:border-gray-600" />
+
+      {/* 4-cell totals grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <SummaryCell label="Suma przychodów" value={fmtPLN(summary.totalRevenuePLN)} />
         <SummaryCell label="Suma kosztów" value={fmtPLN(summary.totalCostPLN)} />

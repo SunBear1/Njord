@@ -54,8 +54,14 @@ export interface TaxTransaction {
   rateSaleError?: string;
   rateAcquisitionError?: string;
 
-  /** Optional human-readable description. */
-  note?: string;
+  /** Optional exchange ticker symbol for identification (e.g. 'AAPL', 'NVDA'). */
+  ticker?: string;
+  /** Company/fund name resolved from the ticker symbol. */
+  tickerName?: string;
+  isLoadingTicker?: boolean;
+  tickerError?: string;
+  /** Whether the broker commission section is expanded in the UI. */
+  showCommissions?: boolean;
 }
 
 /** Calculated result for a single transaction. */
