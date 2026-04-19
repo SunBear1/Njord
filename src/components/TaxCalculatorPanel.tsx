@@ -358,17 +358,17 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
             type="button"
             onClick={() => { setShowImportDropdown((v) => !v); setImportError(null); }}
             disabled={importLoading}
-            className="flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 border border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 rounded-lg px-2.5 py-1.5 transition-colors disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="flex items-center gap-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             aria-expanded={showImportDropdown}
             aria-haspopup="true"
-            aria-label="Importuj transakcje z pliku brokera"
+            aria-label="Automatyczny import z brokera"
           >
             {importLoading ? (
               <Loader2 size={13} className="animate-spin" aria-hidden="true" />
             ) : (
               <Upload size={13} aria-hidden="true" />
             )}
-            Import
+            Auto-import
           </button>
 
           {/* Broker import dropdown */}
@@ -386,21 +386,25 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                 </button>
               </div>
 
-              {/* Broker selector */}
-              <div className="space-y-1">
-                {BROKER_PARSERS.map((broker) => (
+              {/* Broker selector — segmented control */}
+              <div className="flex rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden text-xs">
+                {BROKER_PARSERS.map((broker, i) => (
                   <button
                     key={broker.id}
                     type="button"
                     onClick={() => { setSelectedBrokerId(broker.id); setShowBrokerHelp(false); }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors flex items-center justify-between ${
+                    className={`flex-1 flex flex-col items-center py-2 px-3 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 ${
+                      i > 0 ? 'border-l border-gray-200 dark:border-gray-600' : ''
+                    } ${
                       selectedBrokerId === broker.id
-                        ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-transparent'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                     }`}
                   >
-                    <span className="font-medium">{broker.name}</span>
-                    <span className="text-gray-400 dark:text-gray-500">{broker.fileLabel}</span>
+                    <span className="font-semibold">{broker.name}</span>
+                    <span className={`text-[10px] mt-0.5 ${selectedBrokerId === broker.id ? 'text-blue-100' : 'text-gray-400 dark:text-gray-500'}`}>
+                      {broker.fileLabel}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -448,7 +452,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                 {importLoading ? (
                   <><Loader2 size={13} className="animate-spin" aria-hidden="true" /> Importowanie…</>
                 ) : (
-                  <><Upload size={13} aria-hidden="true" /> Wybierz plik {selectedBroker?.fileLabel}</>
+                  <><Upload size={13} aria-hidden="true" /> Wybierz plik {selectedBroker?.fileLabel} i importuj</>
                 )}
               </button>
 
@@ -814,12 +818,6 @@ function TaxTransactionCard({
               {tx.ticker}
             </span>
           )}
-          {/* Broker source badge */}
-          {tx.importSource && (
-            <span className="inline-flex items-center bg-gray-100 dark:bg-gray-700/60 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide">
-              {tx.importSource}
-            </span>
-          )}
           {tx.tickerName && (
             <span className="text-gray-500 dark:text-gray-400 text-xs truncate max-w-[180px]">
               {tx.tickerName}
@@ -843,6 +841,12 @@ function TaxTransactionCard({
         </div>
 
         <div className="flex items-center gap-1 flex-shrink-0">
+          {/* Broker source badge near the trash button */}
+          {tx.importSource && (
+            <span className="inline-flex items-center bg-gray-100 dark:bg-gray-700/60 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide">
+              {tx.importSource}
+            </span>
+          )}
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
