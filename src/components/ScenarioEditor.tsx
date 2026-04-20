@@ -32,9 +32,9 @@ const SCENARIO_CONFIG: {
   {
     key: 'bear', label: 'Bear',
     icon: <TrendingDown size={14} aria-hidden="true" />,
-    headerBg: 'bg-orange-100 dark:bg-orange-900/40', headerText: 'text-orange-800 dark:text-orange-200',
-    cardBorder: 'border-orange-200 dark:border-orange-800', cardBg: 'bg-orange-50/30 dark:bg-orange-950/20',
-    inputBorder: 'border-orange-300 dark:border-orange-600 focus:ring-orange-400',
+    headerBg: 'bg-red-100 dark:bg-red-900/40', headerText: 'text-red-800 dark:text-red-200',
+    cardBorder: 'border-red-200 dark:border-red-800', cardBg: 'bg-red-50/30 dark:bg-red-950/20',
+    inputBorder: 'border-red-300 dark:border-red-600 focus:ring-red-400',
   },
   {
     key: 'base', label: 'Base',
@@ -46,9 +46,9 @@ const SCENARIO_CONFIG: {
   {
     key: 'bull', label: 'Bull',
     icon: <TrendingUp size={14} aria-hidden="true" />,
-    headerBg: 'bg-blue-100 dark:bg-blue-900/40', headerText: 'text-blue-700 dark:text-blue-300',
-    cardBorder: 'border-blue-200 dark:border-blue-800', cardBg: 'bg-blue-50/30 dark:bg-blue-950/20',
-    inputBorder: 'border-blue-300 dark:border-blue-600 focus:ring-blue-400',
+    headerBg: 'bg-green-100 dark:bg-green-900/40', headerText: 'text-green-700 dark:text-green-300',
+    cardBorder: 'border-green-200 dark:border-green-800', cardBg: 'bg-green-50/30 dark:bg-green-950/20',
+    inputBorder: 'border-green-300 dark:border-green-600 focus:ring-green-400',
   },
 ];
 

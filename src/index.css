@@ -8,11 +8,11 @@
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
 
-  /* Brand & scenario colors — Okabe-Ito color-blind safe palette */
+  /* Brand & scenario colors */
   --color-brand: #1a56db;
-  --color-bear: #d55e00;    /* Okabe-Ito vermilion — safe for deuteranopia/protanopia */
-  --color-base: #e69f00;    /* Okabe-Ito orange-yellow */
-  --color-bull: #0072b2;    /* Okabe-Ito blue */
+  --color-bear: #dc2626;    /* red-600 */
+  --color-base: #e69f00;    /* amber */
+  --color-bull: #16a34a;    /* green-600 */
 
   /* Semantic surface tokens (light mode defaults) */
   --color-bg-primary: #f9fafb;     /* gray-50 */
@@ -45,9 +45,9 @@
 html.dark {
   color-scheme: dark;
   --color-brand: #3b82f6;
-  --color-bear: #e87040;    /* Okabe-Ito vermilion — lighter for dark backgrounds */
-  --color-base: #f5c842;    /* Okabe-Ito yellow — lighter for dark backgrounds */
-  --color-bull: #2491d4;    /* Okabe-Ito blue — lighter for dark backgrounds */
+  --color-bear: #ef4444;    /* red-500 — lighter for dark backgrounds */
+  --color-base: #f5c842;    /* yellow — lighter for dark backgrounds */
+  --color-bull: #22c55e;    /* green-500 — lighter for dark backgrounds */
   --color-bg-primary: #0f172a;
   --color-bg-secondary: #1e293b;
   --color-bg-card: #1e293b;
