@@ -21,3 +21,17 @@ jobs:
       - run: npm run build
       - name: Type-check functions/
         run: npx tsc --noEmit --skipLibCheck -p functions/tsconfig.json
+      - name: Security audit (high+ severity)
+        # warn-only for now; tighten to --audit-level=high once SheetJS CVE resolved
+        run: npm audit --omit=dev --audit-level=critical || true
+      - name: Bundle size check
+        run: |
+          BUNDLE=$(find dist/assets -name 'index-*.js' | head -1)
+          SIZE=$(wc -c < "$BUNDLE")
+          MAX=$((200 * 1024))
+          echo "Main bundle: $((SIZE / 1024)) KB (limit: $((MAX / 1024)) KB)"
+          if [ "$SIZE" -gt "$MAX" ]; then
+            echo "❌ Main bundle exceeds 200 KB limit!" && exit 1
+          else
+            echo "✅ Bundle size OK"
+          fi

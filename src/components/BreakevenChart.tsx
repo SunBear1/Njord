@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import type { HeatmapCell } from '../utils/calculations';
 import { fmtPLN } from '../utils/formatting';
 
@@ -8,7 +8,7 @@ interface BreakevenChartProps {
   benchmarkLabel: string;
 }
 
-export function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: BreakevenChartProps) {
+function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: BreakevenChartProps) {
   const deltaStockValues = useMemo(
     () => [...new Set(cells.map((c) => c.deltaStock))].sort((a, b) => b - a),
     [cells],
@@ -93,3 +93,5 @@ export function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: 
     </div>
   );
 }
+
+export default memo(BreakevenChart);

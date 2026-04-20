@@ -6,6 +6,8 @@
  * from the last business day preceding the transaction date.
  */
 
+import { fetchWithTimeout } from './fetchWithTimeout';
+
 export interface NbpRateResult {
   /** Mid rate from NBP Table A. */
   rate: number;
@@ -14,6 +16,7 @@ export interface NbpRateResult {
 }
 
 const NBP_BASE = 'https://api.nbp.pl/api/exchangerates/rates/a';
+const NBP_TIMEOUT_MS = 8_000;
 
 /**
  * Returns the NBP Table A mid rate for `currency` as of the last business day
@@ -21,10 +24,14 @@ const NBP_BASE = 'https://api.nbp.pl/api/exchangerates/rates/a';
  *
  * For PLN, returns rate = 1 without making an API call.
  * Throws a Polish-language error string on failure.
+ *
+ * @param signal - Optional AbortSignal to cancel the request (e.g. when the
+ *   user changes the date before the previous fetch resolves).
  */
 export async function fetchNbpTableARate(
   date: string,
   currency = 'USD',
+  signal?: AbortSignal,
 ): Promise<NbpRateResult> {
   if (!date) throw new Error('Brak daty transakcji.');
 
@@ -48,8 +55,9 @@ export async function fetchNbpTableARate(
 
   let res: Response;
   try {
-    res = await fetch(url);
-  } catch {
+    res = await fetchWithTimeout(url, signal, NBP_TIMEOUT_MS);
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') throw err;
     throw new Error('Błąd sieci — sprawdź połączenie z internetem.');
   }
 
@@ -78,6 +86,9 @@ export async function fetchNbpTableARate(
 
   // Last entry = most recent business day before the transaction date.
   const last = data.rates[data.rates.length - 1];
+  if (typeof last.mid !== 'number' || !isFinite(last.mid) || last.mid <= 0) {
+    throw new Error('NBP zwróciło nieprawidłowy kurs. Wprowadź kurs ręcznie.');
+  }
   return { rate: last.mid, effectiveDate: last.effectiveDate };
 }
 

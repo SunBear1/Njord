@@ -295,6 +295,16 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
       setLastImportIds(null);
       undoInvalidatedRef.current = false;
       try {
+        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+        if (file.size > MAX_FILE_SIZE) {
+          throw new Error(
+            `Plik jest za duży (${(file.size / 1024 / 1024).toFixed(1)} MB). ` +
+              'Maksymalna dozwolona wielkość to 10 MB.',
+          );
+        }
+        if (!file.name.toLowerCase().endsWith('.xlsx')) {
+          throw new Error('Plik nie jest prawidłowym arkuszem Excel (.xlsx).');
+        }
         const buffer = await file.arrayBuffer();
         const imported = await selectedBroker.parse(buffer);
         setTransactions((prev) => [...prev, ...imported]);
@@ -660,12 +670,16 @@ function TransactionTableRow({
   const saleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const acqTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tickerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saleAbortRef = useRef<AbortController | null>(null);
+  const acqAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     return () => {
       if (saleTimerRef.current) clearTimeout(saleTimerRef.current);
       if (acqTimerRef.current) clearTimeout(acqTimerRef.current);
       if (tickerTimerRef.current) clearTimeout(tickerTimerRef.current);
+      saleAbortRef.current?.abort();
+      acqAbortRef.current?.abort();
     };
   }, []);
 
@@ -726,9 +740,13 @@ function TransactionTableRow({
         onUpdate({ exchangeRateSaleToPLN: 1, rateSaleEffectiveDate: date, isLoadingRateSale: false });
         return;
       }
+      saleAbortRef.current?.abort();
+      const controller = new AbortController();
+      saleAbortRef.current = controller;
       onUpdate({ isLoadingRateSale: true, rateSaleError: undefined });
-      fetchNbpTableARate(date, currency)
+      fetchNbpTableARate(date, currency, controller.signal)
         .then(({ rate, effectiveDate }) => {
+          if (controller.signal.aborted) return;
           onUpdate({
             exchangeRateSaleToPLN: rate,
             rateSaleEffectiveDate: effectiveDate,
@@ -737,6 +755,7 @@ function TransactionTableRow({
           });
         })
         .catch((err: Error) => {
+          if (controller.signal.aborted) return;
           onUpdate({ isLoadingRateSale: false, rateSaleError: err.message });
         });
     },
@@ -750,9 +769,13 @@ function TransactionTableRow({
         onUpdate({ exchangeRateAcquisitionToPLN: 1, rateAcquisitionEffectiveDate: date, isLoadingRateAcquisition: false });
         return;
       }
+      acqAbortRef.current?.abort();
+      const controller = new AbortController();
+      acqAbortRef.current = controller;
       onUpdate({ isLoadingRateAcquisition: true, rateAcquisitionError: undefined });
-      fetchNbpTableARate(date, currency)
+      fetchNbpTableARate(date, currency, controller.signal)
         .then(({ rate, effectiveDate }) => {
+          if (controller.signal.aborted) return;
           onUpdate({
             exchangeRateAcquisitionToPLN: rate,
             rateAcquisitionEffectiveDate: effectiveDate,
@@ -761,6 +784,7 @@ function TransactionTableRow({
           });
         })
         .catch((err: Error) => {
+          if (controller.signal.aborted) return;
           onUpdate({ isLoadingRateAcquisition: false, rateAcquisitionError: err.message });
         });
     },

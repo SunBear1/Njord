@@ -1,6 +1,6 @@
 import type { ScenarioResult } from '../types/scenario';
 import { fmtPLN, fmtUSD, fmtDiff, fmtDiffPct } from '../utils/formatting';
-import { Trophy, Info, TrendingDown } from 'lucide-react';
+import { Trophy, Info, TrendingDown, TrendingUp, Minus } from 'lucide-react';
 import { NBP_TARGET } from '../utils/inflationProjection';
 import { Tooltip } from './Tooltip';
 
@@ -17,11 +17,17 @@ interface VerdictBannerProps {
   avgCostUSD?: number;
 }
 
+const SCENARIO_ICON = {
+  bear: <TrendingDown size={12} aria-hidden="true" />,
+  base: <Minus size={12} aria-hidden="true" />,
+  bull: <TrendingUp size={12} aria-hidden="true" />,
+} as const;
+
 const SCENARIO_STYLE = {
   bear: {
-    bg: 'bg-red-50 dark:bg-red-950/30',
-    border: 'border-red-200 dark:border-red-900',
-    badge: 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800',
+    bg: 'bg-orange-50 dark:bg-orange-950/30',
+    border: 'border-orange-200 dark:border-orange-900',
+    badge: 'bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-200 border border-orange-200 dark:border-orange-800',
   },
   base: {
     bg: 'bg-amber-50 dark:bg-amber-950/30',
@@ -29,9 +35,9 @@ const SCENARIO_STYLE = {
     badge: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800',
   },
   bull: {
-    bg: 'bg-green-50 dark:bg-green-950/30',
-    border: 'border-green-200 dark:border-green-900',
-    badge: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800',
+    bg: 'bg-blue-50 dark:bg-blue-950/30',
+    border: 'border-blue-200 dark:border-blue-900',
+    badge: 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800',
   },
 };
 
@@ -77,7 +83,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
           const gain = r.unrealizedGainPLN ?? 0;
           const gainPct = r.unrealizedGainPercent ?? 0;
           return (
-            <div className={`flex items-start gap-2 px-3 py-2.5 rounded-xl border text-sm ${isProfit ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-300' : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300'}`}>
+            <div className={`flex items-start gap-2 px-3 py-2.5 rounded-xl border text-sm ${isProfit ? 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300' : 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-200'}`}>
               <span className="text-lg leading-tight flex-shrink-0" aria-hidden="true">{isProfit ? '▲' : '▼'}</span>
               <div className="flex-1">
                 <span className="font-semibold">
@@ -110,7 +116,8 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
               className={`${style.bg} ${style.border} border-2 rounded-xl p-5 space-y-3`}
             >
               {/* Scenario badge */}
-              <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded-full ${style.badge}`}>
+              <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${style.badge}`}>
+                {SCENARIO_ICON[r.key]}
                 {r.key.charAt(0).toUpperCase() + r.key.slice(1)}
               </span>
 

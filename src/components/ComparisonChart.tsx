@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import {
   BarChart,
   Bar,
@@ -18,7 +18,7 @@ interface ComparisonChartProps {
   isDark?: boolean;
 }
 
-export function ComparisonChart({ results, isDark }: ComparisonChartProps) {
+function ComparisonChart({ results, isDark }: ComparisonChartProps) {
   const bmLabel = results[0]?.benchmarkLabel ?? 'Konto';
   const gridColor = isDark ? '#374151' : '#f0f0f0';
   const tickColor = isDark ? '#9ca3af' : '#666666';
@@ -62,3 +62,5 @@ export function ComparisonChart({ results, isDark }: ComparisonChartProps) {
     </div>
   );
 }
+
+export default memo(ComparisonChart);

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import {
   LineChart,
   Line,
@@ -21,7 +21,7 @@ interface TimelineChartProps {
   isDark?: boolean;
 }
 
-export function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate, isDark }: TimelineChartProps) {
+function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate, isDark }: TimelineChartProps) {
   const gridColor = isDark ? '#374151' : '#f0f0f0';
   const tickColor = isDark ? '#9ca3af' : '#666666';
   const labelColor = isDark ? '#9ca3af' : '#9ca3af';
@@ -71,3 +71,5 @@ export function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflation
     </div>
   );
 }
+
+export default memo(TimelineChart);

@@ -4,11 +4,11 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* Brand & scenario colors */
+  /* Brand & scenario colors — Okabe-Ito color-blind safe palette */
   --color-brand: #1a56db;
-  --color-bear: #ef4444;
-  --color-base: #f59e0b;
-  --color-bull: #22c55e;
+  --color-bear: #d55e00;    /* Okabe-Ito vermilion — safe for deuteranopia/protanopia */
+  --color-base: #e69f00;    /* Okabe-Ito orange-yellow */
+  --color-bull: #0072b2;    /* Okabe-Ito blue */
 
   /* Semantic surface tokens (light mode defaults) */
   --color-bg-primary: #f9fafb;     /* gray-50 */
@@ -41,9 +41,9 @@
 html.dark {
   color-scheme: dark;
   --color-brand: #3b82f6;
-  --color-bear: #f87171;
-  --color-base: #fbbf24;
-  --color-bull: #4ade80;
+  --color-bear: #e87040;    /* Okabe-Ito vermilion — lighter for dark backgrounds */
+  --color-base: #f5c842;    /* Okabe-Ito yellow — lighter for dark backgrounds */
+  --color-bull: #2491d4;    /* Okabe-Ito blue — lighter for dark backgrounds */
   --color-bg-primary: #0f172a;
   --color-bg-secondary: #1e293b;
   --color-bg-card: #1e293b;

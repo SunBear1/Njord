@@ -1070,3 +1070,76 @@ describe('Interaction and edge case tests', () => {
     expect(results[0].benchmarkEndValuePLN).toBeGreaterThan(principal);
   });
 });
+
+// ---------------------------------------------------------------------------
+// FIN-002 — Benchmark switching-cost symmetry
+// ---------------------------------------------------------------------------
+// All three PLN benchmarks must apply the same first-Belka switching cost when
+// the user has unrealized gains (avgCostUSD < currentPriceUSD). When there are
+// no gains (avgCostUSD=0, i.e. not set), firstBelkaCost=0 and benchmarks are
+// unaffected.
+
+describe('FIN-002 — benchmark switching-cost symmetry', () => {
+  // shares=10, price=$100, fx=4 → currentValue=4000 PLN
+  // avgCostUSD=60 → costBasis at NBP=10×60×4=2400 PLN
+  // unrealizedGain=1600 PLN → firstBelkaCost=1600×0.19=304 PLN
+
+  const WITH_GAIN = baseInputs({ avgCostUSD: 60, nbpMidRate: 4.0 });
+  const NO_GAIN = baseInputs({ avgCostUSD: 0, nbpMidRate: 4.0 }); // not set → cost=currentPrice
+
+  it('savings: benchmark is reduced by first-Belka when avgCostUSD < currentPrice', () => {
+    const withGain = calcAllScenarios({ ...WITH_GAIN, benchmarkType: 'savings' as const }, NEUTRAL_SCENARIOS);
+    const noGain = calcAllScenarios({ ...NO_GAIN, benchmarkType: 'savings' as const }, NEUTRAL_SCENARIOS);
+    // With unrealized gains the savings benchmark must be lower (first-Belka subtracted)
+    expect(withGain[0].benchmarkEndValuePLN).toBeLessThan(noGain[0].benchmarkEndValuePLN);
+    // The difference at 5% savings rate for 12 months is approximately firstBelkaCost compounded
+    // — just verify the reduction is in the expected order of magnitude (~304 PLN)
+    const diff = noGain[0].benchmarkEndValuePLN - withGain[0].benchmarkEndValuePLN;
+    expect(diff).toBeGreaterThan(300);
+    expect(diff).toBeLessThan(340);
+  });
+
+  it('bonds: benchmark is reduced by first-Belka when avgCostUSD < currentPrice', () => {
+    const bondBase = { bondFirstYearRate: 6, bondEffectiveRate: 6, bondPenaltyPercent: 0, bondCouponFrequency: 0, bondMaturityMonths: 36, bondReinvestmentRate: 5 };
+    const withGain = calcAllScenarios({ ...WITH_GAIN, ...bondBase, benchmarkType: 'bonds' as const }, NEUTRAL_SCENARIOS);
+    const noGain = calcAllScenarios({ ...NO_GAIN, ...bondBase, benchmarkType: 'bonds' as const }, NEUTRAL_SCENARIOS);
+    expect(withGain[0].benchmarkEndValuePLN).toBeLessThan(noGain[0].benchmarkEndValuePLN);
+    const diff = noGain[0].benchmarkEndValuePLN - withGain[0].benchmarkEndValuePLN;
+    expect(diff).toBeGreaterThan(200); // at least firstBelkaCost net of missed bond growth
+  });
+
+  it('ETF: benchmark is reduced by first-Belka when avgCostUSD < currentPrice', () => {
+    const withGain = calcAllScenarios({ ...WITH_GAIN, benchmarkType: 'etf' as const }, NEUTRAL_SCENARIOS);
+    const noGain = calcAllScenarios({ ...NO_GAIN, benchmarkType: 'etf' as const }, NEUTRAL_SCENARIOS);
+    expect(withGain[0].benchmarkEndValuePLN).toBeLessThan(noGain[0].benchmarkEndValuePLN);
+  });
+
+  it('savings: no switching Belka when avgCostUSD=0 (cost basis not set)', () => {
+    // When avgCostUSD=0 → cost falls back to currentPrice → no unrealized gain → firstBelkaCost=0
+    const results = calcAllScenarios({ ...NO_GAIN, benchmarkType: 'savings' as const }, NEUTRAL_SCENARIOS);
+    const principal = 10 * 100 * 4.0; // 4000 PLN
+    const monthlyRate = 0.05 / 12;
+    const grossEnd = principal * Math.pow(1 + monthlyRate, 12);
+    const expectedNet = principal + (grossEnd - principal) * (1 - BELKA);
+    expect(results[1].benchmarkEndValuePLN).toBeCloseTo(expectedNet, 4);
+  });
+
+  it('RSU: all proceeds taxable as switching Belka for savings benchmark', () => {
+    const rsuInputs = baseInputs({ isRSU: true, avgCostUSD: 0, nbpMidRate: 4.0 });
+    const withRSU = calcAllScenarios({ ...rsuInputs, benchmarkType: 'savings' as const }, NEUTRAL_SCENARIOS);
+    const noRSU = calcAllScenarios({ ...NO_GAIN, benchmarkType: 'savings' as const }, NEUTRAL_SCENARIOS);
+    // RSU cost basis is $0 → full 4000 PLN is taxable → firstBelkaCost = 4000 × 0.19 = 760 PLN
+    expect(withRSU[0].benchmarkEndValuePLN).toBeLessThan(noRSU[0].benchmarkEndValuePLN);
+    const diff = noRSU[0].benchmarkEndValuePLN - withRSU[0].benchmarkEndValuePLN;
+    expect(diff).toBeGreaterThan(750);
+    expect(diff).toBeLessThan(820);
+  });
+
+  it('at a loss (avgCostUSD > currentPrice): switching Belka = 0 for all benchmarks', () => {
+    const atLoss = baseInputs({ avgCostUSD: 200, nbpMidRate: 4.0 }); // cost=8000 > value=4000
+    const withGainSavings = calcAllScenarios({ ...WITH_GAIN, benchmarkType: 'savings' as const }, NEUTRAL_SCENARIOS);
+    const atLossSavings = calcAllScenarios({ ...atLoss, benchmarkType: 'savings' as const }, NEUTRAL_SCENARIOS);
+    // At a loss: switching cost = 0, so benchmark is HIGHER than the with-gain case
+    expect(atLossSavings[0].benchmarkEndValuePLN).toBeGreaterThan(withGainSavings[0].benchmarkEndValuePLN);
+  });
+});

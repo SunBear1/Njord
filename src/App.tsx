@@ -1,15 +1,12 @@
 import { useState, useCallback, useRef, useEffect, useMemo, useDeferredValue, lazy, Suspense } from 'react';
 import { Moon, Sun, BarChart3, Receipt } from 'lucide-react';
-import { HowItWorks } from './components/HowItWorks';
 import { InputPanel } from './components/InputPanel';
 import { ScenarioEditor } from './components/ScenarioEditor';
 import { VerdictBanner } from './components/VerdictBanner';
-import { ComparisonChart } from './components/ComparisonChart';
-import { TimelineChart } from './components/TimelineChart';
-import { BreakevenChart } from './components/BreakevenChart';
-import { MethodologyPanel } from './components/MethodologyPanel';
+import ComparisonChart from './components/ComparisonChart';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { TaxCalculatorPanel } from './components/TaxCalculatorPanel';
+import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { useAssetData } from './hooks/useAssetData';
 import { useEtfData } from './hooks/useEtfData';
 
@@ -31,6 +28,10 @@ import { loadState, saveState } from './utils/persistedState';
 import type { Scenarios, ScenarioKey, BenchmarkType, BondSettings } from './types/scenario';
 
 const SellAnalysisPanel = lazy(() => import('./components/SellAnalysisPanel').then(m => ({ default: m.SellAnalysisPanel })));
+const MethodologyPanelLazy = lazy(() => import('./components/MethodologyPanel').then(m => ({ default: m.MethodologyPanel })));
+const HowItWorksLazy = lazy(() => import('./components/HowItWorks').then(m => ({ default: m.HowItWorks })));
+const TimelineChartLazy = lazy(() => import('./components/TimelineChart'));
+const BreakevenChartLazy = lazy(() => import('./components/BreakevenChart'));
 
 const DEFAULT_SCENARIOS: Scenarios = {
   bear: { deltaStock: -10, deltaFx: -5 },
@@ -84,6 +85,8 @@ function App() {
   // Top-level section: investment comparison vs standalone tax calculator
   type AppSection = 'investment' | 'tax';
   const [activeSection, setActiveSection] = useState<AppSection>(saved?.activeSection as AppSection ?? 'investment');
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const { assetData, proxyFxData, isLoading: assetLoading, error: assetError, fetchData: fetchAsset } = useAssetData();
   const { etfData, etfAnnualizedReturn, isLoading: etfLoading, error: etfError, fetchEtf } = useEtfData();
@@ -528,6 +531,13 @@ function App() {
 
         {activeSection === 'investment' && activeView === 'comparison' && results && (
           <>
+            {/* Disclaimer: scenario analysis, not investment advice */}
+            <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400" role="note">
+              <span aria-hidden="true">ℹ️</span>
+              <span>
+                <strong>Wartości szacunkowe</strong> — wyniki zależą od wybranych scenariuszy i nie uwzględniają wydarzeń fundamentalnych. Nie stanowią doradztwa inwestycyjnego ani podatkowego.
+              </span>
+            </div>
             <ErrorBoundary>
               <VerdictBanner
                 results={results}
@@ -545,22 +555,26 @@ function App() {
             </ErrorBoundary>
             {timeline && (
               <ErrorBoundary>
-                <TimelineChart
-                  data={timeline}
-                  currentValuePLN={results[0]?.currentValuePLN ?? 0}
-                  benchmarkLabel={results[0]?.benchmarkLabel ?? 'Konto'}
-                  inflationRate={effectiveInflation}
-                  isDark={isDark}
-                />
+                <Suspense fallback={<div className="animate-pulse h-48 bg-gray-100 dark:bg-gray-800 rounded-xl" />}>
+                  <TimelineChartLazy
+                    data={timeline}
+                    currentValuePLN={results[0]?.currentValuePLN ?? 0}
+                    benchmarkLabel={results[0]?.benchmarkLabel ?? 'Konto'}
+                    inflationRate={effectiveInflation}
+                    isDark={isDark}
+                  />
+                </Suspense>
               </ErrorBoundary>
             )}
             {heatmap && (
               <ErrorBoundary>
-                <BreakevenChart
-                  cells={heatmap}
-                  benchmarkEndValuePLN={results[0]?.benchmarkEndValuePLN ?? 0}
-                  benchmarkLabel={results[0]?.benchmarkLabel ?? 'Konto'}
-                />
+                <Suspense fallback={<div className="animate-pulse h-48 bg-gray-100 dark:bg-gray-800 rounded-xl" />}>
+                  <BreakevenChartLazy
+                    cells={heatmap}
+                    benchmarkEndValuePLN={results[0]?.benchmarkEndValuePLN ?? 0}
+                    benchmarkLabel={results[0]?.benchmarkLabel ?? 'Konto'}
+                  />
+                </Suspense>
               </ErrorBoundary>
             )}
           </>
@@ -583,16 +597,57 @@ function App() {
 
         {activeSection === 'investment' && (
           <>
-            <MethodologyPanel />
-            <HowItWorks />
+            <Suspense fallback={null}>
+              <MethodologyPanelLazy />
+            </Suspense>
+            <Suspense fallback={null}>
+              <HowItWorksLazy />
+            </Suspense>
           </>
         )}
       </main>
       </div>
 
       <footer className="mt-10 py-5 text-center text-xs" style={FOOTER_STYLE}>
-        Dane informacyjne — nie stanowią doradztwa inwestycyjnego ani podatkowego.
+        <p>Dane informacyjne — nie stanowią doradztwa inwestycyjnego ani podatkowego.</p>
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+          <button
+            onClick={() => setShowPrivacy(true)}
+            className="underline hover:no-underline focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
+          >
+            Polityka prywatności
+          </button>
+          {!showClearConfirm ? (
+            <button
+              onClick={() => setShowClearConfirm(true)}
+              className="underline hover:no-underline focus-visible:ring-2 focus-visible:ring-blue-400 rounded"
+            >
+              Wyczyść wszystkie dane
+            </button>
+          ) : (
+            <span className="inline-flex items-center gap-2">
+              <span>Na pewno? Wszystkie dane zostaną usunięte.</span>
+              <button
+                onClick={() => {
+                  try { localStorage.clear(); } catch { /* ignore */ }
+                  window.location.reload();
+                }}
+                className="font-semibold text-red-600 dark:text-red-400 underline"
+              >
+                Tak, usuń
+              </button>
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                className="underline"
+              >
+                Anuluj
+              </button>
+            </span>
+          )}
+        </div>
       </footer>
+
+      {showPrivacy && <PrivacyPolicy onClose={() => setShowPrivacy(false)} />}
     </div>
   );
 }

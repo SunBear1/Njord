@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Wand2, Info, Star, Loader2, HelpCircle } from 'lucide-react';
+import { Wand2, Info, Star, Loader2, HelpCircle, TrendingDown, TrendingUp, Minus } from 'lucide-react';
 import type { Scenarios, ScenarioKey } from '../types/scenario';
 import type { VolatilityStats } from '../hooks/useHistoricalVolatility';
 import { Tooltip } from './Tooltip';
@@ -22,6 +22,7 @@ type InputMode = 'pct' | 'fixed';
 const SCENARIO_CONFIG: {
   key: ScenarioKey;
   label: string;
+  icon: React.ReactNode;
   headerBg: string;
   headerText: string;
   cardBorder: string;
@@ -30,21 +31,24 @@ const SCENARIO_CONFIG: {
 }[] = [
   {
     key: 'bear', label: 'Bear',
-    headerBg: 'bg-red-100 dark:bg-red-900/40', headerText: 'text-red-700 dark:text-red-300',
-    cardBorder: 'border-red-200 dark:border-red-800', cardBg: 'bg-red-50/30 dark:bg-red-950/20',
-    inputBorder: 'border-red-300 dark:border-red-600 focus:ring-red-400',
+    icon: <TrendingDown size={14} aria-hidden="true" />,
+    headerBg: 'bg-orange-100 dark:bg-orange-900/40', headerText: 'text-orange-800 dark:text-orange-200',
+    cardBorder: 'border-orange-200 dark:border-orange-800', cardBg: 'bg-orange-50/30 dark:bg-orange-950/20',
+    inputBorder: 'border-orange-300 dark:border-orange-600 focus:ring-orange-400',
   },
   {
     key: 'base', label: 'Base',
+    icon: <Minus size={14} aria-hidden="true" />,
     headerBg: 'bg-amber-100 dark:bg-amber-900/40', headerText: 'text-amber-700 dark:text-amber-300',
     cardBorder: 'border-amber-200 dark:border-amber-800', cardBg: 'bg-amber-50/30 dark:bg-amber-950/20',
     inputBorder: 'border-amber-300 dark:border-amber-600 focus:ring-amber-400',
   },
   {
     key: 'bull', label: 'Bull',
-    headerBg: 'bg-green-100 dark:bg-green-900/40', headerText: 'text-green-700 dark:text-green-300',
-    cardBorder: 'border-green-200 dark:border-green-800', cardBg: 'bg-green-50/30 dark:bg-green-950/20',
-    inputBorder: 'border-green-300 dark:border-green-600 focus:ring-green-400',
+    icon: <TrendingUp size={14} aria-hidden="true" />,
+    headerBg: 'bg-blue-100 dark:bg-blue-900/40', headerText: 'text-blue-700 dark:text-blue-300',
+    cardBorder: 'border-blue-200 dark:border-blue-800', cardBg: 'bg-blue-50/30 dark:bg-blue-950/20',
+    inputBorder: 'border-blue-300 dark:border-blue-600 focus:ring-blue-400',
   },
 ];
 
@@ -228,8 +232,8 @@ export function ScenarioEditor({
         <div className="space-y-1.5">
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
             <div />
-            {SCENARIO_CONFIG.map(({ key, label, headerBg, headerText }) => (
-              <div key={key} className={`text-center text-xs font-bold px-2 py-1 rounded ${headerBg} ${headerText}`}>{label}</div>
+            {SCENARIO_CONFIG.map(({ key, label, icon, headerBg, headerText }) => (
+              <div key={key} className={`text-center text-xs font-bold px-2 py-1 rounded flex items-center justify-center gap-1 ${headerBg} ${headerText}`}>{icon}{label}</div>
             ))}
           </div>
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
@@ -381,8 +385,8 @@ export function ScenarioEditor({
           {/* Header row */}
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center">
             <div />
-            {SCENARIO_CONFIG.map(({ key, label, headerBg, headerText }) => (
-              <div key={key} className={`text-center text-xs font-bold px-2 py-1.5 rounded ${headerBg} ${headerText}`}>{label}</div>
+            {SCENARIO_CONFIG.map(({ key, label, icon, headerBg, headerText }) => (
+              <div key={key} className={`text-center text-xs font-bold px-2 py-1.5 rounded flex items-center justify-center gap-1 ${headerBg} ${headerText}`}>{icon}{label}</div>
             ))}
           </div>
 

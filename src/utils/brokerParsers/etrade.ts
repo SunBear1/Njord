@@ -29,11 +29,37 @@ export function mmddyyyyToIso(raw: unknown): string | undefined {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+const MAX_ROWS = 5_000;
+const MAX_AMOUNT = 1e9; // $1 billion sanity cap per transaction
+
+/** Guard against prototype-pollution keys in parsed XLSX rows. */
+function safeGet(row: unknown[], idx: number): unknown {
+  if (idx < 0 || idx >= row.length) return undefined;
+  const val = row[idx];
+  if (val != null && typeof val === 'object' && !Object.hasOwn(Object.getPrototypeOf(val) ?? {}, 'constructor')) {
+    return undefined;
+  }
+  return val;
+}
+
+/** Validate a monetary amount: must be finite and within [min, max]. */
+function safeAmount(raw: unknown, min = 0, max = MAX_AMOUNT): number {
+  const n = Number(raw);
+  if (!isFinite(n) || n < min || n > max) return NaN;
+  return n;
+}
+
 async function parse(buffer: ArrayBuffer): Promise<TaxTransaction[]> {
   // Lazy-load SheetJS — only downloaded the first time user imports a file.
   const XLSX = await import('xlsx');
 
-  const workbook = XLSX.read(buffer, { type: 'array' });
+  let workbook: ReturnType<typeof XLSX.read>;
+  try {
+    workbook = XLSX.read(buffer, { type: 'array' });
+  } catch {
+    throw new Error('Plik nie jest prawidłowym arkuszem Excel (.xlsx).');
+  }
+
   if (!workbook.SheetNames.length) {
     throw new Error('Plik Excel jest pusty — nie znaleziono żadnego arkusza.');
   }
@@ -43,6 +69,12 @@ async function parse(buffer: ArrayBuffer): Promise<TaxTransaction[]> {
 
   if (rows.length < 2) {
     throw new Error('Plik nie zawiera danych — oczekiwano nagłówków i co najmniej jednego wiersza.');
+  }
+
+  if (rows.length > MAX_ROWS + 1) {
+    throw new Error(
+      `Plik zawiera zbyt wiele wierszy (${rows.length - 1}). Maksymalnie dozwolone: ${MAX_ROWS}.`,
+    );
   }
 
   // Build column name → index map from header row.
@@ -68,36 +100,41 @@ async function parse(buffer: ArrayBuffer): Promise<TaxTransaction[]> {
     if (!row || row.length === 0) continue;
 
     // Only process "Sell" rows — skip "Summary" and any other record types.
-    const recordType = row[colMap['Record Type']];
+    const recordType = safeGet(row, colMap['Record Type']);
     if (recordType !== 'Sell') continue;
 
-    const planType = row[colMap['Plan Type']] as string | null;
+    const planType = safeGet(row, colMap['Plan Type']) as string | null;
     const isRSU = planType === 'RS';
     const isESPP = planType === 'ESPP';
 
-    const saleDate = mmddyyyyToIso(row[colMap['Date Sold']]);
+    const saleDate = mmddyyyyToIso(safeGet(row, colMap['Date Sold']));
     if (!saleDate) continue; // skip rows without a valid sell date
 
-    const acquisitionDate = mmddyyyyToIso(row[colMap['Date Acquired']]);
-    const proceeds = Number(row[colMap['Total Proceeds']]);
+    const acquisitionDate = mmddyyyyToIso(safeGet(row, colMap['Date Acquired']));
+    const proceeds = safeAmount(safeGet(row, colMap['Total Proceeds']), 0.01);
 
     // ESPP: use Acquisition Cost (Purchase Price × qty) — what the employee actually paid.
     // Other plan types: use Adjusted Cost Basis (FMV × qty).
-    const costBasis = isESPP && colMap['Acquisition Cost'] !== undefined
-      ? Number(row[colMap['Acquisition Cost']])
-      : Number(row[colMap['Adjusted Cost Basis']]);
+    const rawCostBasis =
+      isESPP && colMap['Acquisition Cost'] !== undefined
+        ? safeGet(row, colMap['Acquisition Cost'])
+        : safeGet(row, colMap['Adjusted Cost Basis']);
+    const costBasis = safeAmount(rawCostBasis, 0);
 
     if (isNaN(proceeds) || proceeds <= 0) continue; // skip invalid rows
 
     // Round to 2dp — SheetJS can produce IEEE 754 imprecision (e.g. 2882.89001 instead of 2882.89).
     const round2 = (n: number) => Math.round(n * 100) / 100;
 
+    const tickerRaw = safeGet(row, colMap['Symbol']);
+    const ticker = typeof tickerRaw === 'string' ? tickerRaw : undefined;
+
     trades.push({
       id: crypto.randomUUID(),
       tradeType: 'sale',
       acquisitionMode: isRSU ? 'grant' : 'purchase',
       zeroCostFlag: isRSU,
-      ticker: (row[colMap['Symbol']] as string) ?? undefined,
+      ticker,
       currency: 'USD',
       saleDate,
       acquisitionDate: isRSU ? undefined : acquisitionDate,

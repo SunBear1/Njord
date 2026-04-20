@@ -44,14 +44,32 @@ function resolveCostBasisUSD(inputs: CalcInputs): { costPerShareUSD: number; has
   return { costPerShareUSD: inputs.currentPriceUSD, hasCostBasis: false };
 }
 
+/**
+ * The "switching cost" Belka: the tax owed when liquidating stocks today to reinvest in PLN.
+ * Computed at NBP mid rate (Polish tax law). Returns 0 when there are no unrealized gains.
+ * Applied uniformly to all PLN benchmarks (savings, bonds, ETF) so comparisons are fair.
+ */
+function calcFirstBelkaCost(inputs: CalcInputs): number {
+  const nbpRate = inputs.nbpMidRate || inputs.currentFxRate;
+  const currentStockNBP = inputs.shares * inputs.currentPriceUSD * nbpRate;
+  const { costPerShareUSD, hasCostBasis } = resolveCostBasisUSD(inputs);
+  const costBasisNBP = hasCostBasis
+    ? inputs.shares * costPerShareUSD * nbpRate
+    : currentStockNBP; // no cost basis → no unrealized gain → no switching Belka
+  return currentStockNBP > costBasisNBP
+    ? (currentStockNBP - costBasisNBP) * BELKA_TAX
+    : 0;
+}
+
 function calcSavingsEndValue(inputs: CalcInputs): number {
   const { wibor3mPercent, horizonMonths } = inputs;
-  const currentValuePLN = calcCurrentValuePLN(inputs);
+  // Subtract switching Belka from the principal — consistent with bond + ETF benchmarks.
+  const investedPLN = calcCurrentValuePLN(inputs) - calcFirstBelkaCost(inputs);
   const monthlyRate = wibor3mPercent / 100 / 12;
-  const grossEndValue = currentValuePLN * Math.pow(1 + monthlyRate, horizonMonths);
-  const grossInterest = grossEndValue - currentValuePLN;
+  const grossEndValue = investedPLN * Math.pow(1 + monthlyRate, horizonMonths);
+  const grossInterest = grossEndValue - investedPLN;
   const netInterest = grossInterest * (1 - BELKA_TAX);
-  return currentValuePLN + netInterest;
+  return investedPLN + netInterest;
 }
 
 /** Year-by-year bond compounding with different first-year vs subsequent rates.
@@ -114,38 +132,38 @@ function bondCouponEndValue(
 
 function calcBondEndValue(inputs: CalcInputs): number {
   const { bondFirstYearRate, bondEffectiveRate, bondPenaltyPercent, bondCouponFrequency, bondReinvestmentRate, bondMaturityMonths, horizonMonths } = inputs;
-  const currentValuePLN = calcCurrentValuePLN(inputs);
+  // Subtract switching Belka from the principal — consistent with savings + ETF benchmarks.
+  const investedPLN = calcCurrentValuePLN(inputs) - calcFirstBelkaCost(inputs);
   // Penalty only applies on early redemption (before maturity)
   const penalty = horizonMonths < bondMaturityMonths
-    ? currentValuePLN * (bondPenaltyPercent / 100)
+    ? investedPLN * (bondPenaltyPercent / 100)
     : 0;
 
   if (bondCouponFrequency > 0) {
     // Coupon bond: coupons already taxed per-payout inside bondCouponEndValue
     const endValue = bondCouponEndValue(
-      currentValuePLN, bondFirstYearRate, bondEffectiveRate,
+      investedPLN, bondFirstYearRate, bondEffectiveRate,
       horizonMonths, bondCouponFrequency, bondReinvestmentRate,
     );
     return endValue - penalty;
   }
 
   // Capitalized bond: tax on total gain at end
-  const grossEndValue = bondGrossValue(currentValuePLN, bondFirstYearRate, bondEffectiveRate, horizonMonths);
+  const grossEndValue = bondGrossValue(investedPLN, bondFirstYearRate, bondEffectiveRate, horizonMonths);
   const effectiveGross = grossEndValue - penalty;
-  if (effectiveGross > currentValuePLN) {
-    const netInterest = (effectiveGross - currentValuePLN) * (1 - BELKA_TAX);
-    return currentValuePLN + netInterest;
+  if (effectiveGross > investedPLN) {
+    const netInterest = (effectiveGross - investedPLN) * (1 - BELKA_TAX);
+    return investedPLN + netInterest;
   }
   return effectiveGross;
 }
 
 /**
- * ETF benchmark with double Belka:
- *  - Stock proceeds stay in USD → full USD principal reinvested in ETF (no PLN conversion)
- *  - First Belka: paid in PLN from a separate account when liquidating stocks today
- *  - ETF compounds on full principal (first Belka does NOT reduce the invested amount)
+ * ETF benchmark with uniform first-Belka switching cost + second Belka on ETF gain.
+ *  - Stock stays in USD → full USD principal earns ETF return (no currency conversion needed)
+ *  - First Belka: switching cost subtracted from final result (consistent with savings/bonds)
  *  - Second Belka: applied on ETF gain at horizon exit
- *  Net = grossEtfEnd − secondBelkaTax − firstBelkaTax
+ *  Net = grossEtfEnd − secondBelkaTax − firstBelkaCost
  */
 function calcEtfEndValue(inputs: CalcInputs): number {
   const currentValuePLN = calcCurrentValuePLN(inputs);
@@ -156,18 +174,10 @@ function calcEtfEndValue(inputs: CalcInputs): number {
   const etfGain = grossEndValue - currentValuePLN;
   const secondBelkaTax = etfGain > 0 ? etfGain * BELKA_TAX : 0;
 
-  // First Belka: upfront PLN cost from liquidating stocks today at NBP mid rate
-  const nbpRate = inputs.nbpMidRate || inputs.currentFxRate;
-  const currentStockNBP = inputs.shares * inputs.currentPriceUSD * nbpRate;
-  const { costPerShareUSD, hasCostBasis } = resolveCostBasisUSD(inputs);
-  const costBasisNBP = hasCostBasis
-    ? inputs.shares * costPerShareUSD * nbpRate
-    : currentStockNBP; // no cost basis set → first Belka = 0
-  const firstBelkaTax = currentStockNBP > costBasisNBP
-    ? (currentStockNBP - costBasisNBP) * BELKA_TAX
-    : 0;
+  // First Belka: switching cost (same formula as savings/bonds)
+  const firstBelkaCost = calcFirstBelkaCost(inputs);
 
-  return grossEndValue - secondBelkaTax - firstBelkaTax;
+  return grossEndValue - secondBelkaTax - firstBelkaCost;
 }
 
 function calcBenchmarkEndValue(inputs: CalcInputs): number {
@@ -206,10 +216,12 @@ function calcStockScenario(
   const taxableCapGain = endValueNbp - feeNbp - costBasisNbp;
   const capitalGainTax = taxableCapGain > 0 ? taxableCapGain * BELKA_TAX : 0;
 
-  // Dividends: accumulated over horizon, taxed 19% total (covers US WHT 15% + Polish 4%)
-  // Based on current price as proxy for average value during the period
+  // Dividends: accumulated over horizon at time-weighted average FX rate.
+  // Using arithmetic mean of current and projected FX rate approximates receiving
+  // dividends evenly throughout the holding period (better than always-using projectedFxRate).
+  const avgFxRate = (inputs.currentFxRate + projectedFxRate) / 2;
   const grossDividendsPLN = inputs.dividendYieldPercent > 0
-    ? inputs.shares * inputs.currentPriceUSD * (inputs.dividendYieldPercent / 100) * (inputs.horizonMonths / 12) * projectedFxRate
+    ? inputs.shares * inputs.currentPriceUSD * (inputs.dividendYieldPercent / 100) * (inputs.horizonMonths / 12) * avgFxRate
     : 0;
   const dividendsNetPLN = grossDividendsPLN * (1 - BELKA_TAX);
 
