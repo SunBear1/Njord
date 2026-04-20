@@ -73,13 +73,19 @@ async function parse(buffer: ArrayBuffer): Promise<TaxTransaction[]> {
 
     const planType = row[colMap['Plan Type']] as string | null;
     const isRSU = planType === 'RS';
+    const isESPP = planType === 'ESPP';
 
     const saleDate = mmddyyyyToIso(row[colMap['Date Sold']]);
     if (!saleDate) continue; // skip rows without a valid sell date
 
     const acquisitionDate = mmddyyyyToIso(row[colMap['Date Acquired']]);
     const proceeds = Number(row[colMap['Total Proceeds']]);
-    const costBasis = Number(row[colMap['Adjusted Cost Basis']]);
+
+    // ESPP: use Acquisition Cost (Purchase Price × qty) — what the employee actually paid.
+    // Other plan types: use Adjusted Cost Basis (FMV × qty).
+    const costBasis = isESPP && colMap['Acquisition Cost'] !== undefined
+      ? Number(row[colMap['Acquisition Cost']])
+      : Number(row[colMap['Adjusted Cost Basis']]);
 
     if (isNaN(proceeds) || proceeds <= 0) continue; // skip invalid rows
 

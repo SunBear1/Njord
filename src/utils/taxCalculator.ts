@@ -2,6 +2,9 @@ import type { TaxInputs, TaxResult, TaxTransaction, TransactionTaxResult, MultiT
 
 const BELKA_TAX = 0.19;
 
+/** Round to grosze (2 decimal places) — required for PIT-38 PLN amounts. */
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
 // ─── Multi-transaction functions ──────────────────────────────────────────────
 
 /**
@@ -20,23 +23,24 @@ export function calcTransactionResult(tx: TaxTransaction): TransactionTaxResult 
     : tx.exchangeRateAcquisitionToPLN ?? null;
   if (!tx.zeroCostFlag && (buyRate === null || buyRate <= 0)) return null;
 
-  const revenuePLN = tx.saleGrossAmount * sellRate;
+  const revenuePLN = round2(tx.saleGrossAmount * sellRate);
 
   let costPLN: number;
   if (tx.zeroCostFlag) {
     // Grant / RSU — only sale commission is a deductible cost.
-    costPLN = (tx.saleBrokerFee ?? 0) * sellRate;
+    costPLN = round2((tx.saleBrokerFee ?? 0) * sellRate);
   } else {
     const acquisitionCost = tx.acquisitionCostAmount ?? 0;
     const acquisitionFee = tx.acquisitionBrokerFee ?? 0;
     const saleFee = tx.saleBrokerFee ?? 0;
-    costPLN =
+    costPLN = round2(
       (acquisitionCost + acquisitionFee) * buyRate! +
-      saleFee * sellRate;
+      saleFee * sellRate,
+    );
   }
 
-  const gainPLN = revenuePLN - costPLN;
-  const taxEstimatePLN = gainPLN > 0 ? gainPLN * BELKA_TAX : 0;
+  const gainPLN = round2(revenuePLN - costPLN);
+  const taxEstimatePLN = gainPLN > 0 ? round2(gainPLN * BELKA_TAX) : 0;
 
   return {
     revenuePLN,
@@ -73,14 +77,14 @@ export function calcMultiTaxSummary(transactions: TaxTransaction[]): MultiTaxSum
     }
   }
 
-  const netIncomePLN = totalGainPLN - totalLossPLN;
-  const taxDuePLN = netIncomePLN > 0 ? netIncomePLN * BELKA_TAX : 0;
+  const netIncomePLN = round2(totalGainPLN - totalLossPLN);
+  const taxDuePLN = netIncomePLN > 0 ? round2(netIncomePLN * BELKA_TAX) : 0;
 
   return {
-    totalRevenuePLN,
-    totalCostPLN,
-    totalGainPLN,
-    totalLossPLN,
+    totalRevenuePLN: round2(totalRevenuePLN),
+    totalCostPLN: round2(totalCostPLN),
+    totalGainPLN: round2(totalGainPLN),
+    totalLossPLN: round2(totalLossPLN),
     netIncomePLN,
     taxDuePLN,
   };

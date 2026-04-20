@@ -251,9 +251,10 @@ describe('calcMultiTaxSummary', () => {
 
     // tx1 gain: (10,000 - 7,000) × rate = 3,000 × 4.0215 - 7,000 × 3.9102
     // tx2 gain: (5,000 - 3,000) × rate
-    expect(s.totalRevenuePLN).toBeCloseTo((10_000 + 5_000) * 4.0215);
+    expect(s.totalRevenuePLN).toBeCloseTo((10_000 + 5_000) * 4.0215, 1);
     expect(s.netIncomePLN).toBeGreaterThan(0);
-    expect(s.taxDuePLN).toBeCloseTo(s.netIncomePLN * 0.19, 2);
+    // After grosze rounding, taxDuePLN = round2(netIncomePLN × 0.19) — allow 1dp tolerance.
+    expect(s.taxDuePLN).toBeCloseTo(s.netIncomePLN * 0.19, 1);
     expect(s.totalLossPLN).toBe(0);
   });
 
@@ -309,5 +310,79 @@ describe('calcMultiTaxSummary', () => {
     expect(s.totalRevenuePLN).toBe(0);
     expect(s.taxDuePLN).toBe(0);
     expect(s.netIncomePLN).toBe(0);
+  });
+});
+
+// ─── Grosze rounding ──────────────────────────────────────────────────────────
+
+describe('grosze rounding', () => {
+  it('rounds revenue, cost, gain, and tax to 2 decimal places', () => {
+    const tx: TaxTransaction = {
+      ...BASE_TX,
+      saleGrossAmount: 1234.567,
+      acquisitionCostAmount: 1000.333,
+      exchangeRateSaleToPLN: 4.0215,
+      exchangeRateAcquisitionToPLN: 3.9102,
+    };
+    const r = calcTransactionResult(tx);
+    expect(r).not.toBeNull();
+
+    // All PLN values must be exact 2dp (no trailing floating-point dust)
+    expect(r!.revenuePLN).toBe(Math.round(1234.567 * 4.0215 * 100) / 100);
+    expect(r!.costPLN).toBe(Math.round(1000.333 * 3.9102 * 100) / 100);
+    expect(Number(r!.gainPLN.toFixed(2))).toBe(r!.gainPLN);
+    expect(Number(r!.taxEstimatePLN.toFixed(2))).toBe(r!.taxEstimatePLN);
+  });
+
+  it('rounds summary totals to 2dp', () => {
+    const tx1: TaxTransaction = {
+      ...BASE_TX,
+      id: 'tx-r1',
+      saleGrossAmount: 100.111,
+      acquisitionCostAmount: 50.222,
+    };
+    const tx2: TaxTransaction = {
+      ...BASE_TX,
+      id: 'tx-r2',
+      saleGrossAmount: 200.333,
+      acquisitionCostAmount: 100.444,
+    };
+    const s = calcMultiTaxSummary([tx1, tx2]);
+
+    expect(Number(s.totalRevenuePLN.toFixed(2))).toBe(s.totalRevenuePLN);
+    expect(Number(s.totalCostPLN.toFixed(2))).toBe(s.totalCostPLN);
+    expect(Number(s.netIncomePLN.toFixed(2))).toBe(s.netIncomePLN);
+    expect(Number(s.taxDuePLN.toFixed(2))).toBe(s.taxDuePLN);
+  });
+});
+
+// ─── ESPP cost basis ──────────────────────────────────────────────────────────
+
+describe('ESPP cost basis via calcTransactionResult', () => {
+  it('uses purchase price (not FMV) for ESPP tax calculation', () => {
+    // Simulates the ESPP row from etrade_espp_sample.xlsx:
+    // Proceeds: 5288.42, Acquisition Cost (Purchase Price): 3091.46
+    // Sale NBP rate (2023-06-05): 4.1933, Acq NBP rate (2023-06-02): 4.1903
+    const esppTx: TaxTransaction = {
+      id: 'espp-1',
+      tradeType: 'sale',
+      acquisitionMode: 'purchase',
+      zeroCostFlag: false,
+      saleDate: '2023-06-06',
+      acquisitionDate: '2023-06-05',
+      currency: 'USD',
+      saleGrossAmount: 5288.42,
+      acquisitionCostAmount: 3091.46, // Purchase Price × qty (NOT Adjusted Cost Basis)
+      exchangeRateSaleToPLN: 4.1933,
+      exchangeRateAcquisitionToPLN: 4.1903,
+    };
+
+    const r = calcTransactionResult(esppTx);
+    expect(r).not.toBeNull();
+    expect(r!.revenuePLN).toBeCloseTo(22175.93, 1);
+    expect(r!.costPLN).toBeCloseTo(12954.15, 1);
+    expect(r!.gainPLN).toBeCloseTo(9221.78, 1);
+    expect(r!.taxEstimatePLN).toBeCloseTo(1752.14, 1);
+    expect(r!.isLoss).toBe(false);
   });
 });

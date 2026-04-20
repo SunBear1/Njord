@@ -20,7 +20,7 @@ import { calcTransactionResult, calcMultiTaxSummary } from '../utils/taxCalculat
 import { fetchNbpTableARate } from '../utils/fetchNbpTableARate';
 import { fetchTickerName } from '../utils/fetchTickerName';
 import { BROKER_PARSERS } from '../utils/brokerParsers/index';
-import { fmtPLN } from '../utils/formatting';
+import { fmtPLNGrosze } from '../utils/formatting';
 import type { TaxTransaction, TransactionTaxResult, MultiTaxSummary } from '../types/tax';
 import type { CurrencyRates } from '../hooks/useCurrencyRates';
 
@@ -64,9 +64,9 @@ function newTransaction(): TaxTransaction {
 }
 
 function fmtGain(gain: number): { text: string; cls: string } {
-  if (gain > 0) return { text: `+${fmtPLN(gain)}`, cls: 'text-green-700 dark:text-green-400' };
-  if (gain < 0) return { text: fmtPLN(gain), cls: 'text-red-600 dark:text-red-400' };
-  return { text: fmtPLN(0), cls: 'text-gray-600 dark:text-gray-300' };
+  if (gain > 0) return { text: `+${fmtPLNGrosze(gain)}`, cls: 'text-green-700 dark:text-green-400' };
+  if (gain < 0) return { text: fmtPLNGrosze(gain), cls: 'text-red-600 dark:text-red-400' };
+  return { text: fmtPLNGrosze(0), cls: 'text-gray-600 dark:text-gray-300' };
 }
 
 /** Returns YYYY-MM-DD of (date − 1 day), or '' if date is empty. */
@@ -257,6 +257,17 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
   }, []);
 
   const readyCount = transactions.filter((tx) => calcTransactionResult(tx) !== null).length;
+
+  // Group transactions by sale date for visual grouping in the card list.
+  const saleDateGroups = useMemo(() => {
+    const groups = new Map<string, { tx: TaxTransaction; globalIndex: number }[]>();
+    transactions.forEach((tx, idx) => {
+      const key = tx.saleDate || '';
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push({ tx, globalIndex: idx + 1 });
+    });
+    return [...groups.entries()];
+  }, [transactions]);
 
   // ─── Broker import ────────────────────────────────────────────────────────
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -505,7 +516,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
         </div>
       )}
 
-      {/* Transaction cards */}
+      {/* Transaction cards — grouped by sale date */}
       <div className="space-y-3">
         {transactions.length === 0 && (
           <div className="rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-10 text-center text-gray-400 dark:text-gray-500 space-y-2">
@@ -513,16 +524,28 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
             <p className="text-sm">Nie masz jeszcze żadnych transakcji. Dodaj pierwszą transakcję sprzedaży.</p>
           </div>
         )}
-        {transactions.map((tx, idx) => (
-          <TaxTransactionCard
-            key={tx.id}
-            tx={tx}
-            index={idx + 1}
-            isExpanded={expandedIds.has(tx.id)}
-            onToggle={() => toggleExpanded(tx.id)}
-            onUpdate={(patch) => updateTransaction(tx.id, patch)}
-            onDelete={() => removeTransaction(tx.id)}
-          />
+        {saleDateGroups.map(([dateKey, group]) => (
+          <div key={dateKey}>
+            {saleDateGroups.length > 1 && group.length > 1 && dateKey !== '' && (
+              <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-1.5 ml-1 flex items-center gap-1.5">
+                <span className="inline-block w-3 h-px bg-gray-300 dark:bg-gray-600" />
+                Sprzedaż {fmtDatePL(dateKey)} · {group.length} transakcje
+              </p>
+            )}
+            <div className="space-y-3">
+              {group.map(({ tx, globalIndex }) => (
+                <TaxTransactionCard
+                  key={tx.id}
+                  tx={tx}
+                  index={globalIndex}
+                  isExpanded={expandedIds.has(tx.id)}
+                  onToggle={() => toggleExpanded(tx.id)}
+                  onUpdate={(patch) => updateTransaction(tx.id, patch)}
+                  onDelete={() => removeTransaction(tx.id)}
+                />
+              ))}
+            </div>
+          </div>
         ))}
       </div>
 
@@ -1098,8 +1121,8 @@ function TaxTransactionCard({
           {/* Result row */}
           {result && (
             <div className="flex flex-wrap items-stretch gap-px bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 mt-1">
-              <ResultCell label="Przychód" value={fmtPLN(result.revenuePLN)} />
-              <ResultCell label="Koszt" value={fmtPLN(result.costPLN)} subtract />
+              <ResultCell label="Przychód" value={fmtPLNGrosze(result.revenuePLN)} />
+              <ResultCell label="Koszt" value={fmtPLNGrosze(result.costPLN)} subtract />
               <ResultCell
                 label={result.isLoss ? 'Strata' : 'Zysk'}
                 value={fmtGain(result.gainPLN).text}
@@ -1109,7 +1132,7 @@ function TaxTransactionCard({
               {!result.isLoss && (
                 <ResultCell
                   label="Podatek"
-                  value={fmtPLN(result.taxEstimatePLN)}
+                  value={fmtPLNGrosze(result.taxEstimatePLN)}
                   valueClass="text-amber-700 dark:text-amber-400"
                 />
               )}
@@ -1323,7 +1346,7 @@ function YearSummarySection({
               </span>
               {!r.isLoss && (
                 <span className="text-amber-700 dark:text-amber-400 tabular-nums flex-shrink-0 font-medium">
-                  {fmtPLN(r.taxEstimatePLN)}
+                  {fmtPLNGrosze(r.taxEstimatePLN)}
                 </span>
               )}
             </div>
@@ -1335,12 +1358,12 @@ function YearSummarySection({
 
       {/* 4-cell totals */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <SummaryCell label="Suma przychodów" value={fmtPLN(summary.totalRevenuePLN)} />
-        <SummaryCell label="Suma kosztów" value={fmtPLN(summary.totalCostPLN)} />
-        <SummaryCell label="Zyski" value={fmtPLN(summary.totalGainPLN)} cls="text-green-700 dark:text-green-400" />
+        <SummaryCell label="Suma przychodów" value={fmtPLNGrosze(summary.totalRevenuePLN)} />
+        <SummaryCell label="Suma kosztów" value={fmtPLNGrosze(summary.totalCostPLN)} />
+        <SummaryCell label="Zyski" value={fmtPLNGrosze(summary.totalGainPLN)} cls="text-green-700 dark:text-green-400" />
         <SummaryCell
           label="Straty"
-          value={summary.totalLossPLN > 0 ? `−${fmtPLN(summary.totalLossPLN)}` : fmtPLN(0)}
+          value={summary.totalLossPLN > 0 ? `−${fmtPLNGrosze(summary.totalLossPLN)}` : fmtPLNGrosze(0)}
           cls={summary.totalLossPLN > 0 ? 'text-red-600 dark:text-red-400' : undefined}
         />
       </div>
@@ -1350,17 +1373,17 @@ function YearSummarySection({
         <div>
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Dochód netto (PIT-38)</p>
           <p className={`text-lg font-bold tabular-nums ${summary.netIncomePLN >= 0 ? 'text-gray-800 dark:text-gray-100' : 'text-red-600 dark:text-red-400'}`}>
-            {summary.netIncomePLN >= 0 ? '+' : ''}{fmtPLN(summary.netIncomePLN)}
+            {summary.netIncomePLN >= 0 ? '+' : ''}{fmtPLNGrosze(summary.netIncomePLN)}
           </p>
         </div>
 
         <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl px-5 py-3 text-center min-w-[160px]">
           <p className="text-xs text-amber-700 dark:text-amber-400 font-medium mb-1">Podatek należny</p>
           <p className="text-2xl font-bold text-amber-800 dark:text-amber-300 tabular-nums">
-            {fmtPLN(summary.taxDuePLN)}
+            {fmtPLNGrosze(summary.taxDuePLN)}
           </p>
           <p className="text-[11px] text-amber-600/70 dark:text-amber-500/70 mt-0.5">
-            {summary.netIncomePLN > 0 ? `19% od ${fmtPLN(summary.netIncomePLN)}` : 'brak podatku'}
+            {summary.netIncomePLN > 0 ? `19% od ${fmtPLNGrosze(summary.netIncomePLN)}` : 'brak podatku'}
           </p>
         </div>
       </div>

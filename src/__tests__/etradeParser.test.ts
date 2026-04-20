@@ -533,3 +533,70 @@ describe('etradeParser.parse — fixture file (etrade_gl_expanded.xlsx)', () => 
     }
   });
 });
+
+// ─── ESPP cost basis ──────────────────────────────────────────────────────────
+
+describe('ESPP cost basis', () => {
+  /** ESPP row from etrade_espp_sample.xlsx — Acquisition Cost ≠ Adjusted Cost Basis. */
+  const ESPP_SELL = etradeRow({
+    'Record Type': 'Sell',
+    'Symbol': 'DT',
+    'Plan Type': 'ESPP',
+    'Quantity': 101,
+    'Date Acquired': '06/05/2023',
+    'Acquisition Cost': 3091.4585,           // Purchase Price × qty (what employee paid)
+    'Adjusted Cost Basis': 5332.8,           // FMV × qty (US tax cost basis — WRONG for PIT-38)
+    'Date Sold': '06/06/2023',
+    'Total Proceeds': 5288.419994,
+    'Purchase Price': 30.6085,
+    'Purchase Date Fair Mkt. Value': '52.8',
+    'Purchase Date': '06/05/2023',
+  });
+
+  it('uses Acquisition Cost (purchase price) for ESPP, not Adjusted Cost Basis (FMV)', async () => {
+    const buf = makeEtradeBuffer([ESPP_SELL]);
+    const result = await etradeParser.parse(buf);
+    expect(result).toHaveLength(1);
+
+    const tx = result[0];
+    // Must use Acquisition Cost (3091.46), NOT Adjusted Cost Basis (5332.80)
+    expect(tx.acquisitionCostAmount).toBeCloseTo(3091.46, 1);
+    expect(tx.zeroCostFlag).toBe(false);
+    expect(tx.acquisitionMode).toBe('purchase');
+  });
+
+  it('still uses Adjusted Cost Basis for RS (RSU) rows', async () => {
+    const buf = makeEtradeBuffer([RSU_SELL_DT_1]);
+    const result = await etradeParser.parse(buf);
+    expect(result).toHaveLength(1);
+
+    const tx = result[0];
+    expect(tx.zeroCostFlag).toBe(true);
+    expect(tx.acquisitionCostAmount).toBeUndefined();
+  });
+
+  it('uses Adjusted Cost Basis for non-ESPP non-RS rows (e.g., ES plan)', async () => {
+    const buf = makeEtradeBuffer([REGULAR_SELL_AAPL]);
+    const result = await etradeParser.parse(buf);
+    expect(result).toHaveLength(1);
+
+    const tx = result[0];
+    // ES (regular stock) uses Adjusted Cost Basis — same as Acquisition Cost in this case
+    expect(tx.acquisitionCostAmount).toBe(1850);
+  });
+
+  it('handles mixed ESPP + RS rows in one file', async () => {
+    const buf = makeEtradeBuffer([ESPP_SELL, RSU_SELL_DT_1]);
+    const result = await etradeParser.parse(buf);
+    expect(result).toHaveLength(2);
+
+    const espp = result[0];
+    const rsu = result[1];
+
+    expect(espp.acquisitionCostAmount).toBeCloseTo(3091.46, 1);
+    expect(espp.zeroCostFlag).toBe(false);
+
+    expect(rsu.zeroCostFlag).toBe(true);
+    expect(rsu.acquisitionCostAmount).toBeUndefined();
+  });
+});
