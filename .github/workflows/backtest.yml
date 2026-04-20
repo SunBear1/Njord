@@ -12,7 +12,7 @@ jobs:
       contents: write   # needed to push backtest-history.csv back to main
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
