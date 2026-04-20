@@ -7,6 +7,7 @@ import ComparisonChart from './components/ComparisonChart';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { TaxCalculatorPanel } from './components/TaxCalculatorPanel';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
+import { Skeleton } from './components/Skeleton';
 import { useAssetData } from './hooks/useAssetData';
 import { useEtfData } from './hooks/useEtfData';
 
@@ -555,7 +556,7 @@ function App() {
             </ErrorBoundary>
             {timeline && (
               <ErrorBoundary>
-                <Suspense fallback={<div className="animate-pulse h-48 bg-gray-100 dark:bg-gray-800 rounded-xl" />}>
+                <Suspense fallback={<Skeleton.Chart height={220} />}>
                   <TimelineChartLazy
                     data={timeline}
                     currentValuePLN={results[0]?.currentValuePLN ?? 0}
@@ -568,7 +569,7 @@ function App() {
             )}
             {heatmap && (
               <ErrorBoundary>
-                <Suspense fallback={<div className="animate-pulse h-48 bg-gray-100 dark:bg-gray-800 rounded-xl" />}>
+                <Suspense fallback={<Skeleton.Chart height={220} />}>
                   <BreakevenChartLazy
                     cells={heatmap}
                     benchmarkEndValuePLN={results[0]?.benchmarkEndValuePLN ?? 0}
