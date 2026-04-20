@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import type { HistoricalPrice } from '../types/asset';
 import type { SellAnalysisResult } from '../types/sellAnalysis';
-import { fitGaussianHmm, detectCurrentRegime } from '../utils/hmm';
-import { runSellAnalysis } from '../utils/sellAnalysis';
+import type { SellAnalysisWorkerResult } from '../workers/sellAnalysis.worker';
 
 const DEBOUNCE_MS = 300;
 
@@ -31,6 +30,11 @@ export function useSellAnalysis(
   horizonDays: number,
   enabled: boolean,
 ): UseSellAnalysisResult {
+  const [analysis, setAnalysis] = useState<SellAnalysisResult | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const workerRef = useRef<Worker | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
   const prepared = useMemo(() => {
     if (!stockHistory || stockHistory.length < 30 || currentPrice <= 0 || !enabled) return null;
     const prices = stockHistory.map((p) => p.close);
@@ -40,15 +44,28 @@ export function useSellAnalysis(
     return { logRet, currentPrice, seed };
   }, [stockHistory, currentPrice, enabled]);
 
-  const [analysis, setAnalysis] = useState<SellAnalysisResult | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const computeRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // Create the worker once on mount
+  useEffect(() => {
+    let worker: Worker | null = null;
+    try {
+      worker = new Worker(
+        new URL('../workers/sellAnalysis.worker.ts', import.meta.url),
+        { type: 'module' },
+      );
+      workerRef.current = worker;
+    } catch {
+      // Worker creation can fail in test environments — fall back gracefully
+      workerRef.current = null;
+    }
+
+    return () => {
+      worker?.terminate();
+      workerRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
-    // Clear any pending debounce/compute on input change
     clearTimeout(debounceRef.current);
-    clearTimeout(computeRef.current);
 
     if (!prepared) {
       setAnalysis(null);
@@ -58,38 +75,50 @@ export function useSellAnalysis(
 
     setIsLoading(true);
 
-    // Debounce rapid horizon changes, then defer heavy computation
-    debounceRef.current = setTimeout(() => {
-      computeRef.current = setTimeout(() => {
-        try {
-          const model = fitGaussianHmm(prepared.logRet);
-          if (!model) {
+    const worker = workerRef.current;
+
+    if (worker) {
+      // Web Worker path — off main thread
+      debounceRef.current = setTimeout(() => {
+        const handler = (event: MessageEvent<{ type: string; payload?: SellAnalysisWorkerResult; message?: string }>) => {
+          worker.removeEventListener('message', handler);
+          if (event.data.type === 'result' && event.data.payload) {
+            const { result, regime } = event.data.payload;
+            setAnalysis({ ...result, regimeInfo: regime });
+          } else {
             setAnalysis(null);
-            setIsLoading(false);
-            return;
           }
-          const regime = detectCurrentRegime(prepared.logRet, model);
-
-          const result = runSellAnalysis(
-            model,
-            regime.currentState,
-            prepared.currentPrice,
-            horizonDays,
-            prepared.seed,
-          );
-
-          setAnalysis({ ...result, regimeInfo: regime });
-        } catch {
-          setAnalysis(null);
-        } finally {
           setIsLoading(false);
-        }
-      }, 0);
-    }, DEBOUNCE_MS);
+        };
+        worker.addEventListener('message', handler);
+        worker.postMessage({
+          type: 'run',
+          payload: { ...prepared, horizonDays },
+        });
+      }, DEBOUNCE_MS);
+    } else {
+      // Fallback: async on main thread (test/SSR environments)
+      debounceRef.current = setTimeout(() => {
+        void (async () => {
+          try {
+            const { fitGaussianHmm, detectCurrentRegime } = await import('../utils/hmm');
+            const { runSellAnalysis } = await import('../utils/sellAnalysis');
+            const model = fitGaussianHmm(prepared.logRet);
+            if (!model) { setAnalysis(null); setIsLoading(false); return; }
+            const regime = detectCurrentRegime(prepared.logRet, model);
+            const result = runSellAnalysis(model, regime.currentState, prepared.currentPrice, horizonDays, prepared.seed);
+            setAnalysis({ ...result, regimeInfo: regime });
+          } catch {
+            setAnalysis(null);
+          } finally {
+            setIsLoading(false);
+          }
+        })();
+      }, DEBOUNCE_MS);
+    }
 
     return () => {
       clearTimeout(debounceRef.current);
-      clearTimeout(computeRef.current);
     };
   }, [prepared, horizonDays]);
 

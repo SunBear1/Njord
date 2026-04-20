@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useMemo, useDeferredValue, lazy, Suspense } from 'react';
+import { useState, useCallback, useEffect, useMemo, useDeferredValue, lazy, Suspense } from 'react';
 import { Moon, Sun, BarChart3, Receipt } from 'lucide-react';
 import { InputPanel } from './components/InputPanel';
 import { ScenarioEditor } from './components/ScenarioEditor';
@@ -10,13 +10,13 @@ import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { Skeleton } from './components/Skeleton';
 import { useAssetData } from './hooks/useAssetData';
 import { useEtfData } from './hooks/useEtfData';
-
 import { useInflationData } from './hooks/useInflationData';
 import { useHistoricalVolatility } from './hooks/useHistoricalVolatility';
 import { useCurrencyRates } from './hooks/useCurrencyRates';
 import { useSellAnalysis } from './hooks/useSellAnalysis';
 import { useDarkMode } from './hooks/useDarkMode';
 import { useBondPresets } from './hooks/useBondPresets';
+import { usePortfolioState } from './hooks/usePortfolioState';
 import { KantorSidebar } from './components/KantorSidebar';
 import {
   calcAllScenarios,
@@ -24,9 +24,7 @@ import {
   calcHeatmap,
 } from './utils/calculations';
 import { blendedInflationRate, blendedSavingsRate } from './utils/inflationProjection';
-import { DEFAULT_HORIZON_MONTHS } from './utils/assetConfig';
-import { loadState, saveState } from './utils/persistedState';
-import type { Scenarios, ScenarioKey, BenchmarkType, BondSettings } from './types/scenario';
+import { loadState } from './utils/persistedState';
 
 const SellAnalysisPanel = lazy(() => import('./components/SellAnalysisPanel').then(m => ({ default: m.SellAnalysisPanel })));
 const MethodologyPanelLazy = lazy(() => import('./components/MethodologyPanel').then(m => ({ default: m.MethodologyPanel })));
@@ -34,19 +32,10 @@ const HowItWorksLazy = lazy(() => import('./components/HowItWorks').then(m => ({
 const TimelineChartLazy = lazy(() => import('./components/TimelineChart'));
 const BreakevenChartLazy = lazy(() => import('./components/BreakevenChart'));
 
-const DEFAULT_SCENARIOS: Scenarios = {
+const DEFAULT_SCENARIOS = {
   bear: { deltaStock: -10, deltaFx: -5 },
   base: { deltaStock: 0, deltaFx: 0 },
   bull: { deltaStock: 10, deltaFx: 5 },
-};
-
-const DEFAULT_BOND_SETTINGS: BondSettings = {
-  firstYearRate: 2.00,
-  penalty: 0,
-  rateType: 'fixed',
-  margin: 0,
-  couponFrequency: 0,
-  maturityMonths: 12,
 };
 
 const ROOT_STYLE = { backgroundColor: 'var(--color-bg-primary)' } as const;
@@ -54,154 +43,78 @@ const FOOTER_STYLE = { borderTop: '1px solid var(--color-border)', color: 'var(-
 
 function App() {
   const [isDark, toggleDarkMode] = useDarkMode();
-  // Load persisted state once on mount (synchronous — runs before first render)
-  const saved = loadState();
-
-  const [ticker, setTicker] = useState(saved?.ticker ?? '');
-  const [shares, setShares] = useState(saved?.shares ?? 0);
-  const [currentPriceUSD, setCurrentPriceUSD] = useState(0);
-  const [currentFxRate, setCurrentFxRate] = useState(0);
-  const [wibor3m, setWibor3m] = useState(saved?.wibor3m ?? 0);
-  const [benchmarkType, setBenchmarkType] = useState<BenchmarkType>(saved?.benchmarkType ?? 'savings');
-  const [bondSettings, setBondSettings] = useState<BondSettings>(saved?.bondSettings ?? DEFAULT_BOND_SETTINGS);
-  const [bondPresetId, setBondPresetId] = useState(saved?.bondPresetId ?? 'OTS');
-  const [inflationRate, setInflationRate] = useState(0);
-  const [nbpRefRate, setNbpRefRate] = useState(saved?.nbpRefRate ?? 0);
-  const [horizonMonths, setHorizonMonths] = useState(saved?.horizonMonths ?? DEFAULT_HORIZON_MONTHS);
-  const [avgCostUSD, setAvgCostUSD] = useState(saved?.avgCostUSD ?? 0);
-  const [isRSU, setIsRSU] = useState(saved?.isRSU ?? false);
-  const [brokerFeeUSD, setBrokerFeeUSD] = useState(saved?.brokerFeeUSD ?? 0);
-  const [dividendYieldPercent, setDividendYieldPercent] = useState(saved?.dividendYieldPercent ?? 0);
-  const [etfAnnualReturnPercent, setEtfAnnualReturnPercent] = useState(saved?.etfAnnualReturnPercent ?? 8);
-  const [etfTerPercent, setEtfTerPercent] = useState(saved?.etfTerPercent ?? 0.07);
-  const [etfTicker, setEtfTicker] = useState(saved?.etfTicker ?? 'IWDA.L');
-  // null = use HMM suggestions when available; non-null = user has manually overridden
-  const [userScenarios, setUserScenarios] = useState<Scenarios | null>(saved?.userScenarios ?? null);
-  const [scenarioEditKey, setScenarioEditKey] = useState(0);
-  const fxAutoFilled = useRef(false);
-  const aliorAutoFilled = useRef(false);
-  const inflationAutoFilled = useRef(false);
-  const etfReturnAutoFilled = useRef(false);
 
   // Top-level section: investment comparison vs standalone tax calculator
   type AppSection = 'investment' | 'tax';
-  const [activeSection, setActiveSection] = useState<AppSection>(saved?.activeSection as AppSection ?? 'investment');
+  const [activeSection, setActiveSection] = useState<AppSection>(
+    () => (loadState()?.activeSection as AppSection) ?? 'investment',
+  );
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const { assetData, proxyFxData, isLoading: assetLoading, error: assetError, fetchData: fetchAsset } = useAssetData();
   const { etfData, etfAnnualizedReturn, isLoading: etfLoading, error: etfError, fetchEtf } = useEtfData();
   const { presets: bondPresets, isLoading: bondPresetsLoading } = useBondPresets();
-  
   const { data: inflationData, isLoading: inflationLoading } = useInflationData();
+  const currencyRates = useCurrencyRates();
+
+  // All portfolio input state, persistence, autofill effects, and scenario handlers
+  const portfolio = usePortfolioState(activeSection, {
+    aliorBuyRate: currencyRates.alior?.buy ?? null,
+    proxyFxRate: proxyFxData?.currentRate ?? null,
+    inflationCurrentRate: inflationData?.currentRate ?? null,
+    etfAnnualizedReturn: etfAnnualizedReturn,
+  });
+  const {
+    ticker, setTicker, shares, setShares, currentPriceUSD, setCurrentPriceUSD,
+    currentFxRate, setCurrentFxRate, wibor3m, setWibor3m, benchmarkType, horizonMonths, setHorizonMonths,
+    userScenarios, scenarioEditKey, setScenarioEditKey,
+    inflationRate, setInflationRate, etfAnnualReturnPercent, setEtfAnnualReturnPercent,
+    etfTerPercent, setEtfTerPercent, etfTicker, setEtfTicker,
+    avgCostUSD, setAvgCostUSD, isRSU, setIsRSU, brokerFeeUSD, setBrokerFeeUSD,
+    dividendYieldPercent, setDividendYieldPercent, nbpRefRate, setNbpRefRate,
+    bondSettings, setBondSettings, bondPresetId, setBondPresetId,
+    resetForNewTicker, resetEtfAutofill,
+    handleBenchmarkTypeChange, handleApplySuggested, handleApplyModelScenarios,
+    handleScenarioChange,
+  } = portfolio;
+
   const { suggestedScenarios, stats: volatilityStats } = useHistoricalVolatility(
     assetData?.historicalPrices ?? null,
     proxyFxData?.historicalRates ?? null,
     horizonMonths,
   );
-  const currencyRates = useCurrencyRates();
-
-  // Primary FX source: Alior Kantor buy rate (actual conversion rate)
-  useEffect(() => {
-    if (currencyRates.alior && !aliorAutoFilled.current) {
-      aliorAutoFilled.current = true;
-      fxAutoFilled.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from async data source
-      setCurrentFxRate(currencyRates.alior.buy);
-    }
-  }, [currencyRates.alior]);
-
-  // Auto-fill inflation from ECB/NBP data
-  useEffect(() => {
-    if (inflationData?.currentRate && !inflationAutoFilled.current) {
-      inflationAutoFilled.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from async data source
-      setInflationRate(inflationData.currentRate);
-    }
-  }, [inflationData?.currentRate]);
-
-  // Auto-fill ETF annual return from historical CAGR when ETF ticker data arrives
-  useEffect(() => {
-    if (etfAnnualizedReturn !== null && !etfReturnAutoFilled.current) {
-      etfReturnAutoFilled.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from async data source
-      setEtfAnnualReturnPercent(parseFloat(etfAnnualizedReturn.toFixed(2)));
-    }
-  }, [etfAnnualizedReturn]);
-
-  // Auto-save user inputs to localStorage (debounced 600ms)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      saveState({ ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, isRSU, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent, etfTicker, activeSection });
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId, horizonMonths, benchmarkType, userScenarios, avgCostUSD, isRSU, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent, etfTicker, activeSection]);
 
   const fetchData = useCallback(async (tickerArg: string) => {
-    // Reset scenarios so HMM suggestions auto-apply for the new ticker
-    setUserScenarios(null);
-    setScenarioEditKey((k) => k + 1);
-
+    // Reset scenarios and FX autofill so model suggestions auto-apply for the new ticker
+    resetForNewTicker();
     const data = await fetchAsset(tickerArg);
     if (data?.asset.currentPrice) {
       setCurrentPriceUSD(data.asset.currentPrice);
     }
-  }, [fetchAsset]);
+  }, [fetchAsset, resetForNewTicker, setCurrentPriceUSD]);
 
   const handleFetchEtf = useCallback(async (tickerArg: string) => {
-    etfReturnAutoFilled.current = false; // allow auto-fill for the new ETF ticker
+    resetEtfAutofill(); // allow autofill for the new ETF ticker
     await fetchEtf(tickerArg);
-  }, [fetchEtf]);
+  }, [fetchEtf, resetEtfAutofill]);
 
-  const handleScenarioChange = useCallback(
-    (key: ScenarioKey, field: 'deltaStock' | 'deltaFx', value: number) => {
-      setUserScenarios((prev) => {
-        const base = prev ?? suggestedScenarios ?? DEFAULT_SCENARIOS;
-        return { ...base, [key]: { ...base[key], [field]: value } };
-      });
-    },
-    [suggestedScenarios],
-  );
-
-  const handleBenchmarkTypeChange = useCallback((v: BenchmarkType) => {
-    setBenchmarkType(v);
-    if (v === 'savings') {
-      setHorizonMonths((prev) => Math.min(prev, 60));
-    }
-  }, []);
-
-  const handleApplySuggested = useCallback(() => {
-    if (suggestedScenarios) {
-      setUserScenarios(suggestedScenarios);
-      setScenarioEditKey((k) => k + 1);
-    }
-  }, [suggestedScenarios]);
-
-  const handleApplyModelScenarios = useCallback((s: Scenarios) => {
-    setUserScenarios(s);
-    // No key increment — preserve ScenarioEditor local state (mode, activeModelId)
-  }, []);
-
-  // Derive active scenarios: user overrides take precedence over HMM suggestions
+  // Derive active scenarios: user overrides take precedence over model suggestions
   const scenarios = userScenarios ?? suggestedScenarios ?? DEFAULT_SCENARIOS;
 
-  // Auto-fill FX rate from proxy response when a new ticker is fetched
-  useEffect(() => {
-    if (proxyFxData?.currentRate && !fxAutoFilled.current) {
-      fxAutoFilled.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from async data source
-      setCurrentFxRate(proxyFxData.currentRate);
-    }
-  }, [proxyFxData]);
+  // Bound version of handleApplySuggested that closes over the current suggestedScenarios
+  const onApplySuggested = useCallback(
+    () => handleApplySuggested(suggestedScenarios),
+    [handleApplySuggested, suggestedScenarios],
+  );
 
-  // Auto-apply HMM suggestions when they arrive and user hasn't manually edited.
-  // Clears when fetchData sets userScenarios to null for a new ticker.
+  // Auto-apply model suggestions when they arrive and user hasn't manually edited.
+  // Clears when resetForNewTicker sets userScenarios to null for a new ticker.
   useEffect(() => {
     if (suggestedScenarios && userScenarios === null) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- remount ScenarioEditor for new suggestions
       setScenarioEditKey((k) => k + 1);
     }
-  }, [suggestedScenarios, userScenarios]);
+  }, [suggestedScenarios, userScenarios, setScenarioEditKey]);
 
   // Defer horizonMonths for expensive calculations so slider stays smooth
   const deferredHorizon = useDeferredValue(horizonMonths);
@@ -416,7 +329,7 @@ function App() {
               scenarios={scenarios}
               onChange={handleScenarioChange}
               suggestedScenarios={suggestedScenarios}
-              onApplySuggested={handleApplySuggested}
+              onApplySuggested={onApplySuggested}
               onApplyModelScenarios={handleApplyModelScenarios}
               currentPriceUSD={currentPriceUSD}
               currentFxRate={currentFxRate}
@@ -487,7 +400,7 @@ function App() {
                 scenarios={scenarios}
                 onChange={handleScenarioChange}
                 suggestedScenarios={suggestedScenarios}
-                onApplySuggested={handleApplySuggested}
+                onApplySuggested={onApplySuggested}
                 onApplyModelScenarios={handleApplyModelScenarios}
                 currentPriceUSD={currentPriceUSD}
                 currentFxRate={currentFxRate}

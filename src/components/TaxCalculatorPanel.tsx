@@ -21,6 +21,7 @@ import { fetchNbpTableARate } from '../utils/fetchNbpTableARate';
 import { fetchTickerName } from '../utils/fetchTickerName';
 import { BROKER_PARSERS } from '../utils/brokerParsers/index';
 import { fmtPLNGrosze } from '../utils/formatting';
+import { TaxTransactionsSchema } from '../utils/schemas';
 import type { TaxTransaction, TransactionTaxResult, MultiTaxSummary } from '../types/tax';
 import type { CurrencyRates } from '../hooks/useCurrencyRates';
 
@@ -200,10 +201,19 @@ function PolishDateInput({
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
+  const [storageCorrupted, setStorageCorrupted] = useState(false);
   const [transactions, setTransactions] = useState<TaxTransaction[]>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? (JSON.parse(stored) as TaxTransaction[]) : [];
+      if (!stored) return [];
+      const parsed = JSON.parse(stored);
+      const result = TaxTransactionsSchema.safeParse(parsed);
+      if (!result.success) {
+        console.warn('[TaxCalculatorPanel] localStorage validation failed:', result.error.issues.slice(0, 3));
+        // Don't set state here (can't call setState in initializer) — defer to useEffect
+      }
+      // Return raw data best-effort (transactions may have extra transient fields)
+      return Array.isArray(parsed) ? (parsed as TaxTransaction[]) : [];
     } catch {
       return [];
     }
@@ -213,14 +223,25 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const txs = JSON.parse(stored) as TaxTransaction[];
-        return new Set(txs.map((t) => t.id));
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return new Set((parsed as { id?: string }[]).map((t) => t.id).filter(Boolean) as string[]);
       }
     } catch { /* ignore */ }
     return new Set();
   });
 
   // Persist to localStorage on every change.
+  // Validate persisted data on mount and show corruption warning if needed
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const result = TaxTransactionsSchema.safeParse(JSON.parse(stored));
+        if (!result.success) setStorageCorrupted(true);
+      }
+    } catch { /* ignore */ }
+  }, []); // mount-only
+
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
@@ -351,6 +372,16 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
 
   return (
     <div className="space-y-5">
+      {/* Storage corruption warning */}
+      {storageCorrupted && (
+        <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-200" role="alert">
+          <AlertTriangle size={14} className="flex-shrink-0 mt-0.5" aria-hidden="true" />
+          <span>
+            Dane transakcji w pamięci lokalnej mają nieoczekiwany format. Niektóre pola mogły zostać zresetowane.
+            {' '}<button type="button" className="underline" onClick={() => { localStorage.removeItem(STORAGE_KEY); window.location.reload(); }}>Wyczyść i zacznij od nowa</button>.
+          </span>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5 min-w-0">

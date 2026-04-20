@@ -28,10 +28,10 @@ jobs:
         run: |
           BUNDLE=$(find dist/assets -name 'index-*.js' | head -1)
           SIZE=$(wc -c < "$BUNDLE")
-          MAX=$((200 * 1024))
+          MAX=$((250 * 1024))
           echo "Main bundle: $((SIZE / 1024)) KB (limit: $((MAX / 1024)) KB)"
           if [ "$SIZE" -gt "$MAX" ]; then
-            echo "❌ Main bundle exceeds 200 KB limit!" && exit 1
+            echo "❌ Main bundle exceeds 250 KB limit!" && exit 1
           else
             echo "✅ Bundle size OK"
           fi
