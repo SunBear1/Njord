@@ -36,6 +36,7 @@ const INPUT_CLS =
   'dark:placeholder-gray-400';
 const LABEL_CLS = 'text-xs font-medium text-gray-600 dark:text-gray-400';
 const DEBOUNCE_MS = 500;
+const COL_COUNT = 9;
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'CHF', 'DKK', 'SEK', 'PLN'] as const;
 
@@ -516,26 +517,44 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
         </div>
       )}
 
-      {/* Transaction cards — grouped by sale date */}
-      <div className="space-y-4">
-        {transactions.length === 0 && (
-          <div className="rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-10 text-center text-gray-400 dark:text-gray-500 space-y-2">
-            <Receipt size={32} className="mx-auto opacity-30" aria-hidden="true" />
-            <p className="text-sm">Nie masz jeszcze żadnych transakcji. Dodaj pierwszą transakcję sprzedaży.</p>
-          </div>
-        )}
-        {saleDateGroups.map(([dateKey, group]) => {
-          const isMulti = group.length > 1 && dateKey !== '';
-          return (
-            <div key={dateKey}>
-              {isMulti ? (
-                <div className="rounded-xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/30 dark:bg-blue-950/10 p-3 space-y-3">
-                  <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1.5 px-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 dark:bg-blue-500" />
-                    Sprzedaż {fmtDatePL(dateKey)} · {group.length} transakcje · 1 kurs NBP
-                  </p>
+      {/* Transaction table — grouped by sale date */}
+      {transactions.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-10 text-center text-gray-400 dark:text-gray-500 space-y-2">
+          <Receipt size={32} className="mx-auto opacity-30" aria-hidden="true" />
+          <p className="text-sm">Nie masz jeszcze żadnych transakcji. Dodaj pierwszą transakcję sprzedaży.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 text-[11px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="w-10 px-3 py-2.5 text-center font-medium">#</th>
+                <th className="px-3 py-2.5 text-left font-medium">Ticker</th>
+                <th className="px-3 py-2.5 text-left font-medium whitespace-nowrap">Data sprzedaży</th>
+                <th className="px-3 py-2.5 text-right font-medium">Kwota</th>
+                <th className="hidden sm:table-cell px-3 py-2.5 text-right font-medium whitespace-nowrap">Przychód PLN</th>
+                <th className="hidden sm:table-cell px-3 py-2.5 text-right font-medium whitespace-nowrap">Koszt PLN</th>
+                <th className="px-3 py-2.5 text-right font-medium whitespace-nowrap">Zysk/Strata</th>
+                <th className="px-3 py-2.5 text-right font-medium">Podatek</th>
+                <th className="w-20 px-3 py-2.5"></th>
+              </tr>
+            </thead>
+            {saleDateGroups.map(([dateKey, group]) => {
+              const isMulti = group.length > 1 && dateKey !== '';
+              return (
+                <tbody key={dateKey} className={isMulti ? 'bg-blue-50/20 dark:bg-blue-950/10' : ''}>
+                  {isMulti && (
+                    <tr>
+                      <td colSpan={COL_COUNT} className="px-3 py-2 border-b border-blue-100 dark:border-blue-900/40">
+                        <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 dark:bg-blue-500" />
+                          Sprzedaż {fmtDatePL(dateKey)} · {group.length} transakcje · 1 kurs NBP
+                        </p>
+                      </td>
+                    </tr>
+                  )}
                   {group.map(({ tx, globalIndex }) => (
-                    <TaxTransactionCard
+                    <TransactionTableRow
                       key={tx.id}
                       tx={tx}
                       index={globalIndex}
@@ -545,24 +564,12 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                       onDelete={() => removeTransaction(tx.id)}
                     />
                   ))}
-                </div>
-              ) : (
-                group.map(({ tx, globalIndex }) => (
-                  <TaxTransactionCard
-                    key={tx.id}
-                    tx={tx}
-                    index={globalIndex}
-                    isExpanded={expandedIds.has(tx.id)}
-                    onToggle={() => toggleExpanded(tx.id)}
-                    onUpdate={(patch) => updateTransaction(tx.id, patch)}
-                    onDelete={() => removeTransaction(tx.id)}
-                  />
-                ))
-              )}
-            </div>
-          );
-        })}
-      </div>
+                </tbody>
+              );
+            })}
+          </table>
+        </div>
+      )}
 
       {/* Add transaction + Clear all */}
       <div className="space-y-2">
@@ -617,9 +624,9 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
   );
 }
 
-// ─── Transaction Card ─────────────────────────────────────────────────────────
+// ─── Transaction Table Row ────────────────────────────────────────────────────
 
-interface TaxTransactionCardProps {
+interface TransactionTableRowProps {
   tx: TaxTransaction;
   index: number;
   isExpanded: boolean;
@@ -628,14 +635,14 @@ interface TaxTransactionCardProps {
   onDelete: () => void;
 }
 
-function TaxTransactionCard({
+function TransactionTableRow({
   tx,
   index,
   isExpanded,
   onToggle,
   onUpdate,
   onDelete,
-}: TaxTransactionCardProps) {
+}: TransactionTableRowProps) {
   const result: TransactionTaxResult | null = useMemo(
     () => calcTransactionResult(tx),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -833,76 +840,92 @@ function TaxTransactionCard({
   const showCommissions = tx.showCommissions || hasCommissions;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-      {/* Card header */}
-      <div
-        className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 select-none"
+    <>
+      {/* Summary row */}
+      <tr
+        className={`border-b border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 select-none transition-colors ${isExpanded ? 'bg-gray-50/50 dark:bg-gray-700/30' : ''}`}
         onClick={onToggle}
-        role="button"
         tabIndex={0}
         onKeyDown={(e) => e.key === 'Enter' && onToggle()}
         aria-expanded={isExpanded}
         aria-label={`Transakcja ${index}`}
       >
-        <span className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-bold flex items-center justify-center flex-shrink-0">
-          {index}
-        </span>
+        <td className="px-3 py-2.5 text-center">
+          <span className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-bold inline-flex items-center justify-center">
+            {index}
+          </span>
+        </td>
+        <td className="px-3 py-2.5">
+          <div className="flex items-center gap-1.5">
+            {tx.ticker ? (
+              <span className="inline-flex items-center gap-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded font-semibold text-xs tracking-wide">
+                <TrendingUp size={10} aria-hidden="true" />
+                {tx.ticker}
+              </span>
+            ) : (
+              <span className="text-gray-300 dark:text-gray-600">—</span>
+            )}
+            {tx.tickerName && (
+              <span className="text-gray-400 dark:text-gray-500 text-xs truncate max-w-[120px] hidden lg:inline">
+                {tx.tickerName}
+              </span>
+            )}
+          </div>
+        </td>
+        <td className="px-3 py-2.5 text-gray-700 dark:text-gray-200 whitespace-nowrap">
+          {tx.saleDate ? fmtDatePL(tx.saleDate) : <span className="text-gray-400 italic text-xs">Brak daty</span>}
+        </td>
+        <td className="px-3 py-2.5 text-right tabular-nums text-gray-600 dark:text-gray-300 whitespace-nowrap">
+          {tx.saleGrossAmount > 0
+            ? `${tx.saleGrossAmount.toLocaleString('pl-PL', { maximumFractionDigits: 2 })} ${tx.currency}`
+            : '—'}
+        </td>
+        <td className="hidden sm:table-cell px-3 py-2.5 text-right tabular-nums text-gray-600 dark:text-gray-300 whitespace-nowrap">
+          {result ? fmtPLNGrosze(result.revenuePLN) : '—'}
+        </td>
+        <td className="hidden sm:table-cell px-3 py-2.5 text-right tabular-nums text-gray-600 dark:text-gray-300 whitespace-nowrap">
+          {result ? fmtPLNGrosze(result.costPLN) : '—'}
+        </td>
+        <td className="px-3 py-2.5 text-right tabular-nums whitespace-nowrap">
+          {gainInfo ? (
+            <span className={`font-semibold ${gainInfo.cls}`}>{gainInfo.text}</span>
+          ) : '—'}
+        </td>
+        <td className="px-3 py-2.5 text-right tabular-nums whitespace-nowrap">
+          {result && !result.isLoss ? (
+            <span className="text-amber-700 dark:text-amber-400 font-medium">{fmtPLNGrosze(result.taxEstimatePLN)}</span>
+          ) : result ? (
+            <span className="text-gray-400 dark:text-gray-500">—</span>
+          ) : '—'}
+        </td>
+        <td className="px-3 py-2.5">
+          <div className="flex items-center justify-end gap-1">
+            {tx.importSource && (
+              <span className="inline-flex items-center bg-gray-100 dark:bg-gray-700/60 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide">
+                {tx.importSource}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              className="p-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
+              aria-label="Usuń transakcję"
+            >
+              <Trash2 size={14} aria-hidden="true" />
+            </button>
+            {isExpanded
+              ? <ChevronUp size={14} className="text-gray-400" aria-hidden="true" />
+              : <ChevronDown size={14} className="text-gray-400" aria-hidden="true" />
+            }
+          </div>
+        </td>
+      </tr>
 
-        <div className="flex-1 min-w-0 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-          {/* Ticker badge */}
-          {tx.ticker && (
-            <span className="inline-flex items-center gap-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded font-semibold text-xs tracking-wide">
-              <TrendingUp size={10} aria-hidden="true" />
-              {tx.ticker}
-            </span>
-          )}
-          {tx.tickerName && (
-            <span className="text-gray-500 dark:text-gray-400 text-xs truncate max-w-[180px]">
-              {tx.tickerName}
-            </span>
-          )}
-          {tx.saleDate ? (
-            <span className="text-gray-700 dark:text-gray-200 font-medium">{fmtDatePL(tx.saleDate)}</span>
-          ) : (
-            <span className="text-gray-400 dark:text-gray-500 italic">Brak daty sprzedaży</span>
-          )}
-          {tx.saleGrossAmount > 0 && (
-            <span className="text-gray-500 dark:text-gray-400 tabular-nums">
-              {tx.saleGrossAmount.toLocaleString('pl-PL', { maximumFractionDigits: 2 })} {tx.currency}
-            </span>
-          )}
-          {gainInfo && (
-            <span className={`font-semibold tabular-nums ${gainInfo.cls}`}>
-              {gainInfo.text}
-            </span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1 flex-shrink-0">
-          {/* Broker source badge near the trash button */}
-          {tx.importSource && (
-            <span className="inline-flex items-center bg-gray-100 dark:bg-gray-700/60 text-gray-500 dark:text-gray-400 px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide">
-              {tx.importSource}
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="p-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
-            aria-label="Usuń transakcję"
-          >
-            <Trash2 size={15} aria-hidden="true" />
-          </button>
-          {isExpanded
-            ? <ChevronUp size={15} className="text-gray-400" aria-hidden="true" />
-            : <ChevronDown size={15} className="text-gray-400" aria-hidden="true" />
-          }
-        </div>
-      </div>
-
-      {/* Card body */}
+      {/* Expanded edit form */}
       {isExpanded && (
-        <div className="border-t border-gray-100 dark:border-gray-700 px-4 py-4 space-y-4">
+        <tr>
+          <td colSpan={COL_COUNT} className="border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 px-4 py-4">
+            <div className="space-y-4">
 
           {/* Row 0: Ticker (optional) */}
           <div className="space-y-1">
@@ -1168,9 +1191,12 @@ function TaxTransactionCard({
                       : 'Uzupełnij brakujące pola, aby zobaczyć wynik.'}
             </p>
           )}
-        </div>
+
+            </div>
+          </td>
+        </tr>
       )}
-    </div>
+    </>
   );
 }
 
