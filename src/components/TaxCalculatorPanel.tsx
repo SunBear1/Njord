@@ -517,36 +517,51 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
       )}
 
       {/* Transaction cards — grouped by sale date */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         {transactions.length === 0 && (
           <div className="rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-10 text-center text-gray-400 dark:text-gray-500 space-y-2">
             <Receipt size={32} className="mx-auto opacity-30" aria-hidden="true" />
             <p className="text-sm">Nie masz jeszcze żadnych transakcji. Dodaj pierwszą transakcję sprzedaży.</p>
           </div>
         )}
-        {saleDateGroups.map(([dateKey, group]) => (
-          <div key={dateKey}>
-            {saleDateGroups.length > 1 && group.length > 1 && dateKey !== '' && (
-              <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-1.5 ml-1 flex items-center gap-1.5">
-                <span className="inline-block w-3 h-px bg-gray-300 dark:bg-gray-600" />
-                Sprzedaż {fmtDatePL(dateKey)} · {group.length} transakcje
-              </p>
-            )}
-            <div className="space-y-3">
-              {group.map(({ tx, globalIndex }) => (
-                <TaxTransactionCard
-                  key={tx.id}
-                  tx={tx}
-                  index={globalIndex}
-                  isExpanded={expandedIds.has(tx.id)}
-                  onToggle={() => toggleExpanded(tx.id)}
-                  onUpdate={(patch) => updateTransaction(tx.id, patch)}
-                  onDelete={() => removeTransaction(tx.id)}
-                />
-              ))}
+        {saleDateGroups.map(([dateKey, group]) => {
+          const isMulti = group.length > 1 && dateKey !== '';
+          return (
+            <div key={dateKey}>
+              {isMulti ? (
+                <div className="rounded-xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/30 dark:bg-blue-950/10 p-3 space-y-3">
+                  <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1.5 px-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 dark:bg-blue-500" />
+                    Sprzedaż {fmtDatePL(dateKey)} · {group.length} transakcje · 1 kurs NBP
+                  </p>
+                  {group.map(({ tx, globalIndex }) => (
+                    <TaxTransactionCard
+                      key={tx.id}
+                      tx={tx}
+                      index={globalIndex}
+                      isExpanded={expandedIds.has(tx.id)}
+                      onToggle={() => toggleExpanded(tx.id)}
+                      onUpdate={(patch) => updateTransaction(tx.id, patch)}
+                      onDelete={() => removeTransaction(tx.id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                group.map(({ tx, globalIndex }) => (
+                  <TaxTransactionCard
+                    key={tx.id}
+                    tx={tx}
+                    index={globalIndex}
+                    isExpanded={expandedIds.has(tx.id)}
+                    onToggle={() => toggleExpanded(tx.id)}
+                    onUpdate={(patch) => updateTransaction(tx.id, patch)}
+                    onDelete={() => removeTransaction(tx.id)}
+                  />
+                ))
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Add transaction + Clear all */}
