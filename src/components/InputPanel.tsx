@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, AlertCircle, CheckCircle2, RefreshCw, Calculator, ExternalLink, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle2, RefreshCw, Calculator, ChevronDown, ChevronUp } from 'lucide-react';
 import type { AssetData } from '../types/asset';
 import type { InflationData } from '../hooks/useInflationData';
 import type { BenchmarkType, BondPreset, BondSettings } from '../types/scenario';
-import { BOND_PRESETS_LAST_UPDATED, BOND_PRESETS_SOURCE_URL } from '../data/bondPresets';
 import { fmtUSD, fmtNum } from '../utils/formatting';
 import { Tooltip } from './Tooltip';
+import { BondBenchmarkSection } from './inputs/BondBenchmarkSection';
+import { EtfBenchmarkSection } from './inputs/EtfBenchmarkSection';
 
 interface InputPanelProps {
   onFetchAsset: (ticker: string) => void;
@@ -683,282 +684,36 @@ export function InputPanel({
           )}
         </div>
       ) : benchmarkType === 'etf' ? (
-        /* ETF benchmark */
-        <div className="space-y-3">
-          {/* ETF ticker input */}
-          <div className="space-y-1">
-            <label htmlFor="etf-ticker" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-              Ticker ETF
-              <Tooltip content="Ticker funduszu ETF, w który reinwestujesz zyski ze sprzedaży akcji. Przykłady: IWDA.L, VWCE.DE, CSPX.L, SPY. Europejskie ETF wymagają sufiksu giełdy (np. .L, .AS, .DE)." />
-            </label>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const t = localEtfTicker.trim().toUpperCase();
-                if (t) { onEtfTickerChange(t); onFetchEtf(t); }
-              }}
-              className="flex gap-2"
-            >
-              <input
-                id="etf-ticker"
-                name="etfTicker"
-                autoComplete="off"
-                spellCheck={false}
-                type="text"
-                value={localEtfTicker}
-                onChange={(e) => setLocalEtfTicker(e.target.value.toUpperCase())}
-                placeholder="np. IWDA.L"
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
-              />
-              <button
-                type="submit"
-                disabled={etfLoading || !localEtfTicker.trim()}
-                className="flex items-center gap-1.5 px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                aria-label="Pobierz dane ETF"
-              >
-                {etfLoading ? <Loader2 size={14} className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <RefreshCw size={14} aria-hidden="true" />}
-                Pobierz
-              </button>
-            </form>
-            {etfError && (
-              <p className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
-                <AlertCircle size={12} aria-hidden="true" /> {etfError}
-              </p>
-            )}
-            {etfName && !etfError && !etfLoading && (
-              <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
-                <CheckCircle2 size={12} aria-hidden="true" /> {etfName}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-1">
-            <label htmlFor="etf-return" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-              Roczny zwrot ETF (% p.a.)
-              <Tooltip content="Historyczny CAGR funduszu przed odliczeniem TER — wypełniany automatycznie po pobraniu danych. Możesz go nadpisać własną wartością. Przykład: VWCE/IWDA ≈ 8–10% długoterminowo." />
-            </label>
-            <input
-              id="etf-return"
-              name="etfReturn"
-              autoComplete="off"
-              type="number"
-              min={-20}
-              max={30}
-              step={0.1}
-              value={etfAnnualReturnPercent || ''}
-              onChange={(e) => onEtfAnnualReturnChange(Number(e.target.value))}
-              placeholder="np. 8.0"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
-            />
-          </div>
-          <div className="space-y-1">
-            <label htmlFor="etf-ter" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-              TER — opłata za zarządzanie (% rocznie)
-              <Tooltip content="Total Expense Ratio — roczna opłata funduszu za zarządzanie, automatycznie odejmowana od wartości. Przykład: VWCE 0.22%, CSPX/IWDA 0.07%, iShares Core S&P 500 0.07%." />
-            </label>
-            <input
-              id="etf-ter"
-              name="etfTer"
-              autoComplete="off"
-              type="number"
-              min={0}
-              max={5}
-              step={0.01}
-              value={etfTerPercent || ''}
-              onChange={(e) => onEtfTerChange(Number(e.target.value))}
-              placeholder="np. 0.07"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
-            />
-          </div>
-          {etfAnnualReturnPercent > 0 && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 px-1">
-              Efektywny zwrot netto: <strong>{(etfAnnualReturnPercent - etfTerPercent).toFixed(2)}%</strong>/rok (przed Belką).
-              Podwójna Belka 19%: przy sprzedaży akcji i przy wyjściu z ETF.
-            </p>
-          )}
-        </div>
+        <EtfBenchmarkSection
+          localEtfTicker={localEtfTicker}
+          onLocalEtfTickerChange={setLocalEtfTicker}
+          etfLoading={etfLoading}
+          etfError={etfError}
+          etfName={etfName}
+          etfAnnualReturnPercent={etfAnnualReturnPercent}
+          etfTerPercent={etfTerPercent}
+          onEtfAnnualReturnChange={onEtfAnnualReturnChange}
+          onEtfTerChange={onEtfTerChange}
+          onEtfTickerChange={onEtfTickerChange}
+          onFetchEtf={onFetchEtf}
+        />
       ) : (
-        /* Bonds — all 8 types */
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <label htmlFor="bond-type" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Typ obligacji
-            </label>
-            <select
-              id="bond-type"
-              name="bondType"
-              value={selectedBondId}
-              onChange={(e) => {
-                const preset = bondPresets.find((b) => b.id === e.target.value);
-                if (preset) handleSelectBondPreset(e.target.value, preset);
-              }}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
-            >
-              {bondPresetsLoading ? (
-                <option disabled>Ładowanie…</option>
-              ) : (
-                bondPresets.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name} — {b.description}{b.isFamily ? ' (800+)' : ''}
-                  </option>
-                ))
-              )}
-            </select>
-          </div>
-
-          {/* Bond rate details */}
-          {(() => {
-            const preset = bondPresets.find((b) => b.id === selectedBondId);
-            if (!preset) return null;
-            const earlyExit = horizonMonths < preset.maturityMonths;
-
-            return (
-              <div className="space-y-3">
-                {/* Family bonds hint */}
-                {preset.isFamily && (
-                  <div className="flex items-start gap-1.5 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 text-purple-800 dark:text-purple-200 text-xs rounded-lg p-2.5">
-                    <Info size={12} className="mt-0.5 flex-shrink-0" />
-                    Obligacje rodzinne — dostępne tylko dla beneficjentów programu 800+.
-                  </div>
-                )}
-
-                {/* Rate info card */}
-                <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 space-y-2 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Oprocentowanie 1. roku:</span>
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">{bondSettings.firstYearRate.toFixed(2)}%</span>
-                  </div>
-
-                  {preset.rateType === 'inflation' && (
-                    <>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">Marża:</span>
-                        <span className="font-medium">{bondSettings.margin.toFixed(2)}%</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                          Inflacja CPI
-                          {inflationLoading && <span className="text-gray-400 dark:text-gray-500 inline-flex items-center gap-1">· <Loader2 size={12} className="animate-spin motion-reduce:animate-none" />ładowanie…</span>}
-                          {inflationData && !inflationLoading && (
-                            <Tooltip
-                              content={`Źródło: ${inflationData.source}${inflationData.period ? ` (${inflationData.period})` : ''}. Obligacje indeksowane inflacją w rzeczywistości stosują odczyt CPI sprzed 2-3 miesięcy, nie bieżącą projekcję — przy stabilnej inflacji różnica jest minimalna.`}
-                              side="bottom"
-                            />
-                          )}
-                          :
-                        </span>
-                        <input
-                          type="number"
-                          min={-5}
-                          max={30}
-                          step={0.1}
-                          value={inflationRate || ''}
-                          onChange={(e) => onInflationRateChange(parseFloat(e.target.value) || 0)}
-                          className="w-20 border border-gray-300 dark:border-gray-500 rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-600 dark:text-gray-100"
-                        />
-                      </div>
-                      <div className="flex justify-between border-t border-gray-200 dark:border-gray-600 pt-1.5">
-                        <span className="text-gray-600 dark:text-gray-400 font-medium">Stopa efektywna (od 2. roku):</span>
-                        <span className="font-bold text-blue-700 dark:text-blue-300">{bondEffectiveRate.toFixed(2)}%</span>
-                      </div>
-                    </>
-                  )}
-
-                  {preset.rateType === 'reference' && (
-                    <>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">Marża:</span>
-                        <span className="font-medium">{bondSettings.margin.toFixed(2)}%</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                          Stopa referencyjna NBP:
-                          <a
-                            href="https://www.nbp.pl/polityka-pieniezna/instrumenty/stopy-procentowe.aspx"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title="Sprawdź aktualną stopę NBP"
-                            className="text-blue-500 hover:text-blue-700"
-                          >
-                            <ExternalLink size={12} />
-                          </a>
-                        </span>
-                        <input
-                          type="number"
-                          min={0}
-                          max={20}
-                          step={0.25}
-                          value={nbpRefRate || ''}
-                          onChange={(e) => onNbpRefRateChange(parseFloat(e.target.value) || 0)}
-                          placeholder="np. 5.75"
-                          className="w-20 border border-gray-300 dark:border-gray-500 rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-600 dark:text-gray-100"
-                        />
-                      </div>
-                      <div className="flex justify-between border-t border-gray-200 dark:border-gray-600 pt-1.5">
-                        <span className="text-gray-600 dark:text-gray-400 font-medium">Stopa efektywna (od 2. okresu):</span>
-                        <span className="font-bold text-blue-700 dark:text-blue-300">{bondEffectiveRate.toFixed(2)}%</span>
-                      </div>
-                    </>
-                  )}
-
-                  {preset.rateType === 'fixed' && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Typ:</span>
-                      <span className="font-medium">Stała stopa przez cały okres</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Penalty */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label htmlFor="bond-penalty" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Kara za wcz. wykup
-                      <span className="ml-1 text-xs font-normal text-gray-500 dark:text-gray-400">(% kapitału)</span>
-                    </label>
-                    <input
-                      id="bond-penalty"
-                      name="bondPenalty"
-                      autoComplete="off"
-                      type="number"
-                      min={0}
-                      max={10}
-                      step={0.01}
-                      value={bondSettings.penalty}
-                      onChange={(e) => {
-                        onBondSettingsChange({ ...bondSettings, penalty: parseFloat(e.target.value) || 0 });
-                      }}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Zapadalność
-                    </label>
-                    <div className="px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
-                      {preset.maturityMonths} mies.
-                    </div>
-                  </div>
-                </div>
-
-                {/* Early exit warning */}
-                <div className={`text-xs rounded-lg p-2.5 ${earlyExit ? (preset.earlyRedemptionAllowed ? 'bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400' : 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400') : 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400'}`}>
-                  {earlyExit
-                    ? preset.earlyRedemptionAllowed
-                      ? `Horyzont (${horizonMonths} mies.) < zapadalność ${preset.name} (${preset.maturityMonths} mies.) — kara za wcześniejszy wykup: ${preset.earlyRedemptionPenalty}% kapitału.`
-                      : `${preset.name} nie pozwala na wcześniejszy wykup. Wyniki obliczone dla pełnego okresu zapadalności (${preset.maturityMonths} mies.).`
-                    : `Horyzont pokrywa okres zapadalności obligacji — brak kary za wykup.`}
-                </div>
-                <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
-                  Stawki z {BOND_PRESETS_LAST_UPDATED}.{' '}
-                  <a href={BOND_PRESETS_SOURCE_URL} target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-500 dark:hover:text-gray-400">
-                    Aktualne stawki na obligacjeskarbowe.pl
-                  </a>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
+        <BondBenchmarkSection
+          selectedBondId={selectedBondId}
+          bondPresets={bondPresets}
+          bondPresetsLoading={bondPresetsLoading}
+          bondSettings={bondSettings}
+          bondEffectiveRate={bondEffectiveRate}
+          horizonMonths={horizonMonths}
+          inflationRate={inflationRate}
+          inflationData={inflationData}
+          inflationLoading={inflationLoading}
+          nbpRefRate={nbpRefRate}
+          onSelectPreset={handleSelectBondPreset}
+          onBondSettingsChange={onBondSettingsChange}
+          onInflationRateChange={onInflationRateChange}
+          onNbpRefRateChange={onNbpRefRateChange}
+        />
       )}
 
       {/* Horizon Slider */}
