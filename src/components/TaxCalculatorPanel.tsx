@@ -18,8 +18,8 @@ import { BROKER_PARSERS } from '../utils/brokerParsers/index';
 import { TaxTransactionsSchema } from '../utils/schemas';
 import type { TaxTransaction } from '../types/tax';
 import type { CurrencyRates } from '../hooks/useCurrencyRates';
-import { newTransaction, fmtDatePL, COL_COUNT } from './tax/taxHelpers';
-import { TransactionTableRow } from './tax/TransactionTableRow';
+import { newTransaction, fmtDatePL } from './tax/taxHelpers';
+import { TransactionCard } from './tax/TransactionCard';
 import { YearSummary } from './tax/YearSummarySection';
 
 export interface TaxCalculatorPanelProps {
@@ -390,57 +390,46 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
         </div>
       )}
 
-      {/* Transaction table — grouped by sale date */}
+      {/* Transaction cards — grouped by sale date */}
       {transactions.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-10 text-center text-gray-400 dark:text-gray-500 space-y-2">
           <Receipt size={32} className="mx-auto opacity-30" aria-hidden="true" />
           <p className="text-sm">Nie masz jeszcze żadnych transakcji. Dodaj pierwszą transakcję sprzedaży.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/80 text-[11px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                <th className="w-10 px-3 py-2.5 text-center font-medium">#</th>
-                <th className="px-3 py-2.5 text-left font-medium">Ticker</th>
-                <th className="px-3 py-2.5 text-left font-medium whitespace-nowrap">Data sprzedaży</th>
-                <th className="px-3 py-2.5 text-right font-medium">Kwota</th>
-                <th className="hidden sm:table-cell px-3 py-2.5 text-right font-medium whitespace-nowrap">Przychód PLN</th>
-                <th className="hidden sm:table-cell px-3 py-2.5 text-right font-medium whitespace-nowrap">Koszt PLN</th>
-                <th className="px-3 py-2.5 text-right font-medium whitespace-nowrap">Zysk/Strata</th>
-                <th className="px-3 py-2.5 text-right font-medium">Podatek</th>
-                <th className="w-20 px-3 py-2.5"></th>
-              </tr>
-            </thead>
-            {saleDateGroups.map(([dateKey, group]) => {
-              const isMulti = group.length > 1 && dateKey !== '';
-              return (
-                <tbody key={dateKey} className={isMulti ? 'bg-blue-50/20 dark:bg-blue-950/10' : ''}>
-                  {isMulti && (
-                    <tr>
-                      <td colSpan={COL_COUNT} className="px-3 py-2 border-b border-blue-100 dark:border-blue-900/40">
-                        <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-blue-400 dark:bg-blue-500" />
-                          Sprzedaż {fmtDatePL(dateKey)} · {group.length} transakcje · 1 kurs NBP
-                        </p>
-                      </td>
-                    </tr>
-                  )}
-                  {group.map(({ tx, globalIndex }) => (
-                    <TransactionTableRow
-                      key={tx.id}
-                      tx={tx}
-                      index={globalIndex}
-                      isExpanded={expandedIds.has(tx.id)}
-                      onToggle={() => toggleExpanded(tx.id)}
-                      onUpdate={(patch) => updateTransaction(tx.id, patch)}
-                      onDelete={() => removeTransaction(tx.id)}
-                    />
-                  ))}
-                </tbody>
-              );
-            })}
-          </table>
+        <div className="space-y-2">
+          {saleDateGroups.map(([dateKey, group]) => {
+            const isMulti = group.length > 1 && dateKey !== '';
+            return (
+              <div key={dateKey} className="space-y-2">
+                {isMulti && (
+                  <div className="flex items-center gap-2 px-1 pt-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-blue-400 dark:bg-blue-500 flex-shrink-0" />
+                      <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+                        {fmtDatePL(dateKey)}
+                      </span>
+                    </div>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                      {group.length} {group.length < 5 ? 'transakcje' : 'transakcji'} · wspólny kurs NBP
+                    </span>
+                    <div className="flex-1 border-t border-blue-200 dark:border-blue-800 ml-2" />
+                  </div>
+                )}
+                {group.map(({ tx, globalIndex }) => (
+                  <TransactionCard
+                    key={tx.id}
+                    tx={tx}
+                    index={globalIndex}
+                    isExpanded={expandedIds.has(tx.id)}
+                    onToggle={() => toggleExpanded(tx.id)}
+                    onUpdate={(patch) => updateTransaction(tx.id, patch)}
+                    onDelete={() => removeTransaction(tx.id)}
+                  />
+                ))}
+              </div>
+            );
+          })}
         </div>
       )}
 

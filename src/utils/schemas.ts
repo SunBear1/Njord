@@ -140,6 +140,7 @@ const TaxTransactionSchema = z.object({
   saleDate: z.string(),
   acquisitionDate: z.string().optional(),
   currency: z.string().min(2).max(4),
+  acquisitionCurrency: z.string().min(2).max(4).optional(),
   saleGrossAmount: z.number().finite().nonnegative(),
   acquisitionCostAmount: z.number().finite().nonnegative().optional(),
   saleBrokerFee: z.number().finite().nonnegative().optional(),

@@ -386,3 +386,136 @@ describe('ESPP cost basis via calcTransactionResult', () => {
     expect(r!.isLoss).toBe(false);
   });
 });
+
+// ─── Dual-currency transactions ───────────────────────────────────────────────
+
+describe('dual-currency (acquisitionCurrency !== currency)', () => {
+  it('supports PLN acquisition + USD sale (buy in PLN, sell in USD)', () => {
+    // Bought shares on Polish market for PLN, sold on US market for USD.
+    // Acquisition: 15,000 PLN → rate = 1.0 (no conversion needed)
+    // Sale: 5,000 USD × 4.0 NBP rate = 20,000 PLN
+    const tx: TaxTransaction = {
+      ...BASE_TX,
+      currency: 'USD',
+      acquisitionCurrency: 'PLN',
+      saleGrossAmount: 5_000,
+      acquisitionCostAmount: 15_000,
+      exchangeRateSaleToPLN: 4.0,
+      exchangeRateAcquisitionToPLN: 1.0, // PLN → 1:1
+    };
+
+    const r = calcTransactionResult(tx);
+    expect(r).not.toBeNull();
+    // Revenue: 5,000 × 4.0 = 20,000
+    expect(r!.revenuePLN).toBeCloseTo(20_000);
+    // Cost: 15,000 × 1.0 = 15,000
+    expect(r!.costPLN).toBeCloseTo(15_000);
+    // Gain: 20,000 - 15,000 = 5,000
+    expect(r!.gainPLN).toBeCloseTo(5_000);
+    // Tax: 5,000 × 0.19 = 950
+    expect(r!.taxEstimatePLN).toBeCloseTo(950);
+    expect(r!.isLoss).toBe(false);
+  });
+
+  it('supports EUR acquisition + USD sale', () => {
+    // Bought in EUR, sold in USD — each leg has its own NBP rate
+    const tx: TaxTransaction = {
+      ...BASE_TX,
+      currency: 'USD',
+      acquisitionCurrency: 'EUR',
+      saleGrossAmount: 10_000,
+      acquisitionCostAmount: 8_000,
+      exchangeRateSaleToPLN: 4.02,   // USD rate
+      exchangeRateAcquisitionToPLN: 4.35, // EUR rate
+    };
+
+    const r = calcTransactionResult(tx);
+    expect(r).not.toBeNull();
+    // Revenue: 10,000 × 4.02 = 40,200
+    expect(r!.revenuePLN).toBeCloseTo(40_200);
+    // Cost: 8,000 × 4.35 = 34,800
+    expect(r!.costPLN).toBeCloseTo(34_800);
+    // Gain: 40,200 - 34,800 = 5,400
+    expect(r!.gainPLN).toBeCloseTo(5_400);
+    // Tax: 5,400 × 0.19 = 1,026
+    expect(r!.taxEstimatePLN).toBeCloseTo(1_026);
+  });
+
+  it('dual-currency loss when EUR acquisition cost exceeds USD revenue in PLN', () => {
+    const tx: TaxTransaction = {
+      ...BASE_TX,
+      currency: 'USD',
+      acquisitionCurrency: 'EUR',
+      saleGrossAmount: 5_000,
+      acquisitionCostAmount: 8_000,
+      exchangeRateSaleToPLN: 4.02,   // USD rate
+      exchangeRateAcquisitionToPLN: 4.35, // EUR rate → cost = 34,800
+    };
+
+    const r = calcTransactionResult(tx);
+    expect(r).not.toBeNull();
+    // Revenue: 5,000 × 4.02 = 20,100
+    // Cost: 8,000 × 4.35 = 34,800
+    // Gain: 20,100 - 34,800 = -14,700
+    expect(r!.gainPLN).toBeCloseTo(-14_700);
+    expect(r!.taxEstimatePLN).toBe(0);
+    expect(r!.isLoss).toBe(true);
+  });
+
+  it('dual-currency with commissions in respective currencies', () => {
+    const tx: TaxTransaction = {
+      ...BASE_TX,
+      currency: 'USD',
+      acquisitionCurrency: 'PLN',
+      saleGrossAmount: 10_000,
+      acquisitionCostAmount: 30_000,
+      saleBrokerFee: 10,        // 10 USD commission on sale
+      acquisitionBrokerFee: 50, // 50 PLN commission on purchase
+      exchangeRateSaleToPLN: 4.0,
+      exchangeRateAcquisitionToPLN: 1.0, // PLN
+    };
+
+    const r = calcTransactionResult(tx);
+    expect(r).not.toBeNull();
+    // Revenue: 10,000 × 4.0 = 40,000
+    expect(r!.revenuePLN).toBeCloseTo(40_000);
+    // Cost: (30,000 + 50) × 1.0 + 10 × 4.0 = 30,050 + 40 = 30,090
+    expect(r!.costPLN).toBeCloseTo(30_090);
+    // Gain: 40,000 - 30,090 = 9,910
+    expect(r!.gainPLN).toBeCloseTo(9_910);
+    // Tax: 9,910 × 0.19 = 1,882.90
+    expect(r!.taxEstimatePLN).toBeCloseTo(1_882.9);
+  });
+
+  it('multi-summary with mixed currencies aggregates correctly', () => {
+    const usdTx: TaxTransaction = {
+      ...BASE_TX,
+      id: 'tx-usd',
+      currency: 'USD',
+      saleGrossAmount: 10_000,
+      acquisitionCostAmount: 7_000,
+      exchangeRateSaleToPLN: 4.0,
+      exchangeRateAcquisitionToPLN: 3.9,
+    };
+    const dualTx: TaxTransaction = {
+      ...BASE_TX,
+      id: 'tx-dual',
+      currency: 'USD',
+      acquisitionCurrency: 'PLN',
+      saleGrossAmount: 5_000,
+      acquisitionCostAmount: 15_000,
+      exchangeRateSaleToPLN: 4.0,
+      exchangeRateAcquisitionToPLN: 1.0,
+    };
+
+    const s = calcMultiTaxSummary([usdTx, dualTx]);
+    // USD tx revenue: 10,000 × 4.0 = 40,000
+    // Dual tx revenue: 5,000 × 4.0 = 20,000
+    expect(s.totalRevenuePLN).toBeCloseTo(60_000);
+    // USD tx cost: 7,000 × 3.9 = 27,300
+    // Dual tx cost: 15,000 × 1.0 = 15,000
+    expect(s.totalCostPLN).toBeCloseTo(42_300);
+    expect(s.netIncomePLN).toBeCloseTo(17_700);
+    expect(s.taxDuePLN).toBeCloseTo(17_700 * 0.19, 1);
+  });
+});

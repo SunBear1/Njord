@@ -25,8 +25,10 @@ export interface TaxTransaction {
   /** Acquisition date — YYYY-MM-DD. Required when zeroCostFlag = false. */
   acquisitionDate?: string;
 
-  /** Currency of the transaction, ISO 4217 (e.g. 'USD', 'EUR'). */
+  /** Currency of the sale, ISO 4217 (e.g. 'USD', 'EUR'). */
   currency: string;
+  /** Currency of the acquisition when different from sale currency (e.g. buy in PLN, sell in USD). */
+  acquisitionCurrency?: string;
 
   /** Gross sale proceeds in the transaction currency. Required, > 0. */
   saleGrossAmount: number;
