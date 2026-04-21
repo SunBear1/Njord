@@ -12,6 +12,7 @@ import {
   HelpCircle,
   Undo2,
   X,
+  Trash2,
 } from 'lucide-react';
 import { calcTransactionResult } from '../utils/taxCalculator';
 import { BROKER_PARSERS } from '../utils/brokerParsers/index';
@@ -51,16 +52,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
     }
   });
 
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) return new Set((parsed as { id?: string }[]).map((t) => t.id).filter(Boolean) as string[]);
-      }
-    } catch { /* ignore */ }
-    return new Set();
-  });
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   // Persist to localStorage on every change.
   // Validate persisted data on mount and show corruption warning if needed
@@ -256,6 +248,44 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
             Auto-import
           </button>
 
+          {/* Clear all transactions — icon button with inline confirm */}
+          {transactions.length > 0 && (
+            <div className="relative">
+              {confirmClearAll ? (
+                <div className="absolute top-full right-0 mt-1 z-20 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-3 space-y-2">
+                  <p className="text-xs text-gray-600 dark:text-gray-300">
+                    Usunąć wszystkie {transactions.length} {transactions.length === 1 ? 'transakcję' : transactions.length < 5 ? 'transakcje' : 'transakcji'}?
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleClearAll}
+                      className="flex-1 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                    >
+                      Tak, usuń
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmClearAll(false)}
+                      className="flex-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 border border-gray-200 dark:border-gray-600 rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-400"
+                    >
+                      Anuluj
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => { setConfirmClearAll((v) => !v); setShowImportDropdown(false); }}
+                className="flex items-center justify-center p-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                aria-label={`Usuń wszystkie transakcje (${transactions.length})`}
+                title={`Usuń wszystkie transakcje (${transactions.length})`}
+              >
+                <Trash2 size={15} aria-hidden="true" />
+              </button>
+            </div>
+          )}
+
           {/* Broker import dropdown */}
           {showImportDropdown && (
             <div className="absolute top-full right-0 mt-1 z-20 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-4 space-y-3">
@@ -399,10 +429,11 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
       ) : (
         <div className="space-y-2">
           {saleDateGroups.map(([dateKey, group]) => {
-            const isMulti = group.length > 1 && dateKey !== '';
+            const distinctDates = saleDateGroups.filter(([k]) => k !== '').length;
+            const showHeader = dateKey !== '' && distinctDates >= 2;
             return (
               <div key={dateKey} className="space-y-2">
-                {isMulti && (
+                {showHeader && (
                   <div className="flex items-center gap-2 px-1 pt-2">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-blue-400 dark:bg-blue-500 flex-shrink-0" />
@@ -411,7 +442,9 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                       </span>
                     </div>
                     <span className="text-xs text-gray-400 dark:text-gray-500">
-                      {group.length} {group.length < 5 ? 'transakcje' : 'transakcji'} · wspólny kurs NBP
+                      {group.length === 1
+                        ? '1 transakcja'
+                        : `${group.length} ${group.length < 5 ? 'transakcje' : 'transakcji'} · wspólny kurs NBP`}
                     </span>
                     <div className="flex-1 border-t border-blue-200 dark:border-blue-800 ml-2" />
                   </div>
@@ -443,36 +476,6 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
           <Plus size={16} aria-hidden="true" />
           Dodaj transakcję
         </button>
-
-        {transactions.length > 0 && (
-          confirmClearAll ? (
-            <div className="flex items-center justify-center gap-2 text-xs">
-              <span className="text-gray-500 dark:text-gray-400">Na pewno usunąć wszystkie {transactions.length} transakcje?</span>
-              <button
-                type="button"
-                onClick={handleClearAll}
-                className="font-semibold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 focus:outline-none focus-visible:ring-1 focus-visible:ring-red-500 rounded transition-colors"
-              >
-                Tak, usuń
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmClearAll(false)}
-                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-400 rounded transition-colors"
-              >
-                Anuluj
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setConfirmClearAll(true)}
-              className="w-full text-center text-xs text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-red-400 rounded py-0.5"
-            >
-              Wyczyść wszystkie transakcje ({transactions.length})
-            </button>
-          )
-        )}
       </div>
 
       {/* Year summary */}

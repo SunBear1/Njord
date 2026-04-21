@@ -98,57 +98,148 @@ function RateStatusBadge({
   return null;
 }
 
-// ─── Result Bar ───────────────────────────────────────────────────────────────
+// ─── Calculation Breakdown ───────────────────────────────────────────────────────
 
-function ResultBar({ result }: { result: TransactionTaxResult }) {
+const fmtAmt = (n: number, decimals = 2) =>
+  n.toLocaleString('pl-PL', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+
+function CalculationBreakdown({ tx, result }: { tx: TaxTransaction; result: TransactionTaxResult }) {
   const g = fmtGain(result.gainPLN);
+  const sellRate = tx.exchangeRateSaleToPLN ?? 0;
+  const buyRate = tx.zeroCostFlag ? sellRate : (tx.exchangeRateAcquisitionToPLN ?? sellRate);
+  const isPLNSale = tx.currency.toUpperCase() === 'PLN';
+  const effectiveAcqCurrency = tx.acquisitionCurrency ?? tx.currency;
+  const isPLNAcq = effectiveAcqCurrency.toUpperCase() === 'PLN';
+  const saleFee = tx.saleBrokerFee ?? 0;
+  const acqFee = tx.acquisitionBrokerFee ?? 0;
+  const hasAnyFee = saleFee > 0 || acqFee > 0;
+
   return (
-    <div className="flex flex-wrap items-stretch gap-px bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
-      <ResultCell label="Przychód" value={fmtPLNGrosze(result.revenuePLN)} />
-      <ResultCell label="Koszt" value={fmtPLNGrosze(result.costPLN)} subtract />
-      <ResultCell
-        label={result.isLoss ? 'Strata' : 'Zysk'}
-        value={g.text}
-        valueClass={g.cls}
-        total
-      />
-      {!result.isLoss && (
-        <ResultCell
-          label="Podatek"
-          value={fmtPLNGrosze(result.taxEstimatePLN)}
-          valueClass="text-amber-700 dark:text-amber-400"
+    <div className="rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 overflow-hidden">
+      <div className="px-3.5 py-3 space-y-1.5 text-xs tabular-nums">
+        {/* Revenue */}
+        <CalcLine
+          label="Przychód"
+          amount={tx.saleGrossAmount}
+          currency={tx.currency}
+          rate={sellRate}
+          isPLN={isPLNSale}
+          resultPLN={result.revenuePLN}
         />
-      )}
+
+        {/* Acquisition cost */}
+        {!tx.zeroCostFlag && (
+          <CalcLine
+            label="Koszt nabycia"
+            amount={tx.acquisitionCostAmount ?? 0}
+            currency={effectiveAcqCurrency}
+            rate={buyRate}
+            isPLN={isPLNAcq}
+            resultPLN={(tx.acquisitionCostAmount ?? 0) * buyRate}
+            subtract
+          />
+        )}
+
+        {/* Commissions */}
+        {hasAnyFee && (
+          <>
+            {saleFee > 0 && (
+              <CalcLine
+                label="Prowizja sprzedaży"
+                amount={saleFee}
+                currency={tx.currency}
+                rate={sellRate}
+                isPLN={isPLNSale}
+                resultPLN={saleFee * sellRate}
+                subtract
+                minor
+              />
+            )}
+            {acqFee > 0 && !tx.zeroCostFlag && (
+              <CalcLine
+                label="Prowizja zakupu"
+                amount={acqFee}
+                currency={effectiveAcqCurrency}
+                rate={buyRate}
+                isPLN={isPLNAcq}
+                resultPLN={acqFee * buyRate}
+                subtract
+                minor
+              />
+            )}
+          </>
+        )}
+
+        <div className="border-t border-dashed border-gray-300 dark:border-gray-600 my-1" />
+
+        {/* Gain/loss */}
+        <div className="flex items-center justify-between pt-0.5">
+          <span className={`font-semibold ${g.cls}`}>
+            {result.isLoss ? 'Strata' : 'Dochód'}
+          </span>
+          <span className={`font-bold ${g.cls}`}>
+            {g.text}
+          </span>
+        </div>
+
+        {/* Tax */}
+        {!result.isLoss ? (
+          <div className="flex items-center justify-between">
+            <span className="text-amber-700 dark:text-amber-400 font-medium">
+              Podatek 19%
+              <span className="ml-1.5 text-gray-400 dark:text-gray-500 font-normal">
+                {fmtPLNGrosze(result.gainPLN)} × 0,19
+              </span>
+            </span>
+            <span className="font-bold text-amber-700 dark:text-amber-400">
+              {fmtPLNGrosze(result.taxEstimatePLN)}
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between">
+            <span className="text-gray-400 dark:text-gray-500">Podatek</span>
+            <span className="text-gray-400 dark:text-gray-500 font-medium">brak (strata)</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-function ResultCell({
+function CalcLine({
   label,
-  value,
-  valueClass,
+  amount,
+  currency,
+  rate,
+  isPLN,
+  resultPLN,
   subtract,
-  total,
+  minor,
 }: {
   label: string;
-  value: string;
-  valueClass?: string;
+  amount: number;
+  currency: string;
+  rate: number;
+  isPLN: boolean;
+  resultPLN: number;
   subtract?: boolean;
-  total?: boolean;
+  minor?: boolean;
 }) {
   return (
-    <div
-      className={`flex-1 min-w-[90px] bg-white dark:bg-gray-800 px-3 py-2 text-center ${total ? 'ring-1 ring-inset ring-gray-300 dark:ring-gray-600 rounded-sm' : ''}`}
-    >
-      <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-0.5">
-        {subtract && '− '}
-        {label}
-      </p>
-      <p
-        className={`text-sm font-semibold tabular-nums ${valueClass ?? 'text-gray-800 dark:text-gray-100'}`}
-      >
-        {value}
-      </p>
+    <div className={`flex items-baseline justify-between gap-2 ${minor ? 'text-[11px] text-gray-500 dark:text-gray-400' : ''}`}>
+      <div className="flex items-baseline gap-1 min-w-0">
+        <span className={`flex-shrink-0 ${minor ? '' : 'font-medium text-gray-700 dark:text-gray-300'}`}>
+          {subtract && <span className="text-red-500 dark:text-red-400 mr-0.5">−</span>}
+          {label}
+        </span>
+        <span className="text-gray-400 dark:text-gray-500 truncate">
+          {fmtAmt(amount)} {currency}
+          {!isPLN && ` × ${rate.toFixed(4)}`}
+        </span>
+      </div>
+      <span className={`flex-shrink-0 font-semibold whitespace-nowrap ${subtract ? 'text-gray-600 dark:text-gray-300' : 'text-gray-800 dark:text-gray-100'}`}>
+        {subtract ? `−${fmtPLNGrosze(resultPLN)}` : fmtPLNGrosze(resultPLN)}
+      </span>
     </div>
   );
 }
@@ -769,7 +860,7 @@ export function TransactionCard({
           </div>
 
           {/* Result bar */}
-          {result && <ResultBar result={result} />}
+          {result && <CalculationBreakdown tx={tx} result={result} />}
 
           {/* Not-ready hint */}
           {!result && tx.saleGrossAmount > 0 && tx.saleDate && (
