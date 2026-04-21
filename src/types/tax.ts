@@ -85,6 +85,21 @@ export interface TransactionTaxResult {
   isZeroCost: boolean;
 }
 
+/** Per-currency breakdown for PIT-ZG attachment (one entry = one country attachment). */
+export interface PitZgCurrencyEntry {
+  /** ISO 4217 currency code (e.g. 'USD', 'EUR'). */
+  currency: string;
+  /** Sum of PLN proceeds for this currency's transactions. */
+  revenuePLN: number;
+  /** Sum of PLN costs for this currency's transactions. */
+  costPLN: number;
+  /**
+   * Dochód / Strata per currency = revenuePLN − costPLN.
+   * Note: cross-country loss netting does NOT happen here — it happens in PIT-38.
+   */
+  incomePLN: number;
+}
+
 /** Aggregate summary across multiple transactions (PIT-38 level). */
 export interface MultiTaxSummary {
   totalRevenuePLN: number;
@@ -93,13 +108,44 @@ export interface MultiTaxSummary {
   totalGainPLN: number;
   /** Sum of losses (as a positive number). */
   totalLossPLN: number;
-  /** Net income = totalGain − totalLoss (may be negative). */
+  /** Net income = totalGain − totalLoss (may be negative). Applies across all sources. */
   netIncomePLN: number;
   /**
    * Tax due per PIT-38: max(0, netIncomePLN) × 19%.
    * Losses from one transaction offset gains from others.
    */
   taxDuePLN: number;
+
+  // ── PIT-ZG support ──────────────────────────────────────────────────────────
+
+  /**
+   * True when any ready transaction has a non-PLN currency.
+   * Foreign-currency transactions (NYSE, NASDAQ via foreign brokers) require
+   * the PIT-ZG attachment (one per country) filed together with PIT-38.
+   */
+  requiresPitZg: boolean;
+
+  /** Revenue/cost/income from PLN-currency transactions (GPW/NewConnect — domestic). */
+  domesticRevenuePLN: number;
+  domesticCostPLN: number;
+  /** Domestic net income = domestic gains − domestic losses (may be negative). */
+  domesticIncomePLN: number;
+
+  /** Revenue/cost/income from non-PLN-currency transactions (foreign exchanges). */
+  foreignRevenuePLN: number;
+  foreignCostPLN: number;
+  /** Foreign net income = foreign gains − foreign losses (may be negative). */
+  foreignIncomePLN: number;
+
+  /**
+   * Per-currency breakdown for PIT-ZG (one entry per distinct currency code).
+   * Each entry corresponds to one PIT-ZG country attachment.
+   * Sorted by revenue descending.
+   *
+   * Note: EUR is ambiguous (DE, NL, IE, FR…) — the user must specify the country
+   * on the actual PIT-ZG form.
+   */
+  pitZgByCurrency: PitZgCurrencyEntry[];
 }
 
 // ─── Legacy single-transaction types (kept for backward compat) ───────────────

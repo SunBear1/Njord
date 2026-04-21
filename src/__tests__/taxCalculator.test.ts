@@ -310,6 +310,110 @@ describe('calcMultiTaxSummary', () => {
     expect(s.totalRevenuePLN).toBe(0);
     expect(s.taxDuePLN).toBe(0);
     expect(s.netIncomePLN).toBe(0);
+    expect(s.requiresPitZg).toBe(false);
+    expect(s.pitZgByCurrency).toHaveLength(0);
+  });
+});
+
+// ─── PIT-ZG / domestic vs foreign split ──────────────────────────────────────
+
+describe('calcMultiTaxSummary — PIT-ZG and domestic/foreign split', () => {
+  const USD_TX: TaxTransaction = {
+    ...BASE_TX,
+    id: 'tx-usd',
+    currency: 'USD',
+    saleGrossAmount: 10_000,
+    acquisitionCostAmount: 7_000,
+  };
+
+  const EUR_TX: TaxTransaction = {
+    ...BASE_TX,
+    id: 'tx-eur',
+    currency: 'EUR',
+    saleGrossAmount: 5_000,
+    acquisitionCostAmount: 4_000,
+  };
+
+  const PLN_TX: TaxTransaction = {
+    ...BASE_TX,
+    id: 'tx-pln',
+    currency: 'PLN',
+    saleGrossAmount: 8_000,
+    acquisitionCostAmount: 6_000,
+    // For PLN transactions, the "exchange rate" is always 1.0
+    exchangeRateSaleToPLN: 1.0,
+    exchangeRateAcquisitionToPLN: 1.0,
+  };
+
+  it('requiresPitZg = false for PLN-only transactions', () => {
+    const s = calcMultiTaxSummary([PLN_TX]);
+    expect(s.requiresPitZg).toBe(false);
+    expect(s.pitZgByCurrency).toHaveLength(0);
+    expect(s.foreignRevenuePLN).toBe(0);
+    expect(s.domesticRevenuePLN).toBeCloseTo(8_000 * 1.0);
+  });
+
+  it('requiresPitZg = true when any transaction is non-PLN', () => {
+    const s = calcMultiTaxSummary([USD_TX]);
+    expect(s.requiresPitZg).toBe(true);
+    expect(s.pitZgByCurrency).toHaveLength(1);
+    expect(s.pitZgByCurrency[0].currency).toBe('USD');
+  });
+
+  it('domestic/foreign split is correct for mixed PLN + USD transactions', () => {
+    const s = calcMultiTaxSummary([USD_TX, PLN_TX]);
+
+    // USD_TX revenue = 10,000 × 4.0215 = 40,215
+    // PLN_TX revenue = 8,000 × 1.0 = 8,000
+    expect(s.foreignRevenuePLN).toBeCloseTo(10_000 * 4.0215, 1);
+    expect(s.domesticRevenuePLN).toBeCloseTo(8_000 * 1.0, 1);
+    expect(s.totalRevenuePLN).toBeCloseTo(s.foreignRevenuePLN + s.domesticRevenuePLN, 1);
+  });
+
+  it('pitZgByCurrency groups USD and EUR as separate entries', () => {
+    const s = calcMultiTaxSummary([USD_TX, EUR_TX]);
+
+    expect(s.requiresPitZg).toBe(true);
+    expect(s.pitZgByCurrency).toHaveLength(2);
+
+    const usdEntry = s.pitZgByCurrency.find((e) => e.currency === 'USD');
+    const eurEntry = s.pitZgByCurrency.find((e) => e.currency === 'EUR');
+    expect(usdEntry).toBeDefined();
+    expect(eurEntry).toBeDefined();
+
+    // USD entry: revenue = 10,000 × 4.0215, cost = 7,000 × 3.9102
+    expect(usdEntry!.revenuePLN).toBeCloseTo(10_000 * 4.0215, 1);
+    expect(usdEntry!.costPLN).toBeCloseTo(7_000 * 3.9102, 1);
+    expect(usdEntry!.incomePLN).toBeCloseTo(usdEntry!.revenuePLN - usdEntry!.costPLN, 1);
+
+    // EUR entry: revenue = 5,000 × 4.0215, cost = 4,000 × 3.9102
+    expect(eurEntry!.revenuePLN).toBeCloseTo(5_000 * 4.0215, 1);
+    expect(eurEntry!.costPLN).toBeCloseTo(4_000 * 3.9102, 1);
+    expect(eurEntry!.incomePLN).toBeCloseTo(eurEntry!.revenuePLN - eurEntry!.costPLN, 1);
+  });
+
+  it('pitZgByCurrency incomePLN can be negative (loss in that currency)', () => {
+    const lossTx: TaxTransaction = {
+      ...BASE_TX,
+      id: 'tx-loss-usd',
+      currency: 'USD',
+      saleGrossAmount: 3_000,
+      acquisitionCostAmount: 10_000, // big loss
+    };
+    const s = calcMultiTaxSummary([lossTx]);
+    expect(s.requiresPitZg).toBe(true);
+    expect(s.pitZgByCurrency[0].incomePLN).toBeLessThan(0);
+  });
+
+  it('two USD transactions are merged into one pitZgByCurrency entry', () => {
+    const usd1 = { ...USD_TX, id: 'tx-usd-1', saleGrossAmount: 10_000, acquisitionCostAmount: 7_000 };
+    const usd2 = { ...USD_TX, id: 'tx-usd-2', saleGrossAmount: 5_000, acquisitionCostAmount: 3_000 };
+    const s = calcMultiTaxSummary([usd1, usd2]);
+
+    expect(s.pitZgByCurrency).toHaveLength(1);
+    expect(s.pitZgByCurrency[0].currency).toBe('USD');
+    // Combined revenue = (10,000 + 5,000) × 4.0215
+    expect(s.pitZgByCurrency[0].revenuePLN).toBeCloseTo(15_000 * 4.0215, 1);
   });
 });
 

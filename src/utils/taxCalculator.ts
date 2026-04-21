@@ -57,12 +57,24 @@ export function calcTransactionResult(tx: TaxTransaction): TransactionTaxResult 
  *
  * Per PIT-38 rules: losses in one transaction offset gains in others.
  * Only transactions with fully populated exchange rates are included.
+ *
+ * Also computes domestic/foreign split and per-currency PIT-ZG breakdown:
+ * - currency === 'PLN' → domestic (GPW/NewConnect)
+ * - currency !== 'PLN' → foreign source (requires PIT-ZG attachment)
  */
 export function calcMultiTaxSummary(transactions: TaxTransaction[]): MultiTaxSummary {
   let totalRevenuePLN = 0;
   let totalCostPLN = 0;
   let totalGainPLN = 0;
   let totalLossPLN = 0;
+
+  let domesticRevenuePLN = 0;
+  let domesticCostPLN = 0;
+  let foreignRevenuePLN = 0;
+  let foreignCostPLN = 0;
+
+  // currency → { revenuePLN, costPLN } accumulators for PIT-ZG
+  const currencyMap = new Map<string, { revenuePLN: number; costPLN: number }>();
 
   for (const tx of transactions) {
     const result = calcTransactionResult(tx);
@@ -75,10 +87,36 @@ export function calcMultiTaxSummary(transactions: TaxTransaction[]): MultiTaxSum
     } else {
       totalLossPLN += -result.gainPLN;
     }
+
+    const isForeign = tx.currency !== 'PLN';
+    if (isForeign) {
+      foreignRevenuePLN += result.revenuePLN;
+      foreignCostPLN += result.costPLN;
+
+      const entry = currencyMap.get(tx.currency) ?? { revenuePLN: 0, costPLN: 0 };
+      entry.revenuePLN += result.revenuePLN;
+      entry.costPLN += result.costPLN;
+      currencyMap.set(tx.currency, entry);
+    } else {
+      domesticRevenuePLN += result.revenuePLN;
+      domesticCostPLN += result.costPLN;
+    }
   }
 
   const netIncomePLN = round2(totalGainPLN - totalLossPLN);
   const taxDuePLN = netIncomePLN > 0 ? round2(netIncomePLN * BELKA_TAX) : 0;
+
+  const domesticIncomePLN = round2(domesticRevenuePLN - domesticCostPLN);
+  const foreignIncomePLN = round2(foreignRevenuePLN - foreignCostPLN);
+
+  const pitZgByCurrency = [...currencyMap.entries()]
+    .map(([currency, acc]) => ({
+      currency,
+      revenuePLN: round2(acc.revenuePLN),
+      costPLN: round2(acc.costPLN),
+      incomePLN: round2(acc.revenuePLN - acc.costPLN),
+    }))
+    .sort((a, b) => b.revenuePLN - a.revenuePLN);
 
   return {
     totalRevenuePLN: round2(totalRevenuePLN),
@@ -87,6 +125,14 @@ export function calcMultiTaxSummary(transactions: TaxTransaction[]): MultiTaxSum
     totalLossPLN: round2(totalLossPLN),
     netIncomePLN,
     taxDuePLN,
+    requiresPitZg: currencyMap.size > 0,
+    domesticRevenuePLN: round2(domesticRevenuePLN),
+    domesticCostPLN: round2(domesticCostPLN),
+    domesticIncomePLN,
+    foreignRevenuePLN: round2(foreignRevenuePLN),
+    foreignCostPLN: round2(foreignCostPLN),
+    foreignIncomePLN,
+    pitZgByCurrency,
   };
 }
 
