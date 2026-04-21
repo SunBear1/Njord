@@ -62,76 +62,66 @@ function SummaryRow({
 function PitZgSection({ entries }: { entries: PitZgCurrencyEntry[] }) {
   if (entries.length === 0) return null;
   return (
-    <div className="space-y-3">
-      {/* Banner */}
-      <div className="flex items-start gap-2 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-xl px-4 py-3">
+    <div className="rounded-xl border border-orange-200 dark:border-orange-800 overflow-hidden">
+      {/* Header — merged banner + table title */}
+      <div className="bg-orange-50 dark:bg-orange-950/30 px-4 py-3 flex items-start gap-2 border-b border-orange-200 dark:border-orange-800">
         <Globe size={15} className="text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
         <div className="text-xs text-orange-800 dark:text-orange-200 space-y-0.5">
-          <p className="font-semibold">Wymagany załącznik PIT-ZG</p>
-          <p className="text-orange-700/80 dark:text-orange-300/80">
+          <p className="font-semibold uppercase tracking-wide">PIT-ZG — Dochody zagraniczne (per kraj)</p>
+          <p className="text-orange-700/80 dark:text-orange-300/80 font-normal normal-case tracking-normal">
             Transakcje w walutach obcych to dochody zagraniczne. Do PIT-38 musisz dołączyć załącznik PIT-ZG — jeden na kraj.
           </p>
         </div>
       </div>
 
-      {/* Per-currency table */}
-      <div className="rounded-xl border border-orange-200 dark:border-orange-800 overflow-hidden">
-        <div className="bg-orange-50 dark:bg-orange-950/30 px-3 py-2 flex items-center gap-1.5">
-          <Globe size={12} className="text-orange-600 dark:text-orange-400" aria-hidden="true" />
-          <span className="text-[11px] font-semibold text-orange-700 dark:text-orange-300 uppercase tracking-wide">
-            PIT-ZG — Dochody zagraniczne (per kraj)
-          </span>
+      <div className="divide-y divide-orange-100 dark:divide-orange-900/40">
+        {/* Column headers */}
+        <div className="grid grid-cols-4 gap-2 px-3 py-1.5 text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+          <span>Kraj (waluta)</span>
+          <span className="text-right">Przychód</span>
+          <span className="text-right">Koszty</span>
+          <span className="text-right">Dochód / Strata</span>
         </div>
 
-        <div className="divide-y divide-orange-100 dark:divide-orange-900/40">
-          {/* Header */}
-          <div className="grid grid-cols-4 gap-2 px-3 py-1.5 text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
-            <span>Kraj (waluta)</span>
-            <span className="text-right">Przychód</span>
-            <span className="text-right">Koszty</span>
-            <span className="text-right">Dochód / Strata</span>
-          </div>
-
-          {entries.map(({ currency, revenuePLN, costPLN, incomePLN }) => {
-            const country = CURRENCY_COUNTRY[currency];
-            const isEurAmbiguous = currency === 'EUR';
-            const g = fmtGain(incomePLN);
-            return (
-              <div key={currency} className="grid grid-cols-4 gap-2 px-3 py-2.5 text-xs items-center">
-                <div className="flex items-center gap-1.5">
-                  <span className="bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide flex-shrink-0">
-                    {currency}
+        {entries.map(({ currency, revenuePLN, costPLN, incomePLN }) => {
+          const country = CURRENCY_COUNTRY[currency];
+          const isEurAmbiguous = currency === 'EUR';
+          const g = fmtGain(incomePLN);
+          return (
+            <div key={currency} className="grid grid-cols-4 gap-2 px-3 py-2.5 text-xs items-center">
+              <div className="flex items-center gap-1.5">
+                <span className="bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide flex-shrink-0">
+                  {currency}
+                </span>
+                {country ? (
+                  <span className="text-gray-600 dark:text-gray-400 truncate">{country}</span>
+                ) : isEurAmbiguous ? (
+                  <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                    <AlertTriangle size={11} aria-hidden="true" />
+                    <span className="truncate">określ kraj</span>
                   </span>
-                  {country ? (
-                    <span className="text-gray-600 dark:text-gray-400 truncate">{country}</span>
-                  ) : isEurAmbiguous ? (
-                    <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                      <AlertTriangle size={11} aria-hidden="true" />
-                      <span className="truncate">określ kraj</span>
-                    </span>
-                  ) : (
-                    <span className="text-gray-400 dark:text-gray-500 truncate">określ kraj</span>
-                  )}
-                </div>
-                <span className="text-right tabular-nums text-gray-700 dark:text-gray-300 font-medium">
-                  {fmtPLNGrosze(revenuePLN)}
-                </span>
-                <span className="text-right tabular-nums text-gray-600 dark:text-gray-400">
-                  {fmtPLNGrosze(costPLN)}
-                </span>
-                <span className={`text-right tabular-nums font-semibold ${g.cls}`}>
-                  {g.text}
-                </span>
+                ) : (
+                  <span className="text-gray-400 dark:text-gray-500 truncate">określ kraj</span>
+                )}
               </div>
-            );
-          })}
-        </div>
+              <span className="text-right tabular-nums text-gray-700 dark:text-gray-300 font-medium">
+                {fmtPLNGrosze(revenuePLN)}
+              </span>
+              <span className="text-right tabular-nums text-gray-600 dark:text-gray-400">
+                {fmtPLNGrosze(costPLN)}
+              </span>
+              <span className={`text-right tabular-nums font-semibold ${g.cls}`}>
+                {g.text}
+              </span>
+            </div>
+          );
+        })}
+      </div>
 
-        {/* Footer note about foreign tax */}
-        <div className="bg-orange-50/50 dark:bg-orange-950/20 px-3 py-2 text-[10px] text-orange-700/70 dark:text-orange-400/70 border-t border-orange-100 dark:border-orange-900/40">
-          Podatek zapłacony za granicą: <strong>0 zł</strong> — sprzedaż akcji nie podlega podatkowi u źródła w USA ani UE
-          (umowa o unikaniu podwójnego opodatkowania). Belka 19% pobierana wyłącznie w Polsce.
-        </div>
+      {/* Footer note */}
+      <div className="bg-orange-50/50 dark:bg-orange-950/20 px-3 py-2 text-[10px] text-orange-700/70 dark:text-orange-400/70 border-t border-orange-100 dark:border-orange-900/40">
+        Podatek zapłacony za granicą: <strong>0 zł</strong> — sprzedaż akcji nie podlega podatkowi u źródła w USA ani UE
+        (umowa o unikaniu podwójnego opodatkowania). Belka 19% pobierana wyłącznie w Polsce.
       </div>
     </div>
   );

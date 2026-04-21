@@ -81,7 +81,6 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
   const addTransaction = useCallback(() => {
     const tx = newTransaction();
     setTransactions((prev) => [...prev, tx]);
-    setExpandedIds((prev) => new Set([...prev, tx.id]));
   }, []);
 
   const removeTransaction = useCallback((id: string) => {
@@ -112,7 +111,13 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key)!.push({ tx, globalIndex: idx + 1 });
     });
-    return [...groups.entries()];
+    // Sort by date key ascending; entries with no date ('') go last.
+    return [...groups.entries()].sort(([a], [b]) => {
+      if (a === '' && b === '') return 0;
+      if (a === '') return 1;
+      if (b === '') return -1;
+      return a.localeCompare(b);
+    });
   }, [transactions]);
 
   // ─── Broker import ────────────────────────────────────────────────────────
@@ -153,7 +158,6 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
         const buffer = await file.arrayBuffer();
         const imported = await selectedBroker.parse(buffer);
         setTransactions((prev) => [...prev, ...imported]);
-        setExpandedIds((prev) => new Set([...prev, ...imported.map((t) => t.id)]));
         setLastImportIds(imported.map((t) => t.id));
         setLastImportCount(imported.length);
         setShowImportDropdown(false);

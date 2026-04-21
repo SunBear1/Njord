@@ -66,6 +66,8 @@ export interface TaxTransaction {
   showCommissions?: boolean;
   /** Name of the broker that imported this transaction (e.g. 'E*TRADE', 'XTB'). */
   importSource?: string;
+  /** Optional free-text note (e.g. plan type from eTrade: 'RS', 'ESPP', 'SO'). */
+  notes?: string;
 }
 
 /** Calculated result for a single transaction. */

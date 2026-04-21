@@ -153,6 +153,7 @@ const TaxTransactionSchema = z.object({
   tickerName: z.string().optional(),
   showCommissions: z.boolean().optional(),
   importSource: z.string().optional(),
+  notes: z.string().max(500).optional(),
 });
 
 export const TaxTransactionsSchema = z.array(TaxTransactionSchema);
