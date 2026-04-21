@@ -50,14 +50,28 @@ jobs:
           console.log('Appended:', row);
           "
 
-      - name: Commit history back to main
+      - name: Open PR with updated history
         if: always()
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add backtest-history.csv
-          git diff --cached --quiet || git commit -m "chore: backtest metrics $(date -u +%Y-%m-%d)"
-          git push
+          if git diff --cached --quiet; then
+            echo "No changes to commit, skipping PR"
+            exit 0
+          fi
+          BRANCH="chore/backtest-$(date -u +%Y-%m-%d)-${{ github.run_id }}"
+          git checkout -b "$BRANCH"
+          git commit -m "chore: backtest metrics $(date -u +%Y-%m-%d)"
+          git push origin "$BRANCH"
+          PR_URL=$(gh pr create \
+            --title "chore: backtest metrics $(date -u +%Y-%m-%d)" \
+            --body "Automated daily backtest history update." \
+            --base main \
+            --head "$BRANCH")
+          gh pr merge --auto --squash "$PR_URL"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload report
         if: always()

@@ -1,4 +1,4 @@
-name: Dependabot auto-merge
+name: Auto-merge bot PRs
 
 on: pull_request
 
@@ -7,7 +7,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  auto-merge:
+  auto-merge-dependabot:
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
     steps:
@@ -21,6 +21,18 @@ jobs:
         if: |
           steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
           steps.metadata.outputs.update-type == 'version-update:semver-minor'
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  auto-merge-backtest:
+    runs-on: ubuntu-latest
+    if: |
+      github.actor == 'github-actions[bot]' &&
+      startsWith(github.event.pull_request.title, 'chore: backtest metrics')
+    steps:
+      - name: Enable auto-merge for backtest history update
         run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
