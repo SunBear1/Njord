@@ -16,7 +16,7 @@ import { resolve } from 'path';
 import * as XLSX from 'xlsx';
 import { xtbParser } from '../utils/brokerParsers/xtb';
 
-// ─── Fixture file loader ───────────────────────────────────────────────────────
+// ─── Fixture file loader ───────────────────────────────────────────────────────────
 
 /** Load a binary fixture file and return it as an ArrayBuffer for the parser. */
 function loadFixture(filename: string): ArrayBuffer {
@@ -44,12 +44,24 @@ function xtbRow(values: Partial<Record<(typeof XTB_HEADERS)[number], unknown>>):
 const XTB_TOTAL_ROW = xtbRow({ 'Position': 'Total', 'Commission': 0, 'Swap': 0, 'Rollover': 0, 'Gross P/L': 0 });
 
 /**
+ * Account info header rows that include the Currency field.
+ * Mirrors the real XTB export where row 6 has labels and row 7 has values.
+ */
+const ACCOUNT_HEADER_PLN: unknown[][] = [
+  [null, null, null, null, 'Name and surname', null, null, 'Account', null, null, 'Currency', null, null, null, null, null, null, null, null, null],
+  [null, null, null, null, 'Test User', null, null, '12345678', null, null, 'PLN', null, null, null, null, null, null, null, null, null],
+];
+
+const ACCOUNT_HEADER_USD: unknown[][] = [
+  [null, null, null, null, 'Name and surname', null, null, 'Account', null, null, 'Currency', null, null, null, null, null, null, null, null, null],
+  [null, null, null, null, 'Test User', null, null, '12345678', null, null, 'USD', null, null, null, null, null, null, null, null, null],
+];
+
+/**
  * Generate a real XLSX ArrayBuffer in XTB Closed Position History format.
  *
  * @param dataRows  Position rows between the header and the Total row.
  * @param options.leadingRows  Rows to prepend before the header row.
- *                             Used to simulate the account-info header section
- *                             present in real XTB exports.
  * @param options.sheetName    Name of the Excel sheet (default: 'CLOSED POSITION HISTORY').
  */
 function makeXtbBuffer(
@@ -74,10 +86,10 @@ function makeXtbBuffer(
 // ─── Real file data (from account_51723721_pl_xlsx_2005-12-31_2026-04-19.xlsx) ─
 
 /**
- * Real trade: IB01.UK (UK gilt ETF), 2 units.
- * Open  2025-08-26 at GBP 117.12 → acquisition cost = 2 × 117.12 = 234.24 GBP
- * Close 2025-11-05 at GBP 118.10 → sale gross       = 2 × 118.10 = 236.20 GBP
- * Gross P/L = 7.25 (as shown in real file; slight difference due to GBP/PLN conversion).
+ * Real trade: IB01.UK (UK gilt ETF), 2 units, PLN account.
+ * Open  2025-08-26 at GBP 117.12 → Purchase value = 863.90 PLN
+ * Close 2025-11-05 at GBP 118.10 → Sale value     = 871.15 PLN
+ * Gross P/L = 7.25 PLN.
  */
 const REAL_IB01_BUY = xtbRow({
   'Position': 1990456723,
@@ -100,7 +112,7 @@ const REAL_IB01_BUY = xtbRow({
 
 // ─── Synthetic test trades ─────────────────────────────────────────────────────
 
-/** AAPL.US — US stock (USD). 10 shares: buy $185.50, sell $225.10. */
+/** AAPL.US — US stock. Purchase value 7500 PLN, Sale value 9000 PLN. */
 const BUY_AAPL_US = xtbRow({
   'Position': 1234567890,
   'Symbol': 'AAPL.US',
@@ -112,15 +124,15 @@ const BUY_AAPL_US = xtbRow({
   'Close price': 225.10,
   'Open origin': 'xStation 5',
   'Close origin': 'xStation 5',
-  'Purchase value': 1855.00,
-  'Sale value': 2251.00,
+  'Purchase value': 7500.00,
+  'Sale value': 9000.00,
   'Commission': 0,
   'Swap': 0,
   'Rollover': 0,
-  'Gross P/L': 396.00,
+  'Gross P/L': 1500.00,
 });
 
-/** BMW.DE — German stock (EUR). 5 shares: buy €92.40, sell €98.80. */
+/** BMW.DE — German stock. Purchase value 2000 PLN, Sale value 2150 PLN. */
 const BUY_BMW_DE = xtbRow({
   'Position': 9876543210,
   'Symbol': 'BMW.DE',
@@ -132,12 +144,12 @@ const BUY_BMW_DE = xtbRow({
   'Close price': 98.80,
   'Open origin': 'xStation 5',
   'Close origin': 'xStation 5',
-  'Purchase value': 462.00,
-  'Sale value': 494.00,
+  'Purchase value': 2000.00,
+  'Sale value': 2150.00,
   'Commission': 0,
   'Swap': 0,
   'Rollover': 0,
-  'Gross P/L': 32.00,
+  'Gross P/L': 150.00,
 });
 
 /** TSLA.US SELL (short position) — must be skipped by the parser. */
@@ -150,66 +162,100 @@ const SELL_TSLA_SHORT = xtbRow({
   'Open price': 200.00,
   'Close time': new Date(Date.UTC(2024, 1, 10, 15, 0, 0)),
   'Close price': 180.00,
+  'Purchase value': 1600,
+  'Sale value': 1440,
   'Commission': 0,
   'Swap': 0,
   'Rollover': 0,
   'Gross P/L': 40.00,
 });
 
-// ─── Real XTB account-info header rows (rows 6–12 in the real export) ─────────
-//
-// The real XTB export has several rows before the column headers:
-//   rows 1–5:  empty (dropped by SheetJS when writing synthetic XLSX)
-//   row 6:     "Name and surname", account number, currency, timestamp
-//   rows 7–9:  balance/equity/margin data
-//   row 10:    "CLOSED POSITION HISTORY" section title
-//   row 11:    date range
-//   row 12:    balance
-//   row 13:    column headers  ← parser must find this
-//
-// We reproduce rows 10–12 as they have string content at col A and will
-// survive the XLSX round-trip.
+// ─── Real XTB account-info header rows (rows 6–12 in the real export) ─────────────────
 
 const REALISTIC_LEADING_ROWS: unknown[][] = [
+  ...ACCOUNT_HEADER_PLN,
+  [null, null, null, null, 'Balance', null, null, 'Equity', null, null, 'Margin', null, null, 'Free margin', null, null, 'Margin level', null, null, null],
+  [null, null, null, null, 5.10, null, null, 255.25, null, null, 0, null, null, 5.10, null, null, 0, null, null, null],
   ['CLOSED POSITION HISTORY ', null, null, null, null, null, '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
   ['01/01/2025 - 31/12/2025', null, null, null, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
   ['Balance :5.10 - 0.00', null, null, null, null, null, '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
 ];
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
+// ─── Tests ────────────────────────────────────────────────────────────────────────
 
 describe('xtbParser.parse — real XLSX', () => {
-  describe('real XTB account file data (IB01.UK)', () => {
+  describe('real XTB account file data (IB01.UK PLN account)', () => {
     it('parses the IB01.UK BUY position from the real file', async () => {
-      const buf = makeXtbBuffer([REAL_IB01_BUY]);
+      const buf = makeXtbBuffer([REAL_IB01_BUY], { leadingRows: REALISTIC_LEADING_ROWS });
       const result = await xtbParser.parse(buf);
       expect(result).toHaveLength(1);
     });
 
-    it('strips .UK suffix and maps to GBP currency', async () => {
-      const buf = makeXtbBuffer([REAL_IB01_BUY]);
+    it('strips .UK suffix from ticker and uses account currency PLN', async () => {
+      const buf = makeXtbBuffer([REAL_IB01_BUY], { leadingRows: REALISTIC_LEADING_ROWS });
       const [tx] = await xtbParser.parse(buf);
       expect(tx.ticker).toBe('IB01');
-      expect(tx.currency).toBe('GBP');
+      expect(tx.currency).toBe('PLN');
     });
 
-    it('calculates exact amounts from real file (vol=2, open=117.12, close=118.1)', async () => {
-      const buf = makeXtbBuffer([REAL_IB01_BUY]);
+    it('uses Purchase value / Sale value columns (PLN amounts from XTB)', async () => {
+      const buf = makeXtbBuffer([REAL_IB01_BUY], { leadingRows: REALISTIC_LEADING_ROWS });
       const [tx] = await xtbParser.parse(buf);
-      expect(tx.acquisitionCostAmount).toBe(234.24); // 2 × 117.12
-      expect(tx.saleGrossAmount).toBe(236.20);       // 2 × 118.10
+      expect(tx.acquisitionCostAmount).toBe(863.90); // Purchase value in PLN
+      expect(tx.saleGrossAmount).toBe(871.15);       // Sale value in PLN
+    });
+
+    it('P/L matches: 871.15 - 863.90 = 7.25 PLN', async () => {
+      const buf = makeXtbBuffer([REAL_IB01_BUY], { leadingRows: REALISTIC_LEADING_ROWS });
+      const [tx] = await xtbParser.parse(buf);
+      const pl = tx.saleGrossAmount - (tx.acquisitionCostAmount ?? 0);
+      expect(pl).toBeCloseTo(7.25, 2);
+    });
+
+    it('pre-sets exchange rates to 1 for PLN account (no NBP fetch needed)', async () => {
+      const buf = makeXtbBuffer([REAL_IB01_BUY], { leadingRows: REALISTIC_LEADING_ROWS });
+      const [tx] = await xtbParser.parse(buf);
+      expect(tx.exchangeRateSaleToPLN).toBe(1);
+      expect(tx.exchangeRateAcquisitionToPLN).toBe(1);
     });
 
     it('parses open date as 2025-08-26', async () => {
-      const buf = makeXtbBuffer([REAL_IB01_BUY]);
+      const buf = makeXtbBuffer([REAL_IB01_BUY], { leadingRows: REALISTIC_LEADING_ROWS });
       const [tx] = await xtbParser.parse(buf);
       expect(tx.acquisitionDate).toBe('2025-08-26');
     });
 
     it('parses close date as 2025-11-05', async () => {
-      const buf = makeXtbBuffer([REAL_IB01_BUY]);
+      const buf = makeXtbBuffer([REAL_IB01_BUY], { leadingRows: REALISTIC_LEADING_ROWS });
       const [tx] = await xtbParser.parse(buf);
       expect(tx.saleDate).toBe('2025-11-05');
+    });
+  });
+
+  describe('account currency detection', () => {
+    it('detects PLN from account header rows', async () => {
+      const buf = makeXtbBuffer([REAL_IB01_BUY], { leadingRows: REALISTIC_LEADING_ROWS });
+      const [tx] = await xtbParser.parse(buf);
+      expect(tx.currency).toBe('PLN');
+      expect(tx.exchangeRateSaleToPLN).toBe(1);
+    });
+
+    it('detects USD from account header rows', async () => {
+      const leadingRows = [
+        ...ACCOUNT_HEADER_USD,
+        ['CLOSED POSITION HISTORY ', null, null, null, null, null, '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+      ];
+      const buf = makeXtbBuffer([REAL_IB01_BUY], { leadingRows });
+      const [tx] = await xtbParser.parse(buf);
+      expect(tx.currency).toBe('USD');
+      expect(tx.exchangeRateSaleToPLN).toBeNull(); // USD needs NBP rate
+    });
+
+    it('defaults to PLN when no Currency header is found', async () => {
+      const buf = makeXtbBuffer([REAL_IB01_BUY]); // no leading rows
+      const [tx] = await xtbParser.parse(buf);
+      expect(tx.currency).toBe('PLN');
+      expect(tx.exchangeRateSaleToPLN).toBe(1);
     });
   });
 
@@ -229,10 +275,9 @@ describe('xtbParser.parse — real XLSX', () => {
     });
 
     it('skips the Total summary row at end of sheet', async () => {
-      // Total row is always appended by makeXtbBuffer; ensure it is not parsed
       const buf = makeXtbBuffer([BUY_AAPL_US]);
       const result = await xtbParser.parse(buf);
-      expect(result).toHaveLength(1); // not 2
+      expect(result).toHaveLength(1);
     });
 
     it('parses multiple BUY positions in order', async () => {
@@ -244,28 +289,18 @@ describe('xtbParser.parse — real XLSX', () => {
     });
   });
 
-  describe('currency detection from exchange suffix', () => {
-    const currencyCases: Array<[string, string]> = [
-      ['AAPL.US', 'USD'],
-      ['BMW.DE', 'EUR'],
-      ['BNP.FR', 'EUR'],
-      ['ASML.NL', 'EUR'],
-      ['IBE.ES', 'EUR'],
-      ['ENEL.IT', 'EUR'],
-      ['UCB.BE', 'EUR'],
-      ['EDP.PT', 'EUR'],
-      ['AMS.AT', 'EUR'],
-      ['FORTUM.FI', 'EUR'],
-      ['CRH.IE', 'EUR'],
-      ['HSBA.UK', 'GBP'],
-      ['PKN.PL', 'PLN'],
-      ['NESN.CH', 'CHF'],
-      ['UNKNOWN.XY', 'USD'], // unknown suffix → USD fallback
-      ['NOSUFFIX', 'USD'],   // no dot → USD fallback
+  describe('ticker extraction from symbol', () => {
+    const tickerCases: Array<[string, string]> = [
+      ['AAPL.US', 'AAPL'],
+      ['BMW.DE', 'BMW'],
+      ['IB01.UK', 'IB01'],
+      ['PKN.PL', 'PKN'],
+      ['NESN.CH', 'NESN'],
+      ['NOSUFFIX', 'NOSUFFIX'],
     ];
 
-    currencyCases.forEach(([symbol, expectedCurrency]) => {
-      it(`maps ${symbol} → ${expectedCurrency}`, async () => {
+    tickerCases.forEach(([symbol, expectedTicker]) => {
+      it(`extracts ticker from ${symbol} → ${expectedTicker}`, async () => {
         const row = xtbRow({
           'Position': 123,
           'Symbol': symbol,
@@ -275,77 +310,65 @@ describe('xtbParser.parse — real XLSX', () => {
           'Open price': 100,
           'Close time': new Date(Date.UTC(2024, 6, 1, 9, 0, 0)),
           'Close price': 110,
-          'Commission': 0, 'Swap': 0, 'Rollover': 0, 'Gross P/L': 10,
+          'Purchase value': 500,
+          'Sale value': 550,
+          'Commission': 0, 'Swap': 0, 'Rollover': 0, 'Gross P/L': 50,
         });
         const buf = makeXtbBuffer([row]);
         const result = await xtbParser.parse(buf);
-        expect(result[0].currency).toBe(expectedCurrency);
+        expect(result[0].ticker).toBe(expectedTicker);
       });
     });
   });
 
-  describe('ticker and amount calculation', () => {
-    it('strips exchange suffix from ticker (AAPL.US → AAPL)', async () => {
+  describe('amount calculation from Purchase/Sale value columns', () => {
+    it('uses Sale value column for saleGrossAmount', async () => {
       const buf = makeXtbBuffer([BUY_AAPL_US]);
       const [tx] = await xtbParser.parse(buf);
-      expect(tx.ticker).toBe('AAPL');
+      expect(tx.saleGrossAmount).toBe(9000.00);
     });
 
-    it('strips suffix with multiple dots correctly (last dot wins)', async () => {
+    it('uses Purchase value column for acquisitionCostAmount', async () => {
+      const buf = makeXtbBuffer([BUY_AAPL_US]);
+      const [tx] = await xtbParser.parse(buf);
+      expect(tx.acquisitionCostAmount).toBe(7500.00);
+    });
+
+    it('rounds amounts to 2 decimal places', async () => {
       const row = xtbRow({
-        'Position': 1, 'Symbol': 'IB01.UK', 'Type': 'BUY', 'Volume': 1,
-        'Open time': new Date(Date.UTC(2024, 0, 1, 9, 0, 0)), 'Open price': 100,
-        'Close time': new Date(Date.UTC(2024, 6, 1, 9, 0, 0)), 'Close price': 110,
-        'Commission': 0, 'Swap': 0, 'Rollover': 0, 'Gross P/L': 10,
-      });
-      const buf = makeXtbBuffer([row]);
-      const [tx] = await xtbParser.parse(buf);
-      expect(tx.ticker).toBe('IB01');
-    });
-
-    it('calculates saleGrossAmount as volume × close price', async () => {
-      const buf = makeXtbBuffer([BUY_AAPL_US]);
-      const [tx] = await xtbParser.parse(buf);
-      expect(tx.saleGrossAmount).toBe(10 * 225.10); // 2251.00
-    });
-
-    it('calculates acquisitionCostAmount as volume × open price', async () => {
-      const buf = makeXtbBuffer([BUY_AAPL_US]);
-      const [tx] = await xtbParser.parse(buf);
-      expect(tx.acquisitionCostAmount).toBe(10 * 185.50); // 1855.00
-    });
-
-    it('rounds float imprecision in saleGrossAmount to 2dp', async () => {
-      const impreciseRow = xtbRow({
         'Position': 999, 'Symbol': 'TEST.US', 'Type': 'BUY',
         'Volume': 3,
         'Open time': new Date(Date.UTC(2024, 0, 1, 9, 0, 0)), 'Open price': 100,
-        'Close time': new Date(Date.UTC(2024, 6, 1, 9, 0, 0)), 'Close price': 33.3333,
+        'Close time': new Date(Date.UTC(2024, 6, 1, 9, 0, 0)), 'Close price': 110,
+        'Purchase value': 1234.567,
+        'Sale value': 2345.678,
         'Commission': 0, 'Swap': 0, 'Rollover': 0, 'Gross P/L': 0,
       });
-      const buf = makeXtbBuffer([impreciseRow]);
+      const buf = makeXtbBuffer([row]);
       const [tx] = await xtbParser.parse(buf);
-      // 3 × 33.3333 = 99.9999 → rounded to 100.00
-      expect(tx.saleGrossAmount).toBe(100.00);
+      expect(tx.saleGrossAmount).toBe(2345.68);
+      expect(tx.acquisitionCostAmount).toBe(1234.57);
     });
 
-    it('rounds float imprecision in acquisitionCostAmount to 2dp', async () => {
-      const impreciseRow = xtbRow({
-        'Position': 998, 'Symbol': 'TEST.US', 'Type': 'BUY',
-        'Volume': 3,
-        'Open time': new Date(Date.UTC(2024, 0, 1, 9, 0, 0)), 'Open price': 33.3333,
-        'Close time': new Date(Date.UTC(2024, 6, 1, 9, 0, 0)), 'Close price': 40,
-        'Commission': 0, 'Swap': 0, 'Rollover': 0, 'Gross P/L': 20,
+    it('skips rows where Sale value is missing or zero', async () => {
+      const noSaleValue = xtbRow({
+        'Position': 998, 'Symbol': 'BAD.US', 'Type': 'BUY',
+        'Volume': 1,
+        'Open time': new Date(Date.UTC(2024, 0, 1, 9, 0, 0)), 'Open price': 100,
+        'Close time': new Date(Date.UTC(2024, 6, 1, 9, 0, 0)), 'Close price': 110,
+        'Purchase value': 400,
+        // Sale value is null (default)
+        'Commission': 0, 'Swap': 0, 'Rollover': 0, 'Gross P/L': 10,
       });
-      const buf = makeXtbBuffer([impreciseRow]);
-      const [tx] = await xtbParser.parse(buf);
-      expect(tx.acquisitionCostAmount).toBe(100.00); // 3 × 33.3333 = 99.9999 → 100.00
+      const buf = makeXtbBuffer([noSaleValue, BUY_AAPL_US]);
+      const result = await xtbParser.parse(buf);
+      expect(result).toHaveLength(1);
+      expect(result[0].ticker).toBe('AAPL');
     });
   });
 
   describe('date handling', () => {
     it('extracts UTC date from ISO string returned by SheetJS', async () => {
-      // Date.UTC(2024,0,15,9,0,0) → "2024-01-15T09:00:00.000Z" → "2024-01-15"
       const buf = makeXtbBuffer([BUY_AAPL_US]);
       const [tx] = await xtbParser.parse(buf);
       expect(tx.acquisitionDate).toBe('2024-01-15');
@@ -353,14 +376,15 @@ describe('xtbParser.parse — real XLSX', () => {
     });
 
     it('uses UTC date to avoid timezone off-by-one', async () => {
-      // A date at 09:00 UTC is still the same day in all UTC-12 to UTC+14 zones.
       const row = xtbRow({
         'Position': 1, 'Symbol': 'SPY.US', 'Type': 'BUY', 'Volume': 1,
         'Open time': new Date(Date.UTC(2024, 11, 31, 9, 0, 0)),  // 2024-12-31
         'Open price': 500,
         'Close time': new Date(Date.UTC(2025, 0, 2, 9, 0, 0)),   // 2025-01-02
         'Close price': 510,
-        'Commission': 0, 'Swap': 0, 'Rollover': 0, 'Gross P/L': 10,
+        'Purchase value': 2000,
+        'Sale value': 2040,
+        'Commission': 0, 'Swap': 0, 'Rollover': 0, 'Gross P/L': 40,
       });
       const buf = makeXtbBuffer([row]);
       const [tx] = await xtbParser.parse(buf);
@@ -372,8 +396,8 @@ describe('xtbParser.parse — real XLSX', () => {
       const noCloseRow = xtbRow({
         'Position': 2, 'Symbol': 'BAD.US', 'Type': 'BUY', 'Volume': 1,
         'Open time': new Date(Date.UTC(2024, 0, 1, 9, 0, 0)), 'Open price': 100,
-        // 'Close time' intentionally omitted → null → excelDateToIso returns undefined
         'Close price': 110,
+        'Purchase value': 400, 'Sale value': 440,
         'Commission': 0, 'Swap': 0, 'Rollover': 0, 'Gross P/L': 10,
       });
       const buf = makeXtbBuffer([noCloseRow, BUY_AAPL_US]);
@@ -397,7 +421,6 @@ describe('xtbParser.parse — real XLSX', () => {
     });
 
     it('finds header when it appears after multiple leading rows', async () => {
-      // Simulate a file where the header is buried after several non-empty rows
       const manyLeadingRows = Array.from({ length: 10 }, (_, i) => [
         `Section ${i}`, null, null, null, null,
       ]);
@@ -407,7 +430,6 @@ describe('xtbParser.parse — real XLSX', () => {
     });
 
     it('handles sheet name with trailing space (as in real XTB export)', async () => {
-      // Real XTB file uses "CLOSED POSITION HISTORY " (trailing space)
       const buf = makeXtbBuffer([BUY_AAPL_US], { sheetName: 'CLOSED POSITION HISTORY ' });
       const result = await xtbParser.parse(buf);
       expect(result[0].ticker).toBe('AAPL');
@@ -435,15 +457,21 @@ describe('xtbParser.parse — real XLSX', () => {
       expect(tx.zeroCostFlag).toBe(false);
     });
 
-    it('sets exchangeRateSaleToPLN = null (triggers auto-fetch)', async () => {
-      const buf = makeXtbBuffer([BUY_AAPL_US]);
+    it('PLN account: pre-sets exchange rates to 1', async () => {
+      const buf = makeXtbBuffer([BUY_AAPL_US], { leadingRows: REALISTIC_LEADING_ROWS });
       const [tx] = await xtbParser.parse(buf);
-      expect(tx.exchangeRateSaleToPLN).toBeNull();
+      expect(tx.exchangeRateSaleToPLN).toBe(1);
+      expect(tx.exchangeRateAcquisitionToPLN).toBe(1);
     });
 
-    it('sets exchangeRateAcquisitionToPLN = null', async () => {
-      const buf = makeXtbBuffer([BUY_AAPL_US]);
+    it('non-PLN account: sets exchange rates to null (triggers auto-fetch)', async () => {
+      const leadingRows = [
+        ...ACCOUNT_HEADER_USD,
+        ['CLOSED POSITION HISTORY ', null, null, null, null, null, '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+      ];
+      const buf = makeXtbBuffer([BUY_AAPL_US], { leadingRows });
       const [tx] = await xtbParser.parse(buf);
+      expect(tx.exchangeRateSaleToPLN).toBeNull();
       expect(tx.exchangeRateAcquisitionToPLN).toBeNull();
     });
 
@@ -474,7 +502,6 @@ describe('xtbParser.parse — real XLSX', () => {
     });
 
     it('throws when the header row is not found within 25 rows', async () => {
-      // Build a file with 30 non-header rows then the actual header — exceeds scan limit
       const manyLeadingRows = Array.from({ length: 30 }, (_, i) => [`Row ${i}`, null]);
       const ws = XLSX.utils.aoa_to_sheet([
         ...manyLeadingRows,
@@ -484,11 +511,10 @@ describe('xtbParser.parse — real XLSX', () => {
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'CLOSED POSITION HISTORY');
       const buf = XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as unknown as ArrayBuffer;
-      await expect(xtbParser.parse(buf)).rejects.toThrow('Nie znaleziono wiersza nagłówkowego');
+      await expect(xtbParser.parse(buf)).rejects.toThrow('Nie znaleziono wiersza nag\u0142\u00f3wkowego');
     });
 
     it('throws when required columns are missing', async () => {
-      // Only a partial header — missing 'Close price' and others
       const incompleteHeader = ['Position', 'Symbol', 'Type'];
       const ws = XLSX.utils.aoa_to_sheet([[...incompleteHeader], [1, 'AAPL.US', 'BUY']]);
       const wb = XLSX.utils.book_new();
@@ -509,7 +535,7 @@ describe('xtbParser.parse — real XLSX', () => {
   });
 });
 
-// ─── Fixture file tests ────────────────────────────────────────────────────────
+// ─── Fixture file tests ────────────────────────────────────────────────────────────
 
 describe('xtbParser.parse — fixture file (xtb_closed_positions.xlsx)', () => {
   // The fixture mirrors the real XTB Closed Position History export:
@@ -533,16 +559,16 @@ describe('xtbParser.parse — fixture file (xtb_closed_positions.xlsx)', () => {
     expect(result).toHaveLength(3);
   });
 
-  it('first transaction: IB01.UK BUY (from real account file)', async () => {
+  it('first transaction: IB01.UK BUY (PLN amounts from Purchase/Sale value)', async () => {
     const buf = loadFixture('xtb_closed_positions.xlsx');
     const result = await xtbParser.parse(buf);
     const tx = result[0];
     expect(tx.ticker).toBe('IB01');
-    expect(tx.currency).toBe('GBP');
+    expect(tx.currency).toBe('PLN');
     expect(tx.saleDate).toBe('2025-11-05');
     expect(tx.acquisitionDate).toBe('2025-08-26');
-    expect(tx.saleGrossAmount).toBe(236.20);       // 2 × 118.10
-    expect(tx.acquisitionCostAmount).toBe(234.24); // 2 × 117.12
+    expect(tx.saleGrossAmount).toBe(871.15);       // Sale value in PLN
+    expect(tx.acquisitionCostAmount).toBe(863.90);  // Purchase value in PLN
     expect(tx.importSource).toBe('XTB');
   });
 
@@ -551,40 +577,38 @@ describe('xtbParser.parse — fixture file (xtb_closed_positions.xlsx)', () => {
     const result = await xtbParser.parse(buf);
     const tx = result[1];
     expect(tx.ticker).toBe('AAPL');
-    expect(tx.currency).toBe('USD');
+    expect(tx.currency).toBe('PLN');
     expect(tx.saleDate).toBe('2025-06-20');
     expect(tx.acquisitionDate).toBe('2025-01-15');
-    expect(tx.saleGrossAmount).toBe(2251.00);  // 10 × 225.10
-    expect(tx.acquisitionCostAmount).toBe(1855.00); // 10 × 185.50
+    expect(tx.saleGrossAmount).toBe(9000.00);
+    expect(tx.acquisitionCostAmount).toBe(7500.00);
   });
 
-  it('third transaction: BMW.DE BUY (EUR currency)', async () => {
+  it('third transaction: BMW.DE BUY', async () => {
     const buf = loadFixture('xtb_closed_positions.xlsx');
     const result = await xtbParser.parse(buf);
     const tx = result[2];
     expect(tx.ticker).toBe('BMW');
-    expect(tx.currency).toBe('EUR');
+    expect(tx.currency).toBe('PLN');
     expect(tx.saleDate).toBe('2025-09-15');
     expect(tx.acquisitionDate).toBe('2025-03-10');
-    expect(tx.saleGrossAmount).toBe(494.00); // 5 × 98.80
-    expect(tx.acquisitionCostAmount).toBe(462.00); // 5 × 92.40
+    expect(tx.saleGrossAmount).toBe(2150.00);
+    expect(tx.acquisitionCostAmount).toBe(2000.00);
   });
 
   it('finds header row after realistic account-info rows (row 13 in fixture)', async () => {
-    // The fixture has 12 rows before the column headers — confirms the scanner
-    // works correctly on a file that matches the real XTB export layout.
     const buf = loadFixture('xtb_closed_positions.xlsx');
     const result = await xtbParser.parse(buf);
     expect(result.length).toBeGreaterThan(0);
   });
 
-  it('all transactions have importSource = XTB and null exchange rates', async () => {
+  it('all transactions have importSource = XTB and PLN exchange rates = 1', async () => {
     const buf = loadFixture('xtb_closed_positions.xlsx');
     const result = await xtbParser.parse(buf);
     for (const tx of result) {
       expect(tx.importSource).toBe('XTB');
-      expect(tx.exchangeRateSaleToPLN).toBeNull();
-      expect(tx.exchangeRateAcquisitionToPLN).toBeNull();
+      expect(tx.exchangeRateSaleToPLN).toBe(1);
+      expect(tx.exchangeRateAcquisitionToPLN).toBe(1);
       expect(tx.zeroCostFlag).toBe(false);
       expect(tx.acquisitionMode).toBe('purchase');
     }
