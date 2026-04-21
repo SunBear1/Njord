@@ -194,8 +194,7 @@ describe('xtbParser.parse — real XLSX', () => {
     it('strips .UK suffix from ticker and uses account currency PLN', async () => {
       const buf = makeXtbBuffer([REAL_IB01_BUY], { leadingRows: REALISTIC_LEADING_ROWS });
       const [tx] = await xtbParser.parse(buf);
-      expect(tx.ticker).toBe('IB01');
-      expect(tx.currency).toBe('PLN');
+      expect(tx.ticker).toBe('IB01.L');      expect(tx.currency).toBe('PLN');
     });
 
     it('uses Purchase value / Sale value columns (PLN amounts from XTB)', async () => {
@@ -285,18 +284,20 @@ describe('xtbParser.parse — real XLSX', () => {
       const result = await xtbParser.parse(buf);
       expect(result).toHaveLength(2);
       expect(result[0].ticker).toBe('AAPL');
-      expect(result[1].ticker).toBe('BMW');
+      expect(result[1].ticker).toBe('BMW.DE');
     });
   });
 
   describe('ticker extraction from symbol', () => {
     const tickerCases: Array<[string, string]> = [
-      ['AAPL.US', 'AAPL'],
-      ['BMW.DE', 'BMW'],
-      ['IB01.UK', 'IB01'],
-      ['PKN.PL', 'PKN'],
-      ['NESN.CH', 'NESN'],
-      ['NOSUFFIX', 'NOSUFFIX'],
+      ['AAPL.US', 'AAPL'],       // .US → strip
+      ['BMW.DE', 'BMW.DE'],      // .DE → .DE (Xetra)
+      ['IB01.UK', 'IB01.L'],    // .UK → .L (London)
+      ['PKN.PL', 'PKN'],         // .PL → unknown, strip
+      ['NESN.CH', 'NESN.SW'],   // .CH → .SW (SIX Swiss)
+      ['AIR.FR', 'AIR.PA'],     // .FR → .PA (Euronext Paris)
+      ['ASML.NL', 'ASML.AS'],   // .NL → .AS (Euronext Amsterdam)
+      ['NOSUFFIX', 'NOSUFFIX'],  // no suffix → unchanged
     ];
 
     tickerCases.forEach(([symbol, expectedTicker]) => {
@@ -563,7 +564,7 @@ describe('xtbParser.parse — fixture file (xtb_closed_positions.xlsx)', () => {
     const buf = loadFixture('xtb_closed_positions.xlsx');
     const result = await xtbParser.parse(buf);
     const tx = result[0];
-    expect(tx.ticker).toBe('IB01');
+    expect(tx.ticker).toBe('IB01.L');
     expect(tx.currency).toBe('PLN');
     expect(tx.saleDate).toBe('2025-11-05');
     expect(tx.acquisitionDate).toBe('2025-08-26');
@@ -588,7 +589,7 @@ describe('xtbParser.parse — fixture file (xtb_closed_positions.xlsx)', () => {
     const buf = loadFixture('xtb_closed_positions.xlsx');
     const result = await xtbParser.parse(buf);
     const tx = result[2];
-    expect(tx.ticker).toBe('BMW');
+    expect(tx.ticker).toBe('BMW.DE');
     expect(tx.currency).toBe('PLN');
     expect(tx.saleDate).toBe('2025-09-15');
     expect(tx.acquisitionDate).toBe('2025-03-10');

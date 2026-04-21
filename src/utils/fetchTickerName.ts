@@ -8,7 +8,7 @@ export async function fetchTickerName(ticker: string): Promise<string> {
 
   const res = await fetch(`/api/analyze?ticker=${encodeURIComponent(t)}`);
 
-  if (res.status === 404) throw new Error(`Nie znaleziono spółki: ${t}`);
+  if (res.status === 404) throw new Error(`Nie rozpoznano tickera «${t}» — nazwa niedostępna`);
   if (!res.ok) {
     const body = await res.json().catch(() => ({})) as { error?: string };
     throw new Error(body.error ?? `Błąd HTTP ${res.status}`);

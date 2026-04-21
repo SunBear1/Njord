@@ -15,10 +15,37 @@
 import type { TaxTransaction } from '../../types/tax';
 import type { BrokerParser } from './types';
 
-/** Strip exchange suffix from XTB symbol: 'AAPL.US' → 'AAPL', 'IB01.UK' → 'IB01'. */
+/**
+ * XTB exchange suffix → Yahoo Finance suffix mapping.
+ * US tickers need no suffix on Yahoo; others need exchange-specific ones.
+ */
+const XTB_TO_YAHOO_SUFFIX: Record<string, string> = {
+  US: '',    // AAPL.US → AAPL
+  UK: '.L',  // IB01.UK → IB01.L (London)
+  DE: '.DE', // BMW.DE  → BMW.DE (Xetra)
+  FR: '.PA', // AIR.FR  → AIR.PA (Euronext Paris)
+  NL: '.AS', // ASML.NL → ASML.AS (Euronext Amsterdam)
+  ES: '.MC', // SAN.ES  → SAN.MC (Madrid)
+  IT: '.MI', // ENI.IT  → ENI.MI (Milan)
+  CH: '.SW', // NESN.CH → NESN.SW (SIX Swiss)
+  BE: '.BR', // ABI.BE  → ABI.BR (Brussels)
+  PT: '.LS', // EDP.PT  → EDP.LS (Lisbon)
+  HK: '.HK', // 0005.HK → 0005.HK (Hong Kong)
+};
+
+/**
+ * Convert XTB symbol to Yahoo Finance-compatible ticker.
+ * Maps exchange suffixes: 'AAPL.US' → 'AAPL', 'IB01.UK' → 'IB01.L'.
+ * Unknown suffixes are stripped as best-effort fallback.
+ */
 function tickerFromSymbol(symbol: string): string {
   const dot = symbol.lastIndexOf('.');
-  return dot === -1 ? symbol : symbol.slice(0, dot);
+  if (dot === -1) return symbol;
+  const base = symbol.slice(0, dot);
+  const suffix = symbol.slice(dot + 1).toUpperCase();
+  const yahooSuffix = XTB_TO_YAHOO_SUFFIX[suffix];
+  if (yahooSuffix !== undefined) return base + yahooSuffix;
+  return base; // unknown suffix → strip
 }
 
 /**
