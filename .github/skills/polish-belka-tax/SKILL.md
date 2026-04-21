@@ -1,6 +1,6 @@
 ---
 name: polish-belka-tax
-description: Calculate Polish Belka tax (19% capital gains tax) and help fill PIT-38 with PIT/ZG attachment. Trigger when user asks about: Belka tax, Polish capital gains tax, PIT-38, PIT-ZG, podatek Belki, podatek giełdowy, rozliczenie akcji, zyski kapitałowe, FIFO tax Poland, foreign broker tax Poland, E*Trade tax Poland, Revolut tax, eToro tax, Interactive Brokers tax Poland, NBP exchange rate conversion, dividend tax Poland, crypto tax Poland, or any question about taxing investment income in Poland.
+description: "Calculate Polish Belka tax (19% capital gains tax) and help fill PIT-38 with PIT/ZG attachment. Trigger when user asks about: Belka tax, Polish capital gains tax, PIT-38, PIT-ZG, podatek Belki, podatek giełdowy, rozliczenie akcji, zyski kapitałowe, FIFO tax Poland, foreign broker tax Poland, E*Trade tax Poland, Revolut tax, eToro tax, Interactive Brokers tax Poland, NBP exchange rate conversion, dividend tax Poland, crypto tax Poland, or any question about taxing investment income in Poland."
 ---
 # Polish Belka Tax Calculator
 
