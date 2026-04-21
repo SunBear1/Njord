@@ -143,6 +143,7 @@ async function parse(buffer: ArrayBuffer): Promise<TaxTransaction[]> {
       exchangeRateSaleToPLN: null,
       exchangeRateAcquisitionToPLN: null,
       importSource: 'E*TRADE',
+      notes: planType ?? undefined,
     });
   }
 

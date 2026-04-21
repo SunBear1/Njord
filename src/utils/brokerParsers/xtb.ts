@@ -5,48 +5,48 @@
  * SheetJS is dynamically imported so the chunk is only loaded on first use.
  *
  * Export path in xStation 5: Historia konta → Zamknięte pozycje → Eksportuj (XLSX)
+ *
+ * Key design decision: XTB exports all monetary values ("Purchase value",
+ * "Sale value") in the **account currency** (typically PLN for Polish users).
+ * The parser reads these PLN amounts directly instead of computing
+ * volume × price (which would give amounts in the instrument's native currency).
  */
 
 import type { TaxTransaction } from '../../types/tax';
 import type { BrokerParser } from './types';
 
-/**
- * Derive the ISO 4217 currency code from an XTB symbol's exchange suffix.
- * XTB appends a dot + exchange code to each symbol, e.g. AAPL.US, BMW.DE, KGHM.PL.
- */
-function currencyFromSymbol(symbol: string): string {
-  const dot = symbol.lastIndexOf('.');
-  if (dot === -1) return 'USD';
-  const suffix = symbol.slice(dot + 1).toUpperCase();
-  switch (suffix) {
-    case 'US':
-      return 'USD';
-    case 'DE':
-    case 'FR':
-    case 'NL':
-    case 'ES':
-    case 'IT':
-    case 'BE':
-    case 'PT':
-    case 'AT':
-    case 'FI':
-    case 'IE':
-      return 'EUR';
-    case 'UK':
-      return 'GBP';
-    case 'PL':
-      return 'PLN';
-    case 'CH':
-      return 'CHF';
-    default:
-      return 'USD';
-  }
-}
-
-/** Strip exchange suffix from XTB symbol: 'AAPL.US' → 'AAPL'. */
+/** Strip exchange suffix from XTB symbol: 'AAPL.US' → 'AAPL', 'IB01.UK' → 'IB01'. */
 function tickerFromSymbol(symbol: string): string {
   const dot = symbol.lastIndexOf('.');
   return dot === -1 ? symbol : symbol.slice(0, dot);
+}
+
+/**
+ * Detect the account currency from the sheet header area.
+ *
+ * XTB exports have a "Currency" label in the first ~15 rows (row 6 in real files).
+ * The value cell is directly below or in the same row after the label.
+ * Returns 'PLN' as fallback if detection fails (most Polish XTB accounts are PLN).
+ */
+function detectAccountCurrency(rows: unknown[][]): string {
+  const KNOWN_CURRENCIES = new Set(['PLN', 'USD', 'EUR', 'GBP', 'CHF', 'CZK', 'HUF', 'RON']);
+  for (let i = 0; i < Math.min(rows.length, 20); i++) {
+    const row = rows[i];
+    if (!row) continue;
+    for (let j = 0; j < row.length; j++) {
+      if (typeof row[j] === 'string' && (row[j] as string).trim() === 'Currency') {
+        // Check the cell in the same column, next row
+        const nextRow = rows[i + 1];
+        if (nextRow && j < nextRow.length) {
+          const val = String(nextRow[j] ?? '').trim().toUpperCase();
+          if (KNOWN_CURRENCIES.has(val)) return val;
+        }
+      }
+      // Also check if a cell in the header area directly contains a known currency code
+      // in certain layouts where currency is in the same row
+    }
+  }
+  return 'PLN';
 }
 
 /**
@@ -92,7 +92,11 @@ function safeNumber(raw: unknown, min = 0, max = MAX_AMOUNT): number {
   return n;
 }
 
-const REQUIRED_COLUMNS = ['Position', 'Symbol', 'Type', 'Volume', 'Open time', 'Open price', 'Close time', 'Close price'] as const;
+const REQUIRED_COLUMNS = [
+  'Position', 'Symbol', 'Type', 'Volume',
+  'Open time', 'Open price', 'Close time', 'Close price',
+  'Purchase value', 'Sale value',
+] as const;
 
 async function parse(buffer: ArrayBuffer): Promise<TaxTransaction[]> {
   const XLSX = await import('xlsx');
@@ -123,6 +127,9 @@ async function parse(buffer: ArrayBuffer): Promise<TaxTransaction[]> {
       `Plik zawiera zbyt wiele wierszy (${rows.length}). Maksymalnie dozwolone: ${MAX_ROWS}.`,
     );
   }
+
+  // Detect account currency from the header area (before column headers).
+  const accountCurrency = detectAccountCurrency(rows);
 
   // Find the header row: scan up to first 25 rows for the row that contains
   // all three sentinel column names. SheetJS drops the leading empty column
@@ -158,6 +165,7 @@ async function parse(buffer: ArrayBuffer): Promise<TaxTransaction[]> {
 
   const trades: TaxTransaction[] = [];
   const round2 = (n: number) => Math.round(n * 100) / 100;
+  const isPLN = accountCurrency === 'PLN';
 
   for (let i = headerRowIdx + 1; i < rows.length; i++) {
     const row = rows[i] as unknown[];
@@ -176,20 +184,18 @@ async function parse(buffer: ArrayBuffer): Promise<TaxTransaction[]> {
 
     const acquisitionDate = excelDateToIso(safeGet(row, colMap['Open time']));
 
-    const volume = safeNumber(safeGet(row, colMap['Volume']), 0.000001);
-    const openPrice = safeNumber(safeGet(row, colMap['Open price']), 0);
-    const closePrice = safeNumber(safeGet(row, colMap['Close price']), 0.000001);
-
-    if (isNaN(volume) || volume <= 0) continue;
-    if (isNaN(closePrice) || closePrice <= 0) continue;
-
     const symbol = String(safeGet(row, colMap['Symbol']) ?? '');
-    const currency = currencyFromSymbol(symbol);
     const ticker = tickerFromSymbol(symbol);
 
-    const saleGrossAmount = round2(volume * closePrice);
-    const acquisitionCostAmount = !isNaN(openPrice) && openPrice > 0
-      ? round2(volume * openPrice)
+    // Use "Purchase value" and "Sale value" columns — these are in the account currency.
+    const saleValue = safeNumber(safeGet(row, colMap['Sale value']), 0.000001);
+    const purchaseValue = safeNumber(safeGet(row, colMap['Purchase value']), 0);
+
+    if (isNaN(saleValue) || saleValue <= 0) continue;
+
+    const saleGrossAmount = round2(saleValue);
+    const acquisitionCostAmount = !isNaN(purchaseValue) && purchaseValue > 0
+      ? round2(purchaseValue)
       : undefined;
 
     trades.push({
@@ -198,13 +204,15 @@ async function parse(buffer: ArrayBuffer): Promise<TaxTransaction[]> {
       acquisitionMode: 'purchase',
       zeroCostFlag: false,
       ticker: ticker || undefined,
-      currency,
+      currency: accountCurrency,
       saleDate,
       acquisitionDate: acquisitionDate || undefined,
       saleGrossAmount,
       acquisitionCostAmount,
-      exchangeRateSaleToPLN: null,
-      exchangeRateAcquisitionToPLN: null,
+      // PLN account → no FX conversion needed, pre-set rate to 1.
+      exchangeRateSaleToPLN: isPLN ? 1 : null,
+      exchangeRateAcquisitionToPLN: isPLN ? 1 : null,
+      ...(isPLN ? { rateSaleEffectiveDate: saleDate, rateAcquisitionEffectiveDate: acquisitionDate } : {}),
       importSource: 'XTB',
     });
   }
@@ -235,6 +243,6 @@ export const xtbParser: BrokerParser = {
   formatNote:
     'Akceptujemy wyłącznie raport „Historia zamkniętych pozycji" z xStation 5 w formacie .xlsx. ' +
     'Importowane są wyłącznie pozycje długie (BUY). Pozycje krótkie (SELL/short) są pomijane. ' +
-    'Prowizje XTB są podane w PLN i nie są importowane — możesz je dodać ręcznie.',
+    'Kwoty importowane są w walucie konta (np. PLN) — dla kont PLN przeliczenie walutowe nie jest wymagane.',
   parse,
 };

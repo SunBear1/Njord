@@ -573,6 +573,11 @@ export function TransactionCard({
               {tx.importSource}
             </span>
           )}
+          {tx.notes && (
+            <span className="inline-flex items-center text-gray-400 dark:text-gray-500 text-[10px] italic truncate max-w-[80px] hidden sm:inline-flex" title={tx.notes}>
+              {tx.notes}
+            </span>
+          )}
           <span
             role="button"
             tabIndex={0}
@@ -859,10 +864,26 @@ export function TransactionCard({
             )}
           </div>
 
+          {/* Notes */}
+          <div className="space-y-1 pt-1">
+            <label htmlFor={`${tx.id}-notes`} className={LABEL_CLS}>
+              Notatka
+              <span className="ml-1 text-gray-400 dark:text-gray-500 font-normal">(opcjonalne)</span>
+            </label>
+            <textarea
+              id={`${tx.id}-notes`}
+              value={tx.notes ?? ''}
+              onChange={(e) => onUpdate({ notes: e.target.value || undefined })}
+              placeholder="np. RS, ESPP, SO — typ planu, zlecenie, numer umowy…"
+              maxLength={500}
+              rows={2}
+              spellCheck={false}
+              className={`${INPUT_CLS} resize-none`}
+            />
+          </div>
+
           {/* Result bar */}
           {result && <CalculationBreakdown tx={tx} result={result} />}
-
-          {/* Not-ready hint */}
           {!result && tx.saleGrossAmount > 0 && tx.saleDate && (
             <p className="text-xs text-gray-400 dark:text-gray-500">
               {tx.isLoadingRateSale || tx.isLoadingRateAcquisition
