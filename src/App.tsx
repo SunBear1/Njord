@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo, useDeferredValue, lazy, Suspense } from 'react';
-import { Moon, Sun, BarChart3, Receipt } from 'lucide-react';
+import { Moon, Sun, BarChart3, Receipt, Sprout } from 'lucide-react';
 import { InputPanel } from './components/InputPanel';
 import { ScenarioEditor } from './components/ScenarioEditor';
 import { VerdictBanner } from './components/VerdictBanner';
@@ -26,6 +26,7 @@ import {
 import { blendedInflationRate, blendedSavingsRate } from './utils/inflationProjection';
 import { loadState } from './utils/persistedState';
 
+const AccumulationPanelLazy = lazy(() => import('./components/AccumulationPanel').then(m => ({ default: m.AccumulationPanel })));
 const SellAnalysisPanel = lazy(() => import('./components/SellAnalysisPanel').then(m => ({ default: m.SellAnalysisPanel })));
 const MethodologyPanelLazy = lazy(() => import('./components/MethodologyPanel').then(m => ({ default: m.MethodologyPanel })));
 const HowItWorksLazy = lazy(() => import('./components/HowItWorks').then(m => ({ default: m.HowItWorks })));
@@ -44,8 +45,8 @@ const FOOTER_STYLE = { borderTop: '1px solid var(--color-border)', color: 'var(-
 function App() {
   const [isDark, toggleDarkMode] = useDarkMode();
 
-  // Top-level section: investment comparison vs standalone tax calculator
-  type AppSection = 'investment' | 'tax';
+  // Top-level section: investment comparison vs tax calculator vs accumulation planner
+  type AppSection = 'investment' | 'tax' | 'accumulation';
   const [activeSection, setActiveSection] = useState<AppSection>(
     () => (loadState()?.activeSection as AppSection) ?? 'investment',
   );
@@ -211,7 +212,7 @@ function App() {
           </svg>
           <div className="flex-1">
             <h1 className="text-2xl font-bold tracking-tight">Njord</h1>
-            <p className="text-sm text-slate-400">Akcje · Obligacje · Konto oszczędnościowe · Podatek Belki</p>
+            <p className="text-sm text-slate-400">Akcje · Obligacje · Konto oszczędnościowe · Podatek Belki · Akumulacja</p>
           </div>
           <button
             type="button"
@@ -249,12 +250,23 @@ function App() {
             <Receipt size={16} aria-hidden="true" />
             Podatek Belki
           </button>
+          <button
+            onClick={() => setActiveSection('accumulation')}
+            className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+              activeSection === 'accumulation'
+                ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-sm border border-blue-200 dark:border-blue-800'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            <Sprout size={16} aria-hidden="true" />
+            Akumulacja
+          </button>
         </div>
       </nav>
 
       <div className="flex justify-center">
-        {/* Kantor rates sticky sidebar — xl+ only, hidden in tax calculator */}
-        {activeSection !== 'tax' && (
+        {/* Kantor rates sticky sidebar — xl+ only, hidden in tax calculator and accumulation */}
+        {activeSection === 'investment' && (
           <aside className="hidden xl:block shrink-0 pt-6 pl-4">
             <div className="sticky top-4">
               <KantorSidebar rates={currencyRates} />
@@ -266,6 +278,16 @@ function App() {
         {activeSection === 'tax' ? (
           /* ── Tax calculator section ── */
           <TaxCalculatorPanel currencyRates={currencyRates} />
+        ) : activeSection === 'accumulation' ? (
+          /* ── Accumulation planner section ── */
+          <Suspense fallback={<Skeleton className="h-96" />}>
+            <AccumulationPanelLazy
+              bondPresets={bondPresets}
+              inflationData={inflationData}
+              inflationLoading={inflationLoading}
+              isDark={isDark}
+            />
+          </Suspense>
         ) : inputCollapsed ? (
           /* ── Collapsed layout: summary bar → ScenarioEditor (full-width) → Results ── */
           <>
