@@ -1,0 +1,453 @@
+import { describe, test, expect } from 'vitest';
+import {
+  allocateMonthly,
+  calcIkzePitDeduction,
+  calcAccumulationResult,
+} from '../utils/accumulationCalculator';
+import type {
+  AccumulationInputs,
+  BucketConfig,
+} from '../types/accumulation';
+import {
+  IKE_LIMIT_2026,
+  IKZE_LIMIT_2026,
+  BELKA_RATE,
+  IKZE_RYCZALT_RATE,
+} from '../types/accumulation';
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function makeStocksBucket(wrapper: 'ike' | 'ikze' | 'regular', enabled = true): BucketConfig {
+  return {
+    wrapper,
+    instrument: 'stocks',
+    enabled,
+    stockReturnPercent: 8,
+    dividendYieldPercent: 1.5,
+    fxSpreadPercent: 0.35,
+    bondPresetId: '',
+    bondFirstYearRate: 0,
+    bondEffectiveRate: 0,
+    bondRateType: 'fixed',
+    bondMargin: 0,
+    bondCouponFrequency: 0,
+  };
+}
+
+function makeBondsBucket(wrapper: 'ike' | 'ikze' | 'regular', enabled = true): BucketConfig {
+  return {
+    wrapper,
+    instrument: 'bonds',
+    enabled,
+    stockReturnPercent: 0,
+    dividendYieldPercent: 0,
+    fxSpreadPercent: 0,
+    bondPresetId: 'EDO',
+    bondFirstYearRate: 6.2,
+    bondEffectiveRate: 5.0,
+    bondRateType: 'inflation',
+    bondMargin: 2.0,
+    bondCouponFrequency: 0,
+  };
+}
+
+function makeInputs(overrides?: Partial<AccumulationInputs>): AccumulationInputs {
+  return {
+    totalMonthlyPLN: 3000,
+    horizonYears: 20,
+    pitBracket: 12,
+    inflationRate: 3.0,
+    ikeAnnualLimit: IKE_LIMIT_2026,
+    ikzeAnnualLimit: IKZE_LIMIT_2026,
+    savingsRate: 5.0,
+    buckets: [
+      makeStocksBucket('ike'),
+      makeStocksBucket('ikze'),
+      makeStocksBucket('regular'),
+    ],
+    ...overrides,
+  };
+}
+
+// ─── Allocation Tests ─────────────────────────────────────────────────────────
+
+describe('allocateMonthly', () => {
+  test('IKE fills first, then IKZE, then overflow to regular', () => {
+    const buckets = [makeStocksBucket('ike'), makeStocksBucket('ikze'), makeStocksBucket('regular')];
+    const alloc = allocateMonthly(3000, IKE_LIMIT_2026, IKZE_LIMIT_2026, buckets);
+
+    expect(alloc[0]).toBeCloseTo(IKE_LIMIT_2026 / 12, 0); // IKE: ~2017/mo
+    expect(alloc[1]).toBeCloseTo(IKZE_LIMIT_2026 / 12, 0); // IKZE: ~840/mo
+    expect(alloc[2]).toBeCloseTo(3000 - IKE_LIMIT_2026 / 12 - IKZE_LIMIT_2026 / 12, 0); // Regular: overflow
+    expect(alloc[0] + alloc[1] + alloc[2]).toBeCloseTo(3000, 2);
+  });
+
+  test('disabled IKE sends everything to IKZE + regular', () => {
+    const buckets = [
+      makeStocksBucket('ike', false),
+      makeStocksBucket('ikze'),
+      makeStocksBucket('regular'),
+    ];
+    const alloc = allocateMonthly(3000, IKE_LIMIT_2026, IKZE_LIMIT_2026, buckets);
+
+    expect(alloc[0]).toBe(0); // IKE disabled
+    expect(alloc[1]).toBeCloseTo(IKZE_LIMIT_2026 / 12, 0);
+    expect(alloc[2]).toBeCloseTo(3000 - IKZE_LIMIT_2026 / 12, 0);
+    expect(alloc[0] + alloc[1] + alloc[2]).toBeCloseTo(3000, 2);
+  });
+
+  test('small budget fits entirely in IKE', () => {
+    const buckets = [makeStocksBucket('ike'), makeStocksBucket('ikze'), makeStocksBucket('regular')];
+    const alloc = allocateMonthly(1000, IKE_LIMIT_2026, IKZE_LIMIT_2026, buckets);
+
+    expect(alloc[0]).toBe(1000); // All in IKE
+    expect(alloc[1]).toBe(0);
+    expect(alloc[2]).toBe(0);
+  });
+
+  test('all disabled returns zero allocation', () => {
+    const buckets = [
+      makeStocksBucket('ike', false),
+      makeStocksBucket('ikze', false),
+      makeStocksBucket('regular', false),
+    ];
+    const alloc = allocateMonthly(3000, IKE_LIMIT_2026, IKZE_LIMIT_2026, buckets);
+
+    expect(alloc.every(a => a === 0)).toBe(true);
+  });
+});
+
+// ─── IKE Tax Advantage ────────────────────────────────────────────────────────
+
+describe('IKE tax advantage', () => {
+  test('IKE terminal value ≥ regular for same return (stocks)', () => {
+    // All stocks, same return — IKE should beat regular due to no dividend tax + no exit tax
+    const ikeOnly = makeInputs({
+      totalMonthlyPLN: 2000,
+      horizonYears: 20,
+      buckets: [
+        makeStocksBucket('ike'),
+        makeStocksBucket('ikze', false),
+        makeStocksBucket('regular', false),
+      ],
+    });
+    const regularOnly = makeInputs({
+      totalMonthlyPLN: 2000,
+      horizonYears: 20,
+      buckets: [
+        makeStocksBucket('ike', false),
+        makeStocksBucket('ikze', false),
+        makeStocksBucket('regular'),
+      ],
+    });
+
+    const ikeResult = calcAccumulationResult(ikeOnly);
+    const regularResult = calcAccumulationResult(regularOnly);
+
+    expect(ikeResult.totalTerminalNet).toBeGreaterThan(regularResult.totalTerminalNet);
+  });
+
+  test('IKE terminal value ≥ regular for same return (bonds)', () => {
+    const ikeOnly = makeInputs({
+      totalMonthlyPLN: 2000,
+      horizonYears: 10,
+      buckets: [
+        makeBondsBucket('ike'),
+        makeBondsBucket('ikze', false),
+        makeBondsBucket('regular', false),
+      ],
+    });
+    const regularOnly = makeInputs({
+      totalMonthlyPLN: 2000,
+      horizonYears: 10,
+      buckets: [
+        makeBondsBucket('ike', false),
+        makeBondsBucket('ikze', false),
+        makeBondsBucket('regular'),
+      ],
+    });
+
+    const ikeResult = calcAccumulationResult(ikeOnly);
+    const regularResult = calcAccumulationResult(regularOnly);
+
+    expect(ikeResult.totalTerminalNet).toBeGreaterThan(regularResult.totalTerminalNet);
+  });
+});
+
+// ─── IKZE PIT Deduction ───────────────────────────────────────────────────────
+
+describe('IKZE PIT deduction', () => {
+  test('PIT deduction reinvestment adds meaningful value', () => {
+    const deductionValue = calcIkzePitDeduction(
+      IKZE_LIMIT_2026, // yearly contribution
+      0.12,            // 12% bracket
+      5.0,             // savings rate
+      20,              // 20 years
+    );
+
+    // 20 years × ~10k/yr × 12% = ~24k nominal deductions, compounded should be more
+    expect(deductionValue).toBeGreaterThan(IKZE_LIMIT_2026 * 0.12 * 20);
+    expect(deductionValue).toBeLessThan(IKZE_LIMIT_2026 * 0.12 * 20 * 3); // sanity upper bound
+  });
+
+  test('32% bracket yields more than 12% bracket', () => {
+    const low = calcIkzePitDeduction(IKZE_LIMIT_2026, 0.12, 5.0, 20);
+    const high = calcIkzePitDeduction(IKZE_LIMIT_2026, 0.32, 5.0, 20);
+
+    expect(high).toBeGreaterThan(low);
+    expect(high / low).toBeCloseTo(0.32 / 0.12, 0); // approximately proportional
+  });
+
+  test('zero savings rate means no compounding', () => {
+    const value = calcIkzePitDeduction(10000, 0.12, 0, 10);
+
+    // With 0% savings rate, each year's deduction stays flat
+    expect(value).toBeCloseTo(10000 * 0.12 * 10, 0);
+  });
+});
+
+// ─── Zero Return ──────────────────────────────────────────────────────────────
+
+describe('zero return', () => {
+  test('zero return stocks → terminal ≈ contributions (minus FX spread)', () => {
+    const inputs = makeInputs({
+      totalMonthlyPLN: 1000,
+      horizonYears: 5,
+      buckets: [
+        { ...makeStocksBucket('ike'), stockReturnPercent: 0, dividendYieldPercent: 0 },
+        makeStocksBucket('ikze', false),
+        makeStocksBucket('regular', false),
+      ],
+    });
+
+    const result = calcAccumulationResult(inputs);
+    const totalContributed = 1000 * 12 * 5;
+    const fxDrag = 1 / (1 + 0.35 / 100);
+
+    // Terminal should be contributions minus FX spread loss
+    expect(result.totalTerminalNet).toBeCloseTo(totalContributed * fxDrag, -1);
+  });
+
+  test('zero return bonds → terminal = contributions exactly', () => {
+    const inputs = makeInputs({
+      totalMonthlyPLN: 1000,
+      horizonYears: 5,
+      buckets: [
+        { ...makeBondsBucket('ike'), bondFirstYearRate: 0, bondEffectiveRate: 0 },
+        makeBondsBucket('ikze', false),
+        makeBondsBucket('regular', false),
+      ],
+    });
+
+    const result = calcAccumulationResult(inputs);
+    const totalContributed = 1000 * 12 * 5;
+
+    // IKE + 0% bond rate → no tax, no gains, exact contribution return
+    expect(result.totalTerminalNet).toBeCloseTo(totalContributed, 0);
+  });
+});
+
+// ─── Bond vs Stocks Distinction ───────────────────────────────────────────────
+
+describe('instrument behavior', () => {
+  test('bonds bucket has no FX conversion (PLN-denominated)', () => {
+    const bondInputs = makeInputs({
+      totalMonthlyPLN: 1000,
+      horizonYears: 1,
+      buckets: [
+        { ...makeBondsBucket('ike'), bondFirstYearRate: 0, bondEffectiveRate: 0 },
+        makeBondsBucket('ikze', false),
+        makeBondsBucket('regular', false),
+      ],
+    });
+
+    const result = calcAccumulationResult(bondInputs);
+
+    // With 0% return and IKE wrapper, should get exactly what was put in
+    expect(result.totalTerminalNet).toBeCloseTo(1000 * 12, 0);
+  });
+
+  test('stocks bucket loses value to FX spread', () => {
+    const stockInputs = makeInputs({
+      totalMonthlyPLN: 1000,
+      horizonYears: 1,
+      buckets: [
+        { ...makeStocksBucket('ike'), stockReturnPercent: 0, dividendYieldPercent: 0, fxSpreadPercent: 1.0 },
+        makeStocksBucket('ikze', false),
+        makeStocksBucket('regular', false),
+      ],
+    });
+
+    const result = calcAccumulationResult(stockInputs);
+    const totalContributed = 1000 * 12;
+
+    // Should be less than contributed due to 1% FX spread
+    expect(result.totalTerminalNet).toBeLessThan(totalContributed);
+    expect(result.totalTerminalNet).toBeGreaterThan(totalContributed * 0.98);
+  });
+});
+
+// ─── Inflation Erosion ────────────────────────────────────────────────────────
+
+describe('inflation erosion', () => {
+  test('inflation erodes purchasing power over time', () => {
+    const inputs = makeInputs({ inflationRate: 5.0, horizonYears: 10 });
+    const result = calcAccumulationResult(inputs);
+
+    const lastSnap = result.combinedSnapshots[result.combinedSnapshots.length - 1];
+
+    // After 10 years at 5% inflation, purchasing power of contributions should be much lower
+    expect(lastSnap.inflationErodedContributions).toBeLessThan(lastSnap.totalContributed);
+    // Roughly: 1/(1.05^10) ≈ 0.614
+    const expectedRatio = 1 / Math.pow(1.05, 10);
+    const totalMonthlyContributions = inputs.totalMonthlyPLN * 10 * 12;
+    expect(lastSnap.inflationErodedContributions).toBeCloseTo(totalMonthlyContributions * expectedRatio, -2);
+  });
+
+  test('zero inflation means no erosion', () => {
+    const inputs = makeInputs({ inflationRate: 0, horizonYears: 5 });
+    const result = calcAccumulationResult(inputs);
+
+    const lastSnap = result.combinedSnapshots[result.combinedSnapshots.length - 1];
+    const totalMonthlyContributions = inputs.totalMonthlyPLN * 5 * 12;
+
+    expect(lastSnap.inflationErodedContributions).toBeCloseTo(totalMonthlyContributions, 0);
+  });
+});
+
+// ─── Milestones ───────────────────────────────────────────────────────────────
+
+describe('milestone detection', () => {
+  test('detects 100k milestone', () => {
+    const inputs = makeInputs({
+      totalMonthlyPLN: 5000,
+      horizonYears: 10,
+    });
+
+    const result = calcAccumulationResult(inputs);
+
+    const m100k = result.milestones.find(m => m.threshold === 100_000);
+    expect(m100k).toBeDefined();
+    // 5000/mo × 12 = 60k/year, so 100k should be crossed within first 2 years
+    expect(m100k!.year).toBeLessThanOrEqual(3);
+  });
+
+  test('no milestones for very small investments', () => {
+    const inputs = makeInputs({
+      totalMonthlyPLN: 100,
+      horizonYears: 5,
+    });
+
+    const result = calcAccumulationResult(inputs);
+
+    // 100/mo × 60 months = 6k total contributed — far from 100k
+    expect(result.milestones.length).toBe(0);
+  });
+});
+
+// ─── Counterfactual ───────────────────────────────────────────────────────────
+
+describe('counterfactual (all-regular)', () => {
+  test('IKE+IKZE always beats all-regular for positive returns', () => {
+    const inputs = makeInputs({
+      totalMonthlyPLN: 3000,
+      horizonYears: 20,
+    });
+
+    const result = calcAccumulationResult(inputs);
+
+    // Tax savings should be positive (IKE+IKZE beat regular)
+    expect(result.taxSavings).toBeGreaterThan(0);
+    expect(result.taxSavingsPercent).toBeGreaterThan(0);
+    expect(result.totalTerminalNet).toBeGreaterThan(result.counterfactualNet);
+  });
+
+  test('tax savings grow with horizon', () => {
+    const short = calcAccumulationResult(makeInputs({ horizonYears: 5 }));
+    const long = calcAccumulationResult(makeInputs({ horizonYears: 30 }));
+
+    // Compound tax advantage grows over time
+    expect(long.taxSavingsPercent).toBeGreaterThan(short.taxSavingsPercent);
+  });
+});
+
+// ─── Edge Cases ───────────────────────────────────────────────────────────────
+
+describe('edge cases', () => {
+  test('zero monthly amount produces zero result', () => {
+    const inputs = makeInputs({ totalMonthlyPLN: 0 });
+    const result = calcAccumulationResult(inputs);
+
+    expect(result.totalTerminalNet).toBe(0);
+    expect(result.totalContributed).toBe(0);
+    expect(result.milestones.length).toBe(0);
+  });
+
+  test('minimum horizon (5 years) produces valid result', () => {
+    const inputs = makeInputs({ horizonYears: 5 });
+    const result = calcAccumulationResult(inputs);
+
+    expect(result.totalTerminalNet).toBeGreaterThan(0);
+    expect(result.combinedSnapshots.length).toBe(6); // years 0-5
+  });
+
+  test('max horizon (40 years) produces valid result', () => {
+    const inputs = makeInputs({ horizonYears: 40 });
+    const result = calcAccumulationResult(inputs);
+
+    expect(result.totalTerminalNet).toBeGreaterThan(0);
+    expect(result.combinedSnapshots.length).toBe(41); // years 0-40
+    expect(Number.isFinite(result.totalTerminalNet)).toBe(true);
+  });
+
+  test('all bonds allocation works', () => {
+    const inputs = makeInputs({
+      buckets: [
+        makeBondsBucket('ike'),
+        makeBondsBucket('ikze'),
+        makeBondsBucket('regular'),
+      ],
+    });
+
+    const result = calcAccumulationResult(inputs);
+
+    expect(result.totalTerminalNet).toBeGreaterThan(0);
+    expect(result.buckets.every(b => b.instrument === 'bonds')).toBe(true);
+  });
+
+  test('mixed allocation (stocks + bonds) works', () => {
+    const inputs = makeInputs({
+      buckets: [
+        makeStocksBucket('ike'),
+        makeBondsBucket('ikze'),
+        makeStocksBucket('regular'),
+      ],
+    });
+
+    const result = calcAccumulationResult(inputs);
+
+    expect(result.totalTerminalNet).toBeGreaterThan(0);
+    expect(result.buckets[0].instrument).toBe('stocks');
+    expect(result.buckets[1].instrument).toBe('bonds');
+  });
+});
+
+// ─── Tax Rate Constants ───────────────────────────────────────────────────────
+
+describe('tax constants', () => {
+  test('Belka rate is 19%', () => {
+    expect(BELKA_RATE).toBe(0.19);
+  });
+
+  test('IKZE ryczałt rate is 10%', () => {
+    expect(IKZE_RYCZALT_RATE).toBe(0.10);
+  });
+
+  test('IKE limit 2026', () => {
+    expect(IKE_LIMIT_2026).toBe(24_204);
+  });
+
+  test('IKZE limit 2026', () => {
+    expect(IKZE_LIMIT_2026).toBe(10_081);
+  });
+});
