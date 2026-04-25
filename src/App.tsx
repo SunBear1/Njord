@@ -19,7 +19,6 @@ import { useBondPresets } from './hooks/useBondPresets';
 import { usePortfolioState } from './hooks/usePortfolioState';
 import { useAuth } from './hooks/useAuth';
 import { KantorSidebar } from './components/KantorSidebar';
-import { AuthModal } from './components/AuthModal';
 import { UserMenu } from './components/UserMenu';
 import {
   calcAllScenarios,
@@ -35,6 +34,7 @@ const MethodologyPanelLazy = lazy(() => import('./components/MethodologyPanel').
 const HowItWorksLazy = lazy(() => import('./components/HowItWorks').then(m => ({ default: m.HowItWorks })));
 const TimelineChartLazy = lazy(() => import('./components/TimelineChart'));
 const BreakevenChartLazy = lazy(() => import('./components/BreakevenChart'));
+const AuthModalLazy = lazy(() => import('./components/AuthModal').then(m => ({ default: m.AuthModal })));
 
 const DEFAULT_SCENARIOS = {
   bear: { deltaStock: -10, deltaFx: -5 },
@@ -596,14 +596,18 @@ function App() {
       </footer>
 
       {showPrivacy && <PrivacyPolicy onClose={() => setShowPrivacy(false)} />}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onLogin={login}
-        onRegister={register}
-        error={authError}
-        onClearError={clearAuthError}
-      />
+      {showAuthModal && (
+        <Suspense fallback={null}>
+          <AuthModalLazy
+            isOpen={showAuthModal}
+            onClose={() => setShowAuthModal(false)}
+            onLogin={login}
+            onRegister={register}
+            error={authError}
+            onClearError={clearAuthError}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
