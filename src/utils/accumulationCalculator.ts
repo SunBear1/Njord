@@ -8,6 +8,7 @@
 import type {
   AccumulationInputs,
   AccumulationResult,
+  AnnualTableRow,
   BucketConfig,
   BucketResult,
   BucketYearSnapshot,
@@ -15,6 +16,7 @@ import type {
   Milestone,
 } from '../types/accumulation';
 import { BELKA_RATE, IKZE_RYCZALT_RATE, MILESTONES_PLN } from '../types/accumulation';
+import type { PortfolioAllocation, WrapperPortfolioConfig } from '../types/portfolio';
 
 // ─── Monthly Allocation ───────────────────────────────────────────────────────
 
@@ -448,4 +450,208 @@ function calcCounterfactual(inputs: AccumulationInputs): CounterfactualResult {
     snapshots: sim.snapshots,
     netValue: terminalGross - exitTax,
   };
+}
+
+// ─── Savings Bucket Simulation ────────────────────────────────────────────────
+
+interface SavingsBucketParams extends BucketSimParams {
+  savingsRatePercent: number;
+}
+
+/**
+ * Simulate a savings-account bucket (simple compound interest + Belka on regular wrapper).
+ */
+export function simulateSavingsBucket(params: SavingsBucketParams): {
+  snapshots: BucketYearSnapshot[];
+  dividendTaxPaid: number;
+} {
+  const { monthlyPLN, horizonMonths, savingsRatePercent } = params;
+  const monthlyRate = savingsRatePercent / 100 / 12;
+  const isRegular = params.config.wrapper === 'regular';
+
+  let balance = 0;
+  let totalContributed = 0;
+  let taxPaid = 0;
+  const snapshots: BucketYearSnapshot[] = [
+    { year: 0, nominalValue: 0, totalContributed: 0, taxPaidDuringAccumulation: 0 },
+  ];
+
+  for (let m = 1; m <= horizonMonths; m++) {
+    totalContributed += monthlyPLN;
+    const interest = balance * monthlyRate;
+
+    if (isRegular && interest > 0) {
+      const belka = interest * BELKA_RATE;
+      taxPaid += belka;
+      balance += monthlyPLN + interest - belka;
+    } else {
+      balance += monthlyPLN + interest;
+    }
+
+    if (m % 12 === 0) {
+      snapshots.push({
+        year: m / 12,
+        nominalValue: balance,
+        totalContributed,
+        taxPaidDuringAccumulation: taxPaid,
+      });
+    }
+  }
+
+  if (horizonMonths % 12 !== 0) {
+    snapshots.push({
+      year: Math.ceil(horizonMonths / 12),
+      nominalValue: balance,
+      totalContributed,
+      taxPaidDuringAccumulation: taxPaid,
+    });
+  }
+
+  return { snapshots, dividendTaxPaid: 0 };
+}
+
+// ─── Weighted Return ──────────────────────────────────────────────────────────
+
+/**
+ * Compute weighted average return from portfolio allocations.
+ */
+export function calcWeightedReturn(allocations: PortfolioAllocation[]): number {
+  if (allocations.length === 0) return 0;
+  const totalAlloc = allocations.reduce((sum, a) => sum + a.allocationPercent, 0);
+  if (totalAlloc <= 0) return 0;
+  return allocations.reduce(
+    (sum, a) => sum + (a.allocationPercent / totalAlloc) * a.expectedReturnPercent,
+    0,
+  );
+}
+
+// ─── Annual Table Builder ─────────────────────────────────────────────────────
+
+function buildAnnualTable(
+  bucketResults: BucketResult[],
+  horizonYears: number,
+  ikzeYearlyContribution: number,
+  pitBracketRate: number,
+): AnnualTableRow[] {
+  const rows: AnnualTableRow[] = [];
+
+  const findSnapshot = (wrapper: string, year: number) => {
+    const bucket = bucketResults.find(b => b.wrapper === wrapper && b.enabled);
+    return bucket?.snapshots.find(s => s.year === year);
+  };
+
+  for (let y = 1; y <= horizonYears; y++) {
+    const ikeSnap = findSnapshot('ike', y);
+    const ikzeSnap = findSnapshot('ikze', y);
+    const regSnap = findSnapshot('regular', y);
+
+    const ikeContributed = ikeSnap?.totalContributed ?? 0;
+    const ikeValue = ikeSnap?.nominalValue ?? 0;
+    const ikzeContributed = ikzeSnap?.totalContributed ?? 0;
+    const ikzeValue = ikzeSnap?.nominalValue ?? 0;
+    const regularContributed = regSnap?.totalContributed ?? 0;
+    const regularValue = regSnap?.nominalValue ?? 0;
+    const totalContributed = ikeContributed + ikzeContributed + regularContributed;
+    const totalValue = ikeValue + ikzeValue + regularValue;
+
+    rows.push({
+      year: y,
+      ikeContributed,
+      ikeValue,
+      ikzeContributed,
+      ikzeValue,
+      ikzePitDeduction: ikzeYearlyContribution * pitBracketRate,
+      regularContributed,
+      regularValue,
+      totalContributed,
+      totalValue,
+      cumulativeGain: totalValue - totalContributed,
+    });
+  }
+
+  return rows;
+}
+
+// ─── Portfolio Wizard Entry Point ─────────────────────────────────────────────
+
+export interface PortfolioCalcResult extends AccumulationResult {
+  annualTable: AnnualTableRow[];
+}
+
+export interface PortfolioCalcInputs {
+  totalMonthlyPLN: number;
+  horizonYears: number;
+  pitBracket: number;
+  inflationRate: number;
+  ikeAnnualLimit: number;
+  ikzeAnnualLimit: number;
+  savingsRate: number;
+  reinvestIkzeDeduction: boolean;
+  wrapperConfigs: WrapperPortfolioConfig[];
+}
+
+/**
+ * Converts WrapperPortfolioConfig[] → BucketConfig[], delegates to the
+ * existing calcAccumulationResult engine, then augments the output with
+ * an AnnualTableRow[] for the Step 4 summary table.
+ */
+export function calcPortfolioResult(inputs: PortfolioCalcInputs): PortfolioCalcResult {
+  const stockLikeTypes = new Set(['etf', 'stocks_pl', 'stocks_foreign']);
+
+  const buckets = inputs.wrapperConfigs.map((wc): BucketConfig => {
+    const weightedReturn = calcWeightedReturn(wc.allocations);
+
+    let stockWeight = 0;
+    let bondWeight = 0;
+    let savingsWeight = 0;
+    for (const a of wc.allocations) {
+      if (a.instrumentType === 'savings') savingsWeight += a.allocationPercent;
+      else if (a.instrumentType === 'bonds') bondWeight += a.allocationPercent;
+      else if (stockLikeTypes.has(a.instrumentType)) stockWeight += a.allocationPercent;
+    }
+
+    const instrument = stockWeight >= bondWeight && stockWeight >= savingsWeight
+      ? 'stocks' as const
+      : 'bonds' as const;
+
+    return {
+      wrapper: wc.wrapper,
+      instrument,
+      enabled: wc.enabled,
+      stockReturnPercent: instrument === 'stocks' ? weightedReturn : 0,
+      dividendYieldPercent: 0,
+      fxSpreadPercent: 0,
+      bondPresetId: '',
+      bondFirstYearRate: instrument === 'bonds' ? weightedReturn : 0,
+      bondEffectiveRate: instrument === 'bonds' ? weightedReturn : 0,
+      bondRateType: 'fixed',
+      bondMargin: 0,
+      bondCouponFrequency: 0,
+    };
+  }) as [BucketConfig, BucketConfig, BucketConfig];
+
+  const accInputs: AccumulationInputs = {
+    totalMonthlyPLN: inputs.totalMonthlyPLN,
+    horizonYears: inputs.horizonYears,
+    pitBracket: inputs.pitBracket as 12 | 32,
+    inflationRate: inputs.inflationRate,
+    ikeAnnualLimit: inputs.ikeAnnualLimit,
+    ikzeAnnualLimit: inputs.ikzeAnnualLimit,
+    savingsRate: inputs.savingsRate,
+    buckets,
+  };
+
+  const baseResult = calcAccumulationResult(accInputs);
+
+  const ikzeBucket = baseResult.buckets.find(b => b.wrapper === 'ikze' && b.enabled);
+  const ikzeYearlyContribution = ikzeBucket ? ikzeBucket.monthlyPLN * 12 : 0;
+
+  const annualTable = buildAnnualTable(
+    baseResult.buckets,
+    inputs.horizonYears,
+    ikzeYearlyContribution,
+    inputs.pitBracket / 100,
+  );
+
+  return { ...baseResult, annualTable };
 }

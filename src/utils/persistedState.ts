@@ -1,7 +1,7 @@
 import type { BenchmarkType, BondSettings, Scenarios } from '../types/scenario';
 
 const STORAGE_KEY = 'njord_state';
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 interface PersistedState {
   _v: number;
@@ -30,7 +30,7 @@ export function loadState(): Partial<PersistedState> | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PersistedState;
     // Accept current and previous schema versions
-    if (parsed._v !== SCHEMA_VERSION && parsed._v !== 2 && parsed._v !== 1) return null;
+    if (parsed._v !== SCHEMA_VERSION && parsed._v !== 3 && parsed._v !== 2 && parsed._v !== 1) return null;
     // Migration: v1 → v2 — add activeSection default
     if (parsed._v === 1) {
       parsed.activeSection = 'investment';
@@ -41,6 +41,10 @@ export function loadState(): Partial<PersistedState> | null {
     }
     if ((parsed._v === 1 || parsed._v === 2) && !('isRSU' in parsed)) {
       (parsed as PersistedState).isRSU = false;
+    }
+    // Migration: v3 → v4 — rename activeSection 'accumulation' to 'portfolio'
+    if (parsed._v <= 3 && parsed.activeSection === 'accumulation') {
+      parsed.activeSection = 'portfolio';
     }
     return parsed;
   } catch {

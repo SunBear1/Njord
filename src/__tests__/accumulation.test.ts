@@ -451,3 +451,140 @@ describe('tax constants', () => {
     expect(IKZE_LIMIT_2026).toBe(10_081);
   });
 });
+
+// ─── calcWeightedReturn ───────────────────────────────────────────────────────
+
+import { calcWeightedReturn, calcPortfolioResult } from '../utils/accumulationCalculator';
+import type { PortfolioAllocation, WrapperPortfolioConfig } from '../types/portfolio';
+
+describe('calcWeightedReturn', () => {
+  test('single instrument 100% returns its rate', () => {
+    const allocs: PortfolioAllocation[] = [
+      { instrumentId: 'msci', instrumentType: 'etf', allocationPercent: 100, expectedReturnPercent: 9 },
+    ];
+    expect(calcWeightedReturn(allocs)).toBeCloseTo(9, 5);
+  });
+
+  test('50/50 split returns average', () => {
+    const allocs: PortfolioAllocation[] = [
+      { instrumentId: 'etf1', instrumentType: 'etf', allocationPercent: 50, expectedReturnPercent: 10 },
+      { instrumentId: 'bond1', instrumentType: 'bonds', allocationPercent: 50, expectedReturnPercent: 6 },
+    ];
+    expect(calcWeightedReturn(allocs)).toBeCloseTo(8, 5);
+  });
+
+  test('three-way weighted return', () => {
+    const allocs: PortfolioAllocation[] = [
+      { instrumentId: 'a', instrumentType: 'etf', allocationPercent: 60, expectedReturnPercent: 10 },
+      { instrumentId: 'b', instrumentType: 'bonds', allocationPercent: 30, expectedReturnPercent: 6 },
+      { instrumentId: 'c', instrumentType: 'savings', allocationPercent: 10, expectedReturnPercent: 4 },
+    ];
+    expect(calcWeightedReturn(allocs)).toBeCloseTo(8.2, 5);
+  });
+
+  test('empty array returns 0', () => {
+    expect(calcWeightedReturn([])).toBe(0);
+  });
+
+  test('all zero allocations returns 0', () => {
+    const allocs: PortfolioAllocation[] = [
+      { instrumentId: 'a', instrumentType: 'etf', allocationPercent: 0, expectedReturnPercent: 10 },
+    ];
+    expect(calcWeightedReturn(allocs)).toBe(0);
+  });
+});
+
+// ─── calcPortfolioResult ──────────────────────────────────────────────────────
+
+describe('calcPortfolioResult', () => {
+  function makeWrapperConfig(
+    wrapper: 'ike' | 'ikze' | 'regular',
+    enabled: boolean,
+    allocs: PortfolioAllocation[],
+    brokerId: string | null = 'xtb',
+  ): WrapperPortfolioConfig {
+    return { wrapper, enabled, brokerId, allocations: allocs };
+  }
+
+  const etfAlloc: PortfolioAllocation[] = [
+    { instrumentId: 'msci', instrumentType: 'etf', allocationPercent: 100, expectedReturnPercent: 8 },
+  ];
+
+  test('positive result for 10-year all-ETF portfolio', () => {
+    const result = calcPortfolioResult({
+      totalMonthlyPLN: 2000,
+      horizonYears: 10,
+      pitBracket: 12,
+      inflationRate: 3.5,
+      ikeAnnualLimit: 26019,
+      ikzeAnnualLimit: 10407.6,
+      savingsRate: 4,
+      reinvestIkzeDeduction: false,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, etfAlloc),
+        makeWrapperConfig('ikze', true, etfAlloc),
+        makeWrapperConfig('regular', true, etfAlloc, null),
+      ],
+    });
+    expect(result.totalTerminalNet).toBeGreaterThan(result.totalContributed);
+    expect(result.annualTable).toHaveLength(10);
+  });
+
+  test('annual table row count matches horizon', () => {
+    const result = calcPortfolioResult({
+      totalMonthlyPLN: 1000,
+      horizonYears: 5,
+      pitBracket: 32,
+      inflationRate: 2.5,
+      ikeAnnualLimit: 26019,
+      ikzeAnnualLimit: 10407.6,
+      savingsRate: 3,
+      reinvestIkzeDeduction: false,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, etfAlloc),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+    expect(result.annualTable).toHaveLength(5);
+  });
+
+  test('disabled wrappers produce zero values', () => {
+    const result = calcPortfolioResult({
+      totalMonthlyPLN: 1000,
+      horizonYears: 5,
+      pitBracket: 12,
+      inflationRate: 3,
+      ikeAnnualLimit: 26019,
+      ikzeAnnualLimit: 10407.6,
+      savingsRate: 4,
+      reinvestIkzeDeduction: false,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, etfAlloc),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+    const ikzeBucket = result.buckets.find(b => b.wrapper === 'ikze');
+    expect(ikzeBucket?.terminalGrossValue).toBe(0);
+  });
+
+  test('IKE has tax advantage over regular', () => {
+    const result = calcPortfolioResult({
+      totalMonthlyPLN: 2000,
+      horizonYears: 20,
+      pitBracket: 12,
+      inflationRate: 3,
+      ikeAnnualLimit: 26019,
+      ikzeAnnualLimit: 10407.6,
+      savingsRate: 4,
+      reinvestIkzeDeduction: false,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, etfAlloc),
+        makeWrapperConfig('ikze', true, etfAlloc),
+        makeWrapperConfig('regular', true, etfAlloc, null),
+      ],
+    });
+    expect(result.taxSavings).toBeGreaterThan(0);
+  });
+});
