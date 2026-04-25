@@ -1,0 +1,15 @@
+name: Build and Test
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["*"]
+
+jobs:
+  build-validation:
+    uses: ./.github/workflows/build-validation.job.yaml
+
+  smoke-tests:
+    needs: build-validation
+    uses: ./.github/workflows/smoke-tests.job.yaml

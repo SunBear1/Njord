@@ -1,6 +1,7 @@
-name: Auto-merge bot PRs
+name: Auto-merge Bot PRs
 
-on: pull_request
+on:
+  workflow_call:
 
 permissions:
   contents: write

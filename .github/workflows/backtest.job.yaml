@@ -1,26 +1,18 @@
 name: Prediction Engine Backtest
 
 on:
-  schedule:
-    - cron: "0 6 * * *" # daily at 06:00 UTC
-  workflow_dispatch:     # manual trigger from Actions tab
+  workflow_call:
+
+permissions:
+  contents: write
 
 jobs:
   backtest:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write   # needed to push backtest-history.csv back to main
-
     steps:
-      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "22"
-
-      - run: npm ci
 
       - name: Run NASDAQ backtest
         run: npm run test:backtest | tee backtest-report.txt
