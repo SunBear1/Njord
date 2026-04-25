@@ -35,6 +35,7 @@ const HowItWorksLazy = lazy(() => import('./components/HowItWorks').then(m => ({
 const TimelineChartLazy = lazy(() => import('./components/TimelineChart'));
 const BreakevenChartLazy = lazy(() => import('./components/BreakevenChart'));
 const AuthModalLazy = lazy(() => import('./components/AuthModal').then(m => ({ default: m.AuthModal })));
+const AccountPanelLazy = lazy(() => import('./components/AccountPanel').then(m => ({ default: m.AccountPanel })));
 
 const DEFAULT_SCENARIOS = {
   bear: { deltaStock: -10, deltaFx: -5 },
@@ -56,8 +57,9 @@ function App() {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showAccountPanel, setShowAccountPanel] = useState(false);
 
-  const { user, isLoading: authLoading, login, register, logout, error: authError, clearError: clearAuthError } = useAuth();
+  const { user, isLoading: authLoading, login, register, logout, changePassword, deleteAccount, error: authError, clearError: clearAuthError } = useAuth();
 
   const { assetData, proxyFxData, isLoading: assetLoading, error: assetError, fetchData: fetchAsset } = useAssetData();
   const { etfData, etfAnnualizedReturn, isLoading: etfLoading, error: etfError, fetchEtf } = useEtfData();
@@ -233,6 +235,7 @@ function App() {
             isLoading={authLoading}
             onLoginClick={() => setShowAuthModal(true)}
             onLogout={logout}
+            onAccountSettings={() => setShowAccountPanel(true)}
           />
         </div>
       </header>
@@ -601,6 +604,20 @@ function App() {
             onClose={() => setShowAuthModal(false)}
             onLogin={login}
             onRegister={register}
+            error={authError}
+            onClearError={clearAuthError}
+          />
+        </Suspense>
+      )}
+      {showAccountPanel && user && (
+        <Suspense fallback={null}>
+          <AccountPanelLazy
+            user={user}
+            isOpen={showAccountPanel}
+            onClose={() => { setShowAccountPanel(false); clearAuthError(); }}
+            onChangePassword={changePassword}
+            onDeleteAccount={deleteAccount}
+            hasPassword={user.hasPassword}
             error={authError}
             onClearError={clearAuthError}
           />

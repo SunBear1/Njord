@@ -80,13 +80,12 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
     );
 
     const isSecure = url.protocol === 'https:';
-    return new Response(null, {
-      status: 302,
-      headers: {
-        Location: `${url.origin}/?auth=success`,
-        'Set-Cookie': [setAuthCookie(token, isSecure), clearOAuthStateCookie(isSecure)].join(', '),
-      },
-    });
+    const headers = new Headers();
+    headers.set('Location', `${url.origin}/?auth=success`);
+    headers.append('Set-Cookie', setAuthCookie(token, isSecure));
+    headers.append('Set-Cookie', clearOAuthStateCookie(isSecure));
+
+    return new Response(null, { status: 302, headers });
   } catch {
     return redirectWithError(url.origin, 'Wystąpił błąd podczas logowania przez Google.');
   }

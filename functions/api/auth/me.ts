@@ -35,6 +35,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
     email: user.email,
     name: user.name,
     avatarUrl: user.avatar_url,
+    hasPassword: user.password_hash !== null,
   };
 
   return jsonResponse(publicUser);

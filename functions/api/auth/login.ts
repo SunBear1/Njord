@@ -48,6 +48,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     email: user.email,
     name: user.name,
     avatarUrl: user.avatar_url,
+    hasPassword: true,
   };
 
   return jsonResponse(publicUser, 200, { 'Set-Cookie': setAuthCookie(token, isSecure) });
