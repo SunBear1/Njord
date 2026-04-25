@@ -21,6 +21,11 @@ async function authFetch<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
   });
 
+  const contentType = res.headers.get('Content-Type') ?? '';
+  if (!contentType.includes('application/json')) {
+    throw new Error('Serwer zwrócił nieoczekiwaną odpowiedź. Spróbuj ponownie później.');
+  }
+
   const data = await res.json();
   if (!res.ok) {
     const errData = data as AuthError;

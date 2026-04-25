@@ -24,7 +24,17 @@ export const onRequest: PagesFunction = async ({ request, next }) => {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
 
-  const response = await next();
+  let response: Response;
+  try {
+    response = await next();
+  } catch {
+    // Function crashed — return a proper JSON error with CORS headers
+    // instead of letting CF serve an HTML error page
+    return new Response(JSON.stringify({ error: 'Wewnętrzny błąd serwera.', code: 'INTERNAL_ERROR' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
+    });
+  }
 
   // Clone to mutate headers
   const newResponse = new Response(response.body, response);
