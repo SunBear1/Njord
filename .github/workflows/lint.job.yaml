@@ -1,0 +1,21 @@
+name: Lint
+
+on:
+  workflow_call:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup
+
+      - run: npm run lint
+
+      - name: Type-check functions/
+        run: npx tsc --noEmit --skipLibCheck -p functions/tsconfig.json
+
+      - name: Security audit (high+ severity)
+        # warn-only for now; tighten to --audit-level=high once SheetJS CVE resolved
+        run: npm audit --omit=dev --audit-level=critical || true

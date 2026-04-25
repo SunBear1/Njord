@@ -7,9 +7,15 @@ on:
     branches: ["*"]
 
 jobs:
-  build-validation:
-    uses: ./.github/workflows/build-validation.job.yaml
+  lint:
+    uses: ./.github/workflows/lint.job.yaml
+
+  test:
+    uses: ./.github/workflows/test.job.yaml
+
+  build:
+    uses: ./.github/workflows/build.job.yaml
 
   smoke-tests:
-    needs: build-validation
+    needs: [lint, test, build]
     uses: ./.github/workflows/smoke-tests.job.yaml
