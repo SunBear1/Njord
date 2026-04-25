@@ -17,7 +17,10 @@ import { useSellAnalysis } from './hooks/useSellAnalysis';
 import { useDarkMode } from './hooks/useDarkMode';
 import { useBondPresets } from './hooks/useBondPresets';
 import { usePortfolioState } from './hooks/usePortfolioState';
+import { useAuth } from './hooks/useAuth';
 import { KantorSidebar } from './components/KantorSidebar';
+import { AuthModal } from './components/AuthModal';
+import { UserMenu } from './components/UserMenu';
 import {
   calcAllScenarios,
   calcTimeline,
@@ -52,6 +55,9 @@ function App() {
   );
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const { user, isLoading: authLoading, login, register, logout, error: authError, clearError: clearAuthError } = useAuth();
 
   const { assetData, proxyFxData, isLoading: assetLoading, error: assetError, fetchData: fetchAsset } = useAssetData();
   const { etfData, etfAnnualizedReturn, isLoading: etfLoading, error: etfError, fetchEtf } = useEtfData();
@@ -222,6 +228,12 @@ function App() {
           >
             {isDark ? <Sun size={20} /> : <Moon size={20} />}
           </button>
+          <UserMenu
+            user={user}
+            isLoading={authLoading}
+            onLoginClick={() => setShowAuthModal(true)}
+            onLogout={logout}
+          />
         </div>
       </header>
 
@@ -584,6 +596,14 @@ function App() {
       </footer>
 
       {showPrivacy && <PrivacyPolicy onClose={() => setShowPrivacy(false)} />}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onLogin={login}
+        onRegister={register}
+        error={authError}
+        onClearError={clearAuthError}
+      />
     </div>
   );
 }
