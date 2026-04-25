@@ -1,0 +1,618 @@
+import { useState, useCallback, useMemo } from 'react';
+import {
+  Shield,
+  PiggyBank,
+  Wallet,
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  TrendingUp,
+  Landmark,
+  Banknote,
+} from 'lucide-react';
+import type {
+  WrapperPortfolioConfig,
+  PortfolioAllocation,
+  WizardState,
+  PortfolioInstrumentType,
+} from '../../types/portfolio';
+import { BROKERS, ETF_PRESETS } from '../../types/portfolio';
+import type { BondPreset } from '../../types/scenario';
+import { adjustAllocation } from '../../utils/allocationValidation';
+import { fmtPLN } from '../../utils/formatting';
+
+// ─── Props ────────────────────────────────────────────────────────────────────
+
+interface Step3Props {
+  state: WizardState;
+  updateWrapperConfig: (index: 0 | 1 | 2, config: Partial<WrapperPortfolioConfig>) => void;
+  setReinvestIkzeDeduction: (reinvest: boolean) => void;
+  ikeMonthlyAllocation: number;
+  ikzeMonthlyAllocation: number;
+  surplusMonthly: number;
+  ikzePitDeductionAnnual: number;
+  bondPresets: BondPreset[];
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const INSTRUMENT_COLORS: Record<PortfolioInstrumentType, string> = {
+  etf: 'bg-blue-500',
+  stocks_pl: 'bg-indigo-500',
+  stocks_foreign: 'bg-violet-500',
+  bonds: 'bg-amber-500',
+  savings: 'bg-emerald-500',
+};
+
+const INSTRUMENT_LABELS: Record<PortfolioInstrumentType, string> = {
+  etf: 'ETF',
+  stocks_pl: 'Akcje PL',
+  stocks_foreign: 'Akcje zagr.',
+  bonds: 'Obligacje',
+  savings: 'Lokata',
+};
+
+function instrumentLabel(a: PortfolioAllocation): string {
+  if (a.instrumentType === 'savings') return 'Lokata / konto oszczędnościowe';
+  if (a.instrumentType === 'bonds') return a.instrumentId;
+  const etf = ETF_PRESETS.find((e) => e.id === a.instrumentId);
+  return etf ? etf.name : a.instrumentId;
+}
+
+function instrumentSubtitle(
+  a: PortfolioAllocation,
+  bondPresets: BondPreset[],
+): string | null {
+  if (a.instrumentType === 'etf') {
+    const etf = ETF_PRESETS.find((e) => e.id === a.instrumentId);
+    return etf ? `Historyczna stopa: ~${etf.historicalReturnPercent}% rocznie` : null;
+  }
+  if (a.instrumentType === 'bonds') {
+    const bond = bondPresets.find((b) => b.id === a.instrumentId);
+    return bond ? `Oprocentowanie: ${bond.firstYearRate}% (I rok)` : null;
+  }
+  return null;
+}
+
+type InstrumentOption = {
+  instrumentId: string;
+  instrumentType: PortfolioInstrumentType;
+  label: string;
+  defaultReturn: number;
+};
+
+function getAvailableOptions(
+  instruments: PortfolioInstrumentType[],
+  bondPresets: BondPreset[],
+  isBeneficiary800Plus: boolean,
+  isRegular: boolean,
+): InstrumentOption[] {
+  const options: InstrumentOption[] = [];
+
+  const hasEtf = instruments.includes('etf') || isRegular;
+  const hasBonds = instruments.includes('bonds') || isRegular;
+
+  if (hasEtf) {
+    for (const etf of ETF_PRESETS) {
+      options.push({
+        instrumentId: etf.id,
+        instrumentType: 'etf',
+        label: etf.name,
+        defaultReturn: etf.historicalReturnPercent,
+      });
+    }
+  }
+
+  if (hasBonds) {
+    for (const bond of bondPresets) {
+      if (bond.isFamily && !isBeneficiary800Plus) continue;
+      options.push({
+        instrumentId: bond.id,
+        instrumentType: 'bonds',
+        label: `${bond.id} — ${bond.name}`,
+        defaultReturn: bond.firstYearRate,
+      });
+    }
+  }
+
+  if (isRegular) {
+    options.push({
+      instrumentId: 'savings',
+      instrumentType: 'savings',
+      label: 'Lokata / konto oszczędnościowe',
+      defaultReturn: 5,
+    });
+  }
+
+  return options;
+}
+
+// ─── AllocationBar ────────────────────────────────────────────────────────────
+
+function AllocationBar({ allocations }: { allocations: readonly PortfolioAllocation[] }) {
+  const sum = allocations.reduce((s, a) => s + a.allocationPercent, 0);
+  const valid = Math.abs(sum - 100) < 0.1;
+
+  return (
+    <div className="mb-4">
+      <div className="flex h-5 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
+        {allocations.map((a, i) => (
+          <div
+            key={`${a.instrumentId}-${i}`}
+            className={`${INSTRUMENT_COLORS[a.instrumentType]} transition-all duration-200`}
+            style={{ width: `${Math.max(a.allocationPercent, 0)}%` }}
+            title={`${instrumentLabel(a)}: ${Math.round(a.allocationPercent)}%`}
+          />
+        ))}
+        {sum < 99.9 ? (
+          <div
+            className="bg-gray-200 dark:bg-gray-600"
+            style={{ width: `${100 - sum}%` }}
+          />
+        ) : null}
+      </div>
+      <div className="mt-1 flex items-center gap-3 text-xs">
+        <span className={valid ? 'text-green-600 dark:text-green-400' : 'text-red-500'}>
+          {valid ? '✓' : '⚠'} {Math.round(sum)}%
+        </span>
+        <div className="flex flex-wrap gap-x-3 gap-y-1">
+          {allocations.map((a, i) => (
+            <span key={`${a.instrumentId}-${i}`} className="flex items-center gap-1">
+              <span
+                className={`inline-block h-2.5 w-2.5 rounded-sm ${INSTRUMENT_COLORS[a.instrumentType]}`}
+              />
+              <span className="text-gray-600 dark:text-gray-400">
+                {INSTRUMENT_LABELS[a.instrumentType]} {Math.round(a.allocationPercent)}%
+              </span>
+            </span>
+          ))}
+        </div>
+        {!valid ? (
+          <span className="text-red-500 text-xs ml-auto">
+            Suma alokacji musi wynosić 100%
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+// ─── AllocationRow ────────────────────────────────────────────────────────────
+
+interface AllocationRowProps {
+  allocation: PortfolioAllocation;
+  index: number;
+  bondPresets: BondPreset[];
+  onSliderChange: (index: number, newPercent: number) => void;
+  onReturnChange: (index: number, newReturn: number) => void;
+  onRemove: (index: number) => void;
+  canRemove: boolean;
+}
+
+function typeIcon(type: PortfolioInstrumentType) {
+  switch (type) {
+    case 'etf':
+    case 'stocks_pl':
+    case 'stocks_foreign':
+      return <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />;
+    case 'bonds':
+      return <Landmark className="h-3.5 w-3.5" aria-hidden="true" />;
+    case 'savings':
+      return <Banknote className="h-3.5 w-3.5" aria-hidden="true" />;
+  }
+}
+
+function AllocationRow({
+  allocation,
+  index,
+  bondPresets,
+  onSliderChange,
+  onReturnChange,
+  onRemove,
+  canRemove,
+}: AllocationRowProps) {
+  const subtitle = instrumentSubtitle(allocation, bondPresets);
+
+  return (
+    <div className="p-4 border-b border-gray-100 dark:border-gray-700 last:border-0">
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span
+              className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium text-white ${INSTRUMENT_COLORS[allocation.instrumentType]}`}
+            >
+              {typeIcon(allocation.instrumentType)}
+              {INSTRUMENT_LABELS[allocation.instrumentType]}
+            </span>
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+              {instrumentLabel(allocation)}
+            </span>
+          </div>
+          {subtitle ? (
+            <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>
+          ) : null}
+        </div>
+        {canRemove ? (
+          <button
+            type="button"
+            onClick={() => onRemove(index)}
+            aria-label="Usuń instrument"
+            className="shrink-0 rounded p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+          >
+            <span aria-hidden="true" className="text-xs font-bold">✕</span>
+          </button>
+        ) : null}
+      </div>
+
+      <div className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 items-center">
+        <div>
+          <label className="text-xs text-gray-500 dark:text-gray-400">Alokacja</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={Math.round(allocation.allocationPercent)}
+              onChange={(e) => onSliderChange(index, Number(e.target.value))}
+              className="w-full accent-blue-600"
+              aria-label={`Alokacja ${instrumentLabel(allocation)}`}
+            />
+            <span className="w-12 text-right text-sm font-mono text-gray-700 dark:text-gray-300">
+              {Math.round(allocation.allocationPercent)}%
+            </span>
+          </div>
+        </div>
+
+        <div>
+          <label className="text-xs text-gray-500 dark:text-gray-400">Oczekiwana stopa</label>
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              min={-50}
+              max={100}
+              step={0.1}
+              value={allocation.expectedReturnPercent}
+              onChange={(e) => onReturnChange(index, Number(e.target.value))}
+              className="w-20 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-1 text-xs font-mono text-right text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              aria-label={`Oczekiwana stopa zwrotu ${instrumentLabel(allocation)}`}
+            />
+            <span className="text-xs text-gray-500 dark:text-gray-400">%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── AddInstrumentMenu ────────────────────────────────────────────────────────
+
+interface AddInstrumentMenuProps {
+  options: InstrumentOption[];
+  existingIds: Set<string>;
+  onAdd: (option: InstrumentOption) => void;
+}
+
+function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuProps) {
+  const [open, setOpen] = useState(false);
+  const available = options.filter((o) => !existingIds.has(o.instrumentId));
+
+  if (available.length === 0) return null;
+
+  return (
+    <div className="relative p-3">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+        aria-label="Dodaj instrument"
+      >
+        <Plus className="h-4 w-4" aria-hidden="true" />
+        Dodaj instrument
+      </button>
+      {open ? (
+        <div className="absolute left-3 z-10 mt-1 max-h-60 w-80 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-lg">
+          {available.map((opt) => (
+            <button
+              key={opt.instrumentId}
+              type="button"
+              onClick={() => {
+                onAdd(opt);
+                setOpen(false);
+              }}
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              <span
+                className={`inline-block h-2.5 w-2.5 rounded-sm ${INSTRUMENT_COLORS[opt.instrumentType]}`}
+              />
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// ─── WrapperSection ───────────────────────────────────────────────────────────
+
+interface WrapperSectionProps {
+  icon: React.ReactNode;
+  title: string;
+  amount: string;
+  taxBenefit: string;
+  wrapperIndex: 0 | 1 | 2;
+  config: WrapperPortfolioConfig;
+  availableOptions: InstrumentOption[];
+  bondPresets: BondPreset[];
+  updateWrapperConfig: (index: 0 | 1 | 2, config: Partial<WrapperPortfolioConfig>) => void;
+  children?: React.ReactNode;
+  defaultOpen?: boolean;
+}
+
+function WrapperSection({
+  icon,
+  title,
+  amount,
+  taxBenefit,
+  wrapperIndex,
+  config,
+  availableOptions,
+  bondPresets,
+  updateWrapperConfig,
+  children,
+  defaultOpen = true,
+}: WrapperSectionProps) {
+  const [collapsed, setCollapsed] = useState(!defaultOpen);
+  const allocations = config.allocations;
+
+  const existingIds = useMemo(
+    () => new Set(allocations.map((a) => a.instrumentId)),
+    [allocations],
+  );
+
+  const handleSliderChange = useCallback(
+    (index: number, newPercent: number) => {
+      const adjusted = adjustAllocation(allocations, index, newPercent);
+      updateWrapperConfig(wrapperIndex, { allocations: adjusted });
+    },
+    [allocations, wrapperIndex, updateWrapperConfig],
+  );
+
+  const handleReturnChange = useCallback(
+    (index: number, newReturn: number) => {
+      const updated = allocations.map((a, i) =>
+        i === index ? { ...a, expectedReturnPercent: newReturn } : a,
+      );
+      updateWrapperConfig(wrapperIndex, { allocations: updated });
+    },
+    [allocations, wrapperIndex, updateWrapperConfig],
+  );
+
+  const handleRemove = useCallback(
+    (index: number) => {
+      if (allocations.length <= 1) return;
+      const remaining = allocations.filter((_, i) => i !== index);
+      // Redistribute removed allocation proportionally
+      const removedPct = allocations[index].allocationPercent;
+      const othersSum = remaining.reduce((s, a) => s + a.allocationPercent, 0);
+      const normalized = remaining.map((a) => ({
+        ...a,
+        allocationPercent:
+          othersSum > 0
+            ? Math.round(((a.allocationPercent / othersSum) * (othersSum + removedPct)) * 100) / 100
+            : 100 / remaining.length,
+      }));
+      updateWrapperConfig(wrapperIndex, { allocations: normalized });
+    },
+    [allocations, wrapperIndex, updateWrapperConfig],
+  );
+
+  const handleAdd = useCallback(
+    (option: InstrumentOption) => {
+      const newAllocation: PortfolioAllocation = {
+        instrumentId: option.instrumentId,
+        instrumentType: option.instrumentType,
+        allocationPercent: 0,
+        expectedReturnPercent: option.defaultReturn,
+      };
+      updateWrapperConfig(wrapperIndex, {
+        allocations: [...allocations, newAllocation],
+      });
+    },
+    [allocations, wrapperIndex, updateWrapperConfig],
+  );
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setCollapsed((v) => !v)}
+        className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+        aria-expanded={!collapsed}
+      >
+        <span className="shrink-0 text-blue-600 dark:text-blue-400">{icon}</span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              {title}
+            </span>
+            <span className="rounded-full bg-blue-50 dark:bg-blue-900/30 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300">
+              {amount}
+            </span>
+          </div>
+          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{taxBenefit}</p>
+        </div>
+        {collapsed ? (
+          <ChevronDown className="h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
+        ) : (
+          <ChevronUp className="h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
+        )}
+      </button>
+
+      {!collapsed ? (
+        <div className="border-t border-gray-200 dark:border-gray-700 px-5 py-4">
+          {children}
+
+          {allocations.length > 0 ? (
+            <AllocationBar allocations={allocations} />
+          ) : null}
+
+          {allocations.map((a, i) => (
+            <AllocationRow
+              key={`${a.instrumentId}-${i}`}
+              allocation={a}
+              index={i}
+              bondPresets={bondPresets}
+              onSliderChange={handleSliderChange}
+              onReturnChange={handleReturnChange}
+              onRemove={handleRemove}
+              canRemove={allocations.length > 1}
+            />
+          ))}
+
+          <AddInstrumentMenu
+            options={availableOptions}
+            existingIds={existingIds}
+            onAdd={handleAdd}
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
+export default function Step3Allocation({
+  state,
+  updateWrapperConfig,
+  setReinvestIkzeDeduction,
+  ikeMonthlyAllocation,
+  ikzeMonthlyAllocation,
+  surplusMonthly,
+  ikzePitDeductionAnnual,
+  bondPresets,
+}: Step3Props) {
+  const { ikeEnabled, ikzeEnabled, wrapperConfigs, personalData } = state;
+  const [ikeConfig, ikzeConfig, regularConfig] = wrapperConfigs;
+
+  const ikeBroker = BROKERS.find((b) => b.id === state.ikeBrokerId);
+  const ikzeBroker = BROKERS.find((b) => b.id === state.ikzeBrokerId);
+
+  const ikeOptions = useMemo(
+    () =>
+      getAvailableOptions(
+        ikeBroker?.instruments ?? [],
+        bondPresets,
+        personalData.isBeneficiary800Plus,
+        false,
+      ),
+    [ikeBroker, bondPresets, personalData.isBeneficiary800Plus],
+  );
+
+  const ikzeOptions = useMemo(
+    () =>
+      getAvailableOptions(
+        ikzeBroker?.instruments ?? [],
+        bondPresets,
+        personalData.isBeneficiary800Plus,
+        false,
+      ),
+    [ikzeBroker, bondPresets, personalData.isBeneficiary800Plus],
+  );
+
+  const regularOptions = useMemo(
+    () =>
+      getAvailableOptions([], bondPresets, personalData.isBeneficiary800Plus, true),
+    [bondPresets, personalData.isBeneficiary800Plus],
+  );
+
+  return (
+    <div className="space-y-4">
+      {/* IKE */}
+      {ikeEnabled ? (
+        <WrapperSection
+          icon={<Shield className="h-5 w-5" aria-hidden="true" />}
+          title="Portfel IKE"
+          amount={`${fmtPLN(ikeMonthlyAllocation)}/mies.`}
+          taxBenefit="0% podatku od zysków po 60. roku życia"
+          wrapperIndex={0}
+          config={ikeConfig}
+          availableOptions={ikeOptions}
+          bondPresets={bondPresets}
+          updateWrapperConfig={updateWrapperConfig}
+        />
+      ) : null}
+
+      {/* IKZE */}
+      {ikzeEnabled ? (
+        <WrapperSection
+          icon={<PiggyBank className="h-5 w-5" aria-hidden="true" />}
+          title="Portfel IKZE"
+          amount={`${fmtPLN(ikzeMonthlyAllocation)}/mies.`}
+          taxBenefit={`Odliczenie od PIT: ${fmtPLN(ikzePitDeductionAnnual)}/rok · 10% ryczałt przy wypłacie`}
+          wrapperIndex={1}
+          config={ikzeConfig}
+          availableOptions={ikzeOptions}
+          bondPresets={bondPresets}
+          updateWrapperConfig={updateWrapperConfig}
+        >
+          <div className="mb-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 p-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                  Reinwestuj ulgę podatkową z IKZE?
+                </p>
+                {state.reinvestIkzeDeduction ? (
+                  <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                    Ulga {fmtPLN(ikzePitDeductionAnnual)}/rok jest reinwestowana na koncie
+                    oszczędnościowym
+                  </p>
+                ) : (
+                  <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                    Ulga podatkowa nie jest wliczana do symulacji
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={state.reinvestIkzeDeduction}
+                aria-label="Reinwestuj ulgę podatkową z IKZE"
+                onClick={() => setReinvestIkzeDeduction(!state.reinvestIkzeDeduction)}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                  state.reinvestIkzeDeduction
+                    ? 'bg-blue-600 dark:bg-blue-500'
+                    : 'bg-gray-300 dark:bg-gray-600'
+                }`}
+              >
+                <span
+                  aria-hidden="true"
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform ${
+                    state.reinvestIkzeDeduction ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+        </WrapperSection>
+      ) : null}
+
+      {/* Surplus / Regular */}
+      {surplusMonthly > 0 ? (
+        <WrapperSection
+          icon={<Wallet className="h-5 w-5" aria-hidden="true" />}
+          title="Nadwyżka"
+          amount={`${fmtPLN(surplusMonthly)}/mies.`}
+          taxBenefit="Kwota ponad limity IKE + IKZE · 19% Belka od zysków"
+          wrapperIndex={2}
+          config={regularConfig}
+          availableOptions={regularOptions}
+          bondPresets={bondPresets}
+          updateWrapperConfig={updateWrapperConfig}
+        />
+      ) : null}
+    </div>
+  );
+}

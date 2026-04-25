@@ -6,7 +6,7 @@
 export type TaxWrapper = 'ike' | 'ikze' | 'regular';
 
 /** Investment instrument within a bucket. */
-export type InstrumentType = 'stocks' | 'bonds';
+export type InstrumentType = 'stocks' | 'bonds' | 'savings';
 
 /** PIT tax bracket (Polish progressive income tax). */
 export type PitBracket = 12 | 32;
@@ -163,54 +163,19 @@ export interface CombinedYearSnapshot {
   counterfactualValue: number;
 }
 
-// ─── Allocation Presets ───────────────────────────────────────────────────────
+// ─── Annual Table Row ─────────────────────────────────────────────────────────
 
-export interface AllocationPreset {
-  id: string;
-  name: string;
-  description: string;
-  buckets: Pick<BucketConfig, 'wrapper' | 'instrument' | 'enabled'>[];
+/** Row for the detailed annual results table in Step 4 (Summary). */
+export interface AnnualTableRow {
+  year: number;
+  ikeContributed: number;
+  ikeValue: number;
+  ikzeContributed: number;
+  ikzeValue: number;
+  ikzePitDeduction: number;
+  regularContributed: number;
+  regularValue: number;
+  totalContributed: number;
+  totalValue: number;
+  cumulativeGain: number;
 }
-
-export const ALLOCATION_PRESETS: AllocationPreset[] = [
-  {
-    id: 'balanced',
-    name: 'Zrównoważony',
-    description: 'IKE w akcje, IKZE w obligacje, reszta w akcje',
-    buckets: [
-      { wrapper: 'ike', instrument: 'stocks', enabled: true },
-      { wrapper: 'ikze', instrument: 'bonds', enabled: true },
-      { wrapper: 'regular', instrument: 'stocks', enabled: true },
-    ],
-  },
-  {
-    id: 'aggressive',
-    name: 'Agresywny',
-    description: 'Wszystko w akcje/ETF',
-    buckets: [
-      { wrapper: 'ike', instrument: 'stocks', enabled: true },
-      { wrapper: 'ikze', instrument: 'stocks', enabled: true },
-      { wrapper: 'regular', instrument: 'stocks', enabled: true },
-    ],
-  },
-  {
-    id: 'conservative',
-    name: 'Konserwatywny',
-    description: 'Wszystko w obligacje skarbowe',
-    buckets: [
-      { wrapper: 'ike', instrument: 'bonds', enabled: true },
-      { wrapper: 'ikze', instrument: 'bonds', enabled: true },
-      { wrapper: 'regular', instrument: 'bonds', enabled: true },
-    ],
-  },
-  {
-    id: 'ike-bonds',
-    name: 'IKE-Obligacje',
-    description: 'IKE w obligacje (EDO), reszta w akcje',
-    buckets: [
-      { wrapper: 'ike', instrument: 'bonds', enabled: true },
-      { wrapper: 'ikze', instrument: 'stocks', enabled: true },
-      { wrapper: 'regular', instrument: 'stocks', enabled: true },
-    ],
-  },
-];

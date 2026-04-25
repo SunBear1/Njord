@@ -4,10 +4,11 @@ Instructions for AI agents working with this repository.
 
 ## Project overview
 
-**Njord** is a React/TypeScript SPA (Single Page Application) with two main tabs:
+**Njord** is a React/TypeScript SPA (Single Page Application) with three main tabs:
 
 1. **Investment comparison** — compares a USD-denominated stock/ETF portfolio against Polish savings instruments (savings accounts or government bonds).
 2. **Belka tax calculator** — calculates Polish 19% capital gains tax (Belka) for multiple stock sale transactions, with automatic NBP Table A rate fetching and PIT-38 grouping.
+3. **Kreator portfela** (Portfolio Creator) — a 4-step wizard for building a long-term passive investment portfolio across IKE, IKZE, and regular brokerage accounts with multi-instrument allocation.
 
 All computations run in the browser — no backend.
 
@@ -53,7 +54,7 @@ Without `.dev.vars`, `/api/analyze` works via Yahoo Finance with no configuratio
 
 ```
 src/
-├── App.tsx                       # Root component, all app state lives here; two tabs: investment + tax
+├── App.tsx                       # Root component, all app state lives here; three tabs: investment + tax + portfolio
 ├── components/
 │   ├── InputPanel.tsx            # Left panel: ticker, shares, FX, benchmark selector, horizon slider
 │   ├── ScenarioEditor.tsx        # 3-scenario editor (bear/base/bull) + historical volatility suggestions
@@ -61,12 +62,21 @@ src/
 │   ├── ComparisonChart.tsx       # Bar chart: stocks vs benchmark end value
 │   ├── TimelineChart.tsx         # Line chart: portfolio value over time
 │   ├── BreakevenChart.tsx        # Heatmap: stock delta × FX delta — where stocks beat benchmark
+│   ├── AccumulationChart.tsx     # Stacked area chart for accumulation/portfolio results
 │   ├── SellAnalysisPanel.tsx     # Optimal sell-price analysis (lazy-loaded, uses HMM Monte Carlo)
 │   ├── TaxCalculatorPanel.tsx    # Belka tax calculator — multi-transaction, NBP auto-fetch, PIT-38
 │   ├── KantorSidebar.tsx         # Exchange rate sidebar (shown on investment tab only)
 │   ├── ErrorBoundary.tsx         # React error boundary wrapper
 │   ├── MethodologyPanel.tsx      # Calculation methodology explanation
-│   └── HowItWorks.tsx            # User guide / how-to
+│   ├── HowItWorks.tsx            # User guide / how-to
+│   └── portfolio/                # 4-step portfolio wizard ("Kreator portfela")
+│       ├── PortfolioWizard.tsx   # Orchestrator: wires steps + state + navigation
+│       ├── WizardStepper.tsx     # 4-step progress bar with numbered circles
+│       ├── WizardNavigation.tsx  # Wstecz/Dalej navigation buttons
+│       ├── Step1PersonalData.tsx # Monthly amount, horizon, PIT bracket, toggles
+│       ├── Step2BrokerSelection.tsx # IKE/IKZE broker card selection
+│       ├── Step3Allocation.tsx   # Multi-instrument allocation sliders per wrapper
+│       └── Step4Summary.tsx      # Metric cards, chart, annual table, counterfactual
 ├── hooks/
 │   ├── useAssetData.ts           # Fetch stock + analysis data from /api/analyze
 │   ├── useEtfData.ts             # Fetch ETF data from /api/analyze
@@ -75,6 +85,7 @@ src/
 │   ├── useBondPresets.ts         # Bond presets from /api/bonds (CSV-backed)
 │   ├── useSellAnalysis.ts        # HMM-based sell-price Monte Carlo analysis
 │   ├── useHistoricalVolatility.ts # GBM/Bootstrap scenario suggestions from price history
+│   ├── useWizardState.ts         # Portfolio wizard state management (localStorage: njord_portfolio_wizard)
 │   ├── useDarkMode.ts            # Dark mode toggle with localStorage persistence
 │   └── useDebouncedValue.ts      # Debounce helper for slider/model inputs
 ├── providers/
@@ -84,6 +95,8 @@ src/
 │   └── bondPresets.ts            # Static fallback bond presets (used when /api/bonds unavailable)
 ├── utils/
 │   ├── calculations.ts           # Investment comparison logic (pure functions)
+│   ├── accumulationCalculator.ts # Accumulation + portfolio wizard calculations (pure functions)
+│   ├── allocationValidation.ts   # Allocation slider validation (sum to 100%, normalize, adjust)
 │   ├── taxCalculator.ts          # Belka tax logic: calcTransactionResult, calcMultiTaxSummary
 │   ├── fetchNbpTableARate.ts     # NBP Table A mid rate fetch (last business day before date)
 │   ├── fetchTickerName.ts        # Resolves ticker symbol → company name via /api/analyze
@@ -92,7 +105,7 @@ src/
 │   ├── sellAnalysis.ts           # Monte Carlo sell analysis (HMM paths, target generation)
 │   ├── inflationProjection.ts    # Mean-reversion CPI projection (Fisher formula)
 │   ├── hmm.ts                    # 2-state Gaussian HMM (Baum-Welch EM) for regime detection
-│   ├── persistedState.ts         # localStorage persistence (njord_state v3, with migrations)
+│   ├── persistedState.ts         # localStorage persistence (njord_state v4, with migrations)
 │   ├── assetConfig.ts            # Constants (DEFAULT_HORIZON_MONTHS = 12)
 │   ├── formatting.ts             # Number formatting (fmtUSD, fmtPLN, fmtNum)
 │   ├── fetchWithTimeout.ts       # fetch() wrapper with configurable timeout
@@ -106,6 +119,8 @@ src/
 │   ├── scenario.ts               # ScenarioKey, BenchmarkType, BondPreset, ScenarioResult
 │   ├── asset.ts                  # AssetData, HistoricalPrice
 │   ├── analyze.ts                # AnalyzeResponse, AnalyzeResult (Pages Function response types)
+│   ├── accumulation.ts           # BucketConfig, AccumulationResult, AnnualTableRow
+│   ├── portfolio.ts              # Broker, WizardState, ETF_PRESETS, PortfolioAllocation
 │   ├── tax.ts                    # TaxTransaction, TransactionTaxResult, MultiTaxSummary, TaxInputs
 │   └── sellAnalysis.ts           # SellAnalysisResult, TargetPrice, PathDistribution
 functions/
@@ -184,7 +199,7 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 
 | State | Type | Description |
 |-------|------|-------------|
-| `activeSection` | `'investment' \| 'tax'` | Which tab is shown; persisted to localStorage |
+| `activeSection` | `'investment' \| 'tax' \| 'portfolio'` | Which tab is shown; persisted to localStorage |
 
 **Investment comparison inputs:**
 
@@ -261,12 +276,22 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 - **Ticker lookup:** `src/utils/fetchTickerName.ts` — resolves a ticker symbol to a company name via `/api/analyze`.
 - **Etrade import:** `src/utils/etradeParser.ts` — parses Etrade "Gains & Losses" `.xlsx` exports into `TaxTransaction[]`. SheetJS is dynamically imported on first use (lazy chunk).
 - **Tax law rule:** Use NBP Table A mid rate from the **last business day before** the transaction date, not the transaction date itself. This is a Polish tax law requirement.
-- **KantorSidebar is hidden on the tax tab** — `App.tsx` conditionally renders it only when `activeSection !== 'tax'`.
+- **KantorSidebar is hidden on the tax and portfolio tabs** — `App.tsx` conditionally renders it only on the investment tab.
+
+### Working on the Portfolio Creator (Kreator portfela)
+- **UI:** `src/components/portfolio/` — 4-step wizard: Step1PersonalData → Step2BrokerSelection → Step3Allocation → Step4Summary, orchestrated by `PortfolioWizard.tsx`.
+- **State:** `src/hooks/useWizardState.ts` — central wizard state with localStorage persistence (`njord_portfolio_wizard` key, schema v1). Step validation, navigation, derived waterfall allocations.
+- **Calculations:** `src/utils/accumulationCalculator.ts` — extended with `calcPortfolioResult`, `calcWeightedReturn`, `simulateSavingsBucket`, `buildAnnualTable`. Bridges wizard types → old calculator via weighted return conversion.
+- **Types:** `src/types/portfolio.ts` — Broker, WizardState, ETF_PRESETS, PortfolioAllocation. `src/types/accumulation.ts` — BucketConfig, AccumulationResult, AnnualTableRow.
+- **Validation:** `src/utils/allocationValidation.ts` — pure functions for slider math (sum to 100%, normalize, adjust).
+- **Broker constraints:** XTB has `ikze: false` (disabled in IKZE); PKO BP only offers bonds instruments.
+- **Waterfall allocation:** IKE fills first (up to limit) → IKZE next → surplus to regular wrapper.
 
 ### Persisted state schema
-- `src/utils/persistedState.ts` — schema v3, key `njord_state`
+- `src/utils/persistedState.ts` — schema v4, key `njord_state`
 - When adding new fields, bump `SCHEMA_VERSION` and add a migration in `loadState()`
 - Tax transactions are NOT in the main persisted state — they live under `njord_tax_transactions`
+- Portfolio wizard state is separate under `njord_portfolio_wizard` (managed by `useWizardState`)
 
 ---
 
@@ -307,7 +332,7 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 
 ## Notes for AI agents
 
-- **Two tabs:** `activeSection === 'investment'` (default) shows the investment comparison; `activeSection === 'tax'` shows the Belka tax calculator. KantorSidebar is hidden on the tax tab.
+- **Three tabs:** `activeSection === 'investment'` (default) shows the investment comparison; `activeSection === 'tax'` shows the Belka tax calculator; `activeSection === 'portfolio'` shows the Kreator portfela wizard. KantorSidebar is hidden on the tax and portfolio tabs.
 - **Prediction engine:** Tiered — Block Bootstrap (≤6 months), calibrated GBM (>6 months). Drift shrunk toward 8% prior; volatility damped for horizons >2 years. All outputs clamped via `clampScenario()`. See `.github/instructions/financial-forecasting.instructions.md` for full details.
 - **HMM** (`src/utils/hmm.ts`) is used by the **Sell Analysis feature only** — it does NOT drive the bear/base/bull scenario pipeline. The scenario pipeline uses GBM + Bootstrap exclusively.
 - **Belka tax calculator:** Multi-transaction, supports USD/EUR/GBP/CHF/DKK/SEK/PLN. Fetches NBP Table A mid rate automatically for each transaction date. Transactions persisted to `localStorage` under `njord_tax_transactions`. Groups results by tax year for PIT-38. Commission fields hidden by default (checkbox). See `src/components/TaxCalculatorPanel.tsx` and `src/utils/taxCalculator.ts`.
@@ -319,7 +344,8 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 - The purchasing power line on the timeline chart is a dashed orange line showing value erosion from inflation.
 - `wibor3m` state variable in `App.tsx` represents the savings account interest rate (not the raw WIBOR 3M index). Help text in the UI clarifies this.
 - All financial calculations are pure functions — easy to unit test.
-- **State persistence:** `persistedState.ts` — schema v3. Migrations: v1→v2 adds `activeSection`, v2→v3 adds `bondSettings.maturityMonths` + `isRSU`. Always bump version and add migration when adding new persisted fields.
+- **State persistence:** `persistedState.ts` — schema v4. Migrations: v1→v2 adds `activeSection`, v2→v3 adds `bondSettings.maturityMonths` + `isRSU`, v3→v4 renames `activeSection` `'accumulation'`→`'portfolio'`. Always bump version and add migration when adding new persisted fields.
+- **Portfolio wizard** (`src/components/portfolio/`): 4-step wizard with separate localStorage (`njord_portfolio_wizard`). Uses `useWizardState` hook. Reuses `AccumulationChart` and `accumulationCalculator.ts`. KantorSidebar is hidden on the portfolio tab.
 
 ### Validation loop
 
