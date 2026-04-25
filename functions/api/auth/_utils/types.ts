@@ -35,8 +35,8 @@ export interface PublicUser {
   id: string;
   email: string;
   name: string | null;
-  avatarUrl: string | null;
   hasPassword: boolean;
+  linkedProviders: string[];
 }
 
 export function errorResponse(code: string, message: string, status: number): Response {

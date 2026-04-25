@@ -21,10 +21,15 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
     return errorResponse('NOT_AUTHENTICATED', 'Sesja wygasła. Zaloguj się ponownie.', 401);
   }
 
-  // Fetch fresh user data from DB (name/avatar might have changed)
-  const user = await env.DB.prepare(
-    'SELECT id, email, name, avatar_url FROM users WHERE id = ?',
-  ).bind(payload.sub).first<UserRow>();
+  // Fetch fresh user data + linked OAuth providers
+  const [user, oauthRows] = await Promise.all([
+    env.DB.prepare(
+      'SELECT id, email, password_hash, name FROM users WHERE id = ?',
+    ).bind(payload.sub).first<UserRow>(),
+    env.DB.prepare(
+      'SELECT provider FROM oauth_accounts WHERE user_id = ?',
+    ).bind(payload.sub).all<{ provider: string }>(),
+  ]);
 
   if (!user) {
     return errorResponse('NOT_AUTHENTICATED', 'Konto nie istnieje.', 401);
@@ -34,8 +39,8 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
     id: user.id,
     email: user.email,
     name: user.name,
-    avatarUrl: user.avatar_url,
     hasPassword: user.password_hash !== null,
+    linkedProviders: oauthRows.results.map((r) => r.provider),
   };
 
   return jsonResponse(publicUser);
