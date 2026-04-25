@@ -20,6 +20,24 @@ interface AccumulationChartProps {
   isDark?: boolean;
 }
 
+// Custom legend renderer
+function CustomLegend({ payload }: { payload?: Array<{ value: string; color: string }> }) {
+  if (!payload) return null;
+  return (
+    <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-2 px-2">
+      {payload.map((entry) => (
+        <span key={entry.value} className="inline-flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
+          <span
+            className="inline-block w-2.5 h-2.5 rounded-sm shrink-0"
+            style={{ backgroundColor: entry.color }}
+          />
+          {entry.value}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 const WRAPPER_COLORS = {
   ike: '#16a34a',      // green-600
   ikze: '#7c3aed',     // violet-600
@@ -129,7 +147,7 @@ function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps)
                 color: isDark ? '#f8fafc' : '#111827',
               }}
             />
-            <Legend wrapperStyle={{ fontSize: 11 }} />
+            <Legend content={<CustomLegend />} />
             <Area type="monotone" dataKey="Rachunek maklerski" stackId="1" stroke={colors.regular} fill={colors.regular} fillOpacity={0.3} />
             <Area type="monotone" dataKey="IKZE" stackId="1" stroke={colors.ikze} fill={colors.ikze} fillOpacity={0.3} />
             <Area type="monotone" dataKey="IKE" stackId="1" stroke={colors.ike} fill={colors.ike} fillOpacity={0.3} />
@@ -157,7 +175,7 @@ function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps)
                 color: isDark ? '#f8fafc' : '#111827',
               }}
             />
-            <Legend wrapperStyle={{ fontSize: 11 }} />
+            <Legend content={<CustomLegend />} />
             <Line type="monotone" dataKey="IKE" stroke={colors.ike} strokeWidth={2} dot={false} />
             <Line type="monotone" dataKey="IKZE" stroke={colors.ikze} strokeWidth={2} dot={false} />
             <Line type="monotone" dataKey="Rachunek maklerski" stroke={colors.regular} strokeWidth={2} dot={false} />
