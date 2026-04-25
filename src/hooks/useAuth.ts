@@ -8,6 +8,8 @@ interface UseAuthReturn {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name?: string) => Promise<void>;
   logout: () => Promise<void>;
+  changePassword: (currentPassword: string | null, newPassword: string) => Promise<void>;
+  deleteAccount: (password: string | null) => Promise<void>;
   error: string | null;
   clearError: () => void;
 }
@@ -71,6 +73,7 @@ export function useAuth(): UseAuthReturn {
       url.searchParams.delete('auth');
       window.history.replaceState({}, '', url.pathname);
     } else if (authResult === 'error') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time init from URL params on mount
       setError(params.get('message') || 'Logowanie nie powiodło się.');
       const url = new URL(window.location.href);
       url.searchParams.delete('auth');
@@ -119,6 +122,35 @@ export function useAuth(): UseAuthReturn {
     setError(null);
   }, []);
 
+  const changePassword = useCallback(async (currentPassword: string | null, newPassword: string) => {
+    setError(null);
+    try {
+      await authFetch<{ ok: boolean }>('/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Zmiana hasła nie powiodła się.';
+      setError(message);
+      throw err;
+    }
+  }, []);
+
+  const deleteAccount = useCallback(async (password: string | null) => {
+    setError(null);
+    try {
+      await authFetch<{ ok: boolean }>('/delete-account', {
+        method: 'POST',
+        body: JSON.stringify({ password }),
+      });
+      setUser(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Usunięcie konta nie powiodło się.';
+      setError(message);
+      throw err;
+    }
+  }, []);
+
   const clearError = useCallback(() => setError(null), []);
 
   return {
@@ -128,6 +160,8 @@ export function useAuth(): UseAuthReturn {
     login,
     register,
     logout,
+    changePassword,
+    deleteAccount,
     error,
     clearError,
   };

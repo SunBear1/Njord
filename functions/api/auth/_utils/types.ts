@@ -36,6 +36,7 @@ export interface PublicUser {
   email: string;
   name: string | null;
   avatarUrl: string | null;
+  hasPassword: boolean;
 }
 
 export function errorResponse(code: string, message: string, status: number): Response {

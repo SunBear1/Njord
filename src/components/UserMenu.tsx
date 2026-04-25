@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { User as UserIcon, LogOut, ChevronDown } from 'lucide-react';
+import { User as UserIcon, LogOut, ChevronDown, Settings } from 'lucide-react';
 import type { User } from '../types/auth';
 
 interface UserMenuProps {
@@ -7,9 +7,10 @@ interface UserMenuProps {
   isLoading: boolean;
   onLoginClick: () => void;
   onLogout: () => void;
+  onAccountSettings: () => void;
 }
 
-export function UserMenu({ user, isLoading, onLoginClick, onLogout }: UserMenuProps) {
+export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSettings }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -97,6 +98,16 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout }: UserMenuPr
           </div>
 
           {/* Actions */}
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              onAccountSettings();
+            }}
+            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            <Settings size={16} aria-hidden="true" />
+            Ustawienia konta
+          </button>
           <button
             onClick={() => {
               setIsOpen(false);
