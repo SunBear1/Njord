@@ -12,7 +12,8 @@
 
 import type { AuthEnv, UserRow } from '../_utils/types';
 import { signJwt } from '../_utils/jwt';
-import { setAuthCookie, getOAuthStateCookie, clearOAuthStateCookie } from '../_utils/cookie';
+import { verifyJwt } from '../_utils/jwt';
+import { setAuthCookie, getAuthCookie, getOAuthStateCookie, clearOAuthStateCookie } from '../_utils/cookie';
 
 const GITHUB_TOKEN_URL = 'https://github.com/login/oauth/access_token';
 const GITHUB_USER_URL = 'https://api.github.com/user';
@@ -40,6 +41,9 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
   if (!code || !state || state !== storedState) {
     return redirectWithError(url.origin, 'Nieprawidłowy stan autoryzacji. Spróbuj ponownie.');
   }
+
+  // Check if this is a "link" action (state ends with ":link")
+  const isLinkAction = state.endsWith(':link');
 
   try {
     // Exchange code for access token
@@ -76,13 +80,43 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
       return redirectWithError(url.origin, 'Nie znaleziono zweryfikowanego emaila na koncie GitHub.');
     }
 
-    // Find or create user
+    const isSecure = url.protocol === 'https:';
+
+    // Link mode: attach OAuth to current logged-in user
+    if (isLinkAction) {
+      const existingToken = getAuthCookie(request);
+      const payload = existingToken ? await verifyJwt(existingToken, env.JWT_SECRET) : null;
+      if (!payload) {
+        return redirectWithError(url.origin, 'Musisz być zalogowany, aby połączyć konto.');
+      }
+
+      // Check if this GitHub account is already linked to another user
+      const existingOAuth = await env.DB.prepare(
+        'SELECT user_id FROM oauth_accounts WHERE provider = ? AND provider_user_id = ?',
+      ).bind('github', String(ghUser.id)).first<{ user_id: string }>();
+
+      if (existingOAuth && existingOAuth.user_id !== payload.sub) {
+        return redirectWithError(url.origin, 'To konto GitHub jest już połączone z innym użytkownikiem.');
+      }
+
+      if (!existingOAuth) {
+        await env.DB.prepare(
+          'INSERT INTO oauth_accounts (id, user_id, provider, provider_user_id, provider_email) VALUES (?, ?, ?, ?, ?)',
+        ).bind(crypto.randomUUID(), payload.sub, 'github', String(ghUser.id), primaryEmail).run();
+      }
+
+      const headers = new Headers();
+      headers.set('Location', `${url.origin}/?auth=linked`);
+      headers.append('Set-Cookie', clearOAuthStateCookie(isSecure));
+      return new Response(null, { status: 302, headers });
+    }
+
+    // Normal login/register flow
     const user = await findOrCreateOAuthUser(env.DB, {
       provider: 'github',
       providerUserId: String(ghUser.id),
       email: primaryEmail,
       name: ghUser.name ?? ghUser.login,
-      avatarUrl: ghUser.avatar_url,
     });
 
     const token = await signJwt(
@@ -90,7 +124,6 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
       env.JWT_SECRET,
     );
 
-    const isSecure = url.protocol === 'https:';
     const headers = new Headers();
     headers.set('Location', `${url.origin}/?auth=success`);
     headers.append('Set-Cookie', setAuthCookie(token, isSecure));
@@ -107,7 +140,6 @@ interface OAuthUserInput {
   providerUserId: string;
   email: string;
   name: string;
-  avatarUrl: string;
 }
 
 async function findOrCreateOAuthUser(db: D1Database, input: OAuthUserInput): Promise<UserRow> {
@@ -130,21 +162,14 @@ async function findOrCreateOAuthUser(db: D1Database, input: OAuthUserInput): Pro
       'INSERT OR IGNORE INTO oauth_accounts (id, user_id, provider, provider_user_id, provider_email) VALUES (?, ?, ?, ?, ?)',
     ).bind(crypto.randomUUID(), existingUser.id, input.provider, input.providerUserId, input.email).run();
 
-    // Update avatar if not set
-    if (!existingUser.avatar_url) {
-      await db.prepare('UPDATE users SET avatar_url = ?, updated_at = datetime(\'now\') WHERE id = ?')
-        .bind(input.avatarUrl, existingUser.id).run();
-      existingUser.avatar_url = input.avatarUrl;
-    }
-
     return existingUser;
   }
 
   // Create new user + OAuth account
   const userId = crypto.randomUUID();
   await db.batch([
-    db.prepare('INSERT INTO users (id, email, name, avatar_url, email_verified) VALUES (?, ?, ?, ?, 1)')
-      .bind(userId, input.email.toLowerCase(), input.name, input.avatarUrl),
+    db.prepare('INSERT INTO users (id, email, name, email_verified) VALUES (?, ?, ?, 1)')
+      .bind(userId, input.email.toLowerCase(), input.name),
     db.prepare('INSERT INTO oauth_accounts (id, user_id, provider, provider_user_id, provider_email) VALUES (?, ?, ?, ?, ?)')
       .bind(crypto.randomUUID(), userId, input.provider, input.providerUserId, input.email),
   ]);
@@ -154,7 +179,7 @@ async function findOrCreateOAuthUser(db: D1Database, input: OAuthUserInput): Pro
     email: input.email.toLowerCase(),
     password_hash: null,
     name: input.name,
-    avatar_url: input.avatarUrl,
+    avatar_url: null,
     email_verified: 1,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),

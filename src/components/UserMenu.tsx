@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { User as UserIcon, LogOut, ChevronDown, Settings } from 'lucide-react';
 import type { User } from '../types/auth';
+import { getInitials } from '../utils/userDisplayHelpers';
 
 interface UserMenuProps {
   user: User | null;
@@ -58,6 +59,7 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSet
     );
   }
 
+  const displayName = user.name ?? user.email.split('@')[0];
   const initials = getInitials(user.name, user.email);
 
   return (
@@ -68,33 +70,23 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSet
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        {user.avatarUrl ? (
-          <img
-            src={user.avatarUrl}
-            alt=""
-            width={28}
-            height={28}
-            className="rounded-full"
-          />
-        ) : (
-          <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white">
-            {initials}
-          </div>
-        )}
-        <span className="hidden sm:inline max-w-[120px] truncate">
-          {user.name ?? user.email.split('@')[0]}
+        <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
+          {initials}
+        </div>
+        <span className="hidden sm:inline max-w-[200px] truncate">
+          {displayName}
         </span>
-        <ChevronDown size={14} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+        <ChevronDown size={14} className={`shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
 
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+      {isOpen ? (
+        <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
           {/* User info */}
           <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
-            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+            <p className="text-sm font-medium text-gray-900 dark:text-white break-words">
               {user.name ?? 'Użytkownik'}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 break-all">{user.email}</p>
           </div>
 
           {/* Actions */}
@@ -119,16 +111,7 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSet
             Wyloguj się
           </button>
         </div>
-      )}
+      ) : null}
     </div>
   );
-}
-
-function getInitials(name: string | null, email: string): string {
-  if (name) {
-    const parts = name.trim().split(/\s+/);
-    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    return name[0].toUpperCase();
-  }
-  return email[0].toUpperCase();
 }

@@ -16,8 +16,9 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
     return errorResponse('CONFIG_ERROR', 'Logowanie przez Google nie jest skonfigurowane.', 503);
   }
 
-  const state = crypto.randomUUID();
   const url = new URL(request.url);
+  const action = url.searchParams.get('action');
+  const stateValue = action === 'link' ? `${crypto.randomUUID()}:link` : crypto.randomUUID();
   const redirectUri = `${url.origin}/api/auth/google/callback`;
 
   const params = new URLSearchParams({
@@ -25,7 +26,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
     redirect_uri: redirectUri,
     response_type: 'code',
     scope: 'openid email profile',
-    state,
+    state: stateValue,
     access_type: 'offline',
     prompt: 'consent',
   });
@@ -35,7 +36,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
     status: 302,
     headers: {
       Location: `${GOOGLE_AUTHORIZE_URL}?${params}`,
-      'Set-Cookie': setOAuthStateCookie(state, isSecure),
+      'Set-Cookie': setOAuthStateCookie(stateValue, isSecure),
     },
   });
 };

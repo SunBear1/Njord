@@ -72,6 +72,12 @@ export function useAuth(): UseAuthReturn {
       const url = new URL(window.location.href);
       url.searchParams.delete('auth');
       window.history.replaceState({}, '', url.pathname);
+    } else if (authResult === 'linked') {
+      // Re-fetch user after OAuth account linking
+      authFetch<User>('/me').then(setUser).catch(() => {});
+      const url = new URL(window.location.href);
+      url.searchParams.delete('auth');
+      window.history.replaceState({}, '', url.pathname);
     } else if (authResult === 'error') {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time init from URL params on mount
       setError(params.get('message') || 'Logowanie nie powiodło się.');

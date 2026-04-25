@@ -51,7 +51,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
   );
 
   const isSecure = new URL(request.url).protocol === 'https:';
-  const user: PublicUser = { id: userId, email: email.toLowerCase(), name: name ?? null, avatarUrl: null, hasPassword: true };
+  const user: PublicUser = { id: userId, email: email.toLowerCase(), name: name ?? null, hasPassword: true, linkedProviders: [] };
 
   return jsonResponse(user, 201, { 'Set-Cookie': setAuthCookie(token, isSecure) });
 };
