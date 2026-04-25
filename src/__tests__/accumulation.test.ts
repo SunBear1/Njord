@@ -496,6 +496,59 @@ describe('calcWeightedReturn', () => {
 
 // ─── calcPortfolioResult ──────────────────────────────────────────────────────
 
+import type { BondPreset } from '../types/scenario';
+
+const MOCK_BOND_PRESETS: BondPreset[] = [
+  {
+    id: 'EDO',
+    name: 'Obligacje 10-letnie indeksowane inflacją',
+    maturityMonths: 120,
+    rateType: 'inflation',
+    firstYearRate: 6.2,
+    margin: 2.0,
+    earlyRedemptionPenalty: 2.0,
+    earlyRedemptionAllowed: true,
+    couponFrequency: 0,
+    description: 'EDO',
+  },
+  {
+    id: 'COI',
+    name: 'Obligacje 4-letnie indeksowane inflacją',
+    maturityMonths: 48,
+    rateType: 'inflation',
+    firstYearRate: 6.0,
+    margin: 1.5,
+    earlyRedemptionPenalty: 0.7,
+    earlyRedemptionAllowed: true,
+    couponFrequency: 1,
+    description: 'COI',
+  },
+  {
+    id: 'TOS',
+    name: 'Obligacje 3-letnie stałoprocentowe',
+    maturityMonths: 36,
+    rateType: 'fixed',
+    firstYearRate: 5.7,
+    margin: 0,
+    earlyRedemptionPenalty: 0.7,
+    earlyRedemptionAllowed: false,
+    couponFrequency: 0,
+    description: 'TOS',
+  },
+  {
+    id: 'ROR',
+    name: 'Obligacje roczne',
+    maturityMonths: 12,
+    rateType: 'reference',
+    firstYearRate: 5.5,
+    margin: 0,
+    earlyRedemptionPenalty: 0.5,
+    earlyRedemptionAllowed: true,
+    couponFrequency: 12,
+    description: 'ROR',
+  },
+];
+
 describe('calcPortfolioResult', () => {
   function makeWrapperConfig(
     wrapper: 'ike' | 'ikze' | 'regular',
@@ -510,16 +563,30 @@ describe('calcPortfolioResult', () => {
     { instrumentId: 'msci', instrumentType: 'etf', allocationPercent: 100, expectedReturnPercent: 8 },
   ];
 
+  const bondAlloc: PortfolioAllocation[] = [
+    { instrumentId: 'EDO', instrumentType: 'bonds', allocationPercent: 100, expectedReturnPercent: 6.2 },
+  ];
+
+  const mixedAlloc: PortfolioAllocation[] = [
+    { instrumentId: 'msci', instrumentType: 'etf', allocationPercent: 60, expectedReturnPercent: 8 },
+    { instrumentId: 'EDO', instrumentType: 'bonds', allocationPercent: 40, expectedReturnPercent: 6.2 },
+  ];
+
+  const defaultInputs = {
+    totalMonthlyPLN: 2000,
+    horizonYears: 10,
+    pitBracket: 12,
+    inflationRate: 3.5,
+    ikeAnnualLimit: 26019,
+    ikzeAnnualLimit: 10407.6,
+    savingsRate: 4,
+    reinvestIkzeDeduction: false,
+    bondPresets: MOCK_BOND_PRESETS,
+  };
+
   test('positive result for 10-year all-ETF portfolio', () => {
     const result = calcPortfolioResult({
-      totalMonthlyPLN: 2000,
-      horizonYears: 10,
-      pitBracket: 12,
-      inflationRate: 3.5,
-      ikeAnnualLimit: 26019,
-      ikzeAnnualLimit: 10407.6,
-      savingsRate: 4,
-      reinvestIkzeDeduction: false,
+      ...defaultInputs,
       wrapperConfigs: [
         makeWrapperConfig('ike', true, etfAlloc),
         makeWrapperConfig('ikze', true, etfAlloc),
@@ -532,14 +599,11 @@ describe('calcPortfolioResult', () => {
 
   test('annual table row count matches horizon', () => {
     const result = calcPortfolioResult({
+      ...defaultInputs,
       totalMonthlyPLN: 1000,
       horizonYears: 5,
       pitBracket: 32,
       inflationRate: 2.5,
-      ikeAnnualLimit: 26019,
-      ikzeAnnualLimit: 10407.6,
-      savingsRate: 3,
-      reinvestIkzeDeduction: false,
       wrapperConfigs: [
         makeWrapperConfig('ike', true, etfAlloc),
         makeWrapperConfig('ikze', false, [], null),
@@ -551,14 +615,9 @@ describe('calcPortfolioResult', () => {
 
   test('disabled wrappers produce zero values', () => {
     const result = calcPortfolioResult({
+      ...defaultInputs,
       totalMonthlyPLN: 1000,
       horizonYears: 5,
-      pitBracket: 12,
-      inflationRate: 3,
-      ikeAnnualLimit: 26019,
-      ikzeAnnualLimit: 10407.6,
-      savingsRate: 4,
-      reinvestIkzeDeduction: false,
       wrapperConfigs: [
         makeWrapperConfig('ike', true, etfAlloc),
         makeWrapperConfig('ikze', false, [], null),
@@ -571,14 +630,8 @@ describe('calcPortfolioResult', () => {
 
   test('IKE has tax advantage over regular', () => {
     const result = calcPortfolioResult({
-      totalMonthlyPLN: 2000,
+      ...defaultInputs,
       horizonYears: 20,
-      pitBracket: 12,
-      inflationRate: 3,
-      ikeAnnualLimit: 26019,
-      ikzeAnnualLimit: 10407.6,
-      savingsRate: 4,
-      reinvestIkzeDeduction: false,
       wrapperConfigs: [
         makeWrapperConfig('ike', true, etfAlloc),
         makeWrapperConfig('ikze', true, etfAlloc),
@@ -586,5 +639,187 @@ describe('calcPortfolioResult', () => {
       ],
     });
     expect(result.taxSavings).toBeGreaterThan(0);
+  });
+
+  // ── Per-allocation simulation tests ────────────────────────────────────────
+
+  test('mixed ETF+bond wrapper simulates each instrument independently', () => {
+    const mixedResult = calcPortfolioResult({
+      ...defaultInputs,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, mixedAlloc),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+
+    const etfOnlyResult = calcPortfolioResult({
+      ...defaultInputs,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, etfAlloc),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+
+    const bondOnlyResult = calcPortfolioResult({
+      ...defaultInputs,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, bondAlloc),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+
+    // Mixed result should be between pure ETF and pure bond results
+    const ikeMixed = mixedResult.buckets.find(b => b.wrapper === 'ike')!;
+    const ikeEtf = etfOnlyResult.buckets.find(b => b.wrapper === 'ike')!;
+    const ikeBond = bondOnlyResult.buckets.find(b => b.wrapper === 'ike')!;
+
+    const minVal = Math.min(ikeEtf.terminalGrossValue, ikeBond.terminalGrossValue);
+    const maxVal = Math.max(ikeEtf.terminalGrossValue, ikeBond.terminalGrossValue);
+    expect(ikeMixed.terminalGrossValue).toBeGreaterThan(minVal);
+    expect(ikeMixed.terminalGrossValue).toBeLessThan(maxVal);
+  });
+
+  test('bond allocation uses actual preset parameters', () => {
+    const edoAlloc: PortfolioAllocation[] = [
+      { instrumentId: 'EDO', instrumentType: 'bonds', allocationPercent: 100, expectedReturnPercent: 6.2 },
+    ];
+    const tosAlloc: PortfolioAllocation[] = [
+      { instrumentId: 'TOS', instrumentType: 'bonds', allocationPercent: 100, expectedReturnPercent: 5.7 },
+    ];
+
+    const edoResult = calcPortfolioResult({
+      ...defaultInputs,
+      horizonYears: 10,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, edoAlloc),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+
+    const tosResult = calcPortfolioResult({
+      ...defaultInputs,
+      horizonYears: 10,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, tosAlloc),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+
+    const ikeEdo = edoResult.buckets.find(b => b.wrapper === 'ike')!;
+    const ikeTos = tosResult.buckets.find(b => b.wrapper === 'ike')!;
+
+    expect(ikeEdo.terminalGrossValue).toBeGreaterThan(ikeEdo.totalContributed);
+    expect(ikeTos.terminalGrossValue).toBeGreaterThan(ikeTos.totalContributed);
+    // EDO (6.2% yr1, 5.5% yr2+) vs TOS (5.7% all years) — different results
+    expect(ikeEdo.terminalGrossValue).not.toBeCloseTo(ikeTos.terminalGrossValue, 0);
+  });
+
+  test('savings allocation applies Belka only in regular wrapper', () => {
+    const savingsAlloc: PortfolioAllocation[] = [
+      { instrumentId: 'savings', instrumentType: 'savings', allocationPercent: 100, expectedReturnPercent: 5 },
+    ];
+
+    const ikeResult = calcPortfolioResult({
+      ...defaultInputs,
+      totalMonthlyPLN: 1000,
+      horizonYears: 5,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, savingsAlloc),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+
+    const regularResult = calcPortfolioResult({
+      ...defaultInputs,
+      totalMonthlyPLN: 1000,
+      horizonYears: 5,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', false, [], null),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', true, savingsAlloc, null),
+      ],
+    });
+
+    const ikeBucket = ikeResult.buckets.find(b => b.wrapper === 'ike')!;
+    const regBucket = regularResult.buckets.find(b => b.wrapper === 'regular')!;
+
+    // IKE savings (no Belka) should grow more than regular savings (with Belka)
+    expect(ikeBucket.terminalGrossValue).toBeGreaterThan(regBucket.terminalGrossValue);
+  });
+
+  test('100% single instrument matches expected growth direction', () => {
+    const result = calcPortfolioResult({
+      ...defaultInputs,
+      totalMonthlyPLN: 1000,
+      horizonYears: 20,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, etfAlloc),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+
+    const ike = result.buckets.find(b => b.wrapper === 'ike')!;
+    expect(ike.totalContributed).toBeCloseTo(240_000, -2);
+    expect(ike.terminalGrossValue).toBeGreaterThan(300_000);
+  });
+
+  test('three-instrument allocation in regular wrapper', () => {
+    const threeWay: PortfolioAllocation[] = [
+      { instrumentId: 'msci', instrumentType: 'etf', allocationPercent: 50, expectedReturnPercent: 8 },
+      { instrumentId: 'EDO', instrumentType: 'bonds', allocationPercent: 30, expectedReturnPercent: 6.2 },
+      { instrumentId: 'savings', instrumentType: 'savings', allocationPercent: 20, expectedReturnPercent: 5 },
+    ];
+
+    const result = calcPortfolioResult({
+      ...defaultInputs,
+      totalMonthlyPLN: 3000,
+      horizonYears: 10,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', false, [], null),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', true, threeWay, null),
+      ],
+    });
+
+    const reg = result.buckets.find(b => b.wrapper === 'regular')!;
+    expect(reg.terminalGrossValue).toBeGreaterThan(reg.totalContributed);
+    expect(reg.exitTaxPaid).toBeGreaterThan(0);
+    expect(reg.terminalNetValue).toBeLessThan(reg.terminalGrossValue);
+  });
+
+  test('inflation rate affects inflation-linked bond effective rate', () => {
+    const highInflation = calcPortfolioResult({
+      ...defaultInputs,
+      inflationRate: 10,
+      horizonYears: 10,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, bondAlloc),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+
+    const lowInflation = calcPortfolioResult({
+      ...defaultInputs,
+      inflationRate: 1,
+      horizonYears: 10,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, bondAlloc),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+
+    const highIke = highInflation.buckets.find(b => b.wrapper === 'ike')!;
+    const lowIke = lowInflation.buckets.find(b => b.wrapper === 'ike')!;
+
+    expect(highIke.terminalGrossValue).toBeGreaterThan(lowIke.terminalGrossValue);
   });
 });

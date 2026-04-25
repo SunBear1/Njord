@@ -13,10 +13,12 @@ import type {
   BucketResult,
   BucketYearSnapshot,
   CombinedYearSnapshot,
+  InstrumentType,
   Milestone,
 } from '../types/accumulation';
 import { BELKA_RATE, IKZE_RYCZALT_RATE, MILESTONES_PLN } from '../types/accumulation';
 import type { PortfolioAllocation, WrapperPortfolioConfig } from '../types/portfolio';
+import type { BondPreset } from '../types/scenario';
 
 // ─── Monthly Allocation ───────────────────────────────────────────────────────
 
@@ -574,6 +576,11 @@ function buildAnnualTable(
 
 // ─── Portfolio Wizard Entry Point ─────────────────────────────────────────────
 
+/** Default NBP reference rate for reference-type bonds (2025 value). */
+const NBP_REF_RATE_DEFAULT = 5.75;
+
+const STOCK_LIKE_TYPES = new Set(['etf', 'stocks_pl', 'stocks_foreign']);
+
 export interface PortfolioCalcResult extends AccumulationResult {
   annualTable: AnnualTableRow[];
 }
@@ -588,70 +595,368 @@ export interface PortfolioCalcInputs {
   savingsRate: number;
   reinvestIkzeDeduction: boolean;
   wrapperConfigs: WrapperPortfolioConfig[];
+  bondPresets: BondPreset[];
+}
+
+/** Compute bond effective rate for year 2+ based on rate type. */
+function computeBondEffectiveRate(preset: BondPreset, inflationRate: number): number {
+  switch (preset.rateType) {
+    case 'fixed':
+      return preset.firstYearRate;
+    case 'reference':
+      return NBP_REF_RATE_DEFAULT + preset.margin;
+    case 'inflation':
+      return inflationRate + preset.margin;
+    default:
+      return preset.firstYearRate;
+  }
+}
+
+interface SubSimResult {
+  snapshots: BucketYearSnapshot[];
+  dividendTaxPaid: number;
+  monthlyPLN: number;
+}
+
+/** Merge year-by-year snapshots from independent sub-allocation simulations. */
+function mergeSubSimulations(
+  subs: SubSimResult[],
+  horizonMonths: number,
+): SubSimResult {
+  if (subs.length === 0) {
+    return {
+      snapshots: [{ year: 0, nominalValue: 0, totalContributed: 0, taxPaidDuringAccumulation: 0 }],
+      dividendTaxPaid: 0,
+      monthlyPLN: 0,
+    };
+  }
+  if (subs.length === 1) return subs[0];
+
+  const maxYear = Math.ceil(horizonMonths / 12);
+  const merged: BucketYearSnapshot[] = [];
+
+  for (let y = 0; y <= maxYear; y++) {
+    let nominalValue = 0;
+    let totalContributed = 0;
+    let taxPaid = 0;
+
+    for (const sub of subs) {
+      const snap = sub.snapshots.find((s) => s.year === y);
+      if (snap) {
+        nominalValue += snap.nominalValue;
+        totalContributed += snap.totalContributed;
+        taxPaid += snap.taxPaidDuringAccumulation;
+      }
+    }
+
+    merged.push({ year: y, nominalValue, totalContributed, taxPaidDuringAccumulation: taxPaid });
+  }
+
+  return {
+    snapshots: merged,
+    dividendTaxPaid: subs.reduce((sum, s) => sum + s.dividendTaxPaid, 0),
+    monthlyPLN: subs.reduce((sum, s) => sum + s.monthlyPLN, 0),
+  };
+}
+
+/** Create a BucketConfig for a stock-like allocation. */
+function makeStockConfig(wrapper: string, returnPercent: number): BucketConfig {
+  return {
+    wrapper: wrapper as BucketConfig['wrapper'],
+    instrument: 'stocks',
+    enabled: true,
+    stockReturnPercent: returnPercent,
+    dividendYieldPercent: 0,
+    fxSpreadPercent: 0,
+    bondPresetId: '',
+    bondFirstYearRate: 0,
+    bondEffectiveRate: 0,
+    bondRateType: 'fixed',
+    bondMargin: 0,
+    bondCouponFrequency: 0,
+  };
+}
+
+/** Create a BucketConfig for a bond allocation using actual preset parameters. */
+function makeBondConfig(
+  wrapper: string,
+  alloc: PortfolioAllocation,
+  bondPresets: BondPreset[],
+  inflationRate: number,
+): BucketConfig {
+  const preset = bondPresets.find((b) => b.id === alloc.instrumentId);
+  const effectiveRate = preset
+    ? computeBondEffectiveRate(preset, inflationRate)
+    : alloc.expectedReturnPercent;
+
+  return {
+    wrapper: wrapper as BucketConfig['wrapper'],
+    instrument: 'bonds',
+    enabled: true,
+    stockReturnPercent: 0,
+    dividendYieldPercent: 0,
+    fxSpreadPercent: 0,
+    bondPresetId: alloc.instrumentId,
+    bondFirstYearRate: preset?.firstYearRate ?? alloc.expectedReturnPercent,
+    bondEffectiveRate: effectiveRate,
+    bondRateType: preset?.rateType ?? 'fixed',
+    bondMargin: preset?.margin ?? 0,
+    bondCouponFrequency: preset?.couponFrequency ?? 0,
+  };
+}
+
+/** Determine the dominant instrument type from a set of allocations. */
+function dominantInstrument(allocations: PortfolioAllocation[]): InstrumentType {
+  let stockWeight = 0;
+  let bondWeight = 0;
+  let savingsWeight = 0;
+  for (const a of allocations) {
+    if (STOCK_LIKE_TYPES.has(a.instrumentType)) stockWeight += a.allocationPercent;
+    else if (a.instrumentType === 'bonds') bondWeight += a.allocationPercent;
+    else if (a.instrumentType === 'savings') savingsWeight += a.allocationPercent;
+  }
+  if (stockWeight >= bondWeight && stockWeight >= savingsWeight) return 'stocks';
+  return bondWeight >= savingsWeight ? 'bonds' : 'savings';
 }
 
 /**
- * Converts WrapperPortfolioConfig[] → BucketConfig[], delegates to the
- * existing calcAccumulationResult engine, then augments the output with
- * an AnnualTableRow[] for the Step 4 summary table.
+ * Simulate each allocation within a wrapper independently, then merge.
+ *
+ * Each sub-allocation gets its proper simulation engine:
+ * - ETF/stocks → simulateStocksBucket (growth + dividends)
+ * - Bonds → simulateBondsBucket (year-1 promo rate, year-2+ effective rate)
+ * - Savings → simulateSavingsBucket (compound interest + Belka on regular)
+ *
+ * This replaces the old weighted-average approach that destroyed per-instrument
+ * tax treatment and compounding mechanics.
  */
-export function calcPortfolioResult(inputs: PortfolioCalcInputs): PortfolioCalcResult {
-  const stockLikeTypes = new Set(['etf', 'stocks_pl', 'stocks_foreign']);
-
-  const buckets = inputs.wrapperConfigs.map((wc): BucketConfig => {
-    const weightedReturn = calcWeightedReturn(wc.allocations);
-
-    let stockWeight = 0;
-    let bondWeight = 0;
-    let savingsWeight = 0;
-    for (const a of wc.allocations) {
-      if (a.instrumentType === 'savings') savingsWeight += a.allocationPercent;
-      else if (a.instrumentType === 'bonds') bondWeight += a.allocationPercent;
-      else if (stockLikeTypes.has(a.instrumentType)) stockWeight += a.allocationPercent;
-    }
-
-    const instrument = stockWeight >= bondWeight && stockWeight >= savingsWeight
-      ? 'stocks' as const
-      : 'bonds' as const;
-
-    return {
-      wrapper: wc.wrapper,
-      instrument,
-      enabled: wc.enabled,
-      stockReturnPercent: instrument === 'stocks' ? weightedReturn : 0,
-      dividendYieldPercent: 0,
-      fxSpreadPercent: 0,
-      bondPresetId: '',
-      bondFirstYearRate: instrument === 'bonds' ? weightedReturn : 0,
-      bondEffectiveRate: instrument === 'bonds' ? weightedReturn : 0,
-      bondRateType: 'fixed',
-      bondMargin: 0,
-      bondCouponFrequency: 0,
-    };
-  }) as [BucketConfig, BucketConfig, BucketConfig];
-
-  const accInputs: AccumulationInputs = {
-    totalMonthlyPLN: inputs.totalMonthlyPLN,
-    horizonYears: inputs.horizonYears,
-    pitBracket: inputs.pitBracket as 12 | 32,
-    inflationRate: inputs.inflationRate,
-    ikeAnnualLimit: inputs.ikeAnnualLimit,
-    ikzeAnnualLimit: inputs.ikzeAnnualLimit,
-    savingsRate: inputs.savingsRate,
-    buckets,
+function simulateWrapperAllocations(
+  wrapperMonthly: number,
+  horizonMonths: number,
+  wc: WrapperPortfolioConfig,
+  inputs: PortfolioCalcInputs,
+): BucketResult {
+  const disabledResult: BucketResult = {
+    wrapper: wc.wrapper,
+    instrument: dominantInstrument(wc.allocations),
+    enabled: wc.enabled,
+    snapshots: [{ year: 0, nominalValue: 0, totalContributed: 0, taxPaidDuringAccumulation: 0 }],
+    monthlyPLN: 0,
+    terminalGrossValue: 0,
+    terminalNetValue: 0,
+    totalContributed: 0,
+    exitTaxPaid: 0,
+    dividendTaxPaid: 0,
   };
 
-  const baseResult = calcAccumulationResult(accInputs);
+  if (!wc.enabled || wrapperMonthly <= 0 || wc.allocations.length === 0) {
+    return disabledResult;
+  }
 
-  const ikzeBucket = baseResult.buckets.find(b => b.wrapper === 'ikze' && b.enabled);
+  const totalAllocPercent = wc.allocations.reduce((s, a) => s + a.allocationPercent, 0);
+  if (totalAllocPercent <= 0) return disabledResult;
+
+  const subSims: SubSimResult[] = [];
+
+  for (const alloc of wc.allocations) {
+    const subMonthly = wrapperMonthly * (alloc.allocationPercent / totalAllocPercent);
+    if (subMonthly <= 0) continue;
+
+    if (STOCK_LIKE_TYPES.has(alloc.instrumentType)) {
+      const config = makeStockConfig(wc.wrapper, alloc.expectedReturnPercent);
+      const sim = simulateStocksBucket({ monthlyPLN: subMonthly, horizonMonths, config });
+      subSims.push({ snapshots: sim.snapshots, dividendTaxPaid: sim.dividendTaxPaid, monthlyPLN: subMonthly });
+    } else if (alloc.instrumentType === 'bonds') {
+      const config = makeBondConfig(wc.wrapper, alloc, inputs.bondPresets, inputs.inflationRate);
+      const sim = simulateBondsBucket({ monthlyPLN: subMonthly, horizonMonths, config });
+      subSims.push({ snapshots: sim.snapshots, dividendTaxPaid: 0, monthlyPLN: subMonthly });
+    } else if (alloc.instrumentType === 'savings') {
+      const config = makeStockConfig(wc.wrapper, 0); // only wrapper field is read
+      const sim = simulateSavingsBucket({
+        monthlyPLN: subMonthly,
+        horizonMonths,
+        savingsRatePercent: inputs.savingsRate,
+        config,
+      });
+      subSims.push({ snapshots: sim.snapshots, dividendTaxPaid: 0, monthlyPLN: subMonthly });
+    }
+  }
+
+  const merged = mergeSubSimulations(subSims, horizonMonths);
+  const terminalSnap = merged.snapshots[merged.snapshots.length - 1];
+  const terminalGross = terminalSnap.nominalValue;
+  const totalContributed = terminalSnap.totalContributed;
+  const exitTax = calcExitTax(wc.wrapper, terminalGross, totalContributed);
+
+  return {
+    wrapper: wc.wrapper,
+    instrument: dominantInstrument(wc.allocations),
+    enabled: wc.enabled,
+    snapshots: merged.snapshots,
+    monthlyPLN: merged.monthlyPLN,
+    terminalGrossValue: terminalGross,
+    terminalNetValue: terminalGross - exitTax,
+    totalContributed,
+    exitTaxPaid: exitTax,
+    dividendTaxPaid: merged.dividendTaxPaid,
+  };
+}
+
+/** Counterfactual: what if ALL money went to a regular brokerage with the same instruments? */
+function calcPortfolioCounterfactual(
+  inputs: PortfolioCalcInputs,
+  monthlyPerWrapper: number[],
+  horizonMonths: number,
+): { snapshots: BucketYearSnapshot[]; netValue: number } {
+  let totalWeightedReturn = 0;
+  let totalAllocatedMonthly = 0;
+
+  inputs.wrapperConfigs.forEach((wc, i) => {
+    const wrapperMonthly = monthlyPerWrapper[i];
+    if (!wc.enabled || wrapperMonthly <= 0) return;
+    const totalPct = wc.allocations.reduce((s, a) => s + a.allocationPercent, 0);
+    if (totalPct <= 0) return;
+    for (const alloc of wc.allocations) {
+      const allocMonthly = wrapperMonthly * (alloc.allocationPercent / totalPct);
+      totalWeightedReturn += allocMonthly * alloc.expectedReturnPercent;
+      totalAllocatedMonthly += allocMonthly;
+    }
+  });
+
+  const emptyResult = {
+    snapshots: [{ year: 0, nominalValue: 0, totalContributed: 0, taxPaidDuringAccumulation: 0 }],
+    netValue: 0,
+  };
+  if (totalAllocatedMonthly <= 0) return emptyResult;
+
+  const avgReturn = totalWeightedReturn / totalAllocatedMonthly;
+  const config = makeStockConfig('regular', avgReturn);
+  const sim = simulateStocksBucket({ monthlyPLN: inputs.totalMonthlyPLN, horizonMonths, config });
+
+  const terminalGross = sim.snapshots[sim.snapshots.length - 1].nominalValue;
+  const totalContributed = sim.snapshots[sim.snapshots.length - 1].totalContributed;
+  const exitTax = calcExitTax('regular', terminalGross, totalContributed);
+
+  return { snapshots: sim.snapshots, netValue: terminalGross - exitTax };
+}
+
+/**
+ * Portfolio wizard entry point.
+ *
+ * Simulates each allocation within each wrapper independently using its
+ * proper engine (stocks/bonds/savings), then merges results per wrapper.
+ * This preserves per-instrument tax treatment, bond compounding mechanics,
+ * and savings interest behavior.
+ */
+export function calcPortfolioResult(inputs: PortfolioCalcInputs): PortfolioCalcResult {
+  const horizonMonths = inputs.horizonYears * 12;
+
+  // 1. Waterfall monthly allocation: IKE → IKZE → Regular
+  const dummyBuckets: BucketConfig[] = inputs.wrapperConfigs.map((wc) =>
+    ({ ...makeStockConfig(wc.wrapper, 0), enabled: wc.enabled }),
+  );
+  const monthlyPerWrapper = allocateMonthly(
+    inputs.totalMonthlyPLN,
+    inputs.ikeAnnualLimit,
+    inputs.ikzeAnnualLimit,
+    dummyBuckets,
+  );
+
+  // 2. Simulate each wrapper's allocations independently
+  const bucketResults: BucketResult[] = inputs.wrapperConfigs.map((wc, i) =>
+    simulateWrapperAllocations(monthlyPerWrapper[i], horizonMonths, wc, inputs),
+  );
+
+  // 3. IKZE PIT deduction reinvestment
+  const ikzeBucket = bucketResults.find((b) => b.wrapper === 'ikze' && b.enabled);
+  const ikzePitDeductionValue =
+    ikzeBucket && inputs.reinvestIkzeDeduction
+      ? calcIkzePitDeduction(
+          ikzeBucket.monthlyPLN * 12,
+          inputs.pitBracket / 100,
+          inputs.savingsRate,
+          inputs.horizonYears,
+        )
+      : 0;
+
+  // 4. Combined year-by-year snapshots
+  const maxYears = inputs.horizonYears;
+  const combinedSnapshots: CombinedYearSnapshot[] = [];
+
+  for (let y = 0; y <= maxYears; y++) {
+    let ikeValue = 0;
+    let ikzeValue = 0;
+    let regularValue = 0;
+    let totalContributed = 0;
+
+    for (const br of bucketResults) {
+      const snap = br.snapshots.find((s) => s.year === y) ?? br.snapshots[br.snapshots.length - 1];
+      if (snap.year > y) continue;
+      if (br.wrapper === 'ike') ikeValue = snap.nominalValue;
+      else if (br.wrapper === 'ikze') ikzeValue = snap.nominalValue;
+      else regularValue = snap.nominalValue;
+      totalContributed += snap.totalContributed;
+    }
+
+    const totalNominal = ikeValue + ikzeValue + regularValue;
+    const totalContributedAllBuckets = inputs.totalMonthlyPLN * y * 12;
+    const inflationFactor = Math.pow(1 + inputs.inflationRate / 100, y);
+
+    combinedSnapshots.push({
+      year: y,
+      totalNominal,
+      totalContributed,
+      inflationErodedContributions: totalContributedAllBuckets / inflationFactor,
+      ikeValue,
+      ikzeValue,
+      regularValue,
+      counterfactualValue: 0,
+    });
+  }
+
+  // 5. Counterfactual: all-regular scenario
+  const cfResult = calcPortfolioCounterfactual(inputs, monthlyPerWrapper, horizonMonths);
+  for (let y = 0; y <= maxYears; y++) {
+    const cfSnap = cfResult.snapshots.find((s) => s.year === y);
+    if (cfSnap) {
+      combinedSnapshots[y].counterfactualValue = cfSnap.nominalValue;
+    }
+  }
+
+  // 6. Totals
+  const totalTerminalNet =
+    bucketResults.reduce((sum, b) => sum + b.terminalNetValue, 0) + ikzePitDeductionValue;
+  const totalContributed = bucketResults.reduce((sum, b) => sum + b.totalContributed, 0);
+  const totalTaxPaid = bucketResults.reduce(
+    (sum, b) => sum + b.exitTaxPaid + b.dividendTaxPaid,
+    0,
+  );
+  const counterfactualNet = cfResult.netValue;
+  const taxSavings = totalTerminalNet - counterfactualNet;
+
+  // 7. Milestones
+  const milestones = detectMilestones(combinedSnapshots);
+
+  // 8. Annual table
   const ikzeYearlyContribution = ikzeBucket ? ikzeBucket.monthlyPLN * 12 : 0;
-
   const annualTable = buildAnnualTable(
-    baseResult.buckets,
+    bucketResults,
     inputs.horizonYears,
     ikzeYearlyContribution,
     inputs.pitBracket / 100,
   );
 
-  return { ...baseResult, annualTable };
+  return {
+    buckets: bucketResults,
+    combinedSnapshots,
+    totalTerminalNet,
+    totalContributed,
+    totalTaxPaid,
+    counterfactualNet,
+    taxSavings,
+    taxSavingsPercent: counterfactualNet > 0 ? (taxSavings / counterfactualNet) * 100 : 0,
+    ikzePitDeductionValue,
+    milestones,
+    annualTable,
+  };
 }

@@ -31,6 +31,7 @@ export function PortfolioWizard({ bondPresets, isDark }: PortfolioWizardProps) {
       savingsRate: wizard.state.savingsRatePercent,
       reinvestIkzeDeduction: wizard.state.reinvestIkzeDeduction,
       wrapperConfigs: wizard.state.wrapperConfigs,
+      bondPresets,
     };
 
     return calcPortfolioResult(inputs);
@@ -42,6 +43,7 @@ export function PortfolioWizard({ bondPresets, isDark }: PortfolioWizardProps) {
     wizard.state.savingsRatePercent,
     wizard.state.reinvestIkzeDeduction,
     wizard.state.wrapperConfigs,
+    bondPresets,
   ]);
 
   return (

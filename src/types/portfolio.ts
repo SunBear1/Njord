@@ -159,6 +159,8 @@ export interface PortfolioAllocation {
   allocationPercent: number;
   /** User-editable, pre-filled from preset. */
   expectedReturnPercent: number;
+  /** Human-readable name resolved from API or preset. */
+  displayName?: string;
 }
 
 // ─── Wrapper Configuration ────────────────────────────────────────────────────

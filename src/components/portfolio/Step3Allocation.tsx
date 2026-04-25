@@ -53,6 +53,7 @@ const INSTRUMENT_LABELS: Record<PortfolioInstrumentType, string> = {
 };
 
 function instrumentLabel(a: PortfolioAllocation): string {
+  if (a.displayName) return a.displayName;
   if (a.instrumentType === 'savings') return 'Lokata / konto oszczędnościowe';
   if (a.instrumentType === 'bonds') return a.instrumentId;
   const etf = ETF_PRESETS.find((e) => e.id === a.instrumentId);
@@ -79,6 +80,7 @@ type InstrumentOption = {
   instrumentType: PortfolioInstrumentType;
   label: string;
   defaultReturn: number;
+  displayName?: string;
 };
 
 function getAvailableOptions(
@@ -106,10 +108,14 @@ function getAvailableOptions(
   if (hasBonds) {
     for (const bond of bondPresets) {
       if (bond.isFamily && !isBeneficiary800Plus) continue;
+      const maturityLabel = bond.maturityMonths >= 12
+        ? `${bond.maturityMonths / 12} lat`
+        : `${bond.maturityMonths} mies.`;
+      const rateLabel = bond.rateType === 'fixed' ? 'stałe' : bond.rateType === 'reference' ? 'zmienne' : 'inflacja';
       options.push({
         instrumentId: bond.id,
         instrumentType: 'bonds',
-        label: `${bond.id} — ${bond.name}`,
+        label: `${bond.id} — ${bond.name} (${maturityLabel}, ${rateLabel})`,
         defaultReturn: bond.firstYearRate,
       });
     }
@@ -129,7 +135,13 @@ function getAvailableOptions(
 
 // ─── AllocationBar ────────────────────────────────────────────────────────────
 
-function AllocationBar({ allocations }: { allocations: readonly PortfolioAllocation[] }) {
+function AllocationBar({
+  allocations,
+  wrapperMonthlyPLN,
+}: {
+  allocations: readonly PortfolioAllocation[];
+  wrapperMonthlyPLN: number;
+}) {
   const sum = allocations.reduce((s, a) => s + a.allocationPercent, 0);
   const valid = Math.abs(sum - 100) < 0.1;
 
@@ -141,7 +153,7 @@ function AllocationBar({ allocations }: { allocations: readonly PortfolioAllocat
             key={`${a.instrumentId}-${i}`}
             className={`${INSTRUMENT_COLORS[a.instrumentType]} transition-all duration-200`}
             style={{ width: `${Math.max(a.allocationPercent, 0)}%` }}
-            title={`${instrumentLabel(a)}: ${Math.round(a.allocationPercent)}%`}
+            title={`${instrumentLabel(a)}: ${Math.round(a.allocationPercent)}% · ${fmtPLN(wrapperMonthlyPLN * a.allocationPercent / 100)}/mies.`}
           />
         ))}
         {sum < 99.9 ? (
@@ -156,16 +168,22 @@ function AllocationBar({ allocations }: { allocations: readonly PortfolioAllocat
           {valid ? '✓' : '⚠'} {Math.round(sum)}%
         </span>
         <div className="flex flex-wrap gap-x-3 gap-y-1">
-          {allocations.map((a, i) => (
-            <span key={`${a.instrumentId}-${i}`} className="flex items-center gap-1">
-              <span
-                className={`inline-block h-2.5 w-2.5 rounded-sm ${INSTRUMENT_COLORS[a.instrumentType]}`}
-              />
-              <span className="text-gray-600 dark:text-gray-400">
-                {INSTRUMENT_LABELS[a.instrumentType]} {Math.round(a.allocationPercent)}%
+          {allocations.map((a, i) => {
+            const plnAmount = wrapperMonthlyPLN * a.allocationPercent / 100;
+            return (
+              <span key={`${a.instrumentId}-${i}`} className="flex items-center gap-1">
+                <span
+                  className={`inline-block h-2.5 w-2.5 rounded-sm ${INSTRUMENT_COLORS[a.instrumentType]}`}
+                />
+                <span className="text-gray-600 dark:text-gray-400">
+                  {INSTRUMENT_LABELS[a.instrumentType]} {Math.round(a.allocationPercent)}%
+                </span>
+                <span className="text-gray-400 dark:text-gray-500">
+                  ({fmtPLN(plnAmount)})
+                </span>
               </span>
-            </span>
-          ))}
+            );
+          })}
         </div>
         {!valid ? (
           <span className="text-red-500 text-xs ml-auto">
@@ -183,6 +201,7 @@ interface AllocationRowProps {
   allocation: PortfolioAllocation;
   index: number;
   bondPresets: BondPreset[];
+  wrapperMonthlyPLN: number;
   onSliderChange: (index: number, newPercent: number) => void;
   onReturnChange: (index: number, newReturn: number) => void;
   onRemove: (index: number) => void;
@@ -206,12 +225,14 @@ function AllocationRow({
   allocation,
   index,
   bondPresets,
+  wrapperMonthlyPLN,
   onSliderChange,
   onReturnChange,
   onRemove,
   canRemove,
 }: AllocationRowProps) {
   const subtitle = instrumentSubtitle(allocation, bondPresets);
+  const plnAmount = wrapperMonthlyPLN * allocation.allocationPercent / 100;
 
   return (
     <div className="p-4 border-b border-gray-100 dark:border-gray-700 last:border-0">
@@ -231,6 +252,9 @@ function AllocationRow({
           {subtitle ? (
             <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>
           ) : null}
+          <p className="mt-0.5 text-xs font-medium text-blue-600 dark:text-blue-400">
+            {fmtPLN(plnAmount)}/mies.
+          </p>
         </div>
         {canRemove ? (
           <button
@@ -300,6 +324,11 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
   const [searchError, setSearchError] = useState<string | null>(null);
   const available = options.filter((o) => !existingIds.has(o.instrumentId));
 
+  // Group available options by category
+  const etfOptions = available.filter((o) => o.instrumentType === 'etf' || o.instrumentType === 'stocks_pl' || o.instrumentType === 'stocks_foreign');
+  const bondOptions = available.filter((o) => o.instrumentType === 'bonds');
+  const savingsOptions = available.filter((o) => o.instrumentType === 'savings');
+
   const handleCustomEtfSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const ticker = customTicker.trim();
@@ -315,11 +344,15 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
         throw new Error(err?.error ?? 'Nie znaleziono tickera');
       }
 
+      const data = await resp.json();
+      const name = data?.name ?? data?.shortName ?? ticker;
+
       onAdd({
         instrumentId: ticker,
         instrumentType: 'etf',
-        label: ticker,
+        label: `${ticker} — ${name}`,
         defaultReturn: 8,
+        displayName: name !== ticker ? `${name} (${ticker})` : ticker,
       });
       setCustomTicker('');
       setOpen(false);
@@ -329,6 +362,24 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
       setIsSearching(false);
     }
   };
+
+  const renderOption = (opt: InstrumentOption) => (
+    <button
+      key={opt.instrumentId}
+      type="button"
+      onClick={() => {
+        onAdd(opt);
+        setOpen(false);
+      }}
+      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+    >
+      <span
+        className={`inline-block h-2.5 w-2.5 shrink-0 rounded-sm ${INSTRUMENT_COLORS[opt.instrumentType]}`}
+      />
+      <span className="min-w-0 truncate">{opt.label}</span>
+      <span className="ml-auto shrink-0 text-xs text-gray-400">{opt.defaultReturn}%</span>
+    </button>
+  );
 
   return (
     <div className="relative p-3">
@@ -342,36 +393,58 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
         Dodaj instrument
       </button>
       {open ? (
-        <div className="absolute left-3 z-10 mt-1 w-80 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-lg">
-          <div className="max-h-60 overflow-y-auto">
-            {available.map((opt) => (
-              <button
-                key={opt.instrumentId}
-                type="button"
-                onClick={() => {
-                  onAdd(opt);
-                  setOpen(false);
-                }}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-              >
-                <span
-                  className={`inline-block h-2.5 w-2.5 rounded-sm ${INSTRUMENT_COLORS[opt.instrumentType]}`}
-                />
-                {opt.label}
-              </button>
-            ))}
+        <div className="absolute left-3 z-10 mt-1 w-96 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-lg">
+          <div className="max-h-80 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
+            {/* ETF / Stocks section */}
+            {etfOptions.length > 0 ? (
+              <div>
+                <div className="sticky top-0 bg-gray-50 dark:bg-gray-750 px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <TrendingUp className="h-3 w-3" aria-hidden="true" />
+                  ETF / Akcje
+                </div>
+                {etfOptions.map(renderOption)}
+              </div>
+            ) : null}
+
+            {/* Bonds section */}
+            {bondOptions.length > 0 ? (
+              <div>
+                <div className="sticky top-0 bg-gray-50 dark:bg-gray-750 px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Landmark className="h-3 w-3" aria-hidden="true" />
+                  Obligacje skarbowe
+                </div>
+                {bondOptions.map(renderOption)}
+              </div>
+            ) : null}
+
+            {/* Savings section */}
+            {savingsOptions.length > 0 ? (
+              <div>
+                <div className="sticky top-0 bg-gray-50 dark:bg-gray-750 px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Banknote className="h-3 w-3" aria-hidden="true" />
+                  Lokata
+                </div>
+                {savingsOptions.map(renderOption)}
+              </div>
+            ) : null}
+
+            {available.length === 0 ? (
+              <div className="px-3 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                Wszystkie dostępne instrumenty zostały już dodane
+              </div>
+            ) : null}
           </div>
           {/* Custom ETF search */}
           <div className="border-t border-gray-200 dark:border-gray-700 p-3">
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-              Wyszukaj ETF po tickerze
+              Wyszukaj dowolny ETF lub akcję po tickerze (Yahoo Finance)
             </p>
             <form onSubmit={handleCustomEtfSubmit} className="flex gap-2">
               <input
                 type="text"
                 value={customTicker}
                 onChange={(e) => setCustomTicker(e.target.value.toUpperCase())}
-                placeholder="np. IWDA.AS, VOO…"
+                placeholder="np. IWDA.AS, VOO, AAPL…"
                 className="flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-1.5 text-xs text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
               <button
@@ -379,7 +452,7 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
                 disabled={!customTicker.trim() || isSearching}
                 className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSearching ? '...' : 'Dodaj'}
+                {isSearching ? '...' : 'Szukaj'}
               </button>
             </form>
             {searchError ? (
@@ -398,6 +471,7 @@ interface WrapperSectionProps {
   icon: React.ReactNode;
   title: string;
   amount: string;
+  wrapperMonthlyPLN: number;
   taxBenefit: string;
   wrapperIndex: 0 | 1 | 2;
   config: WrapperPortfolioConfig;
@@ -412,6 +486,7 @@ function WrapperSection({
   icon,
   title,
   amount,
+  wrapperMonthlyPLN,
   taxBenefit,
   wrapperIndex,
   config,
@@ -473,6 +548,7 @@ function WrapperSection({
         instrumentType: option.instrumentType,
         allocationPercent: 0,
         expectedReturnPercent: option.defaultReturn,
+        displayName: option.displayName,
       };
       updateWrapperConfig(wrapperIndex, {
         allocations: [...allocations, newAllocation],
@@ -513,7 +589,7 @@ function WrapperSection({
           {children}
 
           {allocations.length > 0 ? (
-            <AllocationBar allocations={allocations} />
+            <AllocationBar allocations={allocations} wrapperMonthlyPLN={wrapperMonthlyPLN} />
           ) : null}
 
           {allocations.map((a, i) => (
@@ -522,6 +598,7 @@ function WrapperSection({
               allocation={a}
               index={i}
               bondPresets={bondPresets}
+              wrapperMonthlyPLN={wrapperMonthlyPLN}
               onSliderChange={handleSliderChange}
               onReturnChange={handleReturnChange}
               onRemove={handleRemove}
@@ -594,6 +671,7 @@ export default function Step3Allocation({
           icon={<Shield className="h-5 w-5" aria-hidden="true" />}
           title="Portfel IKE"
           amount={`${fmtPLN(ikeMonthlyAllocation)}/mies.`}
+          wrapperMonthlyPLN={ikeMonthlyAllocation}
           taxBenefit="0% podatku od zysków po 60. roku życia"
           wrapperIndex={0}
           config={ikeConfig}
@@ -609,6 +687,7 @@ export default function Step3Allocation({
           icon={<PiggyBank className="h-5 w-5" aria-hidden="true" />}
           title="Portfel IKZE"
           amount={`${fmtPLN(ikzeMonthlyAllocation)}/mies.`}
+          wrapperMonthlyPLN={ikzeMonthlyAllocation}
           taxBenefit={`Odliczenie od PIT: ${fmtPLN(ikzePitDeductionAnnual)}/rok · 10% ryczałt przy wypłacie`}
           wrapperIndex={1}
           config={ikzeConfig}
@@ -663,6 +742,7 @@ export default function Step3Allocation({
           icon={<Wallet className="h-5 w-5" aria-hidden="true" />}
           title="Nadwyżka"
           amount={`${fmtPLN(surplusMonthly)}/mies.`}
+          wrapperMonthlyPLN={surplusMonthly}
           taxBenefit="Kwota ponad limity IKE + IKZE · 19% Belka od zysków"
           wrapperIndex={2}
           config={regularConfig}
