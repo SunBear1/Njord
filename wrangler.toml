@@ -1,2 +1,7 @@
 name = "njord"
 compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "njord-auth"
+database_id = "TODO_RUN_wrangler_d1_create_njord-auth"
