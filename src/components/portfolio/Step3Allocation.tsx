@@ -295,9 +295,40 @@ interface AddInstrumentMenuProps {
 
 function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuProps) {
   const [open, setOpen] = useState(false);
+  const [customTicker, setCustomTicker] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const available = options.filter((o) => !existingIds.has(o.instrumentId));
 
-  if (available.length === 0) return null;
+  const handleCustomEtfSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const ticker = customTicker.trim();
+    if (!ticker || isSearching) return;
+
+    setIsSearching(true);
+    setSearchError(null);
+
+    try {
+      const resp = await fetch(`/api/analyze?ticker=${encodeURIComponent(ticker)}`);
+      if (!resp.ok) {
+        const err: { error?: string } | null = await resp.json().catch(() => null);
+        throw new Error(err?.error ?? 'Nie znaleziono tickera');
+      }
+
+      onAdd({
+        instrumentId: ticker,
+        instrumentType: 'etf',
+        label: ticker,
+        defaultReturn: 8,
+      });
+      setCustomTicker('');
+      setOpen(false);
+    } catch (err) {
+      setSearchError(err instanceof Error ? err.message : 'Błąd wyszukiwania');
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   return (
     <div className="relative p-3">
@@ -311,23 +342,50 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
         Dodaj instrument
       </button>
       {open ? (
-        <div className="absolute left-3 z-10 mt-1 max-h-60 w-80 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-lg">
-          {available.map((opt) => (
-            <button
-              key={opt.instrumentId}
-              type="button"
-              onClick={() => {
-                onAdd(opt);
-                setOpen(false);
-              }}
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              <span
-                className={`inline-block h-2.5 w-2.5 rounded-sm ${INSTRUMENT_COLORS[opt.instrumentType]}`}
+        <div className="absolute left-3 z-10 mt-1 w-80 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-lg">
+          <div className="max-h-60 overflow-y-auto">
+            {available.map((opt) => (
+              <button
+                key={opt.instrumentId}
+                type="button"
+                onClick={() => {
+                  onAdd(opt);
+                  setOpen(false);
+                }}
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              >
+                <span
+                  className={`inline-block h-2.5 w-2.5 rounded-sm ${INSTRUMENT_COLORS[opt.instrumentType]}`}
+                />
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          {/* Custom ETF search */}
+          <div className="border-t border-gray-200 dark:border-gray-700 p-3">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+              Wyszukaj ETF po tickerze
+            </p>
+            <form onSubmit={handleCustomEtfSubmit} className="flex gap-2">
+              <input
+                type="text"
+                value={customTicker}
+                onChange={(e) => setCustomTicker(e.target.value.toUpperCase())}
+                placeholder="np. IWDA.AS, VOO…"
+                className="flex-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-2 py-1.5 text-xs text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
-              {opt.label}
-            </button>
-          ))}
+              <button
+                type="submit"
+                disabled={!customTicker.trim() || isSearching}
+                className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSearching ? '...' : 'Dodaj'}
+              </button>
+            </form>
+            {searchError ? (
+              <p className="mt-1 text-xs text-red-500">{searchError}</p>
+            ) : null}
+          </div>
         </div>
       ) : null}
     </div>
@@ -424,11 +482,11 @@ function WrapperSection({
   );
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
       <button
         type="button"
         onClick={() => setCollapsed((v) => !v)}
-        className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+        className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors rounded-t-xl"
         aria-expanded={!collapsed}
       >
         <span className="shrink-0 text-blue-600 dark:text-blue-400">{icon}</span>
