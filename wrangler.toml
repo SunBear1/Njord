@@ -1,7 +1,8 @@
 name = "njord"
+pages_build_output_dir = "dist"
 compatibility_date = "2024-01-01"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "njord-auth"
-database_id = "TODO_RUN_wrangler_d1_create_njord-auth"
+database_name = "njord-users-db"
+database_id = "7557d670-0d6f-4959-b99d-94b9368dc53d"
