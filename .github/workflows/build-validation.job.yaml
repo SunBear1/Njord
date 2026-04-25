@@ -7,6 +7,8 @@ jobs:
   build-validation:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v6
+
       - uses: ./.github/actions/setup
 
       - run: npm run lint

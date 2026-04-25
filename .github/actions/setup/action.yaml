@@ -1,19 +1,9 @@
 name: Setup Node.js environment
-description: Checkout repository, install Node.js 22, and install npm dependencies
-
-inputs:
-  token:
-    description: GitHub token passed to actions/checkout (required when the job pushes back to the repo)
-    required: false
-    default: ""
+description: Install Node.js 22 and npm dependencies (requires prior actions/checkout)
 
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v6
-      with:
-        token: ${{ inputs.token || github.token }}
-
     - uses: actions/setup-node@v6
       with:
         node-version: "22"

@@ -10,9 +10,11 @@ jobs:
   backtest:
     runs-on: ubuntu-latest
     steps:
-      - uses: ./.github/actions/setup
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: ./.github/actions/setup
 
       - name: Run NASDAQ backtest
         run: npm run test:backtest | tee backtest-report.txt
