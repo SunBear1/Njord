@@ -68,6 +68,7 @@ export function useSellAnalysis(
     clearTimeout(debounceRef.current);
 
     if (!prepared) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- safe early-return guard, prepared derives from props not hook state
       setAnalysis(null);
       setIsLoading(false);
       return;

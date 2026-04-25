@@ -34,7 +34,16 @@ const STORAGE_KEY = 'njord_tax_transactions';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
-  const [storageCorrupted, setStorageCorrupted] = useState(false);
+  const [storageCorrupted] = useState(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (!stored) return false;
+      const result = TaxTransactionsSchema.safeParse(JSON.parse(stored));
+      return !result.success;
+    } catch {
+      return false;
+    }
+  });
   const [transactions, setTransactions] = useState<TaxTransaction[]>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -53,19 +62,10 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
   });
 
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  /** When user edits any imported transaction, undo is no longer meaningful. */
+  const [undoInvalidated, setUndoInvalidated] = useState(false);
 
   // Persist to localStorage on every change.
-  // Validate persisted data on mount and show corruption warning if needed
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const result = TaxTransactionsSchema.safeParse(JSON.parse(stored));
-        if (!result.success) setStorageCorrupted(true);
-      }
-    } catch { /* ignore */ }
-  }, []); // mount-only
-
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
@@ -74,7 +74,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
 
 
   const updateTransaction = useCallback((id: string, patch: Partial<TaxTransaction>) => {
-    undoInvalidatedRef.current = true;
+    setUndoInvalidated(true);
     setTransactions((prev) => prev.map((tx) => (tx.id === id ? { ...tx, ...patch } : tx)));
   }, []);
 
@@ -130,8 +130,6 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
   /** IDs of the last successfully imported batch — used by "Cofnij import". */
   const [lastImportIds, setLastImportIds] = useState<string[] | null>(null);
   const [lastImportCount, setLastImportCount] = useState(0);
-  /** When user edits any imported transaction, undo is no longer meaningful. */
-  const undoInvalidatedRef = useRef(false);
   /** Inline confirm state for "Wyczyść wszystkie". */
   const [confirmClearAll, setConfirmClearAll] = useState(false);
 
@@ -143,7 +141,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
       setImportError(null);
       setImportLoading(true);
       setLastImportIds(null);
-      undoInvalidatedRef.current = false;
+      setUndoInvalidated(false);
       try {
         const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
         if (file.size > MAX_FILE_SIZE) {
@@ -168,7 +166,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
         if (fileInputRef.current) fileInputRef.current.value = '';
       }
     },
-    [selectedBroker],
+    [selectedBroker, setUndoInvalidated],
   );
 
   const onFileChange = useCallback(
@@ -397,7 +395,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
       </div>
 
       {/* Undo last import banner */}
-      {lastImportIds && !undoInvalidatedRef.current && (
+      {lastImportIds && !undoInvalidated && (
         <div className="flex items-center justify-between gap-2 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2 text-xs text-emerald-800 dark:text-emerald-300">
           <div className="flex items-center gap-1.5">
             <CheckCircle2 size={13} className="flex-shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />

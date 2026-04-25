@@ -117,7 +117,7 @@ export function ScenarioEditor({
             : String(parseFloat(pctFx.toFixed(2))),
         };
       }
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing local values from parent scenarios
       setLocalValues(updated);
     }
   }, [scenarios, stockMode, fxMode, currentPriceUSD, currentFxRate]);

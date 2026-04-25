@@ -29,6 +29,7 @@ export function PolishDateInput({
   useEffect(() => {
     const currentISO = parsePLDate(display) ?? '';
     if (currentISO !== value) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing display to external value change
       setDisplay(isoToPLDate(value));
       setError(undefined);
     }
