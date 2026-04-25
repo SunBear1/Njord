@@ -75,7 +75,7 @@ export async function verifyJwt(token: string, secret: string): Promise<JwtPaylo
   try {
     const key = await getSigningKey(secret);
     const signatureBytes = base64UrlDecode(sig);
-    const valid = await crypto.subtle.verify('HMAC', key, signatureBytes, new TextEncoder().encode(signingInput));
+    const valid = await crypto.subtle.verify('HMAC', key, signatureBytes as unknown as ArrayBuffer, new TextEncoder().encode(signingInput));
     if (!valid) return null;
 
     const payload = JSON.parse(new TextDecoder().decode(base64UrlDecode(body))) as JwtPayload;
