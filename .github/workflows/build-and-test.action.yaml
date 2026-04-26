@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: ["*"]
 
+permissions: read-all
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
     uses: ./.github/workflows/lint.job.yaml

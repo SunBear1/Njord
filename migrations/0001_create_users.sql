@@ -1,7 +1,7 @@
 -- Migration 0001: Create authentication tables
 -- Apply with: wrangler d1 migrations apply njord-auth
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   password_hash TEXT,
@@ -12,7 +12,7 @@ CREATE TABLE users (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE oauth_accounts (
+CREATE TABLE IF NOT EXISTS oauth_accounts (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   provider TEXT NOT NULL,
@@ -22,5 +22,5 @@ CREATE TABLE oauth_accounts (
   UNIQUE(provider, provider_user_id)
 );
 
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_oauth_provider ON oauth_accounts(provider, provider_user_id);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_oauth_provider ON oauth_accounts(provider, provider_user_id);
