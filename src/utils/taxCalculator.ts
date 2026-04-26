@@ -1,7 +1,5 @@
 /**
  * Polish Belka tax (19% capital gains tax) calculation engine.
- *
- * Known limitations are documented in TAX_LIMITATIONS.md at the repo root.
  */
 
 import type { TaxInputs, TaxResult, TaxTransaction, TransactionTaxResult, MultiTaxSummary, Pit38FieldMapping } from '../types/tax';
