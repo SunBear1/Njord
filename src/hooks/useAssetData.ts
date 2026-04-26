@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { fetchAssetData } from '../providers/twelveDataProvider';
 import type { AssetData } from '../types/asset';
 import type { FxRate } from '../providers/nbpProvider';
+import { toErrorMessage } from '../utils/formatting';
 
 interface ProxyFxData {
   currentRate: number;
@@ -40,7 +41,7 @@ export function useAssetData(): UseAssetDataReturn {
       return response.assetData;
     } catch (err) {
       if (controller.signal.aborted) return null;
-      setError(err instanceof Error ? err.message : 'Nieznany błąd');
+      setError(toErrorMessage(err));
       setAssetData(null);
       setProxyFxData(null);
       return null;

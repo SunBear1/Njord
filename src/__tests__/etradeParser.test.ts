@@ -13,7 +13,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import * as XLSX from 'xlsx';
-import { mmddyyyyToIso } from '../utils/etradeParser';
+import { mmddyyyyToIso } from '../utils/brokerParsers/etrade';
 import { etradeParser } from '../utils/brokerParsers/etrade';
 
 // ─── Fixture file loader ───────────────────────────────────────────────────────

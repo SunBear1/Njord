@@ -11,6 +11,7 @@ import {
   Banknote,
 } from 'lucide-react';
 import { fetchAssetData } from '../../providers/twelveDataProvider';
+import { toErrorMessage } from '../../utils/formatting';
 import type {
   WrapperPortfolioConfig,
   PortfolioAllocation,
@@ -352,7 +353,7 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
       setCustomTicker('');
       setOpen(false);
     } catch (err) {
-      setSearchError(err instanceof Error ? err.message : 'Błąd wyszukiwania');
+      setSearchError(toErrorMessage(err, 'Błąd wyszukiwania'));
     } finally {
       setIsSearching(false);
     }

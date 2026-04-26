@@ -21,3 +21,8 @@ export const fmtDiffPct = (v: number): string => {
 
 /** Recharts tooltip formatter — formats value as PLN currency. */
 export const fmtTooltipPLN = (value: unknown) => fmtPLN(Number(value ?? 0));
+
+/** Extract error message from unknown catch value. */
+export function toErrorMessage(err: unknown, fallback = 'Nieznany błąd'): string {
+  return err instanceof Error ? err.message : fallback;
+}

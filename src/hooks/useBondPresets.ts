@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import type { BondPreset } from '../types/scenario';
 import { fetchWithTimeout } from '../utils/fetchWithTimeout';
+import { toErrorMessage } from '../utils/formatting';
 
 interface UseBondPresetsReturn {
   presets: BondPreset[];
@@ -31,7 +32,7 @@ export function useBondPresets(): UseBondPresetsReturn {
         setPresets(data);
       } catch (err) {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : 'Nieznany błąd');
+        setError(toErrorMessage(err));
       } finally {
         if (!cancelled) setIsLoading(false);
       }

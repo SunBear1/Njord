@@ -67,14 +67,14 @@ export function useAuth(): UseAuthReturn {
 
     if (authResult === 'success') {
       // Re-fetch user after OAuth redirect
-      authFetch<User>('/me').then(setUser).catch(() => {});
+      authFetch<User>('/me').then(setUser).catch(() => setError('Nie udało się załadować profilu po logowaniu OAuth.'));
       // Clean up URL
       const url = new URL(window.location.href);
       url.searchParams.delete('auth');
       window.history.replaceState({}, '', url.pathname);
     } else if (authResult === 'linked') {
       // Re-fetch user after OAuth account linking
-      authFetch<User>('/me').then(setUser).catch(() => {});
+      authFetch<User>('/me').then(setUser).catch(() => setError('Nie udało się załadować profilu po połączeniu konta.'));
       const url = new URL(window.location.href);
       url.searchParams.delete('auth');
       window.history.replaceState({}, '', url.pathname);

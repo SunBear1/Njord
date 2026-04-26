@@ -8,6 +8,7 @@ import { bootstrapPredict } from '../utils/models/bootstrap';
 import { gbmPredict, clampScenario } from '../utils/models/gbmModel';
 import { hmmPredict } from '../utils/models/hmmModel';
 import { useDebouncedValue } from './useDebouncedValue';
+import { TRADING_DAYS_PER_YEAR } from '../utils/assetConfig';
 
 export interface VolatilityStats {
   stockSigmaAnnual: number; // annualized σ in %
@@ -138,13 +139,13 @@ export function useHistoricalVolatility(
     const fxDailySigma = stddev(fxReturns);
     const rho = pearsonCorrelation(stockReturns, fxReturns);
 
-    const stockSigmaAnnual = stockDailySigma * Math.sqrt(252) * 100;
-    const fxSigmaAnnual = fxDailySigma * Math.sqrt(252) * 100;
+    const stockSigmaAnnual = stockDailySigma * Math.sqrt(TRADING_DAYS_PER_YEAR) * 100;
+    const fxSigmaAnnual = fxDailySigma * Math.sqrt(TRADING_DAYS_PER_YEAR) * 100;
 
     const stockLogRet = logReturns(stockPrices);
     // GBM drift parameter μ must be the mean of log-returns (not simple returns).
     // Using arithmetic mean of simple returns would introduce ≈ σ²/2 upward bias.
-    const stockMeanAnnual = mean(stockLogRet) * 252 * 100;
+    const stockMeanAnnual = mean(stockLogRet) * TRADING_DAYS_PER_YEAR * 100;
     const seed = dataSeed(stockPrices);
 
     return { stockSigmaAnnual, fxSigmaAnnual, rho, stockMeanAnnual, stockLogRet, seed };
@@ -176,7 +177,7 @@ export function useHistoricalVolatility(
       const { rho, stockLogRet, seed } = baseStats;
       const T = debouncedHorizon / 12; // horizon in years
       const fxSigma = baseStats.fxSigmaAnnual / 100;
-      const dataYears = stockLogRet.length / 252;
+      const dataYears = stockLogRet.length / TRADING_DAYS_PER_YEAR;
 
       // FX magnitude for scenario correlation
       const fxMagPct = (Math.exp(1.645 * fxSigma * Math.sqrt(T) + (-(fxSigma * fxSigma) / 2) * T) - 1) * 100;

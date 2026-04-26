@@ -11,6 +11,7 @@
  */
 
 import { mulberry32, boxMuller } from './models/types';
+import { TRADING_DAYS_PER_YEAR } from './assetConfig';
 
 // Re-export for consumers that import from hmm.ts
 export { mulberry32, boxMuller };
@@ -332,10 +333,9 @@ export function detectCurrentRegime(obs: number[], model: HmmModel): RegimeInfo 
 
   const expectedDurations = model.transmat.map((row, i) => 1 / (1 - row[i] + 1e-10));
 
-  const TRADING_DAYS = 252;
   // Correct annualization via exp() for log-returns (not simple multiplication)
-  const stateMeansAnnual = model.means.map((m) => (Math.exp(m * TRADING_DAYS) - 1) * 100);
-  const stateSigmasAnnual = model.stds.map((s) => s * Math.sqrt(TRADING_DAYS) * 100);
+  const stateMeansAnnual = model.means.map((m) => (Math.exp(m * TRADING_DAYS_PER_YEAR) - 1) * 100);
+  const stateSigmasAnnual = model.stds.map((s) => s * Math.sqrt(TRADING_DAYS_PER_YEAR) * 100);
 
   return {
     currentState,

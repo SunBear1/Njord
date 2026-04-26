@@ -206,7 +206,7 @@ function App() {
       <header className="bg-gradient-to-r from-slate-800 to-slate-900 text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-5 flex items-center gap-3">
           {/* Viking drakkar inline icon */}
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="36" height="36" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="36" height="36" className="shrink-0" aria-hidden="true">
             <rect x="30.5" y="10" width="2.5" height="22" rx="1" fill="#e2e8f0"/>
             <path d="M33 11 L46 20 L33 30 Z" fill="#3b82f6"/>
             <path d="M33 11 L39.5 15.5 L39.5 25.5 L33 30 Z" fill="#60a5fa"/>
@@ -221,9 +221,9 @@ function App() {
             <line x1="46" y1="39" x2="48" y2="48" stroke="#93c5fd" stroke-width="1.5" stroke-linecap="round"/>
             <path d="M8 52 Q18 49 28 52 Q38 55 48 52 Q54 50 58 52" stroke="#60a5fa" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.7"/>
           </svg>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold tracking-tight">Njord</h1>
-            <p className="text-sm text-slate-400">Akcje · Obligacje · Konto oszczędnościowe · Podatek Belki · Kreator portfela</p>
+            <p className="text-sm text-slate-400 truncate">Akcje · Obligacje · Konto oszczędnościowe · Podatek Belki · Kreator portfela</p>
           </div>
           <button
             type="button"

@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef } from 'react';
 import { fetchAssetData } from '../providers/twelveDataProvider';
 import type { AssetData, HistoricalPrice } from '../types/asset';
+import { TRADING_DAYS_PER_YEAR } from '../utils/assetConfig';
+import { toErrorMessage } from '../utils/formatting';
 
 interface UseEtfDataReturn {
   etfData: AssetData | null;
@@ -17,7 +19,7 @@ export function computeCAGR(prices: HistoricalPrice[]): number | null {
   const first = sorted[0].close;
   const last = sorted[sorted.length - 1].close;
   if (first <= 0 || last <= 0) return null;
-  const tradingYears = sorted.length / 252;
+  const tradingYears = sorted.length / TRADING_DAYS_PER_YEAR;
   return (Math.pow(last / first, 1 / tradingYears) - 1) * 100;
 }
 
@@ -44,7 +46,7 @@ export function useEtfData(): UseEtfDataReturn {
       setEtfAnnualizedReturn(computeCAGR(response.assetData.historicalPrices));
     } catch (err) {
       if (controller.signal.aborted) return;
-      setError(err instanceof Error ? err.message : 'Nieznany błąd');
+      setError(toErrorMessage(err));
       setEtfData(null);
       setEtfAnnualizedReturn(null);
     } finally {

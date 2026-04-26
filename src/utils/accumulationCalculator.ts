@@ -119,7 +119,9 @@ function simulateStocksBucket(params: BucketSimParams): {
 
 /**
  * Simulate monthly DCA for a bonds-instrument bucket.
- * Simplified model: monthly contributions compound at the bond rate.
+ *
+ * Handles bond maturity events: when a batch of bonds reaches maturity,
+ * gains are taxed (Belka) in regular wrappers and the proceeds are reinvested.
  * Year 1 uses firstYearRate, subsequent years use effectiveRate.
  */
 function simulateBondsBucket(params: BucketSimParams): {
@@ -127,31 +129,64 @@ function simulateBondsBucket(params: BucketSimParams): {
   dividendTaxPaid: number;
 } {
   const { monthlyPLN, horizonMonths, config } = params;
-
-  let portfolioValue = 0;
+  const maturityMonths = config.bondMaturityMonths ?? 0;
+  const isRegularWrapper = config.wrapper === 'regular';
+  // Track individual monthly contribution cohorts for maturity events
+  // Each cohort: { principal, value, ageMonths }
+  let cohorts: { principal: number; value: number; ageMonths: number }[] = [];
   let totalContributed = 0;
+  let taxPaidDuringAccumulation = 0;
+
   const snapshots: BucketYearSnapshot[] = [
     { year: 0, nominalValue: 0, totalContributed: 0, taxPaidDuringAccumulation: 0 },
   ];
 
   for (let m = 1; m <= horizonMonths; m++) {
     totalContributed += monthlyPLN;
-    portfolioValue += monthlyPLN;
+    cohorts.push({ principal: monthlyPLN, value: monthlyPLN, ageMonths: 0 });
 
-    // Determine the annual rate based on which year we're in
+    // Determine the annual rate for compounding
     const year = Math.ceil(m / 12);
     const annualRate = year === 1 ? config.bondFirstYearRate : config.bondEffectiveRate;
     const monthlyRate = annualRate / 100 / 12;
 
-    // Compound entire portfolio (all accumulated contributions)
-    portfolioValue *= 1 + monthlyRate;
+    // Compound all cohorts
+    for (const c of cohorts) {
+      c.value *= 1 + monthlyRate;
+      c.ageMonths++;
+    }
+
+    // Check for maturity events (only if maturity period is set)
+    if (maturityMonths > 0) {
+      const matured: typeof cohorts = [];
+      const remaining: typeof cohorts = [];
+      for (const c of cohorts) {
+        if (c.ageMonths >= maturityMonths) matured.push(c);
+        else remaining.push(c);
+      }
+
+      if (matured.length > 0) {
+        let reinvestAmount = 0;
+        for (const c of matured) {
+          const gain = Math.max(0, c.value - c.principal);
+          // Belka tax on gain at maturity (regular wrapper only; IKE/IKZE are tax-deferred)
+          const tax = isRegularWrapper ? gain * BELKA_RATE : 0;
+          taxPaidDuringAccumulation += tax;
+          reinvestAmount += c.value - tax;
+        }
+        // Reinvest matured proceeds as a single new cohort
+        remaining.push({ principal: reinvestAmount, value: reinvestAmount, ageMonths: 0 });
+        cohorts = remaining;
+      }
+    }
 
     if (m % 12 === 0 || m === horizonMonths) {
+      const portfolioValue = cohorts.reduce((sum, c) => sum + c.value, 0);
       snapshots.push({
         year: Math.ceil(m / 12),
         nominalValue: portfolioValue,
         totalContributed,
-        taxPaidDuringAccumulation: 0,
+        taxPaidDuringAccumulation,
       });
     }
   }
@@ -197,8 +232,9 @@ export function calcIkzePitDeduction(
 
   let total = 0;
   for (let year = 1; year <= horizonYears; year++) {
-    // Each year's deduction is reinvested at the start of the year
-    const monthsRemaining = (horizonYears - year) * 12 + 6; // mid-year approximation
+    // Deduction available at start of next tax year (April filing) — approximate
+    // as start of year (monthsRemaining = remaining full years × 12).
+    const monthsRemaining = (horizonYears - year) * 12;
     const compounded = annualDeduction * Math.pow(1 + monthlyRate, monthsRemaining);
     // Belka on savings interest
     const gain = compounded - annualDeduction;
@@ -702,6 +738,7 @@ function makeBondConfig(
     bondRateType: preset?.rateType ?? 'fixed',
     bondMargin: preset?.margin ?? 0,
     bondCouponFrequency: preset?.couponFrequency ?? 0,
+    bondMaturityMonths: preset?.maturityMonths,
   };
 }
 

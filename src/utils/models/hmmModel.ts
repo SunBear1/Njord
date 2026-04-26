@@ -17,10 +17,10 @@ import {
   regimeConditionedMonteCarlo,
   type RegimeInfo,
 } from '../hmm';
+import { TRADING_DAYS_PER_YEAR } from '../assetConfig';
 
 const MIN_OBSERVATIONS = 250;
 const N_PATHS = 3000;
-const TRADING_DAYS_YEAR = 252;
 
 function kurtosis(data: number[]): number {
   const n = data.length;
@@ -80,8 +80,8 @@ export function hmmPredict(
     ? ` ⚠ Grube ogony (kurtoza=${kurt.toFixed(1)}) — Gaussian HMM może zaniżać ryzyko ekstremalne.`
     : '';
 
-  const bearAnnual = (Math.exp(model.means[0] * TRADING_DAYS_YEAR) - 1) * 100;
-  const bullAnnual = (Math.exp(model.means[1] * TRADING_DAYS_YEAR) - 1) * 100;
+  const bearAnnual = (Math.exp(model.means[0] * TRADING_DAYS_PER_YEAR) - 1) * 100;
+  const bullAnnual = (Math.exp(model.means[1] * TRADING_DAYS_PER_YEAR) - 1) * 100;
   const regimeLabel = regime.currentRegimeLabel === 'bull' ? 'wzrost' : 'spadek';
 
   // Confidence: posterior probability × data adequacy × model fit

@@ -61,6 +61,8 @@ export interface BucketConfig {
   bondMargin: number;
   /** Coupon frequency: 0=capitalized, 1=annual, 12=monthly. */
   bondCouponFrequency: number;
+  /** Bond maturity in months (e.g. 120 for EDO). Used for maturity-event simulation. */
+  bondMaturityMonths?: number;
 }
 
 // ─── Inputs ───────────────────────────────────────────────────────────────────

@@ -54,6 +54,10 @@ export function validateScenarios(
   if (Math.abs(bear.deltaFx) > Math.abs(bear.deltaStock))
     violations.push(`bear FX (${bear.deltaFx.toFixed(1)}%) > stock (${bear.deltaStock.toFixed(1)}%)`);
 
+  // 7. FX sign correlation — bear scenario FX should weaken (≤0), bull should strengthen (≥0)
+  if (bear.deltaFx > 0) violations.push(`bear.deltaFx should be ≤ 0, got ${bear.deltaFx.toFixed(1)}%`);
+  if (bull.deltaFx < 0) violations.push(`bull.deltaFx should be ≥ 0, got ${bull.deltaFx.toFixed(1)}%`);
+
   return { valid: violations.length === 0, violations };
 }
 

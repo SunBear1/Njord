@@ -8,6 +8,7 @@ const DEBOUNCE_MS = 300;
 interface UseSellAnalysisResult {
   analysis: SellAnalysisResult | null;
   isLoading: boolean;
+  error: string | null;
 }
 
 function logReturns(prices: number[]): number[] {
@@ -32,6 +33,7 @@ export function useSellAnalysis(
 ): UseSellAnalysisResult {
   const [analysis, setAnalysis] = useState<SellAnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const workerRef = useRef<Worker | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const handlerRef = useRef<((event: MessageEvent) => void) | null>(null);
@@ -72,10 +74,12 @@ export function useSellAnalysis(
       // eslint-disable-next-line react-hooks/set-state-in-effect -- safe early-return guard, prepared derives from props not hook state
       setAnalysis(null);
       setIsLoading(false);
+      setError(null);
       return;
     }
 
     setIsLoading(true);
+    setError(null);
 
     const worker = workerRef.current;
 
@@ -96,6 +100,7 @@ export function useSellAnalysis(
             setAnalysis({ ...result, regimeInfo: regime });
           } else {
             setAnalysis(null);
+            setError(event.data.message ?? 'Analiza nie powiodła się.');
           }
           setIsLoading(false);
         };
@@ -114,12 +119,13 @@ export function useSellAnalysis(
             const { fitGaussianHmm, detectCurrentRegime } = await import('../utils/hmm');
             const { runSellAnalysis } = await import('../utils/sellAnalysis');
             const model = fitGaussianHmm(prepared.logRet);
-            if (!model) { setAnalysis(null); setIsLoading(false); return; }
+            if (!model) { setAnalysis(null); setError('Nie udało się dopasować modelu HMM.'); setIsLoading(false); return; }
             const regime = detectCurrentRegime(prepared.logRet, model);
             const result = runSellAnalysis(model, regime.currentState, prepared.currentPrice, horizonDays, prepared.seed);
             setAnalysis({ ...result, regimeInfo: regime });
-          } catch {
+          } catch (err) {
             setAnalysis(null);
+            setError(err instanceof Error ? err.message : 'Analiza nie powiodła się.');
           } finally {
             setIsLoading(false);
           }
@@ -137,5 +143,5 @@ export function useSellAnalysis(
     };
   }, [prepared, horizonDays]);
 
-  return { analysis, isLoading };
+  return { analysis, isLoading, error };
 }
