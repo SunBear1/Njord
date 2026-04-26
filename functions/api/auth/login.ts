@@ -24,6 +24,10 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     return errorResponse('INVALID_INPUT', 'Email i hasło są wymagane.', 400);
   }
 
+  if (password.length > 128) {
+    return errorResponse('INVALID_CREDENTIALS', 'Nieprawidłowy email lub hasło.', 401);
+  }
+
   const user = await env.DB.prepare(
     'SELECT id, email, password_hash, name FROM users WHERE email = ?',
   ).bind(email.toLowerCase()).first<UserRow>();

@@ -93,13 +93,18 @@ const MIN_SCENARIO_SPREAD = 5;
  */
 function toScenarios(pred: PredictionResult, rho: number, fxMagPct: number, horizonYears: number): Scenarios {
   const [, p25, p50, p75] = pred.percentiles;
-  const bear = clampScenario(p25, horizonYears);
+  let bear = clampScenario(p25, horizonYears);
   let base = clampScenario(p50, horizonYears);
   let bull = clampScenario(p75, horizonYears);
 
   // Enforce minimum spread so scenarios are always distinct
   if (base < bear + MIN_SCENARIO_SPREAD) base = bear + MIN_SCENARIO_SPREAD;
   if (bull < base + MIN_SCENARIO_SPREAD) bull = base + MIN_SCENARIO_SPREAD;
+
+  // Bear must always be negative to match validateScenarios contract
+  bear = Math.min(bear, -MIN_SCENARIO_SPREAD);
+  // Bull must always be positive
+  bull = Math.max(bull, MIN_SCENARIO_SPREAD);
 
   return {
     bear:  { deltaStock: bear, deltaFx: clampScenario(-rho * fxMagPct, horizonYears) },
@@ -221,7 +226,6 @@ export function useHistoricalVolatility(
 
     return () => {
       clearTimeout(timer);
-      setComputing(false);
     };
   }, [baseStats, debouncedHorizon]);
 

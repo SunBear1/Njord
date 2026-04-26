@@ -33,8 +33,8 @@ export function Tooltip({ content, children, side = 'top', width = 'w-60' }: Too
   useEffect(() => {
     if (!visible) return;
     updatePosition();
-    window.addEventListener('scroll', updatePosition, true);
-    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, { capture: true, passive: true });
+    window.addEventListener('resize', updatePosition, { passive: true });
     return () => {
       window.removeEventListener('scroll', updatePosition, true);
       window.removeEventListener('resize', updatePosition);

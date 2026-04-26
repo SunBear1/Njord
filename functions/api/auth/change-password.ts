@@ -13,6 +13,7 @@ import { getAuthCookie } from './_utils/cookie';
 import { hashPassword, verifyPassword } from './_utils/password';
 
 const MIN_PASSWORD_LENGTH = 8;
+const MAX_PASSWORD_LENGTH = 128;
 
 export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) => {
   const token = getAuthCookie(request);
@@ -36,6 +37,10 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
 
   if (!newPassword || newPassword.length < MIN_PASSWORD_LENGTH) {
     return errorResponse('WEAK_PASSWORD', `Nowe hasło musi mieć co najmniej ${MIN_PASSWORD_LENGTH} znaków.`, 400);
+  }
+
+  if (newPassword.length > MAX_PASSWORD_LENGTH) {
+    return errorResponse('WEAK_PASSWORD', `Hasło nie może przekraczać ${MAX_PASSWORD_LENGTH} znaków.`, 400);
   }
 
   const user = await env.DB.prepare('SELECT id, password_hash FROM users WHERE id = ?')

@@ -87,7 +87,8 @@ export function hmmPredict(
   // Confidence: posterior probability × data adequacy × model fit
   const posteriorFactor = regime.posteriorProbability;
   const dataFactor = Math.min(1, n / 500); // 500 obs → full credit
-  const confidence = Math.min(0.90, posteriorFactor * 0.5 + dataFactor * 0.3 + 0.1);
+  // Confidence capped at 0.25: HMM is informational only, must never be the recommended model
+  const confidence = Math.min(0.25, posteriorFactor * 0.5 + dataFactor * 0.3 + 0.1);
 
   return {
     prediction: {

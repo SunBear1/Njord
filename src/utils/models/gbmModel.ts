@@ -63,7 +63,7 @@ interface ScenarioBounds {
 
 const BOUNDS: ScenarioBounds = {
   maxAnnualReturn: 100,
-  maxAnnualLoss: -90,
+  maxAnnualLoss: -80,
   maxTotalReturn: 1000,
   maxTotalLoss: -95,
 };

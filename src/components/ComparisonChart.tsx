@@ -25,17 +25,17 @@ function ComparisonChart({ results, isDark }: ComparisonChartProps) {
 
   const data = useMemo(() => [
     {
-      name: 'Bear',
+      name: 'Niedźwiedzi',
       'Akcje (netto)': Math.round(results[0]?.stockNetEndValuePLN ?? 0),
       [`${bmLabel} (netto)`]: Math.round(results[0]?.benchmarkEndValuePLN ?? 0),
     },
     {
-      name: 'Base',
+      name: 'Bazowy',
       'Akcje (netto)': Math.round(results[1]?.stockNetEndValuePLN ?? 0),
       [`${bmLabel} (netto)`]: Math.round(results[1]?.benchmarkEndValuePLN ?? 0),
     },
     {
-      name: 'Bull',
+      name: 'Byczy',
       'Akcje (netto)': Math.round(results[2]?.stockNetEndValuePLN ?? 0),
       [`${bmLabel} (netto)`]: Math.round(results[2]?.benchmarkEndValuePLN ?? 0),
     },

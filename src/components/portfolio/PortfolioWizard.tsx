@@ -7,6 +7,7 @@ import Step2BrokerSelection from './Step2BrokerSelection';
 import Step3Allocation from './Step3Allocation';
 import { Step4Summary } from './Step4Summary';
 import { calcPortfolioResult } from '../../utils/accumulationCalculator';
+import { blendedInflationRate } from '../../utils/inflationProjection';
 import type { PortfolioCalcInputs } from '../../utils/accumulationCalculator';
 import type { BondPreset } from '../../types/scenario';
 
@@ -25,7 +26,11 @@ export function PortfolioWizard({ bondPresets, isDark }: PortfolioWizardProps) {
       totalMonthlyPLN: wizard.state.personalData.totalMonthlyPLN,
       horizonYears: wizard.state.personalData.horizonYears,
       pitBracket: wizard.state.personalData.pitBracket,
-      inflationRate: wizard.state.personalData.inflationRate,
+      // Use blended inflation rate (mean-reversion) instead of snapshot — prevents
+      // overstatement of inflation-linked bond returns on long horizons.
+      inflationRate: wizard.state.personalData.inflationRate > 0
+        ? blendedInflationRate(wizard.state.personalData.inflationRate, wizard.state.personalData.horizonYears * 12)
+        : 0,
       ikeAnnualLimit: wizard.ikeAnnualLimit,
       ikzeAnnualLimit: wizard.ikzeAnnualLimit,
       savingsRate: wizard.state.savingsRatePercent,
@@ -37,7 +42,10 @@ export function PortfolioWizard({ bondPresets, isDark }: PortfolioWizardProps) {
     return calcPortfolioResult(inputs);
   }, [
     wizard.currentStep,
-    wizard.state.personalData,
+    wizard.state.personalData.totalMonthlyPLN,
+    wizard.state.personalData.horizonYears,
+    wizard.state.personalData.pitBracket,
+    wizard.state.personalData.inflationRate,
     wizard.ikeAnnualLimit,
     wizard.ikzeAnnualLimit,
     wizard.state.savingsRatePercent,

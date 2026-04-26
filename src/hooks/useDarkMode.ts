@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 const STORAGE_KEY = 'njord_dark_mode';
 
@@ -25,6 +25,6 @@ export function useDarkMode(): [boolean, () => void] {
     } catch { /* ignore */ }
   }, [isDark]);
 
-  const toggle = () => setIsDark((d) => !d);
+  const toggle = useCallback(() => setIsDark((d) => !d), []);
   return [isDark, toggle];
 }

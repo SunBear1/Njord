@@ -5,8 +5,9 @@
  */
 
 import type { TaxInputs, TaxResult, TaxTransaction, TransactionTaxResult, MultiTaxSummary } from '../types/tax';
+import { BELKA_RATE } from '../types/accumulation';
 
-const BELKA_TAX = 0.19;
+const BELKA_TAX = BELKA_RATE;
 
 /** Round to grosze (2 decimal places) — required for PIT-38 PLN amounts. */
 const round2 = (n: number) => Math.round(n * 100) / 100;

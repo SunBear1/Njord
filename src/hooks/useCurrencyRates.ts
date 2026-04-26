@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-
+import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 export interface CurrencyRates {
   alior: { buy: number; sell: number; mid: number; ts: string } | null;
   nbp: { buy: number; sell: number; mid: number; date: string } | null;
@@ -31,13 +31,13 @@ interface ProxyResponse {
 }
 
 async function fetchViaProxy(): Promise<ProxyResponse> {
-  const res = await fetch('/api/currency-rates');
+  const res = await fetchWithTimeout('/api/currency-rates');
   if (!res.ok) throw new Error(`Proxy HTTP ${res.status}`);
   return await res.json() as ProxyResponse;
 }
 
 async function fetchAliorDirect(): Promise<CurrencyRates['alior']> {
-  const res = await fetch(ALIOR_URL);
+  const res = await fetchWithTimeout(ALIOR_URL);
   if (!res.ok) return null;
   const data: AliorResponse = await res.json();
   const { buyNow, sellNow, forexNow } = data.directExchangeOffers;
@@ -45,7 +45,7 @@ async function fetchAliorDirect(): Promise<CurrencyRates['alior']> {
 }
 
 async function fetchNbpDirect(): Promise<CurrencyRates['nbp']> {
-  const res = await fetch(NBP_URL);
+  const res = await fetchWithTimeout(NBP_URL);
   if (!res.ok) return null;
   const data: NbpResponse = await res.json();
   const rate = data.rates[0];

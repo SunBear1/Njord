@@ -1,5 +1,7 @@
 /** Types and constants for the "Kreator portfela" (Portfolio Creator) wizard. */
 
+import { IKE_LIMIT_2026 } from './accumulation';
+
 // ─── Wizard Navigation ────────────────────────────────────────────────────────
 
 /** Wizard step: 1=Personal data, 2=Broker selection, 3=Allocation, 4=Summary. */
@@ -209,8 +211,8 @@ export const IKZE_LIMIT_EMPLOYEE_2025 = 10_407.60;
 /** IKZE annual contribution limit for self-employed (2025). */
 export const IKZE_LIMIT_SELF_EMPLOYED_2025 = 15_611.40;
 
-/** Current default IKE limit (2025). */
-export const IKE_DEFAULT_LIMIT = IKE_LIMIT_2025;
+/** Current default IKE limit (2026). */
+export const IKE_DEFAULT_LIMIT = IKE_LIMIT_2026;
 
 /** Current default IKZE limit for employees (2025). */
 export const IKZE_DEFAULT_LIMIT_EMPLOYEE = IKZE_LIMIT_EMPLOYEE_2025;

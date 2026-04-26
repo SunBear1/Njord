@@ -30,21 +30,21 @@ const SCENARIO_CONFIG: {
   inputBorder: string;
 }[] = [
   {
-    key: 'bear', label: 'Bear',
+    key: 'bear', label: 'Niedźwiedzi',
     icon: <TrendingDown size={14} aria-hidden="true" />,
     headerBg: 'bg-red-100 dark:bg-red-900/40', headerText: 'text-red-800 dark:text-red-200',
     cardBorder: 'border-red-200 dark:border-red-800', cardBg: 'bg-red-50/30 dark:bg-red-950/20',
     inputBorder: 'border-red-300 dark:border-red-600 focus:ring-red-400',
   },
   {
-    key: 'base', label: 'Base',
+    key: 'base', label: 'Bazowy',
     icon: <Minus size={14} aria-hidden="true" />,
     headerBg: 'bg-amber-100 dark:bg-amber-900/40', headerText: 'text-amber-700 dark:text-amber-300',
     cardBorder: 'border-amber-200 dark:border-amber-800', cardBg: 'bg-amber-50/30 dark:bg-amber-950/20',
     inputBorder: 'border-amber-300 dark:border-amber-600 focus:ring-amber-400',
   },
   {
-    key: 'bull', label: 'Bull',
+    key: 'bull', label: 'Byczy',
     icon: <TrendingUp size={14} aria-hidden="true" />,
     headerBg: 'bg-green-100 dark:bg-green-900/40', headerText: 'text-green-700 dark:text-green-300',
     cardBorder: 'border-green-200 dark:border-green-800', cardBg: 'bg-green-50/30 dark:bg-green-950/20',
@@ -117,7 +117,7 @@ export function ScenarioEditor({
             : String(parseFloat(pctFx.toFixed(2))),
         };
       }
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing local values from parent scenarios
+       
       setLocalValues(updated);
     }
   }, [scenarios, stockMode, fxMode, currentPriceUSD, currentFxRate]);

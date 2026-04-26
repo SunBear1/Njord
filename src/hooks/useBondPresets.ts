@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import type { BondPreset } from '../types/scenario';
+import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 
 interface UseBondPresetsReturn {
   presets: BondPreset[];
@@ -23,7 +24,7 @@ export function useBondPresets(): UseBondPresetsReturn {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch('/api/bonds', { signal: controller.signal });
+        const res = await fetchWithTimeout('/api/bonds', controller.signal);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json() as BondPreset[];
         if (cancelled) return;
