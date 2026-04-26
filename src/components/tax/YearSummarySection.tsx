@@ -206,10 +206,12 @@ export function YearSummarySection({
           <div className="px-4 py-3 space-y-0.5">
             <SummaryRow
               label="Przychód"
+              note="(Poz. 24)"
               value={fmtPLNGrosze(summary.totalRevenuePLN)}
             />
             <SummaryRow
               label="Koszty uzyskania przychodu"
+              note="(Poz. 25)"
               value={fmtPLNGrosze(summary.totalCostPLN)}
             />
             {summary.totalLossPLN > 0 && (
@@ -227,8 +229,8 @@ export function YearSummarySection({
               />
             )}
             <SummaryRow
-              label="Dochód netto"
-              note="(po odliczeniu strat)"
+              label={summary.netIncomePLN >= 0 ? 'Dochód' : 'Strata'}
+              note={summary.netIncomePLN >= 0 ? '(Poz. 26)' : '(Poz. 27)'}
               value={`${summary.netIncomePLN >= 0 ? '+' : ''}${fmtPLNGrosze(summary.netIncomePLN)}`}
               valueClass={summary.netIncomePLN >= 0 ? 'text-gray-800 dark:text-gray-100' : 'text-red-600 dark:text-red-400'}
               bold
@@ -247,7 +249,7 @@ export function YearSummarySection({
         }`}>
           <div>
             <p className={`text-xs font-semibold mb-0.5 ${summary.taxDuePLN > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-gray-500 dark:text-gray-400'}`}>
-              Podatek należny (PIT-38)
+              Podatek należny (Poz. 34)
             </p>
             <p className={`text-[11px] ${summary.taxDuePLN > 0 ? 'text-amber-600/70 dark:text-amber-500/70' : 'text-gray-400 dark:text-gray-500'}`}>
               {summary.netIncomePLN > 0
@@ -261,6 +263,23 @@ export function YearSummarySection({
             {fmtPLNGrosze(summary.taxDuePLN)}
           </p>
         </div>
+
+        {/* ── Solidarity levy (danina solidarnościowa) ── */}
+        {summary.solidarityLevyPLN > 0 && (
+          <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/20 px-5 py-4 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold mb-0.5 text-red-700 dark:text-red-400">
+                Danina solidarnościowa (DSF-1)
+              </p>
+              <p className="text-[11px] text-red-600/70 dark:text-red-500/70">
+                4% od nadwyżki ponad 1 000 000 zł ({fmtPLNGrosze(summary.netIncomePLN - 1_000_000)})
+              </p>
+            </div>
+            <p className="text-xl font-bold tabular-nums flex-shrink-0 text-red-800 dark:text-red-300">
+              {fmtPLNGrosze(summary.solidarityLevyPLN)}
+            </p>
+          </div>
+        )}
 
         {/* ── Loss carryforward note ── */}
         {summary.netIncomePLN < 0 && (

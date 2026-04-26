@@ -623,3 +623,209 @@ describe('dual-currency (acquisitionCurrency !== currency)', () => {
     expect(s.taxDuePLN).toBeCloseTo(17_700 * 0.19, 1);
   });
 });
+
+// ─── Solidarity levy & PIT-38 field mapping ──────────────────────────────────
+
+describe('solidarity levy', () => {
+  it('is zero when net income below 1M PLN', () => {
+    const tx: TaxTransaction = {
+      ...BASE_TX,
+      id: 'tx-small',
+      saleGrossAmount: 100_000,
+      acquisitionCostAmount: 50_000,
+    };
+    const s = calcMultiTaxSummary([tx]);
+    expect(s.solidarityLevyPLN).toBe(0);
+  });
+
+  it('charges 4% on income exceeding 1M PLN', () => {
+    const tx: TaxTransaction = {
+      ...BASE_TX,
+      id: 'tx-big',
+      currency: 'PLN',
+      saleGrossAmount: 2_000_000,
+      acquisitionCostAmount: 500_000,
+      exchangeRateSaleToPLN: 1,
+      exchangeRateAcquisitionToPLN: 1,
+    };
+    const s = calcMultiTaxSummary([tx]);
+    expect(s.netIncomePLN).toBe(1_500_000);
+    expect(s.solidarityLevyPLN).toBe(20_000);
+  });
+
+  it('is zero when net income is exactly 1M PLN', () => {
+    const tx: TaxTransaction = {
+      ...BASE_TX,
+      id: 'tx-exact',
+      currency: 'PLN',
+      saleGrossAmount: 1_500_000,
+      acquisitionCostAmount: 500_000,
+      exchangeRateSaleToPLN: 1,
+      exchangeRateAcquisitionToPLN: 1,
+    };
+    const s = calcMultiTaxSummary([tx]);
+    expect(s.netIncomePLN).toBe(1_000_000);
+    expect(s.solidarityLevyPLN).toBe(0);
+  });
+});
+
+describe('PIT-38 field mapping', () => {
+  it('maps profitable transaction to correct Poz. fields', () => {
+    const tx: TaxTransaction = {
+      ...BASE_TX,
+      id: 'tx-pit38',
+      currency: 'PLN',
+      saleGrossAmount: 100_000,
+      acquisitionCostAmount: 60_000,
+      exchangeRateSaleToPLN: 1,
+      exchangeRateAcquisitionToPLN: 1,
+    };
+    const s = calcMultiTaxSummary([tx]);
+    expect(s.pit38Fields.poz24_revenue).toBe(100_000);
+    expect(s.pit38Fields.poz25_costs).toBe(60_000);
+    expect(s.pit38Fields.poz26_income).toBe(40_000);
+    expect(s.pit38Fields.poz27_loss).toBe(0);
+    expect(s.pit38Fields.poz33_taxBase).toBe(40_000);
+    expect(s.pit38Fields.poz34_tax).toBe(7_600);
+  });
+
+  it('maps loss to Poz. 27, income fields are zero', () => {
+    const tx: TaxTransaction = {
+      ...BASE_TX,
+      id: 'tx-loss-pit38',
+      currency: 'PLN',
+      saleGrossAmount: 40_000,
+      acquisitionCostAmount: 60_000,
+      exchangeRateSaleToPLN: 1,
+      exchangeRateAcquisitionToPLN: 1,
+    };
+    const s = calcMultiTaxSummary([tx]);
+    expect(s.pit38Fields.poz24_revenue).toBe(40_000);
+    expect(s.pit38Fields.poz25_costs).toBe(60_000);
+    expect(s.pit38Fields.poz26_income).toBe(0);
+    expect(s.pit38Fields.poz27_loss).toBe(20_000);
+    expect(s.pit38Fields.poz33_taxBase).toBe(0);
+    expect(s.pit38Fields.poz34_tax).toBe(0);
+  });
+
+  it('empty list yields all-zero fields', () => {
+    const s = calcMultiTaxSummary([]);
+    expect(s.pit38Fields.poz24_revenue).toBe(0);
+    expect(s.pit38Fields.poz34_tax).toBe(0);
+    expect(s.solidarityLevyPLN).toBe(0);
+  });
+});
+
+// ─── Dividend tax ─────────────────────────────────────────────────────────────
+
+describe('calcTransactionResult — dividends', () => {
+  const makeDividendTx = (overrides: Partial<TaxTransaction> = {}): TaxTransaction => ({
+    id: 'div-1',
+    tradeType: 'dividend',
+    acquisitionMode: 'purchase',
+    zeroCostFlag: false,
+    saleDate: '2024-06-15',
+    currency: 'USD',
+    saleGrossAmount: 0,
+    exchangeRateSaleToPLN: 4.0,
+    dividendGrossAmount: 1000,
+    withholdingTaxRate: 0.15,
+    sourceCountry: 'US',
+    ...overrides,
+  });
+
+  it('US dividend — 15% WHT credited against 19% Belka → 4% top-up', () => {
+    const result = calcTransactionResult(makeDividendTx());
+    expect(result).not.toBeNull();
+    // Gross: 1000 × 4.0 = 4,000 PLN
+    expect(result!.revenuePLN).toBe(4_000);
+    // WHT: 1000 × 0.15 × 4.0 = 600 PLN
+    expect(result!.whtPaidPLN).toBe(600);
+    // Polish full tax: 4000 × 0.19 = 760
+    // Credit: min(600, 760) = 600
+    expect(result!.whtCreditPLN).toBe(600);
+    // Top-up: 760 - 600 = 160
+    expect(result!.polishTopUpPLN).toBe(160);
+    expect(result!.taxEstimatePLN).toBe(160);
+    expect(result!.isDividend).toBe(true);
+  });
+
+  it('UK dividend — 0% WHT → full 19% Polish tax', () => {
+    const result = calcTransactionResult(makeDividendTx({
+      withholdingTaxRate: 0,
+      sourceCountry: 'GB',
+    }));
+    expect(result!.whtPaidPLN).toBe(0);
+    expect(result!.whtCreditPLN).toBe(0);
+    // Full 19%: 4000 × 0.19 = 760
+    expect(result!.polishTopUpPLN).toBe(760);
+  });
+
+  it('German dividend — 26.375% WHT → credit capped at 19%', () => {
+    const result = calcTransactionResult(makeDividendTx({
+      withholdingTaxRate: 0.26375,
+      sourceCountry: 'DE',
+    }));
+    // WHT: 1000 × 0.26375 × 4.0 = 1055 PLN
+    expect(result!.whtPaidPLN).toBe(1055);
+    // Credit capped: min(1055, 760) = 760
+    expect(result!.whtCreditPLN).toBe(760);
+    // No top-up needed — WHT exceeds Polish rate
+    expect(result!.polishTopUpPLN).toBe(0);
+  });
+
+  it('returns null for missing NBP rate', () => {
+    const result = calcTransactionResult(makeDividendTx({
+      exchangeRateSaleToPLN: null,
+    }));
+    expect(result).toBeNull();
+  });
+
+  it('returns null for zero dividend amount', () => {
+    const result = calcTransactionResult(makeDividendTx({
+      dividendGrossAmount: 0,
+    }));
+    expect(result).toBeNull();
+  });
+});
+
+describe('calcMultiTaxSummary — dividends', () => {
+  it('aggregates dividend totals', () => {
+    const txs: TaxTransaction[] = [
+      {
+        id: 'div-1',
+        tradeType: 'dividend',
+        acquisitionMode: 'purchase',
+        zeroCostFlag: false,
+        saleDate: '2024-03-15',
+        currency: 'USD',
+        saleGrossAmount: 0,
+        exchangeRateSaleToPLN: 4.0,
+        dividendGrossAmount: 500,
+        withholdingTaxRate: 0.15,
+        sourceCountry: 'US',
+      },
+      {
+        id: 'div-2',
+        tradeType: 'dividend',
+        acquisitionMode: 'purchase',
+        zeroCostFlag: false,
+        saleDate: '2024-06-15',
+        currency: 'USD',
+        saleGrossAmount: 0,
+        exchangeRateSaleToPLN: 4.2,
+        dividendGrossAmount: 300,
+        withholdingTaxRate: 0.15,
+        sourceCountry: 'US',
+      },
+    ];
+
+    const summary = calcMultiTaxSummary(txs);
+
+    // Div 1: gross = 500×4.0 = 2000, WHT = 75×4.0 = 300
+    // Div 2: gross = 300×4.2 = 1260, WHT = 45×4.2 = 189
+    expect(summary.totalDividendGrossPLN).toBe(3_260);
+    expect(summary.totalWhtPaidPLN).toBe(489);
+    expect(summary.totalDividendTopUpPLN).toBeGreaterThan(0);
+  });
+});

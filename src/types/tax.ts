@@ -15,7 +15,7 @@ export type AcquisitionMode = 'purchase' | 'grant' | 'other_zero_cost';
 export interface TaxTransaction {
   /** Auto-generated unique identifier. */
   id: string;
-  tradeType: 'sale';
+  tradeType: 'sale' | 'dividend';
   acquisitionMode: AcquisitionMode;
   /** When true, acquisition cost = 0 (grant, RSU, free shares). */
   zeroCostFlag: boolean;
@@ -68,6 +68,16 @@ export interface TaxTransaction {
   importSource?: string;
   /** Optional free-text note (e.g. plan type from eTrade: 'RS', 'ESPP', 'SO'). */
   notes?: string;
+
+  // ─── Dividend-specific fields (used when tradeType = 'dividend') ──────────
+  /** Gross dividend amount in the transaction currency. */
+  dividendGrossAmount?: number;
+  /** Withholding tax rate applied at source (e.g. 0.15 for US 15% WHT). */
+  withholdingTaxRate?: number;
+  /** Withholding tax amount in the transaction currency. */
+  withholdingTaxAmount?: number;
+  /** Source country ISO code (e.g. 'US', 'DE', 'GB'). */
+  sourceCountry?: string;
 }
 
 /** Calculated result for a single transaction. */
@@ -85,6 +95,16 @@ export interface TransactionTaxResult {
   taxEstimatePLN: number;
   isLoss: boolean;
   isZeroCost: boolean;
+
+  // ─── Dividend-specific result fields ──────────────────────────────────────
+  /** Whether this is a dividend transaction. */
+  isDividend: boolean;
+  /** WHT already paid at source, in PLN. */
+  whtPaidPLN: number;
+  /** Polish tax credit for WHT (min of whtPaidPLN and 19% of gross dividend). */
+  whtCreditPLN: number;
+  /** Additional Polish tax to pay (19% of gross dividend − WHT credit). */
+  polishTopUpPLN: number;
 }
 
 /** Per-currency breakdown for PIT-ZG attachment (one entry = one country attachment). */
@@ -118,6 +138,22 @@ export interface MultiTaxSummary {
    */
   taxDuePLN: number;
 
+  // ── Solidarity levy (danina solidarnościowa) ──────────────────────────────
+
+  /**
+   * 4% surcharge on PIT-38 income exceeding 1,000,000 PLN.
+   * Reported on DSF-1. Only non-zero for very high-value portfolios.
+   */
+  solidarityLevyPLN: number;
+
+  // ── PIT-38 field mapping ──────────────────────────────────────────────────
+
+  /**
+   * Maps summary values to official PIT-38 field positions (Poz.).
+   * Helps users manually fill the PIT-38 form.
+   */
+  pit38Fields: Pit38FieldMapping;
+
   // ── PIT-ZG support ──────────────────────────────────────────────────────────
 
   /**
@@ -148,6 +184,36 @@ export interface MultiTaxSummary {
    * on the actual PIT-ZG form.
    */
   pitZgByCurrency: PitZgCurrencyEntry[];
+
+  // ── Dividend summary ────────────────────────────────────────────────────────
+
+  /** Total gross dividends in PLN. */
+  totalDividendGrossPLN: number;
+  /** Total WHT paid at source, in PLN. */
+  totalWhtPaidPLN: number;
+  /** Total WHT credit applied against Polish tax. */
+  totalWhtCreditPLN: number;
+  /** Total additional Polish tax to pay on dividends. */
+  totalDividendTopUpPLN: number;
+}
+
+/**
+ * Maps summary values to official PIT-38 field positions.
+ * Based on the 2024/2025 PIT-38 form layout.
+ */
+export interface Pit38FieldMapping {
+  /** Poz. 24 — Przychód z odpłatnego zbycia papierów wartościowych. */
+  poz24_revenue: number;
+  /** Poz. 25 — Koszty uzyskania przychodu. */
+  poz25_costs: number;
+  /** Poz. 26 — Dochód (przychód − koszty, ≥ 0). */
+  poz26_income: number;
+  /** Poz. 27 — Strata (koszty − przychód when costs > revenue, ≥ 0). */
+  poz27_loss: number;
+  /** Poz. 33 — Podstawa obliczenia podatku (po odliczeniach). */
+  poz33_taxBase: number;
+  /** Poz. 34 — Podatek 19%. */
+  poz34_tax: number;
 }
 
 // ─── Legacy single-transaction types (kept for backward compat) ───────────────
@@ -195,4 +261,72 @@ export interface TaxResult {
   isLoss: boolean;
   /** True if cost basis is 0 (RSU/grant shares) */
   isRSU: boolean;
+}
+
+// ─── FIFO lot matching types ──────────────────────────────────────────────────
+
+/** A buy or grant lot for FIFO cost-basis matching. */
+export interface FifoLot {
+  id: string;
+  ticker: string;
+  date: string;
+  /** Number of shares purchased/granted. */
+  quantity: number;
+  /** Per-share cost in the transaction currency. 0 for grants/RSUs. */
+  pricePerShare: number;
+  /** Broker fee for the purchase in the transaction currency. */
+  brokerFee: number;
+  currency: string;
+  /** NBP Table A mid rate for the buy date. */
+  nbpRate: number | null;
+  /** Whether this is a zero-cost acquisition (grant, RSU). */
+  zeroCost: boolean;
+}
+
+/** A sell event for FIFO matching. */
+export interface FifoSell {
+  id: string;
+  ticker: string;
+  date: string;
+  /** Number of shares sold. */
+  quantity: number;
+  /** Per-share sale price in the transaction currency. */
+  pricePerShare: number;
+  /** Broker fee for the sale in the transaction currency. */
+  brokerFee: number;
+  currency: string;
+  /** NBP Table A mid rate for the sell date. */
+  nbpRate: number | null;
+}
+
+/** A single lot consumed by a FIFO sell match. */
+export interface FifoMatchedLot {
+  lotId: string;
+  /** Shares consumed from this lot. */
+  quantity: number;
+  /** Per-share cost from the original lot. */
+  costPerShare: number;
+  /** NBP rate from the original lot buy date. */
+  buyNbpRate: number;
+  buyDate: string;
+  zeroCost: boolean;
+  /** Proportional buy broker fee allocated to this match. */
+  allocatedBuyFee: number;
+}
+
+/** Result of FIFO-matching a single sell against available lots. */
+export interface FifoSellResult {
+  sellId: string;
+  ticker: string;
+  sellDate: string;
+  /** Revenue in PLN (quantity × pricePerShare × sellNbpRate). */
+  revenuePLN: number;
+  /** Cost basis in PLN (sum of matched lot costs × their buyNbpRates). */
+  costPLN: number;
+  gainPLN: number;
+  taxPLN: number;
+  /** Lots consumed by this sell (may span multiple buy lots). */
+  matchedLots: FifoMatchedLot[];
+  /** Shares that could not be matched to any buy lot. */
+  unmatchedQuantity: number;
 }

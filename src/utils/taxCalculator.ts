@@ -4,10 +4,14 @@
  * Known limitations are documented in TAX_LIMITATIONS.md at the repo root.
  */
 
-import type { TaxInputs, TaxResult, TaxTransaction, TransactionTaxResult, MultiTaxSummary } from '../types/tax';
+import type { TaxInputs, TaxResult, TaxTransaction, TransactionTaxResult, MultiTaxSummary, Pit38FieldMapping } from '../types/tax';
 import { BELKA_RATE } from '../types/accumulation';
 
 const BELKA_TAX = BELKA_RATE;
+
+/** Solidarity levy threshold — 4% surcharge on PIT-38 income above 1M PLN. */
+const SOLIDARITY_THRESHOLD = 1_000_000;
+const SOLIDARITY_RATE = 0.04;
 
 /** Round to grosze (2 decimal places) — required for PIT-38 PLN amounts. */
 const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -21,6 +25,12 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
  * Returns null if required rates are missing (transaction not yet ready).
  */
 export function calcTransactionResult(tx: TaxTransaction): TransactionTaxResult | null {
+  // ── Dividend path ───────────────────────────────────────────────────────────
+  if (tx.tradeType === 'dividend') {
+    return calcDividendResult(tx);
+  }
+
+  // ── Sale path ───────────────────────────────────────────────────────────────
   const sellRate = tx.exchangeRateSaleToPLN;
   if (sellRate === null || sellRate === undefined || sellRate <= 0) return null;
 
@@ -56,6 +66,51 @@ export function calcTransactionResult(tx: TaxTransaction): TransactionTaxResult 
     taxEstimatePLN,
     isLoss: gainPLN < 0,
     isZeroCost: tx.zeroCostFlag,
+    isDividend: false,
+    whtPaidPLN: 0,
+    whtCreditPLN: 0,
+    polishTopUpPLN: 0,
+  };
+}
+
+/**
+ * Calculates tax result for a dividend transaction.
+ *
+ * Polish tax law: 19% Belka on gross dividends, minus WHT credit.
+ * US-Poland treaty: 15% US WHT is credited against 19% Polish tax → 4% top-up.
+ */
+function calcDividendResult(tx: TaxTransaction): TransactionTaxResult | null {
+  const rate = tx.exchangeRateSaleToPLN;
+  if (rate === null || rate === undefined || rate <= 0) return null;
+
+  const grossAmount = tx.dividendGrossAmount ?? 0;
+  if (grossAmount <= 0) return null;
+
+  const grossPLN = round2(grossAmount * rate);
+  const whtRate = tx.withholdingTaxRate ?? 0;
+  const whtAmountForeign = tx.withholdingTaxAmount ?? round2(grossAmount * whtRate);
+  const whtPaidPLN = round2(whtAmountForeign * rate);
+
+  // Polish tax on dividends: 19% of gross
+  const polishFullTax = round2(grossPLN * BELKA_TAX);
+
+  // WHT credit: min of WHT paid and full Polish tax (can't exceed 19%)
+  const whtCreditPLN = round2(Math.min(whtPaidPLN, polishFullTax));
+
+  // Top-up = remaining Polish tax after crediting WHT
+  const polishTopUpPLN = round2(Math.max(0, polishFullTax - whtCreditPLN));
+
+  return {
+    revenuePLN: grossPLN,
+    costPLN: 0,
+    gainPLN: grossPLN,
+    taxEstimatePLN: polishTopUpPLN,
+    isLoss: false,
+    isZeroCost: false,
+    isDividend: true,
+    whtPaidPLN,
+    whtCreditPLN,
+    polishTopUpPLN,
   };
 }
 
@@ -80,6 +135,12 @@ export function calcMultiTaxSummary(transactions: TaxTransaction[]): MultiTaxSum
   let foreignRevenuePLN = 0;
   let foreignCostPLN = 0;
 
+  // Dividend aggregates
+  let totalDividendGrossPLN = 0;
+  let totalWhtPaidPLN = 0;
+  let totalWhtCreditPLN = 0;
+  let totalDividendTopUpPLN = 0;
+
   // currency → { revenuePLN, costPLN } accumulators for PIT-ZG
   const currencyMap = new Map<string, { revenuePLN: number; costPLN: number }>();
 
@@ -87,12 +148,24 @@ export function calcMultiTaxSummary(transactions: TaxTransaction[]): MultiTaxSum
     const result = calcTransactionResult(tx);
     if (!result) continue;
 
-    totalRevenuePLN += result.revenuePLN;
-    totalCostPLN += result.costPLN;
-    if (result.gainPLN > 0) {
+    // Dividend transactions are tracked separately
+    if (result.isDividend) {
+      totalDividendGrossPLN += result.revenuePLN;
+      totalWhtPaidPLN += result.whtPaidPLN;
+      totalWhtCreditPLN += result.whtCreditPLN;
+      totalDividendTopUpPLN += result.polishTopUpPLN;
+
+      // Dividends also contribute to revenue/gain aggregates for PIT-38
+      totalRevenuePLN += result.revenuePLN;
       totalGainPLN += result.gainPLN;
     } else {
-      totalLossPLN += -result.gainPLN;
+      totalRevenuePLN += result.revenuePLN;
+      totalCostPLN += result.costPLN;
+      if (result.gainPLN > 0) {
+        totalGainPLN += result.gainPLN;
+      } else {
+        totalLossPLN += -result.gainPLN;
+      }
     }
 
     const isForeign = tx.currency !== 'PLN';
@@ -113,6 +186,19 @@ export function calcMultiTaxSummary(transactions: TaxTransaction[]): MultiTaxSum
   const netIncomePLN = round2(totalGainPLN - totalLossPLN);
   const taxDuePLN = netIncomePLN > 0 ? round2(netIncomePLN * BELKA_TAX) : 0;
 
+  // Solidarity levy: 4% on income exceeding 1M PLN (DSF-1 form)
+  const solidarityLevyPLN = netIncomePLN > SOLIDARITY_THRESHOLD
+    ? round2((netIncomePLN - SOLIDARITY_THRESHOLD) * SOLIDARITY_RATE)
+    : 0;
+
+  // PIT-38 field mapping
+  const pit38Fields: Pit38FieldMapping = buildPit38Fields(
+    round2(totalRevenuePLN),
+    round2(totalCostPLN),
+    netIncomePLN,
+    taxDuePLN,
+  );
+
   const domesticIncomePLN = round2(domesticRevenuePLN - domesticCostPLN);
   const foreignIncomePLN = round2(foreignRevenuePLN - foreignCostPLN);
 
@@ -132,6 +218,8 @@ export function calcMultiTaxSummary(transactions: TaxTransaction[]): MultiTaxSum
     totalLossPLN: round2(totalLossPLN),
     netIncomePLN,
     taxDuePLN,
+    solidarityLevyPLN,
+    pit38Fields,
     requiresPitZg: currencyMap.size > 0,
     domesticRevenuePLN: round2(domesticRevenuePLN),
     domesticCostPLN: round2(domesticCostPLN),
@@ -140,6 +228,32 @@ export function calcMultiTaxSummary(transactions: TaxTransaction[]): MultiTaxSum
     foreignCostPLN: round2(foreignCostPLN),
     foreignIncomePLN,
     pitZgByCurrency,
+    totalDividendGrossPLN: round2(totalDividendGrossPLN),
+    totalWhtPaidPLN: round2(totalWhtPaidPLN),
+    totalWhtCreditPLN: round2(totalWhtCreditPLN),
+    totalDividendTopUpPLN: round2(totalDividendTopUpPLN),
+  };
+}
+
+// ─── PIT-38 field mapping ─────────────────────────────────────────────────────
+
+/**
+ * Maps computed summary to official PIT-38 field positions (Poz.).
+ * Based on the 2024/2025 PIT-38 form layout (section E).
+ */
+function buildPit38Fields(
+  totalRevenue: number,
+  totalCost: number,
+  netIncome: number,
+  taxDue: number,
+): Pit38FieldMapping {
+  return {
+    poz24_revenue: totalRevenue,
+    poz25_costs: totalCost,
+    poz26_income: netIncome >= 0 ? netIncome : 0,
+    poz27_loss: netIncome < 0 ? round2(-netIncome) : 0,
+    poz33_taxBase: netIncome > 0 ? netIncome : 0,
+    poz34_tax: taxDue,
   };
 }
 
