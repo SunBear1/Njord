@@ -165,7 +165,7 @@ export function InputPanel({
     const earlyExit = horizonMonths < preset.maturityMonths;
     const penalty = earlyExit && preset.earlyRedemptionAllowed ? preset.earlyRedemptionPenalty : 0;
     onBondSettingsChange({ ...bondSettings, penalty });
-  }, [horizonMonths, selectedBondId, benchmarkType, bondPresets]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [horizonMonths, selectedBondId, benchmarkType, bondPresets, bondSettings, onBondSettingsChange]);
 
   // Auto-fetch with 800ms debounce, requires ticker + API key
   useEffect(() => {

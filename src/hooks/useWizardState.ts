@@ -202,9 +202,10 @@ export interface UseWizardStateReturn {
 export function useWizardState(): UseWizardStateReturn {
   const [state, setState] = useState<WizardState>(loadState);
 
-  // Persist on every change
+  // Persist on change (debounced to avoid writes on every slider tick)
   useEffect(() => {
-    saveState(state);
+    const timer = setTimeout(() => saveState(state), 300);
+    return () => clearTimeout(timer);
   }, [state]);
 
   // ── Navigation ────────────────────────────────────────────────────────────

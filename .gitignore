@@ -26,3 +26,12 @@ coverage
 backtest-metrics.json
 .wrangler/
 .dev.vars
+
+# Stray files
+test-results/
+Prompt_*.md
+*.Zone.Identifier
+screenshots/
+.env
+.env.*
+!.env.example

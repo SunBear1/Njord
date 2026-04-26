@@ -16,7 +16,7 @@ import {
   getOAuthStateCookie,
   clearOAuthStateCookie,
 } from '../../functions/api/auth/_utils/cookie';
-import { getInitials } from '../../src/utils/userDisplayHelpers';
+import { getInitials } from '../utils/userDisplayHelpers';
 
 const TEST_SECRET = 'test-secret-key-at-least-32-characters-long';
 

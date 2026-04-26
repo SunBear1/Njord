@@ -154,9 +154,10 @@ async function findOrCreateOAuthUser(db: D1Database, input: OAuthUserInput): Pro
   }
 
   // Check if a user with this email already exists (link accounts)
+  // Only auto-link if the existing account has verified email to prevent account takeover
   const existingUser = await db.prepare('SELECT * FROM users WHERE email = ?').bind(input.email.toLowerCase()).first<UserRow>();
 
-  if (existingUser) {
+  if (existingUser && existingUser.email_verified === 1) {
     // Link OAuth account to existing user
     await db.prepare(
       'INSERT OR IGNORE INTO oauth_accounts (id, user_id, provider, provider_user_id, provider_email) VALUES (?, ?, ?, ?, ?)',
@@ -190,6 +191,9 @@ function redirectWithError(origin: string, message: string): Response {
   const params = new URLSearchParams({ auth: 'error', message });
   return new Response(null, {
     status: 302,
-    headers: { Location: `${origin}/?${params}` },
+    headers: {
+      Location: `${origin}/?${params}`,
+      'Set-Cookie': clearOAuthStateCookie(origin.startsWith('https')),
+    },
   });
 }

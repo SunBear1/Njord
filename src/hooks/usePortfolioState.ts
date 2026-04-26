@@ -93,7 +93,7 @@ export function usePortfolioState(
   activeSection: string,
   autofill: AutofillSources,
 ): PortfolioState {
-  const saved = loadState();
+  const [saved] = useState(loadState);
 
   const [ticker, setTicker] = useState(saved?.ticker ?? '');
   const [shares, setShares] = useState(saved?.shares ?? 0);
@@ -129,7 +129,7 @@ export function usePortfolioState(
     if (autofill.aliorBuyRate && !aliorAutoFilledRef.current) {
       aliorAutoFilledRef.current = true;
       fxAutoFilledRef.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from async data source
+       
       setCurrentFxRate(autofill.aliorBuyRate);
     }
   }, [autofill.aliorBuyRate]);
@@ -138,7 +138,7 @@ export function usePortfolioState(
   useEffect(() => {
     if (autofill.proxyFxRate && !fxAutoFilledRef.current) {
       fxAutoFilledRef.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from async data source
+       
       setCurrentFxRate(autofill.proxyFxRate);
     }
   }, [autofill.proxyFxRate]);
@@ -147,7 +147,7 @@ export function usePortfolioState(
   useEffect(() => {
     if (autofill.inflationCurrentRate && !inflationAutoFilledRef.current) {
       inflationAutoFilledRef.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from async data source
+       
       setInflationRate(autofill.inflationCurrentRate);
     }
   }, [autofill.inflationCurrentRate]);
@@ -156,7 +156,7 @@ export function usePortfolioState(
   useEffect(() => {
     if (autofill.etfAnnualizedReturn !== null && !etfReturnAutoFilledRef.current) {
       etfReturnAutoFilledRef.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from async data source
+       
       setEtfAnnualReturnPercent(parseFloat(autofill.etfAnnualizedReturn.toFixed(2)));
     }
   }, [autofill.etfAnnualizedReturn]);

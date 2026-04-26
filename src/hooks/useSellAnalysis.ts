@@ -34,6 +34,7 @@ export function useSellAnalysis(
   const [isLoading, setIsLoading] = useState(false);
   const workerRef = useRef<Worker | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const handlerRef = useRef<((event: MessageEvent) => void) | null>(null);
 
   const prepared = useMemo(() => {
     if (!stockHistory || stockHistory.length < 30 || currentPrice <= 0 || !enabled) return null;
@@ -79,10 +80,17 @@ export function useSellAnalysis(
     const worker = workerRef.current;
 
     if (worker) {
+      // Remove any stale handler from a previous run before registering a new one
+      if (handlerRef.current) {
+        worker.removeEventListener('message', handlerRef.current);
+        handlerRef.current = null;
+      }
+
       // Web Worker path — off main thread
       debounceRef.current = setTimeout(() => {
         const handler = (event: MessageEvent<{ type: string; payload?: SellAnalysisWorkerResult; message?: string }>) => {
           worker.removeEventListener('message', handler);
+          handlerRef.current = null;
           if (event.data.type === 'result' && event.data.payload) {
             const { result, regime } = event.data.payload;
             setAnalysis({ ...result, regimeInfo: regime });
@@ -91,6 +99,7 @@ export function useSellAnalysis(
           }
           setIsLoading(false);
         };
+        handlerRef.current = handler;
         worker.addEventListener('message', handler);
         worker.postMessage({
           type: 'run',
@@ -120,6 +129,11 @@ export function useSellAnalysis(
 
     return () => {
       clearTimeout(debounceRef.current);
+      // Clean up any pending handler to prevent stale results
+      if (worker && handlerRef.current) {
+        worker.removeEventListener('message', handlerRef.current);
+        handlerRef.current = null;
+      }
     };
   }, [prepared, horizonDays]);
 

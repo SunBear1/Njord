@@ -46,11 +46,13 @@ const DEFAULT_SCENARIOS = {
 const ROOT_STYLE = { backgroundColor: 'var(--color-bg-primary)' } as const;
 const FOOTER_STYLE = { borderTop: '1px solid var(--color-border)', color: 'var(--color-text-faint)' } as const;
 
+type AppSection = 'investment' | 'tax' | 'portfolio';
+type ActiveView = 'comparison' | 'sellAnalysis';
+
 function App() {
   const [isDark, toggleDarkMode] = useDarkMode();
 
   // Top-level section: investment comparison vs tax calculator vs portfolio wizard
-  type AppSection = 'investment' | 'tax' | 'portfolio';
   const [activeSection, setActiveSection] = useState<AppSection>(
     () => (loadState()?.activeSection as AppSection) ?? 'investment',
   );
@@ -150,11 +152,13 @@ function App() {
       ? nbpRefRate + bondSettings.margin
       : effectiveInflation + bondSettings.margin;
 
+  const proxyFxRate = proxyFxData?.currentRate ?? currentFxRate;
+
   const calcInputs = useMemo(() => ({
     shares,
     currentPriceUSD,
     currentFxRate,
-    nbpMidRate: proxyFxData?.currentRate ?? currentFxRate,
+    nbpMidRate: proxyFxRate,
     wibor3mPercent: benchmarkType === 'savings' ? effectiveSavingsRate : wibor3m,
     horizonMonths: deferredHorizon,
     benchmarkType,
@@ -171,7 +175,7 @@ function App() {
     dividendYieldPercent,
     etfAnnualReturnPercent,
     etfTerPercent,
-  }), [shares, currentPriceUSD, currentFxRate, proxyFxData, wibor3m, deferredHorizon, benchmarkType, bondSettings, computedEffectiveRate, effectiveInflation, effectiveSavingsRate, avgCostUSD, isRSU, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent]);
+  }), [shares, currentPriceUSD, currentFxRate, proxyFxRate, wibor3m, deferredHorizon, benchmarkType, bondSettings, computedEffectiveRate, effectiveInflation, effectiveSavingsRate, avgCostUSD, isRSU, brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent, etfTerPercent]);
 
   const benchmarkReady = benchmarkType === 'savings'
     ? wibor3m > 0
@@ -185,7 +189,6 @@ function App() {
   const heatmap = useMemo(() => canCalc ? calcHeatmap(calcInputs) : null, [canCalc, calcInputs]);
 
   // Sell analysis
-  type ActiveView = 'comparison' | 'sellAnalysis';
   const [activeView, setActiveView] = useState<ActiveView>('comparison');
   const [sellHorizonDays, setSellHorizonDays] = useState(63);
   const { analysis: sellAnalysis, isLoading: sellAnalysisLoading } = useSellAnalysis(
@@ -292,15 +295,19 @@ function App() {
       <main className="flex-1 min-w-0 max-w-7xl mx-auto px-4 py-4 space-y-4">
         {activeSection === 'tax' ? (
           /* ── Tax calculator section ── */
-          <TaxCalculatorPanel currencyRates={currencyRates} />
+          <ErrorBoundary>
+            <TaxCalculatorPanel currencyRates={currencyRates} />
+          </ErrorBoundary>
         ) : activeSection === 'portfolio' ? (
           /* ── Portfolio wizard section ── */
-          <Suspense fallback={<Skeleton className="h-96" />}>
-            <PortfolioWizardLazy
-              bondPresets={bondPresets}
-              isDark={isDark}
-            />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<Skeleton className="h-96" />}>
+              <PortfolioWizardLazy
+                bondPresets={bondPresets}
+                isDark={isDark}
+              />
+            </Suspense>
+          </ErrorBoundary>
         ) : inputCollapsed ? (
           /* ── Collapsed layout: summary bar → ScenarioEditor (full-width) → Results ── */
           <>
@@ -531,7 +538,7 @@ function App() {
 
         {activeSection === 'investment' && activeView === 'sellAnalysis' && (
           <ErrorBoundary>
-            <Suspense fallback={<div className="text-center py-8 text-gray-400">Ładowanie modułu…</div>}>
+            <Suspense fallback={<div className="text-center py-8 text-text-faint">Ładowanie modułu…</div>}>
               <SellAnalysisPanel
                 analysis={sellAnalysis}
                 isLoading={sellAnalysisLoading}

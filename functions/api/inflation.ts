@@ -1,7 +1,7 @@
 /**
  * Pages Function: GET /api/inflation
  *
- * Proxies ECB HICP (Polish CPI) data with 6-hour edge cache.
+ * Proxies ECB HICP (Polish CPI) data with 24-hour edge cache.
  * Shields the browser from potential CORS/rate-limit changes on ECB's API.
  */
 

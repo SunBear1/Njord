@@ -6,8 +6,6 @@
 
 🔗 **[Demo → njord.pages.dev](https://njord.pages.dev)**
 
-![Njord screenshot](screenshots/Screenshot%202026-04-06%20at%2019.47.00.png)
-
 ---
 
 ## Co robi aplikacja?

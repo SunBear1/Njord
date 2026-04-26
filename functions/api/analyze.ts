@@ -260,6 +260,11 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
     return errorResponse('INVALID_TICKER', 'Missing required parameter: ticker', 400);
   }
 
+  // Validate ticker format: max 20 chars, alphanumeric + common separators
+  if (ticker.length > 20 || !/^[A-Z0-9.\-^=]+$/.test(ticker)) {
+    return errorResponse('INVALID_TICKER', 'Invalid ticker format', 400);
+  }
+
   try {
     const [marketResult, fxResult] = await Promise.all([
       fetchMarketData(ticker, env.TWELVE_DATA_API_KEY),

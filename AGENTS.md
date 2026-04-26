@@ -361,5 +361,5 @@ After modifying any file in `src/components/`:
 2. Start dev server (`npm run dev`) and visually verify the component renders correctly
 3. Check layout at mobile (375px) and desktop (1280px) widths
 
-The CI pipeline (`.github/workflows/ci.yml`) enforces lint + test + build automatically on every push and pull request.
+The CI pipeline (`.github/workflows/build-and-test.action.yaml`) enforces lint + test + build automatically on every push and pull request.
 The Copilot cloud coding agent environment is configured via `.github/copilot-setup-steps.yml`.

@@ -10,6 +10,7 @@ import {
   Landmark,
   Banknote,
 } from 'lucide-react';
+import { fetchAssetData } from '../../providers/twelveDataProvider';
 import type {
   WrapperPortfolioConfig,
   PortfolioAllocation,
@@ -338,21 +339,15 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
     setSearchError(null);
 
     try {
-      const resp = await fetch(`/api/analyze?ticker=${encodeURIComponent(ticker)}`);
-      if (!resp.ok) {
-        const err: { error?: string } | null = await resp.json().catch(() => null);
-        throw new Error(err?.error ?? 'Nie znaleziono tickera');
-      }
-
-      const data = await resp.json();
-      const name = data?.name ?? data?.shortName ?? ticker;
+      const data = await fetchAssetData(ticker.toUpperCase());
+      const name = data.assetData?.asset?.name ?? ticker;
 
       onAdd({
-        instrumentId: ticker,
+        instrumentId: ticker.toUpperCase(),
         instrumentType: 'etf',
-        label: `${ticker} — ${name}`,
+        label: `${ticker.toUpperCase()} — ${name}`,
         defaultReturn: 8,
-        displayName: name !== ticker ? `${name} (${ticker})` : ticker,
+        displayName: name !== ticker.toUpperCase() ? `${name} (${ticker.toUpperCase()})` : ticker.toUpperCase(),
       });
       setCustomTicker('');
       setOpen(false);

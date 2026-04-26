@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-
+import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 export interface InflationData {
   currentRate: number;  // latest monthly YoY % (e.g. 2.5)
   period: string;       // e.g. "2025-12"
@@ -45,11 +45,11 @@ const ECB_URL =
 async function fetchInflationCsv(signal: AbortSignal): Promise<string> {
   // Try proxy first (edge-cached), fall back to ECB direct
   try {
-    const proxyRes = await fetch('/api/inflation', { signal });
+    const proxyRes = await fetchWithTimeout('/api/inflation', signal);
     if (proxyRes.ok) return await proxyRes.text();
   } catch { /* fall through */ }
 
-  const directRes = await fetch(ECB_URL, { signal });
+  const directRes = await fetchWithTimeout(ECB_URL, signal);
   if (!directRes.ok) throw new Error(`ECB HTTP ${directRes.status}`);
   return await directRes.text();
 }

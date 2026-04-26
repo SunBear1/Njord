@@ -1,6 +1,7 @@
 import type { ScenarioKey, ScenarioParams, ScenarioResult, Scenarios, BenchmarkType } from '../types/scenario';
+import { BELKA_RATE } from '../types/accumulation';
 
-const BELKA_TAX = 0.19;
+const BELKA_TAX = BELKA_RATE;
 
 interface CalcInputs {
   shares: number;
@@ -50,7 +51,7 @@ function resolveCostBasisUSD(inputs: CalcInputs): { costPerShareUSD: number; has
  * Applied uniformly to all PLN benchmarks (savings, bonds, ETF) so comparisons are fair.
  */
 function calcFirstBelkaCost(inputs: CalcInputs): number {
-  const nbpRate = inputs.nbpMidRate || inputs.currentFxRate;
+  const nbpRate = inputs.nbpMidRate ?? inputs.currentFxRate;
   const currentStockNBP = inputs.shares * inputs.currentPriceUSD * nbpRate;
   const { costPerShareUSD, hasCostBasis } = resolveCostBasisUSD(inputs);
   const costBasisNBP = hasCostBasis
@@ -150,6 +151,9 @@ function calcBondEndValue(inputs: CalcInputs): number {
 
   // Capitalized bond: tax on total gain at end
   const grossEndValue = bondGrossValue(investedPLN, bondFirstYearRate, bondEffectiveRate, horizonMonths);
+  // Penalty deducted from gross value before computing taxable gain.
+  // This is algebraically equivalent to deducting from principal, so the final number is correct:
+  // investedPLN + (grossEnd - penalty - investedPLN) × 0.81  ≡  investedPLN + ((grossEnd - investedPLN) - penalty) × 0.81
   const effectiveGross = grossEndValue - penalty;
   if (effectiveGross > investedPLN) {
     const netInterest = (effectiveGross - investedPLN) * (1 - BELKA_TAX);
@@ -203,7 +207,7 @@ function calcStockScenario(
   const rawCapitalPLN = inputs.shares * projectedPriceUSD * projectedFxRate - feeInPLN;
 
   // Tax basis at NBP mid rate (Polish tax law)
-  const nbpRate = inputs.nbpMidRate || inputs.currentFxRate;
+  const nbpRate = inputs.nbpMidRate ?? inputs.currentFxRate;
   const projectedNbpRate = nbpRate * (1 + params.deltaFx / 100);
   const endValueNbp = inputs.shares * projectedPriceUSD * projectedNbpRate;
   // Fee also reduces taxable income (deductible cost of sale)
@@ -242,7 +246,7 @@ export function calcAllScenarios(inputs: CalcInputs, scenarios: Scenarios): Scen
   const inflationTotalPercent = (Math.pow(1 + inputs.inflationRate / 100, years) - 1) * 100;
 
   // Cost basis metrics (computed once, shared across all scenario results)
-  const nbpRate = inputs.nbpMidRate || inputs.currentFxRate;
+  const nbpRate = inputs.nbpMidRate ?? inputs.currentFxRate;
   const { costPerShareUSD, hasCostBasis } = resolveCostBasisUSD(inputs);
   const costBasisValuePLN = hasCostBasis
     ? inputs.shares * costPerShareUSD * nbpRate
@@ -312,6 +316,8 @@ export interface TimelinePoint {
 export function calcTimeline(inputs: CalcInputs, scenarios: Scenarios): TimelinePoint[] {
   if (inputs.horizonMonths <= 0) return [];
   const currentValuePLN = calcCurrentValuePLN(inputs);
+  // Subtract switching Belka from principal — same as calcSavingsEndValue / calcBondEndValue
+  const investedPLN = currentValuePLN - calcFirstBelkaCost(inputs);
   const points: TimelinePoint[] = [];
 
   for (let m = 0; m <= inputs.horizonMonths; m++) {
@@ -321,30 +327,30 @@ export function calcTimeline(inputs: CalcInputs, scenarios: Scenarios): Timeline
     if (inputs.benchmarkType === 'bonds') {
       // Penalty only applies on early redemption (before maturity)
       const penalty = m < inputs.bondMaturityMonths
-        ? currentValuePLN * (inputs.bondPenaltyPercent / 100)
+        ? investedPLN * (inputs.bondPenaltyPercent / 100)
         : 0;
 
       if (inputs.bondCouponFrequency > 0) {
         // Coupon bond: use coupon model (tax already handled per-coupon)
         const endValue = bondCouponEndValue(
-          currentValuePLN, inputs.bondFirstYearRate, inputs.bondEffectiveRate,
+          investedPLN, inputs.bondFirstYearRate, inputs.bondEffectiveRate,
           m, inputs.bondCouponFrequency, inputs.bondReinvestmentRate,
         );
         benchmarkVal = endValue - penalty;
       } else {
         // Capitalized bond: tax on total gain at end
-        const grossEnd = bondGrossValue(currentValuePLN, inputs.bondFirstYearRate, inputs.bondEffectiveRate, m);
+        const grossEnd = bondGrossValue(investedPLN, inputs.bondFirstYearRate, inputs.bondEffectiveRate, m);
         const effectiveGross = grossEnd - penalty;
-        benchmarkVal = effectiveGross > currentValuePLN
-          ? currentValuePLN + (effectiveGross - currentValuePLN) * (1 - BELKA_TAX)
+        benchmarkVal = effectiveGross > investedPLN
+          ? investedPLN + (effectiveGross - investedPLN) * (1 - BELKA_TAX)
           : effectiveGross;
       }
     } else if (inputs.benchmarkType === 'etf') {
       benchmarkVal = calcEtfEndValue(bmInputs);
     } else {
       const monthlyRate = inputs.wibor3mPercent / 100 / 12;
-      const grossEnd = currentValuePLN * Math.pow(1 + monthlyRate, m);
-      benchmarkVal = currentValuePLN + (grossEnd - currentValuePLN) * (1 - BELKA_TAX);
+      const grossEnd = investedPLN * Math.pow(1 + monthlyRate, m);
+      benchmarkVal = investedPLN + (grossEnd - investedPLN) * (1 - BELKA_TAX);
     }
 
     const calcAt = (params: ScenarioParams) => {

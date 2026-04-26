@@ -69,10 +69,14 @@ export async function verifyJwt(token: string, secret: string): Promise<JwtPaylo
   const parts = token.split('.');
   if (parts.length !== 3) return null;
 
-  const [header, body, sig] = parts;
-  const signingInput = `${header}.${body}`;
+  const [headerB64, body, sig] = parts;
+  const signingInput = `${headerB64}.${body}`;
 
   try {
+    // Validate header algorithm to prevent algorithm confusion attacks
+    const headerJson = JSON.parse(new TextDecoder().decode(base64UrlDecode(headerB64)));
+    if (headerJson.alg !== 'HS256' || headerJson.typ !== 'JWT') return null;
+
     const key = await getSigningKey(secret);
     const signatureBytes = base64UrlDecode(sig);
     const valid = await crypto.subtle.verify('HMAC', key, signatureBytes as unknown as ArrayBuffer, new TextEncoder().encode(signingInput));
