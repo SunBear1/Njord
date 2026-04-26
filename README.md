@@ -10,7 +10,7 @@
 
 ## Co robi aplikacja?
 
-Njord zawiera dwa główne narzędzia:
+Njord zawiera trzy główne narzędzia:
 
 ### 📊 Porównanie inwestycji
 
@@ -26,6 +26,13 @@ Oblicza szacunkowy podatek Belki (19%) dla wielu transakcji sprzedaży akcji:
 - Wielowalutowe wsparcie (USD, EUR, GBP, CHF, DKK, SEK, PLN)
 - Grupowanie wyników według roku podatkowego (PIT-38)
 - Import transakcji z pliku Etrade (Gains & Losses .xlsx)
+
+### 🏗️ Kreator portfela
+
+4-krokowy kreator długoterminowego portfela inwestycyjnego:
+- Podział środków na IKE, IKZE i rachunek maklerski
+- Wybór brokera i alokacja instrumentów (ETF, obligacje)
+- Symulacja akumulacji z uwzględnieniem ulg podatkowych
 
 Wszystkie obliczenia uwzględniają **podatek Belki (19%)** oraz kurs USD/PLN.
 
@@ -66,14 +73,21 @@ Wszystkie obliczenia uwzględniają **podatek Belki (19%)** oraz kurs USD/PLN.
 
 ```
 Cloudflare Pages
-├── / (SPA)              ← React + Vite, dwa widoki: porównanie inwestycji + kalkulator Belki
+├── / (SPA)              ← React + Vite, trzy widoki: porównanie inwestycji + kalkulator Belki + kreator portfela
 ├── /api/analyze         ← Pages Function — dane giełdowe (Yahoo Finance primary, Twelve Data fallback) + NBP FX
 ├── /api/bonds           ← Pages Function — presety obligacji z CSV (cache 24h)
 ├── /api/currency-rates  ← Pages Function — kursy walut (Alior Kantor + NBP Tabela C)
-└── /api/inflation       ← Pages Function — inflacja HICP z ECB (cache 24h)
+├── /api/inflation       ← Pages Function — inflacja HICP z ECB (cache 24h)
+└── /api/auth/*          ← Pages Functions — autoryzacja (JWT + OAuth)
 ```
 
 Wszystkie obliczenia finansowe (GBM, Bootstrap, Monte Carlo) wykonywane są **po stronie klienta** (przeglądarka).
+
+---
+
+## Autoryzacja
+
+Aplikacja obsługuje logowanie przez e-mail/hasło oraz OAuth (GitHub, Google). Sesja oparta na tokenach JWT przechowywanych w ciasteczkach HttpOnly. Backend korzysta z bazy **Cloudflare D1** (SQLite). Wymagane zmienne środowiskowe: `JWT_SECRET`, `GITHUB_CLIENT_ID/SECRET`, `GOOGLE_CLIENT_ID/SECRET`.
 
 ---
 

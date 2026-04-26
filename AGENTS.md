@@ -69,6 +69,9 @@ src/
 │   ├── ErrorBoundary.tsx         # React error boundary wrapper
 │   ├── MethodologyPanel.tsx      # Calculation methodology explanation
 │   ├── HowItWorks.tsx            # User guide / how-to
+│   ├── AuthModal.tsx             # Login/register modal (email + OAuth providers)
+│   ├── AccountPanel.tsx          # Account settings (change password, delete account, linked providers)
+│   ├── UserMenu.tsx              # Header user menu (avatar, login/logout)
 │   └── portfolio/                # 4-step portfolio wizard ("Kreator portfela")
 │       ├── PortfolioWizard.tsx   # Orchestrator: wires steps + state + navigation
 │       ├── WizardStepper.tsx     # 4-step progress bar with numbered circles
@@ -79,10 +82,12 @@ src/
 │       └── Step4Summary.tsx      # Metric cards, chart, annual table, counterfactual
 ├── hooks/
 │   ├── useAssetData.ts           # Fetch stock + analysis data from /api/analyze
+│   ├── useAuth.ts                # JWT auth state — login, logout, register, OAuth, user session
 │   ├── useEtfData.ts             # Fetch ETF data from /api/analyze
 │   ├── useCurrencyRates.ts       # Multi-currency rates via /api/currency-rates (Alior + NBP fallback)
 │   ├── useInflationData.ts       # ECB HICP CPI for Poland via /api/inflation
 │   ├── useBondPresets.ts         # Bond presets from /api/bonds (CSV-backed)
+│   ├── usePortfolioState.ts      # Portfolio-level state management
 │   ├── useSellAnalysis.ts        # HMM-based sell-price Monte Carlo analysis
 │   ├── useHistoricalVolatility.ts # GBM/Bootstrap scenario suggestions from price history
 │   ├── useWizardState.ts         # Portfolio wizard state management (localStorage: njord_portfolio_wizard)
@@ -92,7 +97,7 @@ src/
 │   ├── twelveDataProvider.ts     # Calls /api/analyze and translates errors to Polish messages
 │   └── nbpProvider.ts            # NBP USD/PLN mid rate (direct, for live FX display)
 ├── data/
-│   └── bondPresets.ts            # Static fallback bond presets (used when /api/bonds unavailable)
+│   └── bondPresets.ts            # Bond metadata constants (dates, source URL); rates loaded from CSV via /api/bonds
 ├── utils/
 │   ├── calculations.ts           # Investment comparison logic (pure functions)
 │   ├── accumulationCalculator.ts # Accumulation + portfolio wizard calculations (pure functions)
@@ -115,6 +120,8 @@ src/
 │       ├── bootstrap.ts          # Block Bootstrap for short horizons (≤6 months)
 │       ├── hmmModel.ts           # HMM-based scenario generation (informational only)
 │       └── types.ts              # Shared model types (ModelOutput, ScenarioSuggestion)
+├── workers/
+│   └── sellAnalysis.worker.ts    # Web Worker for HMM Monte Carlo offloading (NOT a Cloudflare Worker)
 ├── types/
 │   ├── scenario.ts               # ScenarioKey, BenchmarkType, BondPreset, ScenarioResult
 │   ├── asset.ts                  # AssetData, HistoricalPrice
@@ -122,6 +129,7 @@ src/
 │   ├── accumulation.ts           # BucketConfig, AccumulationResult, AnnualTableRow
 │   ├── portfolio.ts              # Broker, WizardState, ETF_PRESETS, PortfolioAllocation
 │   ├── tax.ts                    # TaxTransaction, TransactionTaxResult, MultiTaxSummary, TaxInputs
+│   ├── auth.ts                   # User, AuthState, AuthError types
 │   └── sellAnalysis.ts           # SellAnalysisResult, TargetPrice, PathDistribution
 functions/
 ├── _middleware.ts                # Global CORS + Content-Type for all /api/* routes
@@ -129,7 +137,19 @@ functions/
     ├── analyze.ts                # GET /api/analyze?ticker=X — Yahoo Finance + NBP FX
     ├── bonds.ts                  # GET /api/bonds — serves bond presets CSV (cached 24h)
     ├── currency-rates.ts         # GET /api/currency-rates — Alior Kantor + NBP Table C proxy
-    └── inflation.ts              # GET /api/inflation — ECB HICP CPI proxy (cached 24h)
+    ├── inflation.ts              # GET /api/inflation — ECB HICP CPI proxy (cached 24h)
+    └── auth/                     # Authentication routes (JWT + OAuth)
+        ├── _utils/               # Shared auth helpers (cookie.ts, jwt.ts, password.ts, types.ts)
+        ├── register.ts           # POST /api/auth/register
+        ├── login.ts              # POST /api/auth/login
+        ├── logout.ts             # POST /api/auth/logout
+        ├── me.ts                 # GET /api/auth/me — current user from JWT cookie
+        ├── change-password.ts    # POST /api/auth/change-password
+        ├── delete-account.ts     # POST /api/auth/delete-account
+        ├── github/index.ts       # GET /api/auth/github — initiate GitHub OAuth
+        ├── github/callback.ts    # GET /api/auth/github/callback — GitHub OAuth callback
+        ├── google/index.ts       # GET /api/auth/google — initiate Google OAuth
+        └── google/callback.ts    # GET /api/auth/google/callback — Google OAuth callback
 ```
 
 ---
@@ -152,6 +172,30 @@ The `source` field in `ProxyResponse` indicates which was used.
 
 ---
 
+## Authentication
+
+JWT-based auth with HttpOnly cookies, backed by Cloudflare D1 (SQLite). Supports email/password registration and OAuth (GitHub, Google).
+
+**Components:**
+- `AuthModal.tsx` — login/register modal (email + OAuth providers)
+- `AccountPanel.tsx` — account settings (change password, delete account, linked providers)
+- `UserMenu.tsx` — header avatar, login/logout actions
+
+**Hook:** `useAuth.ts` — manages auth state (user session, login, logout, register, OAuth redirects)
+
+**Backend:** 10 routes under `functions/api/auth/` (see file structure above). Shared helpers in `functions/api/auth/_utils/` (JWT signing/verification, password hashing, cookie management).
+
+**Database:** Cloudflare D1. Schema in `migrations/0001_create_users.sql`.
+
+**Required environment variables** (CF Pages secrets + `.dev.vars` for local):
+- `JWT_SECRET` — signing key for auth tokens
+- `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` — GitHub OAuth app credentials
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` — Google OAuth app credentials
+
+**Types:** `src/types/auth.ts` — `User`, `AuthState`, `AuthError`
+
+---
+
 ## Calculation logic
 
 All financial logic is in `src/utils/calculations.ts` (pure functions). Key rules:
@@ -167,27 +211,25 @@ All financial logic is in `src/utils/calculations.ts` (pure functions). Key rule
 
 ## Bond presets
 
-8 presets defined in `src/data/bondPresets.ts` (constant `BOND_PRESETS`):
+Bond data is loaded at runtime from `public/polish_treasury_bonds.csv` via `GET /api/bonds` (cached 24h). The CSV is the single source of truth for rates, margins, penalties, and maturity. `src/data/bondPresets.ts` exports only metadata constants (`BOND_PRESETS_LAST_UPDATED`, `BOND_PRESETS_SOURCE_URL`).
 
-| ID | Name | Maturity | Rate type | Year 1 | Margin |
-|----|------|----------|-----------|--------|--------|
-| OTS | 3-month | 3 mo | fixed | 1.50% | 0 |
-| ROR | Annual | 12 mo | reference (NBP) | 5.50% | 0 |
-| DOR | 2-year | 24 mo | reference (NBP) | 5.60% | 0.25% |
-| TOS | 3-year | 36 mo | fixed | 5.70% | 0 |
-| COI | 4-year | 48 mo | inflation | 6.00% | 1.50% |
-| EDO | 10-year | 120 mo | inflation | 6.20% | 2.00% |
-| ROS | 6-year (family) | 72 mo | inflation | 6.05% | 2.00% |
-| ROD | 12-year (family) | 144 mo | inflation | 6.45% | 2.50% |
+8 bond types are defined in the CSV: OTS, ROR, DOR, TOS, COI, EDO, ROS, ROD.
 
-> Rates as of 2025-07-17. Source: https://www.obligacjeskarbowe.pl/oferta-obligacji/
+CSV columns: `id`, `name_pl`, `maturity_months`, `rate_type`, `first_year_rate_pct`, `margin_pct`, `coupon_frequency`, `early_redemption_allowed`, `early_redemption_penalty_pct`, `is_family`.
 
-`BondRateType`: `fixed` | `reference` | `inflation`
+> Source: https://www.obligacjeskarbowe.pl/oferta-obligacji/
+
+`BondRateType` (`rate_type` column): `fixed` | `reference` | `inflation`
 
 Effective rate for years 2+:
-- `fixed` → `bondFirstYearRate` (unchanged)
-- `reference` → `nbpRefRate + margin`
-- `inflation` → `inflationRate + margin`
+- `fixed` → `first_year_rate_pct` (unchanged)
+- `reference` → `nbpRefRate + margin_pct`
+- `inflation` → `inflationRate + margin_pct`
+
+### Adding/updating bond presets
+1. Edit `public/polish_treasury_bonds.csv` with new rates
+2. Update `BOND_PRESETS_LAST_UPDATED` in `src/data/bondPresets.ts`
+3. The app reads the CSV via `/api/bonds` — no code changes needed for rate updates
 
 ---
 
@@ -239,8 +281,8 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 - **Documentation:** English (README.md, AGENTS.md, code comments, JSDoc)
 - **Styling:** Tailwind CSS v4 only (utility classes); no CSS modules or styled-components. Semantic color tokens are defined in `src/index.css` via `@theme` — use them when available, add new ones when needed.
 - **Components:** Functional with hooks; no classes; props explicitly typed via interfaces
-- **No routing** — single-page application with two tabs (`activeSection` state)
-- **Testing:** Vitest (`npm test` / `npm run test:watch`). Tests in `src/__tests__/`. 217 tests across 11 files.
+- **No routing** — single-page application with three tabs (`activeSection` state)
+- **Testing:** Vitest (`npm test` / `npm run test:watch`). Tests in `src/__tests__/`. 446 tests across 17 files.
 - **Deploy:** Automatic on `main` push via **Cloudflare Pages** native GitHub integration (no GH Actions workflow)
 - **Backend:** `functions/api/analyze.ts` — CF Pages Function. Primary: Yahoo Finance (no key). Fallback: Twelve Data on 429. All financial computation runs client-side.
 - **Base path:** `/` (Cloudflare Pages serves from root)
@@ -251,9 +293,10 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 ## Common tasks
 
 ### Adding a new bond type
-1. Add object to `BOND_PRESETS` array in `src/data/bondPresets.ts`
-2. Ensure `rateType` is one of `'fixed' | 'reference' | 'inflation'`
-3. Verify `maturityMonths <= 144` (slider max for bonds mode)
+1. Add a row to `public/polish_treasury_bonds.csv`
+2. Ensure `rate_type` is one of `fixed`, `reference`, `inflation`
+3. Verify `maturity_months <= 144` (slider max for bonds mode)
+4. Update `BOND_PRESETS_LAST_UPDATED` in `src/data/bondPresets.ts`
 
 ### Changing horizon slider range
 - `src/components/InputPanel.tsx`: find the `max=` prop on the horizon slider — `max={benchmarkType === 'savings' ? 60 : 144}`
@@ -335,6 +378,7 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 - **Three tabs:** `activeSection === 'investment'` (default) shows the investment comparison; `activeSection === 'tax'` shows the Belka tax calculator; `activeSection === 'portfolio'` shows the Kreator portfela wizard. KantorSidebar is hidden on the tax and portfolio tabs.
 - **Prediction engine:** Tiered — Block Bootstrap (≤6 months), calibrated GBM (>6 months). Drift shrunk toward 8% prior; volatility damped for horizons >2 years. All outputs clamped via `clampScenario()`. See `.github/instructions/financial-forecasting.instructions.md` for full details.
 - **HMM** (`src/utils/hmm.ts`) is used by the **Sell Analysis feature only** — it does NOT drive the bear/base/bull scenario pipeline. The scenario pipeline uses GBM + Bootstrap exclusively.
+- **Sell Analysis Worker:** `src/workers/sellAnalysis.worker.ts` is a **Web Worker** (browser API), not a Cloudflare Worker. It offloads HMM Monte Carlo simulation (10k paths) to a background thread so the UI stays responsive.
 - **Belka tax calculator:** Multi-transaction, supports USD/EUR/GBP/CHF/DKK/SEK/PLN. Fetches NBP Table A mid rate automatically for each transaction date. Transactions persisted to `localStorage` under `njord_tax_transactions`. Groups results by tax year for PIT-38. Commission fields hidden by default (checkbox). See `src/components/TaxCalculatorPanel.tsx` and `src/utils/taxCalculator.ts`.
 - **Financial math:** Belka tax, bond math, FX multiplicative structure, compound interest rules — see `.github/instructions/financial-math-guardian.instructions.md`.
 - **Hooks and state:** AbortController patterns, localStorage guards, App.tsx state architecture — see `.github/instructions/hooks-and-state.instructions.md`.
