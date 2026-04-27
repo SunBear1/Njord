@@ -1,7 +1,7 @@
 terraform {
   backend "s3" {
-    bucket = "njord-tf-state"
-    key    = "terraform.tfstate"
+    bucket = "terraform-state"
+    key    = "njord.tfstate"
     region = "auto"
 
     # Cloudflare R2 endpoint

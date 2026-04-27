@@ -34,6 +34,7 @@ infrastructure/*.tfstate
 infrastructure/*.tfstate.backup
 infrastructure/*.tfplan
 infrastructure/crash.log
+infrastructure/.terraform.lock.hcl
 
 # Stray files
 test-results/
