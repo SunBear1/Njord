@@ -1,0 +1,54 @@
+name: Terraform
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "infrastructure/**"
+  push:
+    branches: [main]
+    paths:
+      - "infrastructure/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  terraform:
+    name: Terraform ${{ github.event_name == 'push' && 'Apply' || 'Plan' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./infrastructure
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.14
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_KEY }}
+        run: |
+          terraform init \
+            -backend-config="endpoints={s3=\"https://${{ secrets.CF_ACCOUNT_ID }}.r2.cloudflarestorage.com\"}"
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        if: github.event_name == 'pull_request'
+        run: terraform plan -var cf_api_token="${{ secrets.CF_API_TOKEN }}" -var cf_account_id="${{ secrets.CF_ACCOUNT_ID }}"
+
+      - name: Terraform Apply
+        if: github.event_name == 'push'
+        run: terraform apply -auto-approve -var cf_api_token="${{ secrets.CF_API_TOKEN }}" -var cf_account_id="${{ secrets.CF_ACCOUNT_ID }}"
