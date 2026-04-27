@@ -27,6 +27,15 @@ backtest-metrics.json
 .wrangler/
 .dev.vars
 
+# Terraform
+infrastructure/.terraform/
+infrastructure/*.tfvars
+infrastructure/*.tfstate
+infrastructure/*.tfstate.backup
+infrastructure/*.tfplan
+infrastructure/crash.log
+infrastructure/.terraform.lock.hcl
+
 # Stray files
 test-results/
 Prompt_*.md
