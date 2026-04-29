@@ -120,6 +120,11 @@ export interface PitZgCurrencyEntry {
    * Note: cross-country loss netting does NOT happen here — it happens in PIT-38.
    */
   incomePLN: number;
+  /**
+   * PIT/ZG (v8) Section C.3 field mapping for this country.
+   * Only populated when incomePLN > 0 (PIT/ZG not filed for countries with losses).
+   */
+  pitZgFields?: PitZgFieldMapping;
 }
 
 /** Aggregate summary across multiple transactions (PIT-38 level). */
@@ -199,21 +204,74 @@ export interface MultiTaxSummary {
 
 /**
  * Maps summary values to official PIT-38 field positions.
- * Based on the 2024/2025 PIT-38 form layout.
+ * Based on PIT-38 version 18 (for tax year 2025, filed in 2026).
+ *
+ * Structure:
+ *   Section C — Dochody / straty (art. 30b ust. 1)
+ *   Section D — Obliczenie zobowiązania podatkowego (art. 30b ust. 1)
+ *   Section G — Podatek do zapłaty / nadpłata (dividends + final)
  */
 export interface Pit38FieldMapping {
-  /** Poz. 24 — Przychód z odpłatnego zbycia papierów wartościowych. */
-  poz24_revenue: number;
-  /** Poz. 25 — Koszty uzyskania przychodu. */
-  poz25_costs: number;
-  /** Poz. 26 — Dochód (przychód − koszty, ≥ 0). */
-  poz26_income: number;
-  /** Poz. 27 — Strata (koszty − przychód when costs > revenue, ≥ 0). */
-  poz27_loss: number;
-  /** Poz. 33 — Podstawa obliczenia podatku (po odliczeniach). */
-  poz33_taxBase: number;
-  /** Poz. 34 — Podatek 19%. */
-  poz34_tax: number;
+  // ── Section C — Revenue / cost breakdown ──────────────────────────────────
+
+  /** Poz. 20 — Przychody wykazane w PIT-8C (Polish broker, domestic). */
+  poz20_pit8cRevenue: number;
+  /** Poz. 21 — Koszty uzyskania przychodów z PIT-8C. */
+  poz21_pit8cCosts: number;
+  /** Poz. 22 — Inne przychody (foreign broker transactions). */
+  poz22_foreignRevenue: number;
+  /** Poz. 23 — Koszty uzyskania przychodów (foreign transactions). */
+  poz23_foreignCosts: number;
+  /** Poz. 26 — Razem przychody (Row 4 = Row 1 + Row 2). */
+  poz26_totalRevenue: number;
+  /** Poz. 27 — Razem koszty (Row 4 = Row 1 + Row 2). */
+  poz27_totalCosts: number;
+  /** Poz. 28 — Dochód (przychody − koszty, ≥ 0). */
+  poz28_income: number;
+  /** Poz. 29 — Strata (koszty − przychody, ≥ 0). */
+  poz29_loss: number;
+
+  // ── Section D — Tax calculation ───────────────────────────────────────────
+
+  /** Poz. 30 — Straty z lat ubiegłych (prior-year loss deduction, user-provided). */
+  poz30_priorYearLoss: number;
+  /** Poz. 31 — Podstawa obliczenia podatku (Poz. 28 − Poz. 30, rounded down). */
+  poz31_taxBase: number;
+  /** Poz. 33 — Podatek 19% (Poz. 31 × 19%). */
+  poz33_tax: number;
+  /** Poz. 34 — Podatek zapłacony za granicą od zysków kapitałowych. */
+  poz34_foreignTaxCredit: number;
+  /** Poz. 35 — Podatek należny (Poz. 33 − Poz. 34, min 0). */
+  poz35_taxDue: number;
+
+  // ── Section G — Dividends (art. 30a) ──────────────────────────────────────
+
+  /** Poz. 47 — Zryczałtowany podatek od dywidend zagranicznych (19% of gross). */
+  poz47_dividendTax: number;
+  /** Poz. 48 — Podatek zapłacony za granicą (WHT credit, capped at Poz. 47). */
+  poz48_dividendForeignTaxCredit: number;
+  /** Poz. 49 — Różnica (Poz. 47 − Poz. 48). */
+  poz49_dividendTaxDue: number;
+
+  // ── Section G — Final summary ─────────────────────────────────────────────
+
+  /** Poz. 51 — PODATEK DO ZAPŁATY (Poz. 35 + Poz. 45 + Poz. 46 + Poz. 49 − Poz. 50). */
+  poz51_totalTaxDue: number;
+}
+
+/**
+ * PIT/ZG attachment field mapping (version 8), Section C.3.
+ * One PIT/ZG per country where foreign income was earned.
+ */
+export interface PitZgFieldMapping {
+  /** ISO country code (e.g. 'US', 'DE', 'IE'). */
+  countryCode: string;
+  /** Country name in Polish (e.g. 'Stany Zjednoczone'). */
+  countryName: string;
+  /** Poz. 29 — Dochód z art. 30b ust. 5a i 5b (capital gains income). */
+  poz29_income: number;
+  /** Poz. 30 — Podatek zapłacony za granicą od dochodów z poz. 29. */
+  poz30_foreignTaxPaid: number;
 }
 
 // ─── Legacy single-transaction types (kept for backward compat) ───────────────

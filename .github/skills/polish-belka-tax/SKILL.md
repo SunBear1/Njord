@@ -91,55 +91,70 @@ Common treaty withholding rates:
 
 ### Step 7: Map Results to PIT-38 Form Fields
 
-#### Section C — Income from capital gains (shares, ETFs, derivatives)
+> Based on **PIT-38 version 18** (current). Reference PDFs in `.github/skills/polish-belka-tax/`.
+
+#### Section C — Dochody / straty z odpłatnego zbycia papierów wartościowych (art. 30b ust. 1)
+
 | Field | Description | Value |
 |-------|-------------|-------|
-| Poz. 20 | Przychód (Revenue) | Total sell proceeds in PLN |
-| Poz. 21 | Koszty uzyskania przychodu (Costs) | Total acquisition costs + fees in PLN |
-| Poz. 22 | Dochód (Income) — if Poz.20 > Poz.21 | Poz.20 - Poz.21 |
-| Poz. 23 | Strata (Loss) — if Poz.21 > Poz.20 | Poz.21 - Poz.20 |
+| Poz. 20 | Przychody wykazane w PIT-8C (Polish broker, domestic) | Revenue from PIT-8C |
+| Poz. 21 | Koszty uzyskania przychodów z PIT-8C | Costs from PIT-8C |
+| Poz. 22 | Inne przychody (foreign broker transactions) | Foreign revenue in PLN |
+| Poz. 23 | Koszty uzyskania przychodów (inne) | Foreign costs in PLN |
+| Poz. 24 | Przychody wolne (art. 21 ust. 1 pkt 105a) | Exempt income (usually 0) |
+| Poz. 25 | Koszty przychodów wolnych | Exempt costs (usually 0) |
+| Poz. 26 | Razem przychody (Poz. 20 + 22 − 24) | Total revenue |
+| Poz. 27 | Razem koszty (Poz. 21 + 23 − 25) | Total costs |
+| Poz. 28 | Dochód (Poz. 26 − Poz. 27, if ≥ 0) | Income |
+| Poz. 29 | Strata (Poz. 27 − Poz. 26, if costs > revenue) | Loss |
 
-#### Section D — Cryptocurrency (virtual currencies)
+#### Section D — Obliczenie podatku (capital gains tax calculation)
+
 | Field | Description | Value |
 |-------|-------------|-------|
-| Poz. 24 | Przychód z kryptowalut | Total crypto sale proceeds in PLN |
-| Poz. 25 | Koszty kryptowalut | Crypto acquisition costs (current year + carried forward) |
-| Poz. 26 | Dochód z kryptowalut | Poz.24 - Poz.25 (if positive) |
-| Poz. 27 | Strata z kryptowalut | Poz.25 - Poz.24 (if costs exceed revenue) |
+| Poz. 30 | Straty z lat ubiegłych | Prior-year loss deduction (max 50% per year, or 100% if loss ≤ 1M PLN) |
+| Poz. 31 | Podstawa obliczenia podatku | Poz. 28 − Poz. 30, rounded down to full PLN |
+| Poz. 32 | Stawka podatku | 19% (always) |
+| Poz. 33 | Podatek | Poz. 31 × 19% |
+| Poz. 34 | Podatek zapłacony za granicą od zysków kapitałowych | Foreign tax credit on capital gains (usually 0 for stock sales) |
+| Poz. 35 | Podatek należny | Poz. 33 − Poz. 34 (min 0) |
 
-#### Section E — Tax calculation
+#### Section E/F — Cryptocurrency (Poz. 36–45)
+Not relevant for stock/ETF transactions — skip.
+
+#### Section G — Zryczałtowany podatek od dywidend zagranicznych (art. 30a) + podsumowanie
+
 | Field | Description | Value |
 |-------|-------------|-------|
-| Poz. 28 | Dochód po odliczeniu strat z lat ubiegłych | Taxable income after loss deductions |
-| Poz. 29 | Strata z lat ubiegłych do odliczenia | Amount of prior-year losses applied |
-| Poz. 33 | Podstawa obliczenia podatku | Tax base (rounded down to full PLN) |
-| Poz. 34 | Podatek (19%) | Poz.33 × 19% |
-| Poz. 35 | Podatek zapłacony za granicą (foreign tax credit for dividends) | Foreign WHT credited |
-| Poz. 36 | Podatek należny | Tax due = Poz.34 - Poz.35 (min 0) |
-| Poz. 39 | Podatek do zapłaty | Final tax to pay |
+| Poz. 47 | Zryczałtowany podatek od dywidend zagranicznych | 19% of gross foreign dividends in PLN |
+| Poz. 48 | Podatek zapłacony za granicą (WHT credit) | min(WHT paid in PLN, Poz. 47) |
+| Poz. 49 | Różnica (Poz. 47 − Poz. 48) | Net dividend tax due |
+| Poz. 51 | **PODATEK DO ZAPŁATY** | **Poz. 35 + Poz. 45 + Poz. 46 + Poz. 49 − Poz. 50** (final tax) |
 
-**Note**: Field numbers (Poz.) may shift between form versions. Always advise the user to verify against the current year's official form. The above mapping reflects the general structure.
+> **Note**: Poz. 45 (crypto tax), Poz. 46, and Poz. 50 are not relevant for stock/ETF transactions and are typically 0.
 
-#### Section G — Foreign dividends (reported inside PIT-38)
-Foreign dividends go into appropriate fields in the dividend section. The gross amount, foreign tax paid, and Polish tax credit are all entered.
+#### Section G — Foreign dividends detail
+Foreign dividends are reported in Poz. 47–49 (above). The gross amount is converted to PLN via NBP Table A rate. WHT credit is capped at the Polish 19% rate — any excess foreign tax is lost.
 
-### PIT/ZG Attachment
+### PIT/ZG Attachment (version 8)
 
 PIT/ZG is required when **any income came from abroad** (foreign broker trades, foreign dividends).
 
-Fill one PIT/ZG per country:
+Fill one PIT/ZG per country. **Section C.3** (for income declared in PIT-38):
+
 | Field | Description | Value |
 |-------|-------------|-------|
-| Country code | ISO country code (e.g., US, DE, IE, GB) | Country of the broker/issuer |
-| Przychód | Revenue from that country in PLN | Sum of sell proceeds for instruments from that country |
-| Koszty | Costs in PLN | Corresponding acquisition costs + fees |
-| Dochód / Strata | Income or loss | Revenue - Costs |
-| Podatek zapłacony za granicą | Foreign tax paid | WHT on dividends from that country (in PLN) |
+| Country | ISO country code (e.g., US, DE, IE, GB) | Country of the broker/issuer |
+| Poz. 29 | Dochód z art. 30b ust. 5a i 5b | Income from capital gains abroad (per country) |
+| Poz. 30 | Podatek zapłacony za granicą | Foreign tax paid on capital gains (usually 0 for stock sales; >0 for dividends) |
+
+> Reference PDF: `.github/skills/polish-belka-tax/PIT-ZG-v8.pdf`
 
 **Key rule for PIT/ZG country assignment**:
 - For shares/ETFs traded on a foreign broker: the country is determined by where the income is sourced (typically the country of the exchange or the issuer). For US stocks on E*Trade → US.
 - For Irish-domiciled ETFs (e.g., many Vanguard/iShares UCITS ETFs): country = Ireland (IE), even if bought via a US or UK broker.
 - One PIT/ZG form per country.
+- PIT/ZG is only filed for countries where you have **positive income** (dochód). Countries with net loss are still shown in PIT-38 but don't require PIT/ZG.
 
 ## 3. Computation Format
 

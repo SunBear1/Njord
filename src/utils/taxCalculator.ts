@@ -14,6 +14,24 @@ const SOLIDARITY_RATE = 0.04;
 /** Round to grosze (2 decimal places) — required for PIT-38 PLN amounts. */
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
+// ─── Currency → country mapping for PIT/ZG ───────────────────────────────────
+
+const CURRENCY_TO_COUNTRY_CODE: Record<string, string> = {
+  USD: 'US',
+  GBP: 'GB',
+  CHF: 'CH',
+  DKK: 'DK',
+  SEK: 'SE',
+};
+
+const CURRENCY_TO_COUNTRY_NAME: Record<string, string> = {
+  USD: 'Stany Zjednoczone',
+  GBP: 'Wielka Brytania',
+  CHF: 'Szwajcaria',
+  DKK: 'Dania',
+  SEK: 'Szwecja',
+};
+
 // ─── Multi-transaction functions ──────────────────────────────────────────────
 
 /**
@@ -146,24 +164,23 @@ export function calcMultiTaxSummary(transactions: TaxTransaction[]): MultiTaxSum
     const result = calcTransactionResult(tx);
     if (!result) continue;
 
-    // Dividend transactions are tracked separately
+    // Dividend transactions are tracked separately — Section G of PIT-38 only
     if (result.isDividend) {
       totalDividendGrossPLN += result.revenuePLN;
       totalWhtPaidPLN += result.whtPaidPLN;
       totalWhtCreditPLN += result.whtCreditPLN;
       totalDividendTopUpPLN += result.polishTopUpPLN;
 
-      // Dividends also contribute to revenue/gain aggregates for PIT-38
-      totalRevenuePLN += result.revenuePLN;
+      // Dividends do NOT flow into Section C (capital gains) — skip revenue/cost accumulation
+      continue;
+    }
+
+    totalRevenuePLN += result.revenuePLN;
+    totalCostPLN += result.costPLN;
+    if (result.gainPLN > 0) {
       totalGainPLN += result.gainPLN;
     } else {
-      totalRevenuePLN += result.revenuePLN;
-      totalCostPLN += result.costPLN;
-      if (result.gainPLN > 0) {
-        totalGainPLN += result.gainPLN;
-      } else {
-        totalLossPLN += -result.gainPLN;
-      }
+      totalLossPLN += -result.gainPLN;
     }
 
     const isForeign = tx.currency !== 'PLN';
@@ -191,22 +208,42 @@ export function calcMultiTaxSummary(transactions: TaxTransaction[]): MultiTaxSum
 
   // PIT-38 field mapping
   const pit38Fields: Pit38FieldMapping = buildPit38Fields(
+    round2(domesticRevenuePLN),
+    round2(domesticCostPLN),
+    round2(foreignRevenuePLN),
+    round2(foreignCostPLN),
     round2(totalRevenuePLN),
     round2(totalCostPLN),
     netIncomePLN,
-    taxDuePLN,
+    round2(totalDividendGrossPLN),
+    round2(totalWhtCreditPLN),
   );
 
   const domesticIncomePLN = round2(domesticRevenuePLN - domesticCostPLN);
   const foreignIncomePLN = round2(foreignRevenuePLN - foreignCostPLN);
 
   const pitZgByCurrency = [...currencyMap.entries()]
-    .map(([currency, acc]) => ({
-      currency,
-      revenuePLN: round2(acc.revenuePLN),
-      costPLN: round2(acc.costPLN),
-      incomePLN: round2(acc.revenuePLN - acc.costPLN),
-    }))
+    .map(([currency, acc]) => {
+      const income = round2(acc.revenuePLN - acc.costPLN);
+      const entry: import('../types/tax').PitZgCurrencyEntry = {
+        currency,
+        revenuePLN: round2(acc.revenuePLN),
+        costPLN: round2(acc.costPLN),
+        incomePLN: income,
+      };
+      // PIT/ZG only filed for countries with positive income
+      if (income > 0) {
+        const countryCode = CURRENCY_TO_COUNTRY_CODE[currency] ?? '';
+        const countryName = CURRENCY_TO_COUNTRY_NAME[currency] ?? '';
+        entry.pitZgFields = {
+          countryCode,
+          countryName,
+          poz29_income: income,
+          poz30_foreignTaxPaid: 0, // Stock sales not taxed at source
+        };
+      }
+      return entry;
+    })
     .sort((a, b) => b.revenuePLN - a.revenuePLN);
 
   return {
@@ -237,21 +274,64 @@ export function calcMultiTaxSummary(transactions: TaxTransaction[]): MultiTaxSum
 
 /**
  * Maps computed summary to official PIT-38 field positions (Poz.).
- * Based on the 2024/2025 PIT-38 form layout (section E).
+ * Based on PIT-38 version 18 form layout.
+ *
+ * Section C: Revenue/cost split (domestic PIT-8C vs foreign)
+ * Section D: Tax calculation (loss deduction, tax base, foreign credit)
+ * Section G: Dividends + final tax due
  */
 function buildPit38Fields(
+  domesticRevenue: number,
+  domesticCost: number,
+  foreignRevenue: number,
+  foreignCost: number,
   totalRevenue: number,
   totalCost: number,
   netIncome: number,
-  taxDue: number,
+  dividendGrossPLN: number,
+  whtCreditPLN: number,
 ): Pit38FieldMapping {
+  const income = netIncome >= 0 ? netIncome : 0;
+  const loss = netIncome < 0 ? round2(-netIncome) : 0;
+
+  // Section D — no prior-year loss deduction (user would enter manually)
+  const priorYearLoss = 0;
+  const taxBase = income > 0 ? Math.floor(income - priorYearLoss) : 0;
+  const grossTax = taxBase > 0 ? round2(taxBase * BELKA_TAX) : 0;
+  // Foreign tax credit on capital gains (typically 0 — stocks not taxed at source)
+  const foreignTaxCredit = 0;
+  const capitalGainsTaxDue = grossTax > 0 ? Math.max(0, round2(grossTax - foreignTaxCredit)) : 0;
+
+  // Section G — Dividends
+  const dividendTax = dividendGrossPLN > 0 ? round2(dividendGrossPLN * BELKA_TAX) : 0;
+  const dividendForeignCredit = round2(Math.min(whtCreditPLN, dividendTax));
+  const dividendTaxDue = round2(Math.max(0, dividendTax - dividendForeignCredit));
+
+  // Final tax to pay (Poz. 51 = Poz. 35 + Poz. 49; Poz. 45/46/50 not tracked by Njord)
+  const totalTaxDue = round2(capitalGainsTaxDue + dividendTaxDue);
+
   return {
-    poz24_revenue: totalRevenue,
-    poz25_costs: totalCost,
-    poz26_income: netIncome >= 0 ? netIncome : 0,
-    poz27_loss: netIncome < 0 ? round2(-netIncome) : 0,
-    poz33_taxBase: netIncome > 0 ? netIncome : 0,
-    poz34_tax: taxDue,
+    // Section C
+    poz20_pit8cRevenue: domesticRevenue,
+    poz21_pit8cCosts: domesticCost,
+    poz22_foreignRevenue: foreignRevenue,
+    poz23_foreignCosts: foreignCost,
+    poz26_totalRevenue: totalRevenue,
+    poz27_totalCosts: totalCost,
+    poz28_income: income,
+    poz29_loss: loss,
+    // Section D
+    poz30_priorYearLoss: priorYearLoss,
+    poz31_taxBase: taxBase,
+    poz33_tax: grossTax,
+    poz34_foreignTaxCredit: foreignTaxCredit,
+    poz35_taxDue: capitalGainsTaxDue,
+    // Section G — Dividends
+    poz47_dividendTax: dividendTax,
+    poz48_dividendForeignTaxCredit: dividendForeignCredit,
+    poz49_dividendTaxDue: dividendTaxDue,
+    // Section G — Final
+    poz51_totalTaxDue: totalTaxDue,
   };
 }
 
