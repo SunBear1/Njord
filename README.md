@@ -73,8 +73,8 @@ Wszystkie obliczenia uwzględniają **podatek Belki (19%)** oraz kurs USD/PLN.
 
 ```
 Cloudflare Pages
-├── / (SPA)              ← React + Vite, trzy widoki: porównanie inwestycji + kalkulator Belki + kreator portfela
-├── /api/analyze         ← Pages Function — dane giełdowe (Yahoo Finance primary, Twelve Data fallback) + NBP FX
+├── / (SPA)              ← React + Vite, pięć widoków: strona główna + porównanie + prognoza + kalkulator Belki + kreator portfela
+├── /api/market-data     ← Pages Function — dane giełdowe (Yahoo Finance primary, Twelve Data fallback) + NBP FX
 ├── /api/bonds           ← Pages Function — presety obligacji z CSV (cache 24h)
 ├── /api/currency-rates  ← Pages Function — kursy walut (Alior Kantor + NBP Tabela C)
 ├── /api/inflation       ← Pages Function — inflacja HICP z ECB (cache 24h)
@@ -111,7 +111,7 @@ npm install
 npm run dev
 ```
 
-> Bez Pages Functions `/api/analyze` nie jest dostępne lokalnie. Żeby uruchomić pełny stack:
+> Bez Pages Functions `/api/market-data` nie jest dostępne lokalnie. Żeby uruchomić pełny stack:
 > ```bash
 > npm run dev:full   # Vite + Pages Functions na localhost:8788
 > ```

@@ -19,17 +19,17 @@ To enable the Twelve Data fallback, create `.dev.vars` with `TWELVE_DATA_API_KEY
 
 ## Architecture
 
-**All state lives in `App.tsx`** — passed via props, no global store. No routing (single page).
+**Each page component owns its state** — `Layout.tsx` owns shared concerns (dark mode, auth). react-router-dom v7 with BrowserRouter.
 
 **Data flow:**
-1. `useAssetData` → calls `/api/analyze` Pages Function → Yahoo Finance (primary) or Twelve Data (429 fallback) + NBP (FX history)
+1. `useAssetData` → calls `/api/market-data` Pages Function → Yahoo Finance (primary) or Twelve Data (429 fallback) + NBP (FX history)
 2. `useFxData` → direct NBP call for live USD/PLN sell rate
 3. `useHistoricalVolatility` → runs prediction models client-side (GBM or Bootstrap depending on horizon)
-4. `App.tsx` → passes scenarios + asset data to calculation functions → distributes results to chart/display components
+4. Page components → pass scenarios + asset data to calculation functions → distribute results to chart/display components
 
-**Backend** (`functions/api/analyze.ts`): Thin proxy — Yahoo Finance primary (no key), Twelve Data fallback on 429 (optional key). Caches at CF edge for 1 hour. All financial computation runs in the browser.
+**Backend** (`functions/api/market-data.ts`): Thin proxy — Yahoo Finance primary (no key), Twelve Data fallback on 429 (optional key). Caches at CF edge for 1 hour. All financial computation runs in the browser.
 
-**Prediction engine:** ≤6 months → Block Bootstrap; >6 months → Calibrated GBM. HMM is used only by the Sell Analysis feature — it does NOT drive bear/base/bull scenarios.
+**Prediction engine:** ≤6 months → Block Bootstrap; >6 months → Calibrated GBM. HMM is used only by the Price Forecast feature — it does NOT drive bear/base/bull scenarios.
 
 **Financial calculations** (`src/utils/calculations.ts`): Pure functions — `calcAllScenarios`, `calcTimeline`, `calcHeatmap`. Polish 19% Belka tax applied to all profit.
 

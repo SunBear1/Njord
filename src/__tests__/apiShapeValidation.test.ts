@@ -12,7 +12,7 @@ import { describe, it, expect } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Yahoo Finance minimal response shape validator
-// (mirrors the assumptions in functions/api/analyze.ts)
+// (mirrors the assumptions in functions/api/market-data.ts)
 // ---------------------------------------------------------------------------
 
 interface YahooMeta {

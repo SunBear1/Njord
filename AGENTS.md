@@ -4,11 +4,13 @@ Instructions for AI agents working with this repository.
 
 ## Project overview
 
-**Njord** is a React/TypeScript SPA (Single Page Application) with three main tabs:
+**Njord** is a React/TypeScript SPA (Single Page Application) with five routes:
 
-1. **Investment comparison** — compares a USD-denominated stock/ETF portfolio against Polish savings instruments (savings accounts or government bonds).
-2. **Belka tax calculator** — calculates Polish 19% capital gains tax (Belka) for multiple stock sale transactions, with automatic NBP Table A rate fetching and PIT-38 grouping.
-3. **Kreator portfela** (Portfolio Creator) — a 4-step wizard for building a long-term passive investment portfolio across IKE, IKZE, and regular brokerage accounts with multi-instrument allocation.
+1. **Home** (`/`) — hub page with feature cards linking to all tools.
+2. **Investment comparison** (`/comparison`) — compares a USD-denominated stock/ETF portfolio against Polish savings instruments (savings accounts or government bonds).
+3. **Price Forecast** (`/forecast`) — HMM Monte Carlo price distribution prediction (formerly "Optymalna cena sprzedaży" / sell analysis).
+4. **Belka tax calculator** (`/tax`) — calculates Polish 19% capital gains tax (Belka) for multiple stock sale transactions, with automatic NBP Table A rate fetching and PIT-38 grouping.
+5. **Kreator portfela** (`/portfolio`) — a 4-step wizard for building a long-term passive investment portfolio across IKE, IKZE, and regular brokerage accounts with multi-instrument allocation.
 
 All computations run in the browser — no backend.
 
@@ -46,7 +48,7 @@ Local dev with Pages Functions (optional — only needed for Twelve Data fallbac
 # .dev.vars — gitignored, optional
 TWELVE_DATA_API_KEY=your_key  # Only needed as fallback when Yahoo Finance rate-limits
 ```
-Without `.dev.vars`, `/api/analyze` works via Yahoo Finance with no configuration needed.
+Without `.dev.vars`, `/api/market-data` works via Yahoo Finance with no configuration needed.
 
 ---
 
@@ -54,8 +56,10 @@ Without `.dev.vars`, `/api/analyze` works via Yahoo Finance with no configuratio
 
 ```
 src/
-├── App.tsx                       # Root component, all app state lives here; three tabs: investment + tax + portfolio
+├── main.tsx                      # Entry point — renders BrowserRouter with routes
+├── routes.tsx                    # Lazy route definitions + CatchAllRedirect
 ├── components/
+│   ├── Layout.tsx                # Shared layout (header, navbar, footer, modals, auth)
 │   ├── InputPanel.tsx            # Left panel: ticker, shares, FX, benchmark selector, horizon slider
 │   ├── ScenarioEditor.tsx        # 3-scenario editor (bear/base/bull) + historical volatility suggestions
 │   ├── VerdictBanner.tsx         # Results summary (which scenarios beat the benchmark)
@@ -63,9 +67,9 @@ src/
 │   ├── TimelineChart.tsx         # Line chart: portfolio value over time
 │   ├── BreakevenChart.tsx        # Heatmap: stock delta × FX delta — where stocks beat benchmark
 │   ├── AccumulationChart.tsx     # Stacked area chart for accumulation/portfolio results
-│   ├── SellAnalysisPanel.tsx     # Optimal sell-price analysis (lazy-loaded, uses HMM Monte Carlo)
+│   ├── SellAnalysisPanel.tsx     # Price forecast panel (HMM Monte Carlo)
 │   ├── TaxCalculatorPanel.tsx    # Belka tax calculator — multi-transaction, NBP auto-fetch, PIT-38
-│   ├── KantorSidebar.tsx         # Exchange rate sidebar (shown on investment tab only)
+│   ├── KantorSidebar.tsx         # Exchange rate sidebar (shown on comparison page only)
 │   ├── ErrorBoundary.tsx         # React error boundary wrapper
 │   ├── MethodologyPanel.tsx      # Calculation methodology explanation
 │   ├── HowItWorks.tsx            # User guide / how-to
@@ -80,21 +84,27 @@ src/
 │       ├── Step2BrokerSelection.tsx # IKE/IKZE broker card selection
 │       ├── Step3Allocation.tsx   # Multi-instrument allocation sliders per wrapper
 │       └── Step4Summary.tsx      # Metric cards, chart, annual table, counterfactual
+├── pages/
+│   ├── HomePage.tsx              # Hub page with feature cards
+│   ├── ComparisonPage.tsx        # Investment comparison — owns all comparison state
+│   ├── ForecastPage.tsx          # Price forecast (HMM Monte Carlo) — own ticker input + useAssetData
+│   ├── TaxPage.tsx               # Belka tax calculator
+│   └── PortfolioPage.tsx         # Portfolio wizard
 ├── hooks/
-│   ├── useAssetData.ts           # Fetch stock + analysis data from /api/analyze
+│   ├── useAssetData.ts           # Fetch stock + analysis data from /api/market-data
 │   ├── useAuth.ts                # JWT auth state — login, logout, register, OAuth, user session
-│   ├── useEtfData.ts             # Fetch ETF data from /api/analyze
+│   ├── useEtfData.ts             # Fetch ETF data from /api/market-data
 │   ├── useCurrencyRates.ts       # Multi-currency rates via /api/currency-rates (Alior + NBP fallback)
 │   ├── useInflationData.ts       # ECB HICP CPI for Poland via /api/inflation
 │   ├── useBondPresets.ts         # Bond presets from /api/bonds (CSV-backed)
 │   ├── usePortfolioState.ts      # Portfolio-level state management
-│   ├── useSellAnalysis.ts        # HMM-based sell-price Monte Carlo analysis
+│   ├── useSellAnalysis.ts        # HMM-based price forecast Monte Carlo analysis
 │   ├── useHistoricalVolatility.ts # GBM/Bootstrap scenario suggestions from price history
 │   ├── useWizardState.ts         # Portfolio wizard state management (localStorage: njord_portfolio_wizard)
 │   ├── useDarkMode.ts            # Dark mode toggle with localStorage persistence
 │   └── useDebouncedValue.ts      # Debounce helper for slider/model inputs
 ├── providers/
-│   ├── twelveDataProvider.ts     # Calls /api/analyze and translates errors to Polish messages
+│   ├── twelveDataProvider.ts     # Calls /api/market-data and translates errors to Polish messages
 │   └── nbpProvider.ts            # NBP USD/PLN mid rate (direct, for live FX display)
 ├── data/
 │   └── bondPresets.ts            # Bond metadata constants (dates, source URL); rates loaded from CSV via /api/bonds
@@ -104,13 +114,14 @@ src/
 │   ├── allocationValidation.ts   # Allocation slider validation (sum to 100%, normalize, adjust)
 │   ├── taxCalculator.ts          # Belka tax logic: calcTransactionResult, calcMultiTaxSummary
 │   ├── fetchNbpTableARate.ts     # NBP Table A mid rate fetch (last business day before date)
-│   ├── fetchTickerName.ts        # Resolves ticker symbol → company name via /api/analyze
+│   ├── fetchTickerName.ts        # Resolves ticker symbol → company name via /api/market-data
 │   ├── etradeParser.ts           # Parses Etrade "Gains & Losses" .xlsx exports into TaxTransaction[]
 │   ├── parseBondPresets.ts       # Parses bond presets from CSV
-│   ├── sellAnalysis.ts           # Monte Carlo sell analysis (HMM paths, target generation)
+│   ├── sellAnalysis.ts           # Monte Carlo price forecast (HMM paths, target generation)
 │   ├── inflationProjection.ts    # Mean-reversion CPI projection (Fisher formula)
 │   ├── hmm.ts                    # 2-state Gaussian HMM (Baum-Welch EM) for regime detection
-│   ├── persistedState.ts         # localStorage persistence (njord_state v4, with migrations)
+│   ├── persistedState.ts         # localStorage persistence (njord_state v5, with migrations)
+│   ├── routePersistence.ts       # Route persistence (njord_last_route localStorage key)
 │   ├── assetConfig.ts            # Constants (DEFAULT_HORIZON_MONTHS = 12)
 │   ├── formatting.ts             # Number formatting (fmtUSD, fmtPLN, fmtNum)
 │   ├── fetchWithTimeout.ts       # fetch() wrapper with configurable timeout
@@ -125,7 +136,7 @@ src/
 ├── types/
 │   ├── scenario.ts               # ScenarioKey, BenchmarkType, BondPreset, ScenarioResult
 │   ├── asset.ts                  # AssetData, HistoricalPrice
-│   ├── analyze.ts                # AnalyzeResponse, AnalyzeResult (Pages Function response types)
+│   ├── marketData.ts             # MarketDataResponse, MarketDataResult (Pages Function response types)
 │   ├── accumulation.ts           # BucketConfig, AccumulationResult, AnnualTableRow
 │   ├── portfolio.ts              # Broker, WizardState, ETF_PRESETS, PortfolioAllocation
 │   ├── tax.ts                    # TaxTransaction, TransactionTaxResult, MultiTaxSummary, TaxInputs
@@ -134,7 +145,7 @@ src/
 functions/
 ├── _middleware.ts                # Global CORS + Content-Type for all /api/* routes
 └── api/
-    ├── analyze.ts                # GET /api/analyze?ticker=X — Yahoo Finance + NBP FX
+    ├── market-data.ts            # GET /api/market-data?ticker=X — Yahoo Finance + NBP FX
     ├── bonds.ts                  # GET /api/bonds — serves bond presets CSV (cached 24h)
     ├── currency-rates.ts         # GET /api/currency-rates — Alior Kantor + NBP Table C proxy
     ├── inflation.ts              # GET /api/inflation — ECB HICP CPI proxy (cached 24h)
@@ -166,7 +177,7 @@ functions/
 | ECB HICP | `data-api.ecb.europa.eu/service/data/ICP/...` | Polish CPI inflation | Yes | None |
 
 **Data source strategy:** Yahoo Finance is the primary source for market data (no key required).
-If Yahoo returns 429 (rate limited), `/api/analyze` falls back to Twelve Data when
+If Yahoo returns 429 (rate limited), `/api/market-data` falls back to Twelve Data when
 `TWELVE_DATA_API_KEY` is configured. Both sources produce identical response shape.
 The `source` field in `ProxyResponse` indicates which was used.
 
@@ -233,17 +244,13 @@ Effective rate for years 2+:
 
 ---
 
-## App state (App.tsx)
+## App state
 
-All state lives in `App.tsx` and is passed to components via props. No global store (Redux/Zustand).
+Each page component owns its own state. No global store (Redux/Zustand). `Layout.tsx` owns shared concerns (dark mode, auth, route persistence).
 
-**Active section:**
+Navigation is route-based via react-router-dom v7. Last visited route is persisted to `njord_last_route` localStorage key (managed by `src/utils/routePersistence.ts`).
 
-| State | Type | Description |
-|-------|------|-------------|
-| `activeSection` | `'investment' \| 'tax' \| 'portfolio'` | Which tab is shown; persisted to localStorage |
-
-**Investment comparison inputs:**
+**Investment comparison inputs (ComparisonPage.tsx):**
 
 | State | Type | Description |
 |-------|------|-------------|
@@ -269,7 +276,7 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 | `etfAnnualReturnPercent` | `number` | Manual override for ETF annual return |
 | `etfTerPercent` | `number` | ETF total expense ratio % |
 
-**State persistence:** `src/utils/persistedState.ts` — `njord_state` key, schema v3. All investment inputs are persisted. Tax transactions are stored separately under `njord_tax_transactions`.
+**State persistence:** `src/utils/persistedState.ts` — `njord_state` key, schema v5. All investment inputs are persisted. Tax transactions are stored separately under `njord_tax_transactions`.
 
 ---
 
@@ -281,10 +288,10 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 - **Documentation:** English (README.md, AGENTS.md, code comments, JSDoc)
 - **Styling:** Tailwind CSS v4 only (utility classes); no CSS modules or styled-components. Semantic color tokens are defined in `src/index.css` via `@theme` — use them when available, add new ones when needed.
 - **Components:** Functional with hooks; no classes; props explicitly typed via interfaces
-- **No routing** — single-page application with three tabs (`activeSection` state)
+- **Routing:** react-router-dom v7 with BrowserRouter — 5 routes (`/`, `/comparison`, `/forecast`, `/tax`, `/portfolio`)
 - **Testing:** Vitest (`npm test` / `npm run test:watch`). Tests in `src/__tests__/`. 446 tests across 17 files.
 - **Deploy:** Automatic on `main` push via **Cloudflare Pages** native GitHub integration (no GH Actions workflow)
-- **Backend:** `functions/api/analyze.ts` — CF Pages Function. Primary: Yahoo Finance (no key). Fallback: Twelve Data on 429. All financial computation runs client-side.
+- **Backend:** `functions/api/market-data.ts` — CF Pages Function. Primary: Yahoo Finance (no key). Fallback: Twelve Data on 429. All financial computation runs client-side.
 - **Base path:** `/` (Cloudflare Pages serves from root)
 - **Agent docs:** `AGENTS.md` at repo root — this is the standard location for GitHub Copilot and other AI agents.
 
@@ -300,7 +307,7 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 
 ### Changing horizon slider range
 - `src/components/InputPanel.tsx`: find the `max=` prop on the horizon slider — `max={benchmarkType === 'savings' ? 60 : 144}`
-- `src/App.tsx`: find the clamping logic on savings mode switch (search for `Math.min` near `horizonMonths`)
+- `src/pages/ComparisonPage.tsx`: find the clamping logic on savings mode switch (search for `Math.min` near `horizonMonths`)
 - Slider ticks are absolutely positioned — update tick arrays accordingly
 
 ### Changing calculation logic
@@ -309,17 +316,17 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 
 ### Adding a new chart
 - Create component in `src/components/`
-- Data from `calcTimeline`/`calcHeatmap`/`calcAllScenarios` — pass via props from App.tsx
+- Data from `calcTimeline`/`calcHeatmap`/`calcAllScenarios` — pass via props from the relevant page component
 - Use Recharts (see existing chart components as examples)
 
 ### Working on the Belka tax calculator
 - **UI:** `src/components/TaxCalculatorPanel.tsx` — all UI and state for the tax tab lives here. Tax transactions are stored in `localStorage` under `njord_tax_transactions` (separate from the main app state).
 - **Calculations:** `src/utils/taxCalculator.ts` — pure functions `calcTransactionResult` and `calcMultiTaxSummary`. Logic: NBP mid rates for tax basis, Belka = 19% on gain, losses offset gains per PIT-38.
 - **NBP rate fetch:** `src/utils/fetchNbpTableARate.ts` — queries NBP Table A for the last business day strictly before the transaction date. Returns `{ rate, effectiveDate }`.
-- **Ticker lookup:** `src/utils/fetchTickerName.ts` — resolves a ticker symbol to a company name via `/api/analyze`.
+- **Ticker lookup:** `src/utils/fetchTickerName.ts` — resolves a ticker symbol to a company name via `/api/market-data`.
 - **Etrade import:** `src/utils/etradeParser.ts` — parses Etrade "Gains & Losses" `.xlsx` exports into `TaxTransaction[]`. SheetJS is dynamically imported on first use (lazy chunk).
 - **Tax law rule:** Use NBP Table A mid rate from the **last business day before** the transaction date, not the transaction date itself. This is a Polish tax law requirement.
-- **KantorSidebar is hidden on the tax and portfolio tabs** — `App.tsx` conditionally renders it only on the investment tab.
+- **KantorSidebar is hidden on the tax, forecast, and portfolio routes** — `Layout.tsx` conditionally renders it only on the comparison route.
 
 ### Working on the Portfolio Creator (Kreator portfela)
 - **UI:** `src/components/portfolio/` — 4-step wizard: Step1PersonalData → Step2BrokerSelection → Step3Allocation → Step4Summary, orchestrated by `PortfolioWizard.tsx`.
@@ -331,10 +338,11 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 - **Waterfall allocation:** IKE fills first (up to limit) → IKZE next → surplus to regular wrapper.
 
 ### Persisted state schema
-- `src/utils/persistedState.ts` — schema v4, key `njord_state`
+- `src/utils/persistedState.ts` — schema v5, key `njord_state`
 - When adding new fields, bump `SCHEMA_VERSION` and add a migration in `loadState()`
 - Tax transactions are NOT in the main persisted state — they live under `njord_tax_transactions`
 - Portfolio wizard state is separate under `njord_portfolio_wizard` (managed by `useWizardState`)
+- Route persistence is separate under `njord_last_route` (managed by `src/utils/routePersistence.ts`)
 
 ---
 
@@ -346,13 +354,13 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 3. Extend `calcBenchmarkEndValue()` with the new branch
 4. Add ETF-specific UI inputs in `src/components/InputPanel.tsx` (expense ratio, etc.)
 5. Add third button in benchmark selector (`InputPanel.tsx`, search for the existing `savings`/`bonds` button group)
-6. Handle new state variables in `App.tsx`
+6. Handle new state variables in `ComparisonPage.tsx`
 7. Layout (2-col grid) does not need changes — it accommodates new benchmark types well
 
 ### Preparing for dark theme
 - **Current state:** 120+ hardcoded Tailwind color classes across all components
 - **index.css** has semantic tokens in `@theme {}` — add new semantic variables here
-- **Migration path:** Replace hardcoded classes with CSS variable references. Start with major surfaces (App.tsx header/footer, card backgrounds), then progressively migrate smaller components.
+- **Migration path:** Replace hardcoded classes with CSS variable references. Start with major surfaces (Layout.tsx header/footer, card backgrounds), then progressively migrate smaller components.
 - Chart colors in Recharts components need to become dynamic props instead of hardcoded hex values.
 
 ### Adding investment metrics/indicators
@@ -375,21 +383,21 @@ All state lives in `App.tsx` and is passed to components via props. No global st
 
 ## Notes for AI agents
 
-- **Three tabs:** `activeSection === 'investment'` (default) shows the investment comparison; `activeSection === 'tax'` shows the Belka tax calculator; `activeSection === 'portfolio'` shows the Kreator portfela wizard. KantorSidebar is hidden on the tax and portfolio tabs.
+- **Five routes:** `/` (home hub), `/comparison` (investment comparison), `/forecast` (price forecast — HMM Monte Carlo), `/tax` (Belka tax calculator), `/portfolio` (portfolio wizard). KantorSidebar is shown only on the comparison route.
 - **Prediction engine:** Tiered — Block Bootstrap (≤6 months), calibrated GBM (>6 months). Drift shrunk toward 8% prior; volatility damped for horizons >2 years. All outputs clamped via `clampScenario()`. See `.github/instructions/financial-forecasting.instructions.md` for full details.
-- **HMM** (`src/utils/hmm.ts`) is used by the **Sell Analysis feature only** — it does NOT drive the bear/base/bull scenario pipeline. The scenario pipeline uses GBM + Bootstrap exclusively.
-- **Sell Analysis Worker:** `src/workers/sellAnalysis.worker.ts` is a **Web Worker** (browser API), not a Cloudflare Worker. It offloads HMM Monte Carlo simulation (10k paths) to a background thread so the UI stays responsive.
+- **HMM** (`src/utils/hmm.ts`) is used by the **Price Forecast feature only** — it does NOT drive the bear/base/bull scenario pipeline. The scenario pipeline uses GBM + Bootstrap exclusively.
+- **Price Forecast Worker:** `src/workers/sellAnalysis.worker.ts` is a **Web Worker** (browser API), not a Cloudflare Worker. It offloads HMM Monte Carlo simulation (10k paths) to a background thread so the UI stays responsive.
 - **Belka tax calculator:** Multi-transaction, supports USD/EUR/GBP/CHF/DKK/SEK/PLN. Fetches NBP Table A mid rate automatically for each transaction date. Transactions persisted to `localStorage` under `njord_tax_transactions`. Groups results by tax year for PIT-38. Commission fields hidden by default (checkbox). See `src/components/TaxCalculatorPanel.tsx` and `src/utils/taxCalculator.ts`.
 - **Financial math:** Belka tax, bond math, FX multiplicative structure, compound interest rules — see `.github/instructions/financial-math-guardian.instructions.md`.
-- **Hooks and state:** AbortController patterns, localStorage guards, App.tsx state architecture — see `.github/instructions/hooks-and-state.instructions.md`.
+- **Hooks and state:** AbortController patterns, localStorage guards, per-page state architecture — see `.github/instructions/hooks-and-state.instructions.md`.
 - **Backend (Pages Functions):** API key secrecy, CF constraints, caching strategy — see `.github/instructions/backend-api.instructions.md`.
-- Historical volatility scenarios are auto-applied on first data load (via `useEffect` + `scenariosAutoApplied` ref in `App.tsx`). The "Przywróć z historii" button restores them after manual edits.
+- Historical volatility scenarios are auto-applied on first data load (via `useEffect` + `scenariosAutoApplied` ref in `ComparisonPage.tsx`). The "Przywróć z historii" button restores them after manual edits.
 - Inflation impact is shown as real returns (Fisher formula) alongside nominal values. The orange warning banner appears only when `inflationRate > 0`.
 - The purchasing power line on the timeline chart is a dashed orange line showing value erosion from inflation.
-- `wibor3m` state variable in `App.tsx` represents the savings account interest rate (not the raw WIBOR 3M index). Help text in the UI clarifies this.
+- `wibor3m` state variable in `ComparisonPage.tsx` represents the savings account interest rate (not the raw WIBOR 3M index). Help text in the UI clarifies this.
 - All financial calculations are pure functions — easy to unit test.
-- **State persistence:** `persistedState.ts` — schema v4. Migrations: v1→v2 adds `activeSection`, v2→v3 adds `bondSettings.maturityMonths` + `isRSU`, v3→v4 renames `activeSection` `'accumulation'`→`'portfolio'`. Always bump version and add migration when adding new persisted fields.
-- **Portfolio wizard** (`src/components/portfolio/`): 4-step wizard with separate localStorage (`njord_portfolio_wizard`). Uses `useWizardState` hook. Reuses `AccumulationChart` and `accumulationCalculator.ts`. KantorSidebar is hidden on the portfolio tab.
+- **State persistence:** `persistedState.ts` — schema v5. Migrations: v1→v2 adds `activeSection`, v2→v3 adds `bondSettings.maturityMonths` + `isRSU`, v3→v4 renames `activeSection` `'accumulation'`→`'portfolio'`, v4→v5 removes `activeSection` (route-based navigation). Always bump version and add migration when adding new persisted fields.
+- **Portfolio wizard** (`src/components/portfolio/`): 4-step wizard with separate localStorage (`njord_portfolio_wizard`). Uses `useWizardState` hook. Reuses `AccumulationChart` and `accumulationCalculator.ts`. KantorSidebar is hidden on the portfolio route.
 
 ### Validation loop
 

@@ -9,7 +9,7 @@ globs:
 
 # Backend — Cloudflare Pages Functions
 
-## 1. Data Source Strategy — `/api/analyze`
+## 1. Data Source Strategy — `/api/market-data`
 
 **Primary:** Yahoo Finance (no API key required).
 **Fallback:** Twelve Data — only activated when Yahoo returns **429 (rate limited)** and
@@ -31,7 +31,7 @@ throw yahooError;  // bad ticker, network error, etc. → propagate as-is
 
 ## 2. Structured Error Codes
 
-All `/api/analyze` errors must include a `code` field from `ErrorCode` type:
+All `/api/market-data` errors must include a `code` field from `ErrorCode` type:
 
 | Code | HTTP | When |
 |------|------|------|
@@ -72,7 +72,7 @@ Pages Functions run on the **Cloudflare Workers runtime** (V8 isolates), not Nod
 
 | Route | Cache duration | Reason |
 |-------|---------------|--------|
-| `/api/analyze` | 1 hour (`max-age=3600`) | Stock prices change infrequently; reduces Yahoo requests |
+| `/api/market-data` | 1 hour (`max-age=3600`) | Stock prices change infrequently; reduces Yahoo requests |
 | `/api/bonds` | 24 hours (`max-age=86400`) | Bond rates change at most monthly (new issuance) |
 | `/api/currency-rates` | 1 minute (`max-age=60`) | Exchange rates update frequently |
 | `/api/inflation` | 24 hours | CPI data is published monthly |
@@ -131,7 +131,7 @@ npm run dev        # Frontend only at localhost:5173 (no Pages Functions)
 TWELVE_DATA_API_KEY=your_api_key_here
 ```
 
-Without `.dev.vars`, `/api/analyze` works via Yahoo Finance. The file is only needed
+Without `.dev.vars`, `/api/market-data` works via Yahoo Finance. The file is only needed
 if you want to test the Twelve Data fallback path locally.
 
 ---
@@ -142,7 +142,7 @@ if you want to test the Twelve Data fallback path locally.
 functions/
 ├── _middleware.ts        # Global CORS + Content-Type for all /api/* routes
 └── api/
-    ├── analyze.ts        # GET /api/analyze?ticker=X — Yahoo Finance (primary), Twelve Data (429 fallback) + NBP FX
+    ├── market-data.ts    # GET /api/market-data?ticker=X — Yahoo Finance (primary), Twelve Data (429 fallback) + NBP FX
     ├── bonds.ts          # GET /api/bonds — serves bond presets from CSV (max-age=86400)
     ├── currency-rates.ts # GET /api/currency-rates — exchange rates proxy (Alior + NBP Table C)
     └── inflation.ts      # GET /api/inflation — ECB HICP CPI proxy
