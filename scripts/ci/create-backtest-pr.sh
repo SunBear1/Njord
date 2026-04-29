@@ -9,4 +9,4 @@ if git diff --cached --quiet; then
   exit 0
 fi
 git commit -m "chore: backtest metrics $(date -u +%Y-%m-%d)"
-git push origin HEAD
+git push origin HEAD:refs/heads/main
