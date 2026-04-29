@@ -25,9 +25,9 @@ const SCENARIO_ICON = {
 
 const SCENARIO_STYLE = {
   bear: {
-    bg: 'bg-red-50 dark:bg-red-950/30',
-    border: 'border-red-200 dark:border-red-900',
-    badge: 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800',
+    bg: 'bg-orange-50 dark:bg-orange-950/30',
+    border: 'border-orange-200 dark:border-orange-900',
+    badge: 'bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-200 border border-orange-200 dark:border-orange-800',
   },
   base: {
     bg: 'bg-amber-50 dark:bg-amber-950/30',
@@ -35,9 +35,9 @@ const SCENARIO_STYLE = {
     badge: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800',
   },
   bull: {
-    bg: 'bg-green-50 dark:bg-green-950/30',
-    border: 'border-green-200 dark:border-green-900',
-    badge: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800',
+    bg: 'bg-cyan-50 dark:bg-cyan-950/30',
+    border: 'border-cyan-200 dark:border-cyan-900',
+    badge: 'bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800',
   },
 };
 

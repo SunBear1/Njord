@@ -32,9 +32,9 @@ const SCENARIO_CONFIG: {
   {
     key: 'bear', label: 'Niedźwiedzi',
     icon: <TrendingDown size={14} aria-hidden="true" />,
-    headerBg: 'bg-red-100 dark:bg-red-900/40', headerText: 'text-red-800 dark:text-red-200',
-    cardBorder: 'border-red-200 dark:border-red-800', cardBg: 'bg-red-50/30 dark:bg-red-950/20',
-    inputBorder: 'border-red-300 dark:border-red-600 focus:ring-red-400',
+    headerBg: 'bg-orange-100 dark:bg-orange-900/40', headerText: 'text-orange-800 dark:text-orange-200',
+    cardBorder: 'border-orange-200 dark:border-orange-800', cardBg: 'bg-orange-50/30 dark:bg-orange-950/20',
+    inputBorder: 'border-orange-300 dark:border-orange-600 focus:ring-orange-400',
   },
   {
     key: 'base', label: 'Bazowy',
@@ -46,9 +46,9 @@ const SCENARIO_CONFIG: {
   {
     key: 'bull', label: 'Byczy',
     icon: <TrendingUp size={14} aria-hidden="true" />,
-    headerBg: 'bg-green-100 dark:bg-green-900/40', headerText: 'text-green-700 dark:text-green-300',
-    cardBorder: 'border-green-200 dark:border-green-800', cardBg: 'bg-green-50/30 dark:bg-green-950/20',
-    inputBorder: 'border-green-300 dark:border-green-600 focus:ring-green-400',
+    headerBg: 'bg-cyan-100 dark:bg-cyan-900/40', headerText: 'text-cyan-700 dark:text-cyan-300',
+    cardBorder: 'border-cyan-200 dark:border-cyan-800', cardBg: 'bg-cyan-50/30 dark:bg-cyan-950/20',
+    inputBorder: 'border-cyan-300 dark:border-cyan-600 focus:ring-cyan-400',
   },
 ];
 
@@ -412,7 +412,7 @@ export function ScenarioEditor({
                   />
                   {stockMode === 'fixed' && currentPriceUSD > 0 && (
                     <span className={`text-[10px] rounded-full px-1.5 py-0.5 ${
-                      delta >= 0 ? 'bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400' : 'bg-red-50 dark:bg-red-950/20 text-red-500 dark:text-red-400'
+                      delta >= 0 ? 'bg-cyan-50 dark:bg-cyan-950/20 text-cyan-700 dark:text-cyan-400' : 'bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400'
                     }`}>
                       {delta >= 0 ? '+' : ''}{delta.toFixed(1)}%
                     </span>
@@ -458,7 +458,7 @@ export function ScenarioEditor({
                   />
                   {fxMode === 'fixed' && currentFxRate > 0 && (
                     <span className={`text-[10px] rounded-full px-1.5 py-0.5 ${
-                      delta >= 0 ? 'bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400' : 'bg-red-50 dark:bg-red-950/20 text-red-500 dark:text-red-400'
+                      delta >= 0 ? 'bg-cyan-50 dark:bg-cyan-950/20 text-cyan-700 dark:text-cyan-400' : 'bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400'
                     }`}>
                       {delta >= 0 ? '+' : ''}{delta.toFixed(1)}%
                     </span>
@@ -481,8 +481,8 @@ export function ScenarioEditor({
                 <Tooltip content={`Prawdopodobieństwo: ${Math.round(volatilityStats.regime.posteriorProbability * 100)}%`}>
                   <span className={`rounded px-1.5 py-0.5 border text-[11px] font-semibold cursor-help ${
                     volatilityStats.regime.currentRegimeLabel === 'bull'
-                      ? 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800'
-                      : 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
+                      ? 'bg-cyan-50 dark:bg-cyan-950/20 text-cyan-700 dark:text-cyan-400 border-cyan-200 dark:border-cyan-800'
+                      : 'bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800'
                   }`}>
                     {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Faza wzrostowa' : 'Faza spadkowa'}
                   </span>
@@ -519,7 +519,7 @@ export function ScenarioEditor({
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 space-y-1">
                   <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Trend historyczny</div>
-                  <div className={`text-2xl font-bold leading-none ${volatilityStats.stockMeanAnnual >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                  <div className={`text-2xl font-bold leading-none ${volatilityStats.stockMeanAnnual >= 0 ? 'text-cyan-700 dark:text-cyan-400' : 'text-orange-600 dark:text-orange-400'}`}>
                     {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400 dark:text-gray-500 ml-0.5">/rok</span>
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 leading-snug">Informacyjnie — nie prognoza.</div>
@@ -529,8 +529,8 @@ export function ScenarioEditor({
               {volatilityStats.regime && (
                 <div className={`rounded-lg px-3 py-2.5 border text-sm ${
                   volatilityStats.regime.currentRegimeLabel === 'bull'
-                    ? 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-300'
-                    : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300'
+                    ? 'bg-cyan-50 dark:bg-cyan-950/20 border-cyan-200 dark:border-cyan-800 text-cyan-800 dark:text-cyan-300'
+                    : 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-300'
                 }`}>
                   <span className="font-semibold">
                     {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Faza wzrostów' : 'Faza spadków'}

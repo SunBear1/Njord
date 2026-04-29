@@ -215,15 +215,10 @@ export function ComparisonPage() {
   };
 
   return (
-    <div className="flex justify-center">
-      {/* Kantor rates sticky sidebar — xl+ only */}
-      <aside className="hidden xl:block shrink-0 pt-6 pl-4">
-        <div className="sticky top-4">
-          <KantorSidebar rates={currencyRates} />
-        </div>
-      </aside>
+    <div className="space-y-4">
+      {/* Floating rate card — self-positioned fixed right */}
+      <KantorSidebar rates={currencyRates} />
 
-      <div className="flex-1 min-w-0 space-y-4">
         {inputCollapsed ? (
           <>
             <InputPanel {...inputPanelProps} collapsed onToggleCollapse={() => setInputCollapsed(false)} />
@@ -301,7 +296,6 @@ export function ComparisonPage() {
         <Suspense fallback={null}>
           <HowItWorksLazy />
         </Suspense>
-      </div>
     </div>
   );
 }
