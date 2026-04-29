@@ -24,7 +24,7 @@ jobs:
 
       - name: Append metrics to time-series history
         if: ${{ !cancelled() }}
-        run: node scripts/ci/append-backtest-metrics.js
+        run: node scripts/ci/append-backtest-metrics.cjs
 
       - name: Open PR with updated history
         if: ${{ !cancelled() }}
