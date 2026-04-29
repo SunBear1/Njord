@@ -42,7 +42,7 @@ const FEATURES = [
     to: '/rates',
     icon: ArrowDownUp,
     title: 'Kursy walut',
-    description: 'Aktualne kursy kupna i sprzedaży USD, EUR, GBP i CHF z Alior Kantor i NBP.',
+    description: 'Aktualne kursy kupna i sprzedaży USD, EUR i GBP z Alior Kantor i NBP.',
     color: 'text-sky-600 dark:text-sky-400',
     bg: 'bg-sky-50 dark:bg-sky-900/20',
     border: 'border-sky-200 dark:border-sky-800',

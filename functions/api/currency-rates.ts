@@ -7,7 +7,7 @@
 
 const ALIOR_BASE = 'https://klient.internetowykantor.pl/api/public/marketBrief';
 const NBP_BASE = 'https://api.nbp.pl/api/exchangerates/rates/C';
-const SUPPORTED_CURRENCIES = ['USD', 'EUR', 'GBP', 'CHF'] as const;
+const SUPPORTED_CURRENCIES = ['USD', 'EUR', 'GBP'] as const;
 
 interface AliorResponse {
   pair: string;
@@ -50,7 +50,7 @@ export const onRequestGet: PagesFunction = async ({ request }) => {
     const requested = currenciesParam.split(',').map(c => c.trim().toUpperCase());
     const valid = requested.filter(c => (SUPPORTED_CURRENCIES as readonly string[]).includes(c));
     if (valid.length === 0) {
-      return new Response(JSON.stringify({ error: 'No valid currencies. Supported: USD, EUR, GBP, CHF' }), {
+      return new Response(JSON.stringify({ error: 'No valid currencies. Supported: USD, EUR, GBP' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });

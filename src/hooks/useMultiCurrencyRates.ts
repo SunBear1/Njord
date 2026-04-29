@@ -20,7 +20,7 @@ export interface MultiCurrencyRates {
   lastUpdated: Date | null;
 }
 
-const CURRENCIES = 'USD,EUR,GBP,CHF';
+const CURRENCIES = 'USD,EUR,GBP';
 const ALIOR_BASE = 'https://klient.internetowykantor.pl/api/public/marketBrief';
 const NBP_BASE = 'https://api.nbp.pl/api/exchangerates/rates/C';
 

@@ -44,26 +44,26 @@
 /* Dark theme — active when <html class="dark"> */
 html.dark {
   color-scheme: dark;
-  --color-brand: #60a5fa;
+  --color-brand: #58a6ff;
   --color-bear: #fb923c;    /* orange-400 — colorblind-safe negative */
   --color-base: #fbbf24;    /* amber-400 */
   --color-bull: #38bdf8;    /* sky-400 — colorblind-safe positive */
-  --color-bg-primary: #09090b;       /* zinc-950 — true dark */
-  --color-bg-secondary: #18181b;     /* zinc-900 */
-  --color-bg-card: #18181b;          /* zinc-900 */
-  --color-bg-muted: #27272a;         /* zinc-800 */
-  --color-text-primary: #fafafa;     /* zinc-50 — near white */
-  --color-text-secondary: #d4d4d8;   /* zinc-300 */
-  --color-text-muted: #a1a1aa;       /* zinc-400 */
-  --color-text-faint: #71717a;       /* zinc-500 */
-  --color-border: #27272a;           /* zinc-800 */
-  --color-border-strong: #3f3f46;    /* zinc-700 */
-  --color-accent-info: #60a5fa;      /* blue-400 */
-  --color-accent-warning: #fbbf24;   /* amber-400 */
-  --color-accent-success: #34d399;   /* emerald-400 */
-  --color-accent-error: #fb7185;     /* rose-400 */
-  --color-input-border: #3f3f46;
-  --color-input-border-focus: #60a5fa;
+  --color-bg-primary: #0d1117;       /* GitHub Dark — page background */
+  --color-bg-secondary: #161b22;     /* GitHub Dark — secondary surface */
+  --color-bg-card: #161b22;          /* GitHub Dark — card surface */
+  --color-bg-muted: #21262d;         /* GitHub Dark — muted/input bg */
+  --color-text-primary: #e6edf3;     /* GitHub Dark — primary text */
+  --color-text-secondary: #8b949e;   /* GitHub Dark — secondary text */
+  --color-text-muted: #6e7681;       /* GitHub Dark — muted text */
+  --color-text-faint: #484f58;       /* GitHub Dark — faint text */
+  --color-border: #21262d;           /* GitHub Dark — border */
+  --color-border-strong: #30363d;    /* GitHub Dark — strong border */
+  --color-accent-info: #58a6ff;      /* GitHub Dark — blue accent */
+  --color-accent-warning: #d29922;   /* GitHub Dark — warning */
+  --color-accent-success: #3fb950;   /* GitHub Dark — success */
+  --color-accent-error: #f85149;     /* GitHub Dark — error */
+  --color-input-border: #30363d;
+  --color-input-border-focus: #58a6ff;
 }
 
 body {

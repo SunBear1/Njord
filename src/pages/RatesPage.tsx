@@ -5,7 +5,6 @@ const CURRENCY_META: Record<string, { flag: string; name: string }> = {
   USD: { flag: '🇺🇸', name: 'Dolar amerykański' },
   EUR: { flag: '🇪🇺', name: 'Euro' },
   GBP: { flag: '🇬🇧', name: 'Funt szterling' },
-  CHF: { flag: '🇨🇭', name: 'Frank szwajcarski' },
 };
 
 function spreadPct(buy: number, sell: number): string {
