@@ -40,9 +40,6 @@ export function ForecastPage() {
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 space-y-4">
         <div>
           <h2 className="text-lg font-semibold text-text-primary">Prognoza cenowa</h2>
-          <p className="text-sm text-text-secondary mt-1">
-            Sprawdź rozkład prawdopodobnych cen akcji lub ETF w wybranym horyzoncie na podstawie danych historycznych.
-          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex items-end gap-3">

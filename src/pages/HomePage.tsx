@@ -16,9 +16,9 @@ const FEATURES = [
     icon: TrendingUp,
     title: 'Prognoza cenowa',
     description: 'Sprawdź rozkład prawdopodobnych cen akcji lub ETF w wybranym horyzoncie na podstawie danych historycznych.',
-    color: 'text-emerald-600 dark:text-emerald-400',
-    bg: 'bg-emerald-50 dark:bg-emerald-900/20',
-    border: 'border-emerald-200 dark:border-emerald-800',
+    color: 'text-teal-600 dark:text-teal-400',
+    bg: 'bg-teal-50 dark:bg-teal-900/20',
+    border: 'border-teal-200 dark:border-teal-800',
   },
   {
     to: '/tax',

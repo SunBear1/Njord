@@ -1,17 +1,3 @@
-/**
- * E2E smoke tests for Njord.
- *
- * These tests load the production preview build and verify critical UI paths:
- * - Home page loads with feature cards
- * - Navigation links work (comparison / forecast / tax / portfolio)
- * - Investment comparison page loads with ticker input
- * - Tax calculator renders its key elements
- * - Price forecast page loads with its own ticker input
- *
- * NOTE: These tests do NOT verify real stock data — they test UI behavior only.
- * Network calls to Yahoo/NBP will succeed or fail depending on CI network access.
- */
-
 import { test, expect } from '@playwright/test';
 
 test.describe('Njord smoke tests', () => {
@@ -175,11 +161,7 @@ test.describe('Njord accessibility basics', () => {
     await page.keyboard.press('Tab');
     await page.keyboard.press('Tab');
 
-    // The focused element should exist
-    const focused = page.locator(':focus');
-    // Just verify page is still functional (no crashes)
+    // Verify page is still functional after keyboard navigation
     await expect(page.locator('body')).toBeVisible();
-    // Suppress unused var warning
-    void focused;
   });
 });
