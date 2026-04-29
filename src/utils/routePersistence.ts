@@ -1,5 +1,5 @@
 const LAST_ROUTE_KEY = 'njord_last_route';
-const VALID_ROUTES = ['/', '/comparison', '/forecast', '/tax', '/portfolio'];
+const VALID_ROUTES = ['/', '/comparison', '/forecast', '/tax', '/portfolio', '/rates'];
 
 export function saveLastRoute(path: string): void {
   try {

@@ -67,12 +67,12 @@ function ModeToggle({ mode, onToggle, labelA, labelB, disabled }: { mode: InputM
       type="button"
       onClick={onToggle}
       disabled={disabled}
-      className={`flex w-full rounded border border-gray-200 dark:border-gray-600 overflow-hidden text-[11px] font-medium ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+      className={`flex w-full rounded border border-border overflow-hidden text-[11px] font-medium ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
       title={disabled ? 'Wpisz ticker, aby przełączyć tryb' : 'Przełącz tryb wpisywania'}
       aria-label={disabled ? 'Przełącz tryb wpisywania (brak danych)' : `Tryb: ${mode === 'pct' ? labelA : labelB} — kliknij, aby zmienić`}
     >
-      <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'pct' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>{labelA}</span>
-      <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'fixed' ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>{labelB}</span>
+      <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'pct' ? 'bg-blue-600 text-white' : 'bg-bg-card text-text-faint hover:bg-bg-muted'}`}>{labelA}</span>
+      <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'fixed' ? 'bg-blue-600 text-white' : 'bg-bg-card text-text-faint hover:bg-bg-muted'}`}>{labelB}</span>
     </button>
   );
 }
@@ -208,12 +208,12 @@ export function ScenarioEditor({
   // Compact mode: horizontal inline layout
   if (compact) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm px-4 py-3 space-y-2">
+      <div className="bg-bg-card rounded-xl border border-border shadow-sm px-4 py-3 space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">Scenariusze</h2>
+            <h2 className="text-base font-semibold text-text-primary">Scenariusze</h2>
             {volatilityStats?.modelsLoading && (
-              <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
+              <span className="flex items-center gap-1 text-xs text-text-faint">
                 <Loader2 size={12} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
               </span>
             )}
@@ -227,7 +227,7 @@ export function ScenarioEditor({
         </div>
         {/* Compact table: same as before */}
         {currentPriceUSD <= 0 ? (
-          <p className="text-sm text-gray-400 dark:text-gray-500 italic text-center py-3">Pobierz dane akcji, aby zobaczyć scenariusze.</p>
+          <p className="text-sm text-text-faint italic text-center py-3">Pobierz dane akcji, aby zobaczyć scenariusze.</p>
         ) : (
         <div className="space-y-1.5">
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
@@ -237,25 +237,25 @@ export function ScenarioEditor({
             ))}
           </div>
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
-            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Akcje ({stockUnit})</span>
+            <span className="text-xs font-medium text-text-muted">Akcje ({stockUnit})</span>
             {SCENARIO_CONFIG.map(({ key, label, inputBorder }) => (
               <input key={key} type="text" inputMode="decimal" value={localValues[key].stock}
                 onChange={(e) => handleStockChange(key, e.target.value)}
                 onFocus={(e) => { anyInputFocused.current = true; e.target.select(); }}
                 onBlur={() => handleStockBlur(key)}
                 aria-label={`${label} — zmiana akcji (${stockUnit})`}
-                className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white dark:bg-gray-700 dark:text-gray-100`} />
+                className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white dark:bg-bg-muted dark:text-text-primary`} />
             ))}
           </div>
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
-            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">USD/PLN ({fxUnit})</span>
+            <span className="text-xs font-medium text-text-muted">USD/PLN ({fxUnit})</span>
             {SCENARIO_CONFIG.map(({ key, label, inputBorder }) => (
               <input key={key} type="text" inputMode="decimal" value={localValues[key].fx}
                 onChange={(e) => handleFxChange(key, e.target.value)}
                 onFocus={(e) => { anyInputFocused.current = true; e.target.select(); }}
                 onBlur={() => handleFxBlur(key)}
                 aria-label={`${label} — zmiana kursu (${fxUnit})`}
-                className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white dark:bg-gray-700 dark:text-gray-100`} />
+                className={`w-full border ${inputBorder} rounded px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 bg-white dark:bg-bg-muted dark:text-text-primary`} />
             ))}
           </div>
           </div>
@@ -265,22 +265,22 @@ export function ScenarioEditor({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 flex flex-col h-full">
+    <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 flex flex-col h-full">
 
       {/* Header row */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Scenariusze</h2>
+          <h2 className="text-lg font-semibold text-text-primary">Scenariusze</h2>
           <Tooltip content={
             <span>
               <strong>%</strong> — zmiana procentowa względem obecnej ceny<br/>
               <strong>USD / PLN</strong> — docelowa cena lub kurs
             </span>
           }>
-            <HelpCircle size={16} aria-hidden="true" className="text-gray-300 dark:text-gray-600 cursor-help hover:text-gray-500 dark:hover:text-gray-400 transition-colors" />
+            <HelpCircle size={16} aria-hidden="true" className="text-gray-300 dark:text-text-faint cursor-help hover:text-gray-500 dark:hover:text-text-muted transition-colors" />
           </Tooltip>
           {volatilityStats?.modelsLoading && (
-            <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
+            <span className="flex items-center gap-1 text-xs text-text-faint">
               <Loader2 size={12} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
               przeliczam…
             </span>
@@ -348,12 +348,12 @@ export function ScenarioEditor({
                     className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border transition-colors ${
                       isActive
                         ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-600 hover:border-indigo-300 hover:text-indigo-700'
+                        : 'bg-white dark:bg-bg-muted text-text-muted border-border hover:border-indigo-300 hover:text-indigo-700'
                     }`}
                   >
                     {isRecommended && <Star size={12} className={isActive ? 'text-amber-300' : 'text-amber-400'} />}
                     {m.name}
-                    {coverage && <span className={`text-[10px] ${isActive ? 'text-indigo-200' : 'text-gray-400 dark:text-gray-500'}`}>{coverage}</span>}
+                    {coverage && <span className={`text-[10px] ${isActive ? 'text-indigo-200' : 'text-text-faint'}`}>{coverage}</span>}
                   </button>
                 </Tooltip>
               );
@@ -370,7 +370,7 @@ export function ScenarioEditor({
                 </span>
               }
             >
-              <HelpCircle size={12} aria-hidden="true" className="text-gray-300 dark:text-gray-600 cursor-help hover:text-gray-500 dark:hover:text-gray-400 transition-colors" />
+              <HelpCircle size={12} aria-hidden="true" className="text-gray-300 dark:text-text-faint cursor-help hover:text-gray-500 dark:hover:text-text-muted transition-colors" />
             </Tooltip>
           </div>
         );
@@ -378,7 +378,7 @@ export function ScenarioEditor({
 
       {currentPriceUSD <= 0 ? (
         <div className="flex-1 flex items-center justify-center text-center py-8">
-          <p className="text-sm text-gray-400 dark:text-gray-500 italic">Pobierz dane akcji, aby zobaczyć scenariusze i prognozy modeli.</p>
+          <p className="text-sm text-text-faint italic">Pobierz dane akcji, aby zobaczyć scenariusze i prognozy modeli.</p>
         </div>
       ) : (
         <div className="space-y-1.5">
@@ -393,7 +393,7 @@ export function ScenarioEditor({
           {/* Stock row */}
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-start">
             <div className="flex flex-col gap-1 pt-0.5">
-              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Akcje ({stockUnit})</span>
+              <span className="text-xs font-medium text-text-muted">Akcje ({stockUnit})</span>
               <ModeToggle mode={stockMode} onToggle={toggleStockMode} labelA="%" labelB="USD" disabled={currentPriceUSD <= 0} />
             </div>
             {SCENARIO_CONFIG.map(({ key, inputBorder }) => {
@@ -408,7 +408,7 @@ export function ScenarioEditor({
                     onFocus={(e) => { anyInputFocused.current = true; e.target.select(); }}
                     onBlur={() => handleStockBlur(key)}
                     placeholder={stockMode === 'pct' ? '0' : String(currentPriceUSD || '')}
-                    className={`w-full border ${inputBorder} rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 bg-white dark:bg-gray-700 dark:text-gray-100`}
+                    className={`w-full border ${inputBorder} rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 bg-white dark:bg-bg-muted dark:text-text-primary`}
                   />
                   {stockMode === 'fixed' && currentPriceUSD > 0 && (
                     <span className={`text-[10px] rounded-full px-1.5 py-0.5 ${
@@ -425,7 +425,7 @@ export function ScenarioEditor({
           {/* FX row */}
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-start">
             <div className="flex flex-col gap-1 pt-0.5">
-              <span className="text-xs font-medium text-gray-600 dark:text-gray-400 flex items-center gap-1">
+              <span className="text-xs font-medium text-text-muted flex items-center gap-1">
                 USD/PLN ({fxUnit})
                 {volatilityStats && Math.abs(volatilityStats.correlation) > 0.05 && (
                   <Tooltip
@@ -436,7 +436,7 @@ export function ScenarioEditor({
                         : 'Dodatnia korelacja akcje↔USD: wzrosty akcji idą w parze ze wzrostem dolara, spadki — ze spadkiem. Ryzyko walutowe wzmacnia ruchy portfela.'
                     }
                   >
-                    <HelpCircle size={10} className="text-gray-400 dark:text-gray-500 cursor-help" aria-hidden="true" />
+                    <HelpCircle size={10} className="text-text-faint cursor-help" aria-hidden="true" />
                   </Tooltip>
                 )}
               </span>
@@ -454,7 +454,7 @@ export function ScenarioEditor({
                     onFocus={(e) => { anyInputFocused.current = true; e.target.select(); }}
                     onBlur={() => handleFxBlur(key)}
                     placeholder={fxMode === 'pct' ? '0' : String(currentFxRate || '')}
-                    className={`w-full border ${inputBorder} rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 bg-white dark:bg-gray-700 dark:text-gray-100`}
+                    className={`w-full border ${inputBorder} rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 bg-white dark:bg-bg-muted dark:text-text-primary`}
                   />
                   {fxMode === 'fixed' && currentFxRate > 0 && (
                     <span className={`text-[10px] rounded-full px-1.5 py-0.5 ${
@@ -492,24 +492,24 @@ export function ScenarioEditor({
             </span>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-3 py-3 bg-white dark:bg-gray-800 border-t border-indigo-100 dark:border-indigo-900 space-y-3">
+          <div className="flex-1 overflow-y-auto px-3 py-3 bg-bg-card border-t border-indigo-100 dark:border-indigo-900 space-y-3">
               <div className="grid grid-cols-2 gap-2">
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 space-y-1">
-                  <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Zmienność akcji</div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 leading-none">{volatilityStats.stockSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400 dark:text-gray-500 ml-0.5">/rok</span></div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 leading-snug">Im wyższa, tym większy rozrzut scenariuszy.</div>
+                <div className="bg-gray-50 dark:bg-bg-muted rounded-lg p-3 space-y-1">
+                  <div className="text-xs font-semibold text-text-muted uppercase tracking-wide">Zmienność akcji</div>
+                  <div className="text-2xl font-bold text-text-primary leading-none">{volatilityStats.stockSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-text-faint ml-0.5">/rok</span></div>
+                  <div className="text-xs text-text-muted leading-snug">Im wyższa, tym większy rozrzut scenariuszy.</div>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 space-y-1">
-                  <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Zmienność USD/PLN</div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 leading-none">{volatilityStats.fxSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400 dark:text-gray-500 ml-0.5">/rok</span></div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 leading-snug">Dodatkowe źródło ryzyka walutowego.</div>
+                <div className="bg-gray-50 dark:bg-bg-muted rounded-lg p-3 space-y-1">
+                  <div className="text-xs font-semibold text-text-muted uppercase tracking-wide">Zmienność USD/PLN</div>
+                  <div className="text-2xl font-bold text-text-primary leading-none">{volatilityStats.fxSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-text-faint ml-0.5">/rok</span></div>
+                  <div className="text-xs text-text-muted leading-snug">Dodatkowe źródło ryzyka walutowego.</div>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 space-y-1">
-                  <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Korelacja z USD</div>
-                  <div className={`text-2xl font-bold leading-none ${Math.abs(volatilityStats.correlation) > 0.1 ? (volatilityStats.correlation > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-blue-600 dark:text-blue-400') : 'text-gray-700 dark:text-gray-300'}`}>
+                <div className="bg-gray-50 dark:bg-bg-muted rounded-lg p-3 space-y-1">
+                  <div className="text-xs font-semibold text-text-muted uppercase tracking-wide">Korelacja z USD</div>
+                  <div className={`text-2xl font-bold leading-none ${Math.abs(volatilityStats.correlation) > 0.1 ? (volatilityStats.correlation > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-blue-600 dark:text-blue-400') : 'text-text-secondary'}`}>
                     {volatilityStats.correlation > 0 ? '+' : ''}{volatilityStats.correlation.toFixed(2)}
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 leading-snug">
+                  <div className="text-xs text-text-muted leading-snug">
                     {volatilityStats.correlation < -0.1
                       ? 'Spadek akcji → mocniejszy dolar (amortyzacja).'
                       : volatilityStats.correlation > 0.1
@@ -517,12 +517,12 @@ export function ScenarioEditor({
                       : 'Niezależne od siebie.'}
                   </div>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 space-y-1">
-                  <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Trend historyczny</div>
+                <div className="bg-gray-50 dark:bg-bg-muted rounded-lg p-3 space-y-1">
+                  <div className="text-xs font-semibold text-text-muted uppercase tracking-wide">Trend historyczny</div>
                   <div className={`text-2xl font-bold leading-none ${volatilityStats.stockMeanAnnual >= 0 ? 'text-cyan-700 dark:text-cyan-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                    {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%<span className="text-xs font-normal text-gray-400 dark:text-gray-500 ml-0.5">/rok</span>
+                    {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%<span className="text-xs font-normal text-text-faint ml-0.5">/rok</span>
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 leading-snug">Informacyjnie — nie prognoza.</div>
+                  <div className="text-xs text-text-muted leading-snug">Informacyjnie — nie prognoza.</div>
                 </div>
               </div>
 

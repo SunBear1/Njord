@@ -45,8 +45,8 @@ function ComparisonChart({ results, isDark }: ComparisonChartProps) {
   const currentValue = results[0]?.currentValuePLN ?? 0;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 space-y-3">
-      <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Wartość końcowa — porównanie</h3>
+    <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-3">
+      <h3 className="text-base font-semibold text-text-primary">Wartość końcowa — porównanie</h3>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data} barCategoryGap="25%">
           <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />

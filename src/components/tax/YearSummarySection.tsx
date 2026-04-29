@@ -45,12 +45,12 @@ function SummaryRow({
   bold?: boolean;
 }) {
   return (
-    <div className={`flex items-center justify-between gap-2 py-1.5 ${bold ? 'border-t border-gray-200 dark:border-gray-600 mt-1 pt-2.5' : ''}`}>
-      <span className={`text-xs ${bold ? 'font-semibold text-gray-700 dark:text-gray-200' : 'text-gray-500 dark:text-gray-400'}`}>
+    <div className={`flex items-center justify-between gap-2 py-1.5 ${bold ? 'border-t border-border mt-1 pt-2.5' : ''}`}>
+      <span className={`text-xs ${bold ? 'font-semibold text-text-secondary' : 'text-text-muted'}`}>
         {label}
-        {note && <span className="ml-1 text-gray-400 dark:text-gray-500 font-normal">{note}</span>}
+        {note && <span className="ml-1 text-text-faint font-normal">{note}</span>}
       </span>
-      <span className={`text-sm tabular-nums font-${bold ? 'bold' : 'semibold'} ${valueClass ?? 'text-gray-800 dark:text-gray-100'}`}>
+      <span className={`text-sm tabular-nums font-${bold ? 'bold' : 'semibold'} ${valueClass ?? 'text-text-primary'}`}>
         {value}
       </span>
     </div>
@@ -76,7 +76,7 @@ function PitZgSection({ entries }: { entries: PitZgCurrencyEntry[] }) {
 
       <div className="divide-y divide-orange-100 dark:divide-orange-900/40">
         {/* Column headers */}
-        <div className="grid grid-cols-4 gap-2 px-3 py-1.5 text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+        <div className="grid grid-cols-4 gap-2 px-3 py-1.5 text-[10px] font-semibold text-text-faint uppercase tracking-wide">
           <span>Kraj (waluta)</span>
           <span className="text-right">Przychód</span>
           <span className="text-right">Koszty</span>
@@ -94,20 +94,20 @@ function PitZgSection({ entries }: { entries: PitZgCurrencyEntry[] }) {
                   {pitZgFields?.countryCode || currency}
                 </span>
                 {country ? (
-                  <span className="text-gray-600 dark:text-gray-400 truncate">{country}</span>
+                  <span className="text-text-muted truncate">{country}</span>
                 ) : isEurAmbiguous ? (
                   <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
                     <AlertTriangle size={11} aria-hidden="true" />
                     <span className="truncate">określ kraj</span>
                   </span>
                 ) : (
-                  <span className="text-gray-400 dark:text-gray-500 truncate">określ kraj</span>
+                  <span className="text-text-faint truncate">określ kraj</span>
                 )}
               </div>
-              <span className="text-right tabular-nums text-gray-700 dark:text-gray-300 font-medium">
+              <span className="text-right tabular-nums text-text-secondary font-medium">
                 {fmtPLNGrosze(revenuePLN)}
               </span>
-              <span className="text-right tabular-nums text-gray-600 dark:text-gray-400">
+              <span className="text-right tabular-nums text-text-muted">
                 {fmtPLNGrosze(costPLN)}
               </span>
               <span className={`text-right tabular-nums font-semibold ${g.cls}`}>
@@ -143,10 +143,10 @@ export function YearSummarySection({
   showYearHeader: boolean;
 }) {
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+    <div className="bg-bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
       {/* ── Header ── */}
-      <div className="flex items-center justify-between gap-3 px-5 py-3.5 bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700">
-        <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+      <div className="flex items-center justify-between gap-3 px-5 py-3.5 bg-bg-muted/60 border-b border-border">
+        <h3 className="text-sm font-semibold text-text-primary">
           {showYearHeader ? `Rok podatkowy ${year}` : 'Podsumowanie roczne'}
         </h3>
         <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -165,8 +165,8 @@ export function YearSummarySection({
             const globalIdx = allTransactions.indexOf(tx) + 1;
             const isForeign = tx.currency !== 'PLN';
             return (
-              <div key={tx.id} className="flex items-center gap-2 text-xs py-1 border-b border-gray-100 dark:border-gray-800 last:border-0">
-                <span className="w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 text-[10px] font-bold flex items-center justify-center flex-shrink-0">
+              <div key={tx.id} className="flex items-center gap-2 text-xs py-1 border-b border-gray-100 dark:border-border last:border-0">
+                <span className="w-5 h-5 rounded-full bg-bg-muted text-text-faint text-[10px] font-bold flex items-center justify-center flex-shrink-0">
                   {globalIdx}
                 </span>
                 {tx.ticker && (
@@ -180,11 +180,11 @@ export function YearSummarySection({
                   </span>
                 )}
                 {tx.tickerName && (
-                  <span className="truncate text-gray-400 dark:text-gray-500 hidden sm:block max-w-[120px]">
+                  <span className="truncate text-text-faint hidden sm:block max-w-[120px]">
                     {tx.tickerName}
                   </span>
                 )}
-                <span className="text-gray-400 dark:text-gray-500 flex-shrink-0 ml-auto">
+                <span className="text-text-faint flex-shrink-0 ml-auto">
                   {tx.saleDate ? fmtDatePL(tx.saleDate) : '—'}
                 </span>
                 <span className={`font-semibold tabular-nums flex-shrink-0 ${g.cls}`}>
@@ -266,7 +266,7 @@ export function YearSummarySection({
               label={summary.netIncomePLN >= 0 ? 'Dochód' : 'Strata'}
               note={summary.netIncomePLN >= 0 ? '(Poz. 28)' : '(Poz. 29)'}
               value={`${summary.netIncomePLN >= 0 ? '+' : ''}${fmtPLNGrosze(summary.netIncomePLN)}`}
-              valueClass={summary.netIncomePLN >= 0 ? 'text-gray-800 dark:text-gray-100' : 'text-orange-700 dark:text-orange-400'}
+              valueClass={summary.netIncomePLN >= 0 ? 'text-text-primary' : 'text-orange-700 dark:text-orange-400'}
               bold
             />
           </div>
@@ -348,20 +348,20 @@ export function YearSummarySection({
         <div className={`rounded-xl border px-5 py-4 flex items-center justify-between gap-4 ${
           summary.pit38Fields.poz51_totalTaxDue > 0
             ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800'
-            : 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700'
+            : 'bg-bg-muted border-border'
         }`}>
           <div>
-            <p className={`text-xs font-semibold mb-0.5 ${summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-gray-500 dark:text-gray-400'}`}>
+            <p className={`text-xs font-semibold mb-0.5 ${summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-text-muted'}`}>
               Podatek do zapłaty (Poz. 51)
             </p>
-            <p className={`text-[11px] ${summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-amber-600/70 dark:text-amber-500/70' : 'text-gray-400 dark:text-gray-500'}`}>
+            <p className={`text-[11px] ${summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-amber-600/70 dark:text-amber-500/70' : 'text-text-faint'}`}>
               {summary.netIncomePLN > 0 || summary.totalDividendGrossPLN > 0
                 ? `Poz. 35 + Poz. 49 = ${fmtPLNGrosze(summary.pit38Fields.poz35_taxDue)} + ${fmtPLNGrosze(summary.pit38Fields.poz49_dividendTaxDue)}`
                 : 'brak podatku — dochód ≤ 0'}
             </p>
           </div>
           <p className={`text-2xl font-bold tabular-nums flex-shrink-0 ${
-            summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-amber-800 dark:text-amber-300' : 'text-gray-400 dark:text-gray-500'
+            summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-amber-800 dark:text-amber-300' : 'text-text-faint'
           }`}>
             {fmtPLNGrosze(summary.pit38Fields.poz51_totalTaxDue)}
           </p>

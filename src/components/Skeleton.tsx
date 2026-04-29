@@ -10,7 +10,7 @@ interface SkeletonProps {
 function SkeletonBlock({ className = '', style }: SkeletonProps) {
   return (
     <div
-      className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`}
+      className={`animate-pulse bg-gray-200 dark:bg-bg-muted rounded ${className}`}
       style={style}
       aria-hidden="true"
     />
@@ -22,7 +22,7 @@ function VerdictSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4" aria-busy="true" aria-label="Ładowanie wyników…">
       {[0, 1, 2].map((i) => (
-        <div key={i} className="border-2 border-gray-200 dark:border-gray-700 rounded-xl p-5 space-y-3">
+        <div key={i} className="border-2 border-border rounded-xl p-5 space-y-3">
           <SkeletonBlock className="h-6 w-20 rounded-full" />
           <div className="grid grid-cols-2 gap-2">
             {[0, 1].map((j) => (
@@ -43,7 +43,7 @@ function VerdictSkeleton() {
 function ChartSkeleton({ height = 200 }: { height?: number }) {
   return (
     <div
-      className="rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-2"
+      className="rounded-xl border border-border p-4 space-y-2"
       style={{ height }}
       aria-busy="true"
       aria-label="Ładowanie wykresu…"

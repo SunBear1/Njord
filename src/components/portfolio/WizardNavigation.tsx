@@ -29,7 +29,7 @@ export default function WizardNavigation({
           type="button"
           onClick={onBack}
           aria-label="Poprzedni krok"
-          className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-border-strong dark:text-text-secondary dark:hover:bg-bg-muted"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Wstecz
@@ -38,7 +38,7 @@ export default function WizardNavigation({
         <span />
       )}
 
-      <span className="text-sm text-gray-400 dark:text-gray-500 order-last sm:order-none w-full sm:w-auto text-center">
+      <span className="text-sm text-text-faint order-last sm:order-none w-full sm:w-auto text-center">
         Krok {currentStep} z {TOTAL_STEPS}
       </span>
 

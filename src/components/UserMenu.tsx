@@ -80,13 +80,13 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSet
       </button>
 
       {isOpen ? (
-        <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+        <div className="absolute right-0 mt-2 w-72 bg-bg-card rounded-xl shadow-lg border border-border py-2 z-50">
           {/* User info */}
-          <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+          <div className="px-4 py-2 border-b border-gray-100 dark:border-border">
             <p className="text-sm font-medium text-gray-900 dark:text-white break-words">
               {user.name ?? 'Użytkownik'}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 break-all">{user.email}</p>
+            <p className="text-xs text-text-muted break-all">{user.email}</p>
           </div>
 
           {/* Actions */}
@@ -95,7 +95,7 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSet
               setIsOpen(false);
               onAccountSettings();
             }}
-            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-text-secondary hover:bg-bg-muted transition-colors"
           >
             <Settings size={16} aria-hidden="true" />
             Ustawienia konta
@@ -105,7 +105,7 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSet
               setIsOpen(false);
               onLogout();
             }}
-            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-text-secondary hover:bg-bg-muted transition-colors"
           >
             <LogOut size={16} aria-hidden="true" />
             Wyloguj się

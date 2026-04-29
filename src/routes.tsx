@@ -7,6 +7,7 @@ export const ComparisonPage = lazy(() => import('./pages/ComparisonPage'));
 export const ForecastPage = lazy(() => import('./pages/ForecastPage'));
 export const TaxPage = lazy(() => import('./pages/TaxPage'));
 export const PortfolioPage = lazy(() => import('./pages/PortfolioPage'));
+export const RatesPage = lazy(() => import('./pages/RatesPage'));
 
 export function CatchAllRedirect() {
   const lastRoute = loadLastRoute();

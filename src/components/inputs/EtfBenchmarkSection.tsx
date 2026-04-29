@@ -35,7 +35,7 @@ export function EtfBenchmarkSection({
   return (
     <div className="space-y-3">
       <div className="space-y-1">
-        <label htmlFor="etf-ticker" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+        <label htmlFor="etf-ticker" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
           Ticker ETF
           <Tooltip content="Ticker funduszu ETF, w który reinwestujesz zyski ze sprzedaży akcji. Przykłady: IWDA.L, VWCE.DE, CSPX.L, SPY. Europejskie ETF wymagają sufiksu giełdy (np. .L, .AS, .DE)." />
         </label>
@@ -56,7 +56,7 @@ export function EtfBenchmarkSection({
             value={localEtfTicker}
             onChange={(e) => onLocalEtfTickerChange(e.target.value.toUpperCase())}
             placeholder="np. IWDA.L"
-            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
+            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
           />
           <button
             type="submit"
@@ -83,7 +83,7 @@ export function EtfBenchmarkSection({
       </div>
 
       <div className="space-y-1">
-        <label htmlFor="etf-return" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+        <label htmlFor="etf-return" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
           Roczny zwrot ETF (% p.a.)
           <Tooltip content="Historyczny CAGR funduszu przed odliczeniem TER — wypełniany automatycznie po pobraniu danych. Możesz go nadpisać własną wartością. Przykład: VWCE/IWDA ≈ 8–10% długoterminowo." />
         </label>
@@ -98,12 +98,12 @@ export function EtfBenchmarkSection({
           value={etfAnnualReturnPercent || ''}
           onChange={(e) => onEtfAnnualReturnChange(Number(e.target.value))}
           placeholder="np. 8.0"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
         />
       </div>
 
       <div className="space-y-1">
-        <label htmlFor="etf-ter" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+        <label htmlFor="etf-ter" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
           TER — opłata za zarządzanie (% rocznie)
           <Tooltip content="Total Expense Ratio — roczna opłata funduszu za zarządzanie, automatycznie odejmowana od wartości. Przykład: VWCE 0.22%, CSPX/IWDA 0.07%, iShares Core S&P 500 0.07%." />
         </label>
@@ -118,12 +118,12 @@ export function EtfBenchmarkSection({
           value={etfTerPercent || ''}
           onChange={(e) => onEtfTerChange(Number(e.target.value))}
           placeholder="np. 0.07"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
         />
       </div>
 
       {etfAnnualReturnPercent > 0 && (
-        <p className="text-xs text-gray-500 dark:text-gray-400 px-1">
+        <p className="text-xs text-text-muted px-1">
           Efektywny zwrot netto: <strong>{(etfAnnualReturnPercent - etfTerPercent).toFixed(2)}%</strong>/rok (przed Belką).
           Podwójna Belka 19%: przy sprzedaży akcji i przy wyjściu z ETF.
         </p>

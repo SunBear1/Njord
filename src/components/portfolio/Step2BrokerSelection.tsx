@@ -67,7 +67,7 @@ function BrokerCard({
 
   const borderClasses = selected && !sectionDisabled
     ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950/30 ring-2 ring-blue-200'
-    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600';
+    : 'border-border hover:border-gray-300 dark:hover:border-gray-600';
 
   return (
     <button
@@ -85,8 +85,8 @@ function BrokerCard({
     >
       {/* Disabled overlay */}
       {disabled && !sectionDisabled && disabledReason ? (
-        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-gray-900/5 dark:bg-gray-900/40">
-          <span className="text-xs font-medium text-red-600 dark:text-red-400 bg-white/90 dark:bg-gray-800/90 px-3 py-1 rounded-full">
+        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-gray-900/5 dark:bg-bg-secondary/40">
+          <span className="text-xs font-medium text-red-600 dark:text-red-400 bg-white/90 dark:bg-bg-card/90 px-3 py-1 rounded-full">
             {disabledReason}
           </span>
         </div>
@@ -95,8 +95,8 @@ function BrokerCard({
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Landmark className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" />
-          <span className="font-medium text-sm text-gray-900 dark:text-gray-100">
+          <Landmark className="w-4 h-4 text-text-faint shrink-0" />
+          <span className="font-medium text-sm text-text-primary">
             {broker.name}
           </span>
         </div>
@@ -107,7 +107,7 @@ function BrokerCard({
             </svg>
           </span>
         ) : (
-          <span className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-600 shrink-0" />
+          <span className="w-5 h-5 rounded-full border-2 border-border-strong shrink-0" />
         )}
       </div>
 
@@ -117,20 +117,20 @@ function BrokerCard({
       </div>
 
       {/* Commission & spread */}
-      <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400 mb-2">
+      <div className="space-y-1 text-xs text-text-muted mb-2">
         <p>
-          <span className="font-medium text-gray-700 dark:text-gray-300">Prowizja:</span>{' '}
+          <span className="font-medium text-text-secondary">Prowizja:</span>{' '}
           {broker.commissionEtf}
         </p>
         <p>
-          <span className="font-medium text-gray-700 dark:text-gray-300">Spread:</span>{' '}
+          <span className="font-medium text-text-secondary">Spread:</span>{' '}
           {broker.fxSpread}
         </p>
       </div>
 
       {/* Notes */}
       {broker.notes ? (
-        <div className="flex items-start gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex items-start gap-1.5 text-xs text-text-muted">
           <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
           <span>{broker.notes}</span>
         </div>
@@ -169,8 +169,8 @@ export default function Step2BrokerSelection({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* ── IKE Section ── */}
-      <section className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
-        <div className="flex items-center gap-2 text-base font-semibold text-gray-800 dark:text-gray-100 mb-4">
+      <section className="bg-bg-card rounded-xl border border-border shadow-sm p-5">
+        <div className="flex items-center gap-2 text-base font-semibold text-text-primary mb-4">
           <Shield className="w-5 h-5 text-blue-500 dark:text-blue-400" />
           <span>Broker IKE</span>
           <span className="text-xs px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300 font-normal">
@@ -178,12 +178,12 @@ export default function Step2BrokerSelection({
           </span>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-4 cursor-pointer select-none">
+        <label className="flex items-center gap-2 text-sm text-text-muted mb-4 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={!ikeEnabled}
             onChange={(e) => setIkeEnabled(!e.target.checked)}
-            className="rounded border-gray-300 dark:border-gray-600 text-blue-500 focus:ring-blue-500"
+            className="rounded border-border-strong text-blue-500 focus:ring-blue-500"
           />
           Nie chcę korzystać z IKE
         </label>
@@ -205,8 +205,8 @@ export default function Step2BrokerSelection({
       </section>
 
       {/* ── IKZE Section ── */}
-      <section className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
-        <div className="flex items-center gap-2 text-base font-semibold text-gray-800 dark:text-gray-100 mb-4">
+      <section className="bg-bg-card rounded-xl border border-border shadow-sm p-5">
+        <div className="flex items-center gap-2 text-base font-semibold text-text-primary mb-4">
           <PiggyBank className="w-5 h-5 text-purple-500 dark:text-purple-400" />
           <span>Broker IKZE</span>
           <span className="text-xs px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300 font-normal">
@@ -214,12 +214,12 @@ export default function Step2BrokerSelection({
           </span>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-4 cursor-pointer select-none">
+        <label className="flex items-center gap-2 text-sm text-text-muted mb-4 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={!ikzeEnabled}
             onChange={(e) => setIkzeEnabled(!e.target.checked)}
-            className="rounded border-gray-300 dark:border-gray-600 text-blue-500 focus:ring-blue-500"
+            className="rounded border-border-strong text-blue-500 focus:ring-blue-500"
           />
           Nie chcę korzystać z IKZE
         </label>

@@ -47,7 +47,7 @@ export function BondBenchmarkSection({
   return (
     <div className="space-y-3">
       <div className="space-y-1">
-        <label htmlFor="bond-type" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label htmlFor="bond-type" className="text-sm font-medium text-text-secondary">
           Typ obligacji
         </label>
         <select
@@ -58,7 +58,7 @@ export function BondBenchmarkSection({
             const p = bondPresets.find((b) => b.id === e.target.value);
             if (p) onSelectPreset(e.target.value, p);
           }}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
         >
           {bondPresetsLoading ? (
             <option disabled>Ładowanie…</option>
@@ -81,23 +81,23 @@ export function BondBenchmarkSection({
             </div>
           )}
 
-          <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 space-y-2 text-xs">
+          <div className="bg-gray-50 dark:bg-bg-muted border border-border rounded-lg p-3 space-y-2 text-xs">
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Oprocentowanie 1. roku:</span>
-              <span className="font-semibold text-gray-900 dark:text-gray-100">{bondSettings.firstYearRate.toFixed(2)}%</span>
+              <span className="text-text-muted">Oprocentowanie 1. roku:</span>
+              <span className="font-semibold text-text-primary">{bondSettings.firstYearRate.toFixed(2)}%</span>
             </div>
 
             {preset.rateType === 'inflation' && (
               <>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Marża:</span>
+                  <span className="text-text-muted">Marża:</span>
                   <span className="font-medium">{bondSettings.margin.toFixed(2)}%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                  <span className="text-text-muted flex items-center gap-1">
                     Inflacja CPI
                     {inflationLoading && (
-                      <span className="text-gray-400 dark:text-gray-500 inline-flex items-center gap-1">
+                      <span className="text-text-faint inline-flex items-center gap-1">
                         · <Loader2 size={12} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />ładowanie…
                       </span>
                     )}
@@ -117,11 +117,11 @@ export function BondBenchmarkSection({
                     value={inflationRate || ''}
                     onChange={(e) => onInflationRateChange(parseFloat(e.target.value) || 0)}
                     aria-label="Inflacja CPI (%)"
-                    className="w-20 border border-gray-300 dark:border-gray-500 rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-600 dark:text-gray-100"
+                    className="w-20 border border-gray-300 dark:border-border-strong rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-bg-muted dark:text-text-primary"
                   />
                 </div>
-                <div className="flex justify-between border-t border-gray-200 dark:border-gray-600 pt-1.5">
-                  <span className="text-gray-600 dark:text-gray-400 font-medium">Stopa efektywna (od 2. roku):</span>
+                <div className="flex justify-between border-t border-border pt-1.5">
+                  <span className="text-text-muted font-medium">Stopa efektywna (od 2. roku):</span>
                   <span className="font-bold text-blue-700 dark:text-blue-300">{bondEffectiveRate.toFixed(2)}%</span>
                 </div>
               </>
@@ -130,11 +130,11 @@ export function BondBenchmarkSection({
             {preset.rateType === 'reference' && (
               <>
                 <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Marża:</span>
+                  <span className="text-text-muted">Marża:</span>
                   <span className="font-medium">{bondSettings.margin.toFixed(2)}%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                  <span className="text-text-muted flex items-center gap-1">
                     Stopa referencyjna NBP:
                     <a
                       href="https://www.nbp.pl/polityka-pieniezna/instrumenty/stopy-procentowe.aspx"
@@ -155,11 +155,11 @@ export function BondBenchmarkSection({
                     onChange={(e) => onNbpRefRateChange(parseFloat(e.target.value) || 0)}
                     placeholder="np. 5.75"
                     aria-label="Stopa referencyjna NBP (%)"
-                    className="w-20 border border-gray-300 dark:border-gray-500 rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-600 dark:text-gray-100"
+                    className="w-20 border border-gray-300 dark:border-border-strong rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-bg-muted dark:text-text-primary"
                   />
                 </div>
-                <div className="flex justify-between border-t border-gray-200 dark:border-gray-600 pt-1.5">
-                  <span className="text-gray-600 dark:text-gray-400 font-medium">Stopa efektywna (od 2. okresu):</span>
+                <div className="flex justify-between border-t border-border pt-1.5">
+                  <span className="text-text-muted font-medium">Stopa efektywna (od 2. okresu):</span>
                   <span className="font-bold text-blue-700 dark:text-blue-300">{bondEffectiveRate.toFixed(2)}%</span>
                 </div>
               </>
@@ -167,7 +167,7 @@ export function BondBenchmarkSection({
 
             {preset.rateType === 'fixed' && (
               <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Typ:</span>
+                <span className="text-text-muted">Typ:</span>
                 <span className="font-medium">Stała stopa przez cały okres</span>
               </div>
             )}
@@ -175,9 +175,9 @@ export function BondBenchmarkSection({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label htmlFor="bond-penalty" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label htmlFor="bond-penalty" className="text-sm font-medium text-text-secondary">
                 Kara za wcz. wykup
-                <span className="ml-1 text-xs font-normal text-gray-500 dark:text-gray-400">(% kapitału)</span>
+                <span className="ml-1 text-xs font-normal text-text-muted">(% kapitału)</span>
               </label>
               <input
                 id="bond-penalty"
@@ -191,14 +191,14 @@ export function BondBenchmarkSection({
                 onChange={(e) => {
                   onBondSettingsChange({ ...bondSettings, penalty: parseFloat(e.target.value) || 0 });
                 }}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="text-sm font-medium text-text-secondary">
                 Zapadalność
               </label>
-              <div className="px-3 py-2 text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
+              <div className="px-3 py-2 text-sm text-text-secondary bg-gray-50 dark:bg-bg-muted border border-border rounded-lg">
                 {preset.maturityMonths} mies.
               </div>
             </div>
@@ -217,9 +217,9 @@ export function BondBenchmarkSection({
                 : `${preset.name} nie pozwala na wcześniejszy wykup. Wyniki obliczone dla pełnego okresu zapadalności (${preset.maturityMonths} mies.).`
               : `Horyzont pokrywa okres zapadalności obligacji — brak kary za wykup.`}
           </div>
-          <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
+          <div className="text-[10px] text-text-faint mt-1">
             Stawki z {BOND_PRESETS_LAST_UPDATED}.{' '}
-            <a href={BOND_PRESETS_SOURCE_URL} target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-500 dark:hover:text-gray-400">
+            <a href={BOND_PRESETS_SOURCE_URL} target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-500 dark:hover:text-text-muted">
               Aktualne stawki na obligacjeskarbowe.pl
             </a>
           </div>

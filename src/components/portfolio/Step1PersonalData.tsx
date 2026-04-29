@@ -27,7 +27,7 @@ function Toggle({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs text-gray-500 dark:text-gray-400">{value ? '' : 'NIE'}</span>
+      <span className="text-xs text-text-muted">{value ? '' : 'NIE'}</span>
       <button
         type="button"
         id={id}
@@ -35,7 +35,7 @@ function Toggle({
         aria-checked={value}
         onClick={() => onChange(!value)}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-          value ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
+          value ? 'bg-blue-600' : 'bg-gray-300 dark:bg-bg-muted'
         }`}
       >
         <span
@@ -44,7 +44,7 @@ function Toggle({
           }`}
         />
       </button>
-      <span className="text-xs text-gray-500 dark:text-gray-400">{value ? 'TAK' : ''}</span>
+      <span className="text-xs text-text-muted">{value ? 'TAK' : ''}</span>
     </div>
   );
 }
@@ -57,14 +57,14 @@ export default function Step1PersonalData({
   ikzeAnnualLimit,
 }: Step1Props) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 space-y-5">
+    <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-5">
       {/* Row 1: Monthly amount + Horizon */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Monthly amount */}
         <div>
           <label
             htmlFor="monthlyAmount"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            className="block text-sm font-medium text-text-secondary mb-1"
           >
             <User className="inline h-4 w-4 mr-1 -mt-0.5" aria-hidden="true" />
             Miesięczna kwota do inwestowania (PLN)
@@ -77,9 +77,9 @@ export default function Step1PersonalData({
             step={100}
             value={personalData.totalMonthlyPLN}
             onChange={(e) => updatePersonalData({ totalMonthlyPLN: Number(e.target.value) })}
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-lg border border-border-strong bg-white dark:bg-bg-muted px-3 py-2 text-sm text-text-primary font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          <p className="text-xs text-text-faint mt-1">
             Roczny budżet: {fmtPLN(annualBudget)}
           </p>
         </div>
@@ -88,7 +88,7 @@ export default function Step1PersonalData({
         <div>
           <label
             htmlFor="horizon"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            className="block text-sm font-medium text-text-secondary mb-1"
           >
             <Calendar className="inline h-4 w-4 mr-1 -mt-0.5" aria-hidden="true" />
             Horyzont inwestycyjny: {personalData.horizonYears} lat
@@ -103,7 +103,7 @@ export default function Step1PersonalData({
             onChange={(e) => updatePersonalData({ horizonYears: Number(e.target.value) })}
             className="w-full accent-blue-600"
           />
-          <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500 mt-1">
+          <div className="flex justify-between text-xs text-text-faint mt-1">
             <span>1 rok</span>
             <span>25 lat</span>
             <span>50 lat</span>
@@ -115,13 +115,13 @@ export default function Step1PersonalData({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* PIT bracket */}
         <fieldset>
-          <legend className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <legend className="block text-sm font-medium text-text-secondary mb-1">
             <Percent className="inline h-4 w-4 mr-1 -mt-0.5" aria-hidden="true" />
             Stawka PIT
           </legend>
           <div className="flex gap-4">
             {PIT_OPTIONS.map((opt) => (
-              <label key={opt.value} className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+              <label key={opt.value} className="flex items-center gap-1.5 text-sm text-text-secondary cursor-pointer">
                 <input
                   type="radio"
                   name="pitBracket"
@@ -134,7 +134,7 @@ export default function Step1PersonalData({
               </label>
             ))}
           </div>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          <p className="text-xs text-text-faint mt-1">
             Wpływa na wartość odliczenia IKZE od podatku
           </p>
         </fieldset>
@@ -143,7 +143,7 @@ export default function Step1PersonalData({
         <div>
           <label
             htmlFor="selfEmployed"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            className="block text-sm font-medium text-text-secondary mb-1"
           >
             Działalność gospodarcza
           </label>
@@ -152,7 +152,7 @@ export default function Step1PersonalData({
             value={personalData.isSelfEmployed}
             onChange={(v) => updatePersonalData({ isSelfEmployed: v })}
           />
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          <p className="text-xs text-text-faint mt-1">
             Wyższy limit IKZE dla osób prowadzących DG
           </p>
         </div>
@@ -164,7 +164,7 @@ export default function Step1PersonalData({
         <div>
           <label
             htmlFor="inflationRate"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            className="block text-sm font-medium text-text-secondary mb-1"
           >
             <Percent className="inline h-4 w-4 mr-1 -mt-0.5" aria-hidden="true" />
             Zakładana inflacja roczna (%)
@@ -177,9 +177,9 @@ export default function Step1PersonalData({
             step={0.1}
             value={personalData.inflationRate}
             onChange={(e) => updatePersonalData({ inflationRate: Number(e.target.value) })}
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-lg border border-border-strong bg-white dark:bg-bg-muted px-3 py-2 text-sm text-text-primary font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          <p className="text-xs text-text-faint mt-1">
             Używana do dyskontowania wartości realnej portfela
           </p>
         </div>
@@ -188,7 +188,7 @@ export default function Step1PersonalData({
         <div>
           <label
             htmlFor="beneficiary800"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            className="block text-sm font-medium text-text-secondary mb-1"
           >
             Beneficjent programu 800+
           </label>
@@ -197,7 +197,7 @@ export default function Step1PersonalData({
             value={personalData.isBeneficiary800Plus}
             onChange={(v) => updatePersonalData({ isBeneficiary800Plus: v })}
           />
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          <p className="text-xs text-text-faint mt-1">
             Odblokuje obligacje rodzinne ROS i ROD
           </p>
         </div>

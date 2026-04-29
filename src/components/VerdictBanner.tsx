@@ -55,8 +55,8 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
     <div className="space-y-3">
       {/* Header row: title + single disclaimer badge */}
       <div className="flex items-center gap-3 flex-wrap">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Wyniki — co się bardziej opłaca?</h2>
-        <span className="inline-flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 px-2 py-0.5 rounded-full">
+        <h2 className="text-lg font-semibold text-text-primary">Wyniki — co się bardziej opłaca?</h2>
+        <span className="inline-flex items-center gap-1.5 text-xs text-text-muted bg-bg-muted border border-border px-2 py-0.5 rounded-full">
           Podatek Belki 19% od zysku{hasInflation ? ` · inflacja ${inflationRate.toFixed(1)}%` : ''}
           <Tooltip
             content={disclaimerTooltip}
@@ -67,10 +67,10 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
 
       {/* Current value — above cards */}
       <div className="flex items-center gap-2 px-1">
-        <Info size={16} className="text-gray-400 dark:text-gray-500 flex-shrink-0" aria-hidden="true" />
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <Info size={16} className="text-text-faint flex-shrink-0" aria-hidden="true" />
+        <p className="text-sm text-text-muted">
           Aktualnie posiadasz akcje o wartości{' '}
-          <strong className="text-gray-900 dark:text-gray-100 tabular-nums">{fmtPLN(results[0]?.currentValuePLN ?? 0)}</strong>.{' '}
+          <strong className="text-text-primary tabular-nums">{fmtPLN(results[0]?.currentValuePLN ?? 0)}</strong>.{' '}
           Wyniki pokazują wartość po wybranym horyzoncie czasowym.
         </p>
       </div>
@@ -124,12 +124,12 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
               {/* Two-column comparison */}
               <div className="grid grid-cols-2 gap-2">
                 {/* Akcje column */}
-                <div className={`rounded-xl p-3 text-center space-y-1 ${stockWins ? 'bg-white dark:bg-gray-800 shadow-sm ring-2 ring-amber-300' : 'bg-white/60 dark:bg-gray-800/60'}`}>
+                <div className={`rounded-xl p-3 text-center space-y-1 ${stockWins ? 'bg-bg-card shadow-sm ring-2 ring-amber-300' : 'bg-white/60 dark:bg-bg-card/60'}`}>
                   <div className="flex items-center justify-center gap-1 text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide">
                     {stockWins && <Trophy size={12} className="text-amber-400" aria-hidden="true" />}
                     Akcje
                   </div>
-                  <div className="text-base font-bold text-gray-800 dark:text-gray-100 tabular-nums">{fmtPLN(r.stockNetEndValuePLN)}</div>
+                  <div className="text-base font-bold text-text-primary tabular-nums">{fmtPLN(r.stockNetEndValuePLN)}</div>
                   <div className="text-xs font-medium text-blue-600 dark:text-blue-400 tabular-nums">{fmtDiffPct(r.stockReturnNet)}</div>
                   {hasInflation && (
                     <div className="text-[10px] text-orange-600 dark:text-orange-400 font-medium">
@@ -144,12 +144,12 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
                 </div>
 
                 {/* Benchmark column */}
-                <div className={`rounded-xl p-3 text-center space-y-1 ${!stockWins ? 'bg-white dark:bg-gray-800 shadow-sm ring-2 ring-amber-300' : 'bg-white/60 dark:bg-gray-800/60'}`}>
+                <div className={`rounded-xl p-3 text-center space-y-1 ${!stockWins ? 'bg-bg-card shadow-sm ring-2 ring-amber-300' : 'bg-white/60 dark:bg-bg-card/60'}`}>
                   <div className="flex items-center justify-center gap-1 text-xs font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wide">
                     {!stockWins && <Trophy size={12} className="text-amber-400" aria-hidden="true" />}
                     {bmLabel}
                   </div>
-                  <div className="text-base font-bold text-gray-800 dark:text-gray-100 tabular-nums">{fmtPLN(r.benchmarkEndValuePLN)}</div>
+                  <div className="text-base font-bold text-text-primary tabular-nums">{fmtPLN(r.benchmarkEndValuePLN)}</div>
                   <div className="text-xs font-medium text-purple-600 dark:text-purple-400 tabular-nums">
                     {r.benchmarkReturnNet >= 0 ? '+' : ''}{r.benchmarkReturnNet.toFixed(2)}%
                   </div>
@@ -162,7 +162,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
               </div>
 
               {/* Difference callout */}
-              <div className="text-xs font-medium rounded-lg px-3 py-2 text-center bg-white/70 dark:bg-gray-800/70 border border-white dark:border-gray-700 text-gray-700 dark:text-gray-300">
+              <div className="text-xs font-medium rounded-lg px-3 py-2 text-center bg-white/70 dark:bg-bg-card/70 border border-white dark:border-border text-text-secondary">
                 Różnica: <strong>{fmtDiff(r.differencePLN)}</strong> ({fmtDiffPct(r.differencePercent)})
               </div>
             </div>

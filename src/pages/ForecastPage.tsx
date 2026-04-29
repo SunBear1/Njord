@@ -37,7 +37,7 @@ export function ForecastPage() {
   return (
     <div className="space-y-4">
       {/* Ticker input */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 space-y-4">
+      <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-4">
         <div>
           <h2 className="text-lg font-semibold text-text-primary">Prognoza cenowa</h2>
         </div>
@@ -53,7 +53,7 @@ export function ForecastPage() {
               value={tickerInput}
               onChange={e => setTickerInput(e.target.value.toUpperCase())}
               placeholder="np. AAPL, MSFT, SPY…"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-text-primary placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-white dark:bg-bg-muted text-text-primary placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm"
               autoComplete="off"
               spellCheck={false}
             />
@@ -111,7 +111,7 @@ export function ForecastPage() {
       )}
 
       {!assetData && !assetLoading && !assetError && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-10 text-center text-gray-400 dark:text-gray-500 space-y-2">
+        <div className="bg-bg-card rounded-xl border border-dashed border-border-strong p-10 text-center text-text-faint space-y-2">
           <p className="text-lg">Wprowadź ticker, aby zobaczyć prognozę cenową</p>
           <p className="text-sm">Wpisz symbol spółki lub ETF (np. AAPL, MSFT, SPY) i kliknij „Analizuj".</p>
         </div>

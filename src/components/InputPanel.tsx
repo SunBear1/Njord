@@ -215,7 +215,7 @@ export function InputPanel({
 
   /* ────── Animated layout: both summary + form always in DOM ────── */
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+    <div className="bg-bg-card rounded-xl border border-border shadow-sm overflow-hidden">
       {/* Summary bar — visible when collapsed */}
       <div
         className="grid"
@@ -234,17 +234,17 @@ export function InputPanel({
             onClick={onToggleCollapse}
             className="w-full flex items-center justify-between gap-3 px-5 py-3"
           >
-            <div className="flex items-center gap-2 flex-wrap min-w-0 text-sm text-gray-700 dark:text-gray-300">
-              <span className="font-semibold text-gray-900 dark:text-gray-100">{ticker || '—'}</span>
-              <span className="text-gray-400 dark:text-gray-500">·</span>
+            <div className="flex items-center gap-2 flex-wrap min-w-0 text-sm text-text-secondary">
+              <span className="font-semibold text-text-primary">{ticker || '—'}</span>
+              <span className="text-text-faint">·</span>
               <span>{shares} akcji</span>
-              <span className="text-gray-400 dark:text-gray-500">·</span>
+              <span className="text-text-faint">·</span>
               <span>${currentPriceUSD.toFixed(2)}</span>
-              <span className="text-gray-400 dark:text-gray-500">·</span>
+              <span className="text-text-faint">·</span>
               <span>PLN/USD {currentFxRate.toFixed(2)}</span>
-              <span className="text-gray-400 dark:text-gray-500">·</span>
+              <span className="text-text-faint">·</span>
               <span>{bmSummary}</span>
-              <span className="text-gray-400 dark:text-gray-500">·</span>
+              <span className="text-text-faint">·</span>
               <span className="text-blue-600 dark:text-blue-400 font-medium">{horizonLabel}</span>
             </div>
             <span className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-medium whitespace-nowrap shrink-0">
@@ -270,7 +270,7 @@ export function InputPanel({
           >
 
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Dane wejściowe</h2>
+        <h2 className="text-lg font-semibold text-text-primary">Dane wejściowe</h2>
         {onToggleCollapse && (
           <button
             type="button"
@@ -296,11 +296,11 @@ export function InputPanel({
 
       {/* Ticker — auto-fetch */}
       <div className="space-y-1">
-        <label htmlFor="ticker-input" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+        <label htmlFor="ticker-input" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
           Ticker giełdowy <span className="text-red-500">*</span>
           <Tooltip content="Wpisz symbol giełdowy (np. AAPL, NVDA, VOO). Cena i kurs USD/PLN pobiorą się automatycznie." />
         </label>
-        <p className="text-xs text-gray-400 dark:text-gray-500">Zacznij pisać — dane pobiorą się automatycznie.</p>
+        <p className="text-xs text-text-faint">Zacznij pisać — dane pobiorą się automatycznie.</p>
         <div className="flex gap-2 items-center">
           <div className="relative flex-1">
             <input
@@ -311,7 +311,7 @@ export function InputPanel({
               value={localTicker}
               onChange={(e) => setLocalTicker(e.target.value.toUpperCase())}
               placeholder="np. AAPL, NVDA, VOO"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 pr-9"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint pr-9"
             />
             {assetLoading && (
               <Loader2 size={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin motion-reduce:animate-none text-blue-500" aria-hidden="true" />
@@ -322,7 +322,7 @@ export function InputPanel({
             onClick={handleManualRefetch}
             disabled={assetLoading || !localTicker.trim()}
             aria-label="Odśwież dane giełdowe"
-            className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 transition-colors"
+            className="p-2 rounded-lg border border-border-strong text-text-muted hover:bg-bg-muted disabled:opacity-40 transition-colors"
           >
             <RefreshCw size={16} aria-hidden="true" />
           </button>
@@ -344,7 +344,7 @@ export function InputPanel({
 
       {/* Shares */}
       <div className="space-y-1">
-        <label htmlFor="shares-input" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label htmlFor="shares-input" className="text-sm font-medium text-text-secondary">
           Liczba akcji <span className="text-red-500">*</span>
         </label>
         <input
@@ -357,7 +357,7 @@ export function InputPanel({
           value={shares || ''}
           onChange={(e) => onSharesChange(Number(e.target.value))}
           placeholder="np. 50"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
         />
         <button
           type="button"
@@ -382,7 +382,7 @@ export function InputPanel({
                   value={totalValueStr}
                   onChange={(e) => setTotalValueStr(e.target.value)}
                   placeholder="np. 5000.00"
-                  className="w-full border border-blue-200 dark:border-blue-700 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 bg-white dark:bg-gray-800"
+                  className="w-full border border-blue-200 dark:border-blue-700 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:text-text-primary dark:placeholder-text-faint bg-bg-card"
                 />
               </div>
               <button
@@ -420,7 +420,7 @@ export function InputPanel({
 
       {/* Price USD */}
       <div className="space-y-1">
-        <label htmlFor="price-usd" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+        <label htmlFor="price-usd" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
           Aktualna cena akcji (USD) <span className="text-red-500">*</span>
           {assetData && (
             <Tooltip content="Cena pobrana automatycznie z Twelve Data. Możesz ją edytować ręcznie." />
@@ -436,16 +436,16 @@ export function InputPanel({
           value={currentPriceUSD || ''}
           onChange={(e) => onPriceChange(Number(e.target.value))}
           placeholder="np. 185.00"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
         />
       </div>
 
       {/* Advanced settings (collapsible) */}
-      <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+      <div className="border border-border rounded-lg overflow-hidden">
         <button
           type="button"
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+          className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-text-muted hover:bg-bg-muted/50 transition-colors"
           aria-expanded={showAdvanced}
         >
           <span className="flex items-center gap-1.5">
@@ -465,9 +465,9 @@ export function InputPanel({
 
       {/* Average cost (optional) */}
       <div className="space-y-1">
-        <label htmlFor="avg-cost-usd" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+        <label htmlFor="avg-cost-usd" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
           Cena zakupu (USD)
-          <span className="text-xs font-normal text-gray-400 dark:text-gray-500">(opcjonalnie)</span>
+          <span className="text-xs font-normal text-text-faint">(opcjonalnie)</span>
           <Tooltip content="Średnia cena zakupu za akcję. Używana do obliczenia rzeczywistego zysku/straty oraz prawidłowej podstawy podatku Belki — podatek nalicza się od zysku względem ceny zakupu, nie dzisiejszej ceny." />
         </label>
         <input
@@ -481,10 +481,10 @@ export function InputPanel({
           onChange={(e) => onAvgCostUSDChange(Number(e.target.value))}
           placeholder={isRSU ? 'RSU: $0' : 'np. 50.00'}
           disabled={isRSU}
-          className={`w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 ${isRSU ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint ${isRSU ? 'opacity-50 cursor-not-allowed' : ''}`}
         />
         {/* RSU toggle */}
-        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer mt-1">
+        <label className="flex items-center gap-2 text-sm text-text-muted cursor-pointer mt-1">
           <input
             type="checkbox"
             checked={isRSU}
@@ -492,7 +492,7 @@ export function InputPanel({
               onIsRSUChange(e.target.checked);
               if (e.target.checked) onAvgCostUSDChange(0);
             }}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-border-strong dark:bg-bg-muted"
           />
           <span>RSU / akcje przyznane (koszt nabycia = $0)</span>
           <Tooltip content="Restricted Stock Units — akcje przyznane przez pracodawcę. Cena nabycia wynosi $0, więc cały przychód ze sprzedaży podlega opodatkowaniu podatkiem Belki." />
@@ -518,9 +518,9 @@ export function InputPanel({
 
       {/* Broker fee (optional) */}
       <div className="space-y-1">
-        <label htmlFor="broker-fee" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+        <label htmlFor="broker-fee" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
           Prowizja brokera (USD)
-          <span className="text-xs font-normal text-gray-400 dark:text-gray-500">(opcjonalnie)</span>
+          <span className="text-xs font-normal text-text-faint">(opcjonalnie)</span>
           <Tooltip content="Łączna prowizja za transakcję sprzedaży w USD. Odejmowana od wartości sprzedaży i zaliczana jako koszt uzyskania przychodu — pomniejsza podstawę podatku Belki. Przykład: IBKR min $1, Exante ~0.02 USD/akcję." />
         </label>
         <input
@@ -533,15 +533,15 @@ export function InputPanel({
           value={brokerFeeUSD || ''}
           onChange={(e) => onBrokerFeeUSDChange(Number(e.target.value))}
           placeholder="np. 1.00"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
         />
       </div>
 
       {/* Dividend yield (optional) */}
       <div className="space-y-1">
-        <label htmlFor="dividend-yield" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+        <label htmlFor="dividend-yield" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
           Stopa dywidendy (% rocznie)
-          <span className="text-xs font-normal text-gray-400 dark:text-gray-500">(opcjonalnie)</span>
+          <span className="text-xs font-normal text-text-faint">(opcjonalnie)</span>
           <Tooltip content="Roczna stopa dywidendy akcji (np. 1.5 dla 1.5%). Dywidendy akumulowane jako gotówka PLN w ciągu horyzontu. Podatek 19% od całości (pokrywa 15% WHT USA + 4% dopłata do polskiego PIT-38). Spółki wzrostowe zazwyczaj nie wypłacają dywidend (0)." />
         </label>
         <input
@@ -555,10 +555,10 @@ export function InputPanel({
           value={dividendYieldPercent || ''}
           onChange={(e) => onDividendYieldChange(Number(e.target.value))}
           placeholder="np. 1.5"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
         />
         {dividendYieldPercent > 0 && (
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-xs text-text-muted">
             Szacowane dywidendy netto (base): ok.{' '}
             <strong>
               {new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(
@@ -577,7 +577,7 @@ export function InputPanel({
 
       {/* FX Rate */}
       <div className="space-y-1">
-        <label htmlFor="fx-rate" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+        <label htmlFor="fx-rate" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
           Kurs sprzedaży USD <span className="text-red-500">*</span>
           {nbpMidRate > 0 && (
             <Tooltip content={`Kurs z Alior Kantor — tyle PLN dostaniesz sprzedając dolary. Podatek Belki po kursie NBP (${fmtNum(nbpMidRate)} PLN/USD).`} />
@@ -593,13 +593,13 @@ export function InputPanel({
           value={currentFxRate || ''}
           onChange={(e) => onFxRateChange(Number(e.target.value))}
           placeholder="np. 4.1500"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
         />
       </div>
 
       {/* Benchmark selector */}
       <div className="space-y-3">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Porównaj z:</label>
+        <label className="text-sm font-medium text-text-secondary">Porównaj z:</label>
         <div className="flex gap-2">
           <button
             type="button"
@@ -607,7 +607,7 @@ export function InputPanel({
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'savings'
                 ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300'
-                : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600'
+                : 'border-border bg-white dark:bg-bg-muted text-text-muted hover:bg-gray-50 dark:hover:bg-bg-muted'
             }`}
           >
             Konto oszczędnościowe
@@ -618,7 +618,7 @@ export function InputPanel({
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'bonds'
                 ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300'
-                : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600'
+                : 'border-border bg-white dark:bg-bg-muted text-text-muted hover:bg-gray-50 dark:hover:bg-bg-muted'
             }`}
           >
             Obligacje skarbowe
@@ -629,7 +629,7 @@ export function InputPanel({
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'etf'
                 ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300'
-                : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600'
+                : 'border-border bg-white dark:bg-bg-muted text-text-muted hover:bg-gray-50 dark:hover:bg-bg-muted'
             }`}
           >
             ETF
@@ -640,9 +640,9 @@ export function InputPanel({
       {benchmarkType === 'savings' ? (
         /* Savings account rate */
         <div className="space-y-1">
-          <label htmlFor="savings-rate" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+          <label htmlFor="savings-rate" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
             Oprocentowanie konta oszczędnościowego <span className="text-red-500">*</span>
-            <span className="text-xs font-normal text-gray-500 dark:text-gray-400">(% rocznie)</span>
+            <span className="text-xs font-normal text-text-muted">(% rocznie)</span>
             <Tooltip
               content={
                 <span className="space-y-1 block">
@@ -670,10 +670,10 @@ export function InputPanel({
             value={wiborStr}
             onChange={(e) => handleWiborChange(e.target.value)}
             placeholder="np. 5.82"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
           />
           {!monthlyRate && (
-            <p className="text-xs text-gray-400 dark:text-gray-500">
+            <p className="text-xs text-text-faint">
               Podaj oprocentowanie z regulaminu banku w skali roku.
             </p>
           )}
@@ -718,7 +718,7 @@ export function InputPanel({
 
       {/* Horizon Slider */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="text-sm font-medium text-text-secondary">
           Horyzont czasowy:{' '}
           <span className="text-blue-600 dark:text-blue-400 font-semibold">
             {horizonMonths <= 11
@@ -767,7 +767,7 @@ export function InputPanel({
                 return (
                   <span
                     key={label}
-                    className="absolute text-xs text-gray-400 dark:text-gray-500"
+                    className="absolute text-xs text-text-faint"
                     style={{
                       left: `${pct}%`,
                       transform: isFirst ? 'none' : isLast ? 'translateX(-100%)' : 'translateX(-50%)',

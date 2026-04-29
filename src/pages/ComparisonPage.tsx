@@ -13,7 +13,6 @@ import { useCurrencyRates } from '../hooks/useCurrencyRates';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useBondPresets } from '../hooks/useBondPresets';
 import { usePortfolioState } from '../hooks/usePortfolioState';
-import { KantorSidebar } from '../components/KantorSidebar';
 import {
   calcAllScenarios,
   calcTimeline,
@@ -21,8 +20,6 @@ import {
 } from '../utils/calculations';
 import { blendedInflationRate, blendedSavingsRate } from '../utils/inflationProjection';
 
-const MethodologyPanelLazy = lazy(() => import('../components/MethodologyPanel').then(m => ({ default: m.MethodologyPanel })));
-const HowItWorksLazy = lazy(() => import('../components/HowItWorks').then(m => ({ default: m.HowItWorks })));
 const TimelineChartLazy = lazy(() => import('../components/TimelineChart'));
 const BreakevenChartLazy = lazy(() => import('../components/BreakevenChart'));
 
@@ -216,9 +213,6 @@ export function ComparisonPage() {
 
   return (
     <div className="space-y-4">
-      {/* Floating rate card — self-positioned fixed right */}
-      <KantorSidebar rates={currencyRates} />
-
         {inputCollapsed ? (
           <>
             <InputPanel {...inputPanelProps} collapsed onToggleCollapse={() => setInputCollapsed(false)} />
@@ -232,7 +226,7 @@ export function ComparisonPage() {
             </div>
 
             {!canCalc && (
-              <div className="bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 p-10 text-center text-gray-400 dark:text-gray-500 space-y-2">
+              <div className="bg-bg-card rounded-xl border border-dashed border-border-strong p-10 text-center text-text-faint space-y-2">
                 <p className="text-lg">Wprowadź ticker i dane portfela, aby zobaczyć wyniki</p>
                 <p className="text-sm">Podaj ticker spółki lub ETF, liczbę akcji i parametry benchmarku.</p>
               </div>
@@ -242,7 +236,7 @@ export function ComparisonPage() {
 
         {results && (
           <>
-            <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400" role="note">
+            <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-bg-muted border border-border text-xs text-text-muted" role="note">
               <span aria-hidden="true">ℹ️</span>
               <span>
                 <strong>Wartości szacunkowe</strong> — wyniki zależą od wybranych scenariuszy i nie uwzględniają wydarzeń fundamentalnych. Nie stanowią doradztwa inwestycyjnego ani podatkowego.
@@ -290,12 +284,6 @@ export function ComparisonPage() {
           </>
         )}
 
-        <Suspense fallback={null}>
-          <MethodologyPanelLazy />
-        </Suspense>
-        <Suspense fallback={null}>
-          <HowItWorksLazy />
-        </Suspense>
     </div>
   );
 }

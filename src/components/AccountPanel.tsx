@@ -95,13 +95,13 @@ export function AccountPanel({
       />
 
       {/* Panel */}
-      <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-gray-200 dark:border-gray-700 max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-bg-card rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-border max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-border">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">Ustawienia konta</h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-text-primary hover:bg-bg-muted transition-colors"
             aria-label="Zamknij"
           >
             <X size={20} />
@@ -109,7 +109,7 @@ export function AccountPanel({
         </div>
 
         {/* User info */}
-        <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+        <div className="px-6 py-4 border-b border-gray-100 dark:border-border">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-lg font-bold text-white shrink-0">
               {getInitials(user.name, user.email)}
@@ -118,7 +118,7 @@ export function AccountPanel({
               <p className="text-sm font-semibold text-gray-900 dark:text-white break-words">
                 {user.name ?? 'Użytkownik'}
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 break-all">{user.email}</p>
+              <p className="text-sm text-text-muted break-all">{user.email}</p>
             </div>
           </div>
         </div>
@@ -139,7 +139,7 @@ export function AccountPanel({
         ) : null}
 
         {/* Linked accounts */}
-        <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-700">
+        <div className="px-6 py-5 border-b border-gray-100 dark:border-border">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-3">
             <Link2 size={16} aria-hidden="true" />
             Połączone konta
@@ -161,7 +161,7 @@ export function AccountPanel({
         </div>
 
         {/* Change password */}
-        <form onSubmit={handleChangePassword} className="px-6 py-5 border-b border-gray-100 dark:border-gray-700">
+        <form onSubmit={handleChangePassword} className="px-6 py-5 border-b border-gray-100 dark:border-border">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-3">
             <KeyRound size={16} aria-hidden="true" />
             {hasPassword ? 'Zmień hasło' : 'Ustaw hasło'}
@@ -177,7 +177,7 @@ export function AccountPanel({
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border-strong bg-white dark:bg-bg-muted text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           ) : null}
@@ -192,7 +192,7 @@ export function AccountPanel({
               required
               minLength={8}
               autoComplete="new-password"
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border-strong bg-white dark:bg-bg-muted text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -206,10 +206,10 @@ export function AccountPanel({
               required
               minLength={8}
               autoComplete="new-password"
-              className={`w-full pl-10 pr-4 py-2.5 rounded-lg border bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent ${
+              className={`w-full pl-10 pr-4 py-2.5 rounded-lg border bg-white dark:bg-bg-muted text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent ${
                 passwordMismatch
                   ? 'border-red-400 focus:ring-red-500'
-                  : 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+                  : 'border-border-strong focus:ring-blue-500'
               }`}
             />
           </div>
@@ -233,7 +233,7 @@ export function AccountPanel({
             <Trash2 size={16} aria-hidden="true" />
             Usuń konto
           </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+          <p className="text-xs text-text-muted mb-3">
             Ta operacja jest nieodwracalna. Wszystkie Twoje dane zostaną trwale usunięte.
           </p>
 
@@ -260,14 +260,14 @@ export function AccountPanel({
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
                   autoComplete="current-password"
-                  className="w-full px-3 py-2 rounded-lg border border-red-300 dark:border-red-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-3 py-2 rounded-lg border border-red-300 dark:border-red-700 bg-white dark:bg-bg-muted text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
               ) : null}
 
               <div className="flex gap-2">
                 <button
                   onClick={() => { setShowDeleteConfirm(false); setDeletePassword(''); onClearError(); }}
-                  className="flex-1 py-2 px-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                  className="flex-1 py-2 px-3 text-sm font-medium text-text-secondary bg-white dark:bg-bg-muted rounded-lg border border-border-strong hover:bg-gray-50 dark:hover:bg-bg-muted transition-colors"
                 >
                   Anuluj
                 </button>
@@ -294,7 +294,7 @@ function LinkedAccountRow({ provider, label, isLinked, icon }: {
   icon: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-gray-700/50">
+    <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-50 dark:bg-bg-muted/50">
       <div className="flex items-center gap-2.5">
         <span className="shrink-0">{icon}</span>
         <span className="text-sm font-medium text-gray-900 dark:text-white">{label}</span>

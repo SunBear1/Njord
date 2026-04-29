@@ -9,6 +9,7 @@ import {
   ForecastPage,
   TaxPage,
   PortfolioPage,
+  RatesPage,
   CatchAllRedirect,
 } from './routes'
 
@@ -23,6 +24,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="forecast" element={<ForecastPage />} />
             <Route path="tax" element={<TaxPage />} />
             <Route path="portfolio" element={<PortfolioPage />} />
+            <Route path="rates" element={<RatesPage />} />
             <Route path="*" element={<CatchAllRedirect />} />
           </Route>
         </Routes>

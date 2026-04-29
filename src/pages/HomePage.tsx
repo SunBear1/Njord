@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { BarChart3, Receipt, Sprout, TrendingUp } from 'lucide-react';
+import { BarChart3, Receipt, Sprout, TrendingUp, ArrowDownUp } from 'lucide-react';
 
 const FEATURES = [
   {
@@ -37,6 +37,15 @@ const FEATURES = [
     color: 'text-violet-600 dark:text-violet-400',
     bg: 'bg-violet-50 dark:bg-violet-900/20',
     border: 'border-violet-200 dark:border-violet-800',
+  },
+  {
+    to: '/rates',
+    icon: ArrowDownUp,
+    title: 'Kursy walut',
+    description: 'Aktualne kursy kupna i sprzedaży USD, EUR, GBP i CHF z Alior Kantor i NBP.',
+    color: 'text-sky-600 dark:text-sky-400',
+    bg: 'bg-sky-50 dark:bg-sky-900/20',
+    border: 'border-sky-200 dark:border-sky-800',
   },
 ] as const;
 

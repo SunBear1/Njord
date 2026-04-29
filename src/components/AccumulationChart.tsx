@@ -26,7 +26,7 @@ function CustomLegend({ payload }: { payload?: Array<{ value: string; color: str
   return (
     <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-2 px-2">
       {payload.map((entry) => (
-        <span key={entry.value} className="inline-flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
+        <span key={entry.value} className="inline-flex items-center gap-1.5 text-xs text-text-muted whitespace-nowrap">
           <span
             className="inline-block w-2.5 h-2.5 rounded-sm shrink-0"
             style={{ backgroundColor: entry.color }}
@@ -87,16 +87,16 @@ function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps)
   const formatTooltip = (value: unknown) => fmtPLN(Number(value ?? 0));
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 space-y-3">
+    <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-3">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">
+        <h3 className="text-base font-semibold text-text-primary">
           Wzrost portfela w czasie
         </h3>
-        <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden text-xs" role="group" aria-label="Widok wykresu">
+        <div className="flex rounded-lg border border-border overflow-hidden text-xs" role="group" aria-label="Widok wykresu">
           <button
             type="button"
             onClick={() => setViewMode('stacked')}
-            className={`px-2.5 py-1 transition-colors ${viewMode === 'stacked' ? 'bg-gray-100 dark:bg-gray-700 font-semibold text-gray-800 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'}`}
+            className={`px-2.5 py-1 transition-colors ${viewMode === 'stacked' ? 'bg-bg-muted font-semibold text-text-primary' : 'text-text-muted hover:bg-bg-muted/50'}`}
             aria-pressed={viewMode === 'stacked'}
           >
             Skumulowany
@@ -104,7 +104,7 @@ function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps)
           <button
             type="button"
             onClick={() => setViewMode('lines')}
-            className={`px-2.5 py-1 transition-colors ${viewMode === 'lines' ? 'bg-gray-100 dark:bg-gray-700 font-semibold text-gray-800 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50'}`}
+            className={`px-2.5 py-1 transition-colors ${viewMode === 'lines' ? 'bg-bg-muted font-semibold text-text-primary' : 'text-text-muted hover:bg-bg-muted/50'}`}
             aria-pressed={viewMode === 'lines'}
           >
             Linie

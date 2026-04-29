@@ -104,10 +104,10 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
   return (
     <div className="space-y-5">
       {/* Header with unified horizon selector */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
+      <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5">
         <div className="flex items-center gap-2 mb-3">
           <Target size={20} className="text-blue-600 dark:text-blue-400" />
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Optymalna cena sprzedaży</h2>
+          <h2 className="text-lg font-semibold text-text-primary">Optymalna cena sprzedaży</h2>
         </div>
 
         {/* Unified horizon chips — each shows duration + dynamically computed target month */}
@@ -122,7 +122,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                 className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-all ${
                   isActive
                     ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
-                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30'
+                    : 'bg-bg-card border-border text-gray-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30'
                 }`}
               >
                 <span className="text-sm font-semibold leading-snug">{p.label}</span>
@@ -140,7 +140,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
             className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-all ${
               isCustomActive || showCustomPicker
                 ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
-                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30'
+                : 'bg-bg-card border-border text-gray-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30'
             }`}
           >
             <span className="text-sm font-semibold leading-snug">Własny</span>
@@ -162,9 +162,9 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                   setIsCustomActive(true);
                   setShowCustomPicker(false);
                 }}
-                className="flex flex-col items-center px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                className="flex flex-col items-center px-3 py-1.5 rounded-lg border border-border bg-bg-card hover:border-blue-400 hover:bg-blue-50 transition-colors"
               >
-                <span className="text-xs font-medium text-gray-800 dark:text-gray-100">{mo.label}</span>
+                <span className="text-xs font-medium text-text-primary">{mo.label}</span>
                 <span className="text-[10px] text-gray-400">~{Math.round(mo.days / 21)} mies.</span>
               </button>
             ))}
@@ -172,7 +172,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
         )}
 
         {isLoading && (
-          <div className="flex items-center gap-2 mt-4 text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-2 mt-4 text-sm text-text-muted">
             <Loader2 size={16} className="animate-spin motion-reduce:animate-none" />
             Symulacja Monte Carlo (10 000 ścieżek)…
           </div>
@@ -211,42 +211,42 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
 
           {/* Regime + peak info */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4">
-              <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Reżim rynkowy</div>
+            <div className="bg-bg-card rounded-xl border border-border shadow-sm p-4">
+              <div className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Reżim rynkowy</div>
               <div className={`text-lg font-bold ${analysis.regimeInfo.currentRegimeLabel === 'bull' ? 'text-teal-700 dark:text-cyan-400' : 'text-orange-700 dark:text-orange-400'}`}>
                 {analysis.regimeInfo.currentRegimeLabel === 'bull' ? '📈 Faza wzrostowa' : '📉 Faza spadkowa'}
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              <div className="text-xs text-text-muted mt-1">
                 Pewność: {Math.round(analysis.regimeInfo.posteriorProbability * 100)}%
                 {' · ~'}{analysis.regimeInfo.expectedDurations[analysis.regimeInfo.currentState].toFixed(0)} sesji
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4">
-              <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Mediana szczytowej ceny</div>
-              <div className="text-lg font-bold text-gray-900 dark:text-gray-100">{fmtUSD(analysis.peakDistribution.p50)}</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <div className="bg-bg-card rounded-xl border border-border shadow-sm p-4">
+              <div className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Mediana szczytowej ceny</div>
+              <div className="text-lg font-bold text-text-primary">{fmtUSD(analysis.peakDistribution.p50)}</div>
+              <div className="text-xs text-text-muted mt-1">
                 Zakres: {fmtUSD(analysis.peakDistribution.p10)} – {fmtUSD(analysis.peakDistribution.p90)}
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4">
-              <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Szczyt (dzień)</div>
-              <div className="text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
+            <div className="bg-bg-card rounded-xl border border-border shadow-sm p-4">
+              <div className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Szczyt (dzień)</div>
+              <div className="text-lg font-bold text-text-primary flex items-center gap-1.5">
                 <Calendar size={16} className="text-gray-400" />
                 dzień {analysis.peakTimingDistribution.p50.toFixed(0)}
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              <div className="text-xs text-text-muted mt-1">
                 Zakres: dzień {analysis.peakTimingDistribution.p10.toFixed(0)} – {analysis.peakTimingDistribution.p90.toFixed(0)}
               </div>
             </div>
           </div>
 
           {/* Fan Chart */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 space-y-3">
-            <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+          <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-3">
+            <h3 className="text-base font-semibold text-text-primary flex items-center gap-2">
               <TrendingUp size={16} className="text-blue-500" />
               Wachlarz cenowy (10 000 symulacji)
             </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-text-muted">
               Pasma pokazują zakres cen: ciemniejsze = bardziej prawdopodobne (p25–p75), jaśniejsze = ogon rozkładu (p10–p90).
               Linia niebieska przerywana = optymalna cena sprzedaży.
             </p>
@@ -270,13 +270,13 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                     const d = payload[0]?.payload as Record<string, number> | undefined;
                     if (!d) return null;
                     return (
-                      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm p-2 text-xs">
+                      <div className="bg-bg-card border border-border rounded-lg shadow-sm p-2 text-xs">
                         <div className="font-semibold mb-1">Dzień {label}</div>
-                        <div className="text-gray-600 dark:text-gray-400">p90: {fmtUSD(d.p90)}</div>
-                        <div className="text-gray-600 dark:text-gray-400">p75: {fmtUSD(d.p75)}</div>
+                        <div className="text-text-muted">p90: {fmtUSD(d.p90)}</div>
+                        <div className="text-text-muted">p75: {fmtUSD(d.p75)}</div>
                         <div className="text-blue-600 dark:text-blue-400 font-medium">p50: {fmtUSD(d.p50)}</div>
-                        <div className="text-gray-600 dark:text-gray-400">p25: {fmtUSD(d.p25)}</div>
-                        <div className="text-gray-600 dark:text-gray-400">p10: {fmtUSD(d.p10)}</div>
+                        <div className="text-text-muted">p25: {fmtUSD(d.p25)}</div>
+                        <div className="text-text-muted">p10: {fmtUSD(d.p10)}</div>
                       </div>
                     );
                   }}
@@ -302,9 +302,9 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           </div>
 
           {/* Touch Probability Curve */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 space-y-3">
-            <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Prawdopodobieństwo osiągnięcia ceny</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+          <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-3">
+            <h3 className="text-base font-semibold text-text-primary">Prawdopodobieństwo osiągnięcia ceny</h3>
+            <p className="text-xs text-text-muted">
               Stromy spadek krzywej = „granica chciwości" — powyżej tego progu szansa realizacji gwałtownie maleje.
             </p>
             <ResponsiveContainer width="100%" height={300}>
@@ -332,9 +332,9 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           </div>
 
           {/* Summary Table */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 space-y-3">
+          <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">Tabela celów sprzedaży</h3>
+              <h3 className="text-base font-semibold text-text-primary">Tabela celów sprzedaży</h3>
               <button
                 type="button"
                 onClick={() => setShowTable((v) => !v)}
@@ -347,7 +347,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-200 dark:border-gray-700 text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <tr className="border-b border-border text-left text-xs text-text-muted uppercase tracking-wide">
                       <th className="pb-2 pr-4">Cel (USD)</th>
                       <th className="pb-2 pr-4">Zmiana</th>
                       <th className="pb-2 pr-4">P(realizacja)</th>
@@ -362,7 +362,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                       return (
                         <tr
                           key={sp.target}
-                          className={`border-b border-gray-100 dark:border-gray-700 ${isOptimal ? 'bg-blue-50 dark:bg-blue-950/30 font-semibold' : ''}`}
+                          className={`border-b border-gray-100 dark:border-border ${isOptimal ? 'bg-blue-50 dark:bg-blue-950/30 font-semibold' : ''}`}
                         >
                           <td className="py-2 pr-4">
                             {fmtUSD(sp.target)}
@@ -373,7 +373,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                           </td>
                           <td className="py-2 pr-4">
                             <div className="flex items-center gap-2">
-                              <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                              <div className="w-16 h-1.5 bg-gray-200 dark:bg-bg-muted rounded-full overflow-hidden">
                                 <div
                                   className={`h-full rounded-full ${sp.pTouch > 0.5 ? 'bg-teal-500' : sp.pTouch > 0.2 ? 'bg-amber-500' : 'bg-orange-500'}`}
                                   style={{ width: `${sp.pTouch * 100}%` }}
@@ -383,7 +383,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                             </div>
                           </td>
                           <td className="py-2 pr-4">{fmtUSD(sp.expectedValue)}</td>
-                          <td className="py-2 text-gray-600 dark:text-gray-400">{(sp.expectedValue * currentFxRate).toFixed(0)} zł</td>
+                          <td className="py-2 text-text-muted">{(sp.expectedValue * currentFxRate).toFixed(0)} zł</td>
                         </tr>
                       );
                     })}
@@ -409,7 +409,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           </div>
         </>
       ) : !isLoading ? (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-8 text-center text-gray-400">
+        <div className="bg-bg-card rounded-xl border border-border shadow-sm p-8 text-center text-gray-400">
           <Target size={32} className="mx-auto mb-3 opacity-50" />
           <p className="text-sm">Wczytaj dane akcji, aby uruchomić analizę optymalnej ceny sprzedaży.</p>
           <p className="text-xs mt-1">Wymaga minimum 30 sesji danych historycznych.</p>
@@ -438,9 +438,9 @@ function SummaryCard({ label, value, subvalue, accent }: { label: string; value:
   };
   return (
     <div className={`rounded-xl border shadow-sm p-4 ${colors[accent]}`}>
-      <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">{label}</div>
+      <div className="text-xs font-semibold text-text-muted uppercase tracking-wide">{label}</div>
       <div className={`text-2xl font-bold mt-1 ${textColors[accent]}`}>{value}</div>
-      <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{subvalue}</div>
+      <div className="text-xs text-text-muted mt-0.5">{subvalue}</div>
     </div>
   );
 }

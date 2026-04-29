@@ -1,6 +1,6 @@
 import { useState, Suspense, lazy, useEffect } from 'react';
 import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
-import { Moon, Sun, BarChart3, Receipt, Sprout, TrendingUp } from 'lucide-react';
+import { Moon, Sun, BarChart3, Receipt, Sprout, TrendingUp, ArrowDownUp } from 'lucide-react';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useAuth } from '../hooks/useAuth';
 import { UserMenu } from '../components/UserMenu';
@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { to: '/forecast', icon: TrendingUp, label: 'Prognoza cenowa' },
   { to: '/tax', icon: Receipt, label: 'Podatek Belki' },
   { to: '/portfolio', icon: Sprout, label: 'Kreator portfela' },
+  { to: '/rates', icon: ArrowDownUp, label: 'Kursy walut' },
 ] as const;
 
 const ROOT_STYLE = { backgroundColor: 'var(--color-bg-primary)' } as const;
@@ -79,7 +80,7 @@ export function Layout() {
         </div>
       </header>
 
-      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+      <nav className="bg-bg-secondary border-b border-border shadow-sm">
         <div className="max-w-7xl mx-auto px-4 flex items-center gap-1 py-1.5 overflow-x-auto">
           {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
             <NavLink
@@ -89,7 +90,7 @@ export function Layout() {
                 `flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
                   isActive
                     ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 shadow-sm border border-blue-200 dark:border-blue-800'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    : 'text-text-muted hover:text-text-primary hover:bg-bg-muted'
                 }`
               }
             >
