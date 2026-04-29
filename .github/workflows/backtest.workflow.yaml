@@ -1,12 +1,11 @@
-name: Prediction Engine Backtest
+name: Scheduled Backtest
 
 on:
   schedule:
     - cron: "0 6 * * *" # daily at 06:00 UTC
   workflow_dispatch: # manual trigger from Actions tab
 
-permissions:
-  contents: write
+permissions: {}
 
 jobs:
   backtest:
