@@ -77,18 +77,19 @@ const SECTOR_MAP: Record<string, Sector> = {
   // Cloud / enterprise SaaS
   CRM: 'cloud-saas', NOW: 'cloud-saas', WDAY: 'cloud-saas', INTU: 'cloud-saas',
   TEAM: 'cloud-saas', ANSS: 'cloud-saas', CDNS: 'cloud-saas', SNPS: 'cloud-saas',
-  MANH: 'cloud-saas', VEEV: 'cloud-saas', HUBS: 'cloud-saas', PANW: 'cloud-saas',
-  FTNT: 'cloud-saas', SPLK: 'cloud-saas', DDOG: 'cloud-saas', ZM: 'cloud-saas',
-  OKTA: 'cloud-saas', TWLO: 'cloud-saas',
+  MANH: 'cloud-saas', VEEV: 'cloud-saas', HUBS: 'cloud-saas',
+  SPLK: 'cloud-saas', DDOG: 'cloud-saas', ZM: 'cloud-saas',
+  TWLO: 'cloud-saas',
   // High-growth tech
-  SNOW: 'high-growth', PLTR: 'high-growth', CRWD: 'high-growth', ZS: 'high-growth',
+  SNOW: 'high-growth', PLTR: 'high-growth',
   NET: 'high-growth', MDB: 'high-growth', DOCN: 'high-growth', BILL: 'high-growth',
   PATH: 'high-growth', GTLB: 'high-growth', S: 'high-growth', CFLT: 'high-growth',
   ESTC: 'high-growth', FRSH: 'high-growth', DLO: 'high-growth',
   // Networking / hardware / IT infrastructure
-  CSCO: 'networking', ANET: 'networking', PALO: 'networking', JNPR: 'networking',
+  CSCO: 'networking', ANET: 'networking', JNPR: 'networking',
   FFIV: 'networking', NTAP: 'networking', PSTG: 'networking', SMCI: 'networking',
   HPE: 'networking', HPQ: 'networking', DELL: 'networking',
+  PALO: 'cybersecurity',
   // High-vol / speculative
   GME: 'speculative', AMC: 'speculative', MSTR: 'speculative', RIVN: 'speculative',
   LCID: 'speculative', SPCE: 'speculative', BYND: 'speculative', PTON: 'speculative',
@@ -105,7 +106,7 @@ const SECTOR_MAP: Record<string, Sector> = {
   LLY: 'pharma', BMY: 'pharma', AZN: 'pharma', NVO: 'pharma',
   // Consumer & retail
   COST: 'consumer', SBUX: 'consumer', LULU: 'consumer', MNST: 'consumer',
-  CTAS: 'consumer', FAST: 'consumer', PAYX: 'consumer', ODFL: 'consumer',
+  FAST: 'consumer',
   POOL: 'consumer', ULTA: 'consumer', ROST: 'consumer', TGT: 'consumer',
   DG: 'consumer', DLTR: 'consumer', FIVE: 'consumer', DECK: 'consumer',
   CROX: 'consumer', TPR: 'consumer', RL: 'consumer',
@@ -120,8 +121,11 @@ const SECTOR_MAP: Record<string, Sector> = {
   // Auto / EV / industrial tech
   F: 'auto-industrial', GM: 'auto-industrial', TM: 'auto-industrial',
   XPEV: 'auto-industrial', NIO: 'auto-industrial', LI: 'auto-industrial',
-  DKNG: 'auto-industrial', CGNX: 'auto-industrial', TER: 'auto-industrial',
-  // Cybersecurity (deduplicated — CRWD/ZS/OKTA also in cloud-saas/high-growth; primary = cybersecurity)
+  CGNX: 'auto-industrial', TER: 'auto-industrial',
+  CTAS: 'auto-industrial', PAYX: 'auto-industrial', ODFL: 'auto-industrial',
+  // Cybersecurity
+  PANW: 'cybersecurity', FTNT: 'cybersecurity', CRWD: 'cybersecurity',
+  ZS: 'cybersecurity', OKTA: 'cybersecurity',
   VRNS: 'cybersecurity', TENB: 'cybersecurity', QLYS: 'cybersecurity',
   RPD: 'cybersecurity', CYBR: 'cybersecurity',
   // ETFs
@@ -133,8 +137,8 @@ const SECTOR_MAP: Record<string, Sector> = {
   ADSK: 'cloud-saas', MELI: 'internet', PDD: 'internet', JD: 'internet', BIDU: 'internet',
   PINS: 'media', SNAP: 'media', TTD: 'media', PUBM: 'media', MGNI: 'media',
   APPS: 'high-growth', IQ: 'media', NTES: 'internet',
-  CSGP: 'cloud-saas', CPRT: 'consumer', VRSK: 'fintech', CBRE: 'consumer',
-  WBA: 'consumer', SIRI: 'media',
+  CSGP: 'cloud-saas', CPRT: 'consumer', VRSK: 'fintech', CBRE: 'fintech',
+  WBA: 'consumer', SIRI: 'media', DKNG: 'media',
   // Industrial / materials
   CAT: 'auto-industrial', DE: 'auto-industrial', HON: 'auto-industrial',
   UNP: 'auto-industrial', LMT: 'auto-industrial', RTX: 'auto-industrial',
@@ -499,6 +503,12 @@ function buildMissLog(results: BacktestResult[]): MissDetail[] {
     .sort((a, b) => b.miss_pp - a.miss_pp);
 }
 
+// Regime detection from SPY's realized test-window return.
+// Thresholds are asymmetric: markets rally slowly (+15% = strong year) but crash
+// fast (-10% = meaningful drawdown). These align with common buy-side definitions
+// (e.g., Ned Davis Research uses -13.9% for bear markets on DJIA).
+// Uses test-window return (not calibration) because we want to label the period
+// the model was *predicting*, not the period it was *trained on*.
 function detectRegime(results: BacktestResult[]): 'bull' | 'bear' | 'neutral' {
   const spy = results.find(r => r.ticker === 'SPY');
   if (!spy) return 'neutral';
@@ -777,7 +787,7 @@ function printMaxVolComparison(standardResults: BacktestResult[], stocks: YahooR
 
   console.log('\n── MAX-VOL EXPERIMENT: max(σ₂yr, σ₆m) ─────────────────────\n');
   console.log('  Comparison: standard 2yr vol vs max(2yr, 6m) vol');
-  console.log('  NOTE: Experiment only — does NOT change production model.\n');
+  console.log('  NOTE: Experimental parameterization — not used in production but may inform future changes.\n');
 
   const lw = 24;
   console.log(`  ${'Metric'.padEnd(lw)}  ${'Standard'.padStart(10)}  ${'Max-Vol'.padStart(10)}`);
@@ -906,11 +916,13 @@ function printMultiWindowComparison(stocks: YahooResult[]): void {
 async function main(): Promise<void> {
   const multiWindowMode = process.argv.includes('--windows');
   const seed = dateSeed();
-  let tickers = sampleTickers(SAMPLE_SIZE, seed);
+  const tickers = sampleTickers(SAMPLE_SIZE, seed);
 
   // Force-include SPY for regime detection
   if (!tickers.includes('SPY')) {
-    tickers = ['SPY', ...tickers.slice(0, SAMPLE_SIZE - 1)];
+    // Replace a random position (not always the last) to avoid systematic bias
+    const replaceIdx = Math.floor(Math.random() * tickers.length);
+    tickers[replaceIdx] = 'SPY';
   }
 
   // Approximate calendar dates for the calibration / test windows.

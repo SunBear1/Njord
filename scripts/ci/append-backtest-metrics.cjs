@@ -15,7 +15,7 @@ const row = [
   metrics.overall,
   metrics.regime ?? '',
   metrics.worst_sector ?? '',
-  metrics.worst_sector_coverage_pct ?? '',
+  metrics.worst_sector_coverage_pct ?? 0,
 ].join(',');
 
 if (!fs.existsSync(csvFile)) {
