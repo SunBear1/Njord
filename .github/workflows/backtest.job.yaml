@@ -3,72 +3,38 @@ name: Prediction Engine Backtest
 on:
   workflow_call:
 
-permissions:
-  contents: write
+permissions: {}
 
 jobs:
   backtest:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout
+        uses: actions/checkout@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: ./.github/actions/setup
+      - name: Setup Node.js
+        uses: ./.github/actions/setup
 
       - name: Run NASDAQ backtest
         run: npm run test:backtest | tee backtest-report.txt
 
       - name: Append metrics to time-series history
-        if: always()
-        run: |
-          node -e "
-          const fs = require('fs');
-          const metrics = JSON.parse(fs.readFileSync('backtest-metrics.json', 'utf8'));
-          const csvFile = 'backtest-history.csv';
-          const header = 'date,coverage_pct,above_bull_pct,below_bear_pct,bias_ratio,base_mae_pp,stocks,overall';
-          const row = [
-            metrics.date,
-            metrics.coverage_pct,
-            metrics.above_bull_pct,
-            metrics.below_bear_pct,
-            metrics.bias_ratio,
-            metrics.base_mae_pp,
-            metrics.stocks,
-            metrics.overall,
-          ].join(',');
-          if (!fs.existsSync(csvFile)) {
-            fs.writeFileSync(csvFile, header + '\n');
-          }
-          fs.appendFileSync(csvFile, row + '\n');
-          console.log('Appended:', row);
-          "
+        if: ${{ !cancelled() }}
+        run: node scripts/ci/append-backtest-metrics.js
 
       - name: Open PR with updated history
-        if: always()
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add backtest-history.csv
-          if git diff --cached --quiet; then
-            echo "No changes to commit, skipping PR"
-            exit 0
-          fi
-          BRANCH="chore/backtest-$(date -u +%Y-%m-%d)-${{ github.run_id }}"
-          git checkout -b "$BRANCH"
-          git commit -m "chore: backtest metrics $(date -u +%Y-%m-%d)"
-          git push origin "$BRANCH"
-          PR_URL=$(gh pr create \
-            --title "chore: backtest metrics $(date -u +%Y-%m-%d)" \
-            --body "Automated daily backtest history update." \
-            --base main \
-            --head "$BRANCH")
-          gh pr merge --auto --squash "$PR_URL"
+        if: ${{ !cancelled() }}
+        run: bash scripts/ci/create-backtest-pr.sh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ github.run_id }}
 
       - name: Upload report
-        if: always()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
           name: backtest-report-${{ github.run_id }}
