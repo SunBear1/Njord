@@ -193,7 +193,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
               label="P(realizacja)"
               value={`${(analysis.optimalTarget.pTouch * 100).toFixed(0)}%`}
               subvalue="szansa osiągnięcia ceny"
-              accent="green"
+              accent="teal"
             />
             <SummaryCard
               label="Oczekiwana wartość"
@@ -205,7 +205,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
               label="Ryzyko spadku"
               value={`${(analysis.riskOfForcedSale * 100).toFixed(0)}%`}
               subvalue="P(cena końcowa < dziś)"
-              accent="red"
+              accent="orange"
             />
           </div>
 
@@ -213,7 +213,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-4">
               <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Reżim rynkowy</div>
-              <div className={`text-lg font-bold ${analysis.regimeInfo.currentRegimeLabel === 'bull' ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+              <div className={`text-lg font-bold ${analysis.regimeInfo.currentRegimeLabel === 'bull' ? 'text-teal-700 dark:text-cyan-400' : 'text-orange-700 dark:text-orange-400'}`}>
                 {analysis.regimeInfo.currentRegimeLabel === 'bull' ? '📈 Faza wzrostowa' : '📉 Faza spadkowa'}
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -326,7 +326,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                   labelFormatter={(v) => `Cel: ${fmtUSD(Number(v))}`}
                 />
                 <Line type="monotone" dataKey="pTouch" stroke="#2563eb" strokeWidth={2.5} dot={{ r: 3 }} name="P(touch)" />
-                <ReferenceLine x={analysis.optimalTarget.target} stroke="#16a34a" strokeDasharray="6 3" label={{ value: 'Optymalny', position: 'top', fontSize: 10, fill: '#16a34a' }} />
+                <ReferenceLine x={analysis.optimalTarget.target} stroke="#0d9488" strokeDasharray="6 3" label={{ value: 'Optymalny', position: 'top', fontSize: 10, fill: '#0d9488' }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -368,14 +368,14 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                             {fmtUSD(sp.target)}
                             {isOptimal && <span className="ml-1.5 text-[10px] text-blue-600 dark:text-blue-400 font-bold">★ OPTYMALNY</span>}
                           </td>
-                          <td className={`py-2 pr-4 ${changePct >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-600'}`}>
+                          <td className={`py-2 pr-4 ${changePct >= 0 ? 'text-teal-700 dark:text-cyan-400' : 'text-orange-700 dark:text-orange-400'}`}>
                             {changePct >= 0 ? '+' : ''}{changePct.toFixed(1)}%
                           </td>
                           <td className="py-2 pr-4">
                             <div className="flex items-center gap-2">
                               <div className="w-16 h-1.5 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                                 <div
-                                  className={`h-full rounded-full ${sp.pTouch > 0.5 ? 'bg-green-500' : sp.pTouch > 0.2 ? 'bg-amber-500' : 'bg-red-500'}`}
+                                  className={`h-full rounded-full ${sp.pTouch > 0.5 ? 'bg-teal-500' : sp.pTouch > 0.2 ? 'bg-amber-500' : 'bg-orange-500'}`}
                                   style={{ width: `${sp.pTouch * 100}%` }}
                                 />
                               </div>
@@ -423,18 +423,18 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
 // Subcomponent
 // ---------------------------------------------------------------------------
 
-function SummaryCard({ label, value, subvalue, accent }: { label: string; value: string; subvalue: string; accent: 'blue' | 'green' | 'purple' | 'red' }) {
+function SummaryCard({ label, value, subvalue, accent }: { label: string; value: string; subvalue: string; accent: 'blue' | 'teal' | 'purple' | 'orange' }) {
   const colors = {
     blue: 'border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/30',
-    green: 'border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/30',
+    teal: 'border-teal-200 dark:border-teal-800 bg-teal-50/50 dark:bg-teal-950/30',
     purple: 'border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/30',
-    red: 'border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-950/30',
+    orange: 'border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/30',
   };
   const textColors = {
     blue: 'text-blue-700 dark:text-blue-300',
-    green: 'text-green-700 dark:text-green-400',
+    teal: 'text-teal-700 dark:text-cyan-400',
     purple: 'text-purple-700',
-    red: 'text-red-700 dark:text-red-400',
+    orange: 'text-orange-700 dark:text-orange-400',
   };
   return (
     <div className={`rounded-xl border shadow-sm p-4 ${colors[accent]}`}>

@@ -252,21 +252,21 @@ export function YearSummarySection({
               <SummaryRow
                 label="Zyski brutto"
                 value={fmtPLNGrosze(summary.totalGainPLN)}
-                valueClass="text-green-700 dark:text-green-400"
+                valueClass="text-teal-700 dark:text-teal-400"
               />
             )}
             {summary.totalLossPLN > 0 && (
               <SummaryRow
                 label="Straty (odliczane od zysków)"
                 value={`−${fmtPLNGrosze(summary.totalLossPLN)}`}
-                valueClass="text-red-600 dark:text-red-400"
+                valueClass="text-orange-700 dark:text-orange-400"
               />
             )}
             <SummaryRow
               label={summary.netIncomePLN >= 0 ? 'Dochód' : 'Strata'}
               note={summary.netIncomePLN >= 0 ? '(Poz. 28)' : '(Poz. 29)'}
               value={`${summary.netIncomePLN >= 0 ? '+' : ''}${fmtPLNGrosze(summary.netIncomePLN)}`}
-              valueClass={summary.netIncomePLN >= 0 ? 'text-gray-800 dark:text-gray-100' : 'text-red-600 dark:text-red-400'}
+              valueClass={summary.netIncomePLN >= 0 ? 'text-gray-800 dark:text-gray-100' : 'text-orange-700 dark:text-orange-400'}
               bold
             />
           </div>
@@ -297,7 +297,7 @@ export function YearSummarySection({
                   label="Podatek zapłacony za granicą"
                   note="(Poz. 34)"
                   value={`−${fmtPLNGrosze(summary.pit38Fields.poz34_foreignTaxCredit)}`}
-                  valueClass="text-green-700 dark:text-green-400"
+                  valueClass="text-teal-700 dark:text-teal-400"
                 />
               )}
               <SummaryRow
@@ -329,7 +329,7 @@ export function YearSummarySection({
                 label="Podatek zapłacony za granicą"
                 note="(Poz. 48)"
                 value={`−${fmtPLNGrosze(summary.pit38Fields.poz48_dividendForeignTaxCredit)}`}
-                valueClass="text-green-700 dark:text-green-400"
+                valueClass="text-teal-700 dark:text-teal-400"
               />
               <SummaryRow
                 label="Podatek od dywidend do zapłaty"

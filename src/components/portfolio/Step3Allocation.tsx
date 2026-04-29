@@ -166,7 +166,7 @@ function AllocationBar({
         ) : null}
       </div>
       <div className="mt-1 flex items-center gap-3 text-xs">
-        <span className={valid ? 'text-green-600 dark:text-green-400' : 'text-red-500'}>
+        <span className={valid ? 'text-teal-600 dark:text-teal-400' : 'text-red-500'}>
           {valid ? '✓' : '⚠'} {Math.round(sum)}%
         </span>
         <div className="flex flex-wrap gap-x-3 gap-y-1">

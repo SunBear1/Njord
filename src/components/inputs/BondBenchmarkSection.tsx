@@ -208,8 +208,8 @@ export function BondBenchmarkSection({
             earlyExit
               ? preset.earlyRedemptionAllowed
                 ? 'bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400'
-                : 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400'
-              : 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400'
+                : 'bg-orange-50 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400'
+              : 'bg-teal-50 dark:bg-teal-950/20 text-teal-700 dark:text-teal-400'
           }`}>
             {earlyExit
               ? preset.earlyRedemptionAllowed

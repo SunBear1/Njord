@@ -335,7 +335,7 @@ export function InputPanel({
           </p>
         )}
         {assetData && !assetLoading && (
-          <p className="flex items-center gap-1.5 text-xs text-green-600 mt-1">
+          <p className="flex items-center gap-1.5 text-xs text-teal-600 dark:text-cyan-400 mt-1">
             <CheckCircle2 size={12} />
             {assetData.asset.name} ({assetData.asset.currency}) · {fmtUSD(assetData.asset.currentPrice)}
           </p>

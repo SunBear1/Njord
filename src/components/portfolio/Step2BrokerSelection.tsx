@@ -22,7 +22,7 @@ const INSTRUMENT_LABELS: Record<string, { label: string; color: string }> = {
 
 const TAG_CLASSES: Record<string, string> = {
   blue: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-  green: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+  green: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300',
   purple: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
   amber: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
 };
@@ -173,7 +173,7 @@ export default function Step2BrokerSelection({
         <div className="flex items-center gap-2 text-base font-semibold text-gray-800 dark:text-gray-100 mb-4">
           <Shield className="w-5 h-5 text-blue-500 dark:text-blue-400" />
           <span>Broker IKE</span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 font-normal">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300 font-normal">
             0% podatku po 60. r.ż.
           </span>
         </div>
@@ -209,7 +209,7 @@ export default function Step2BrokerSelection({
         <div className="flex items-center gap-2 text-base font-semibold text-gray-800 dark:text-gray-100 mb-4">
           <PiggyBank className="w-5 h-5 text-purple-500 dark:text-purple-400" />
           <span>Broker IKZE</span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 font-normal">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300 font-normal">
             Odliczenie od PIT · 10% ryczałt
           </span>
         </div>

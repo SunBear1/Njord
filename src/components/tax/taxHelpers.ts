@@ -35,8 +35,8 @@ export function newTransaction(): TaxTransaction {
 }
 
 export function fmtGain(gain: number): { text: string; cls: string } {
-  if (gain > 0) return { text: `+${fmtPLNGrosze(gain)}`, cls: 'text-green-700 dark:text-green-400' };
-  if (gain < 0) return { text: fmtPLNGrosze(gain), cls: 'text-red-600 dark:text-red-400' };
+  if (gain > 0) return { text: `+${fmtPLNGrosze(gain)}`, cls: 'text-teal-700 dark:text-cyan-400' };
+  if (gain < 0) return { text: fmtPLNGrosze(gain), cls: 'text-orange-700 dark:text-orange-400' };
   return { text: fmtPLNGrosze(0), cls: 'text-gray-600 dark:text-gray-300' };
 }
 

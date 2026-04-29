@@ -39,19 +39,19 @@ function CustomLegend({ payload }: { payload?: Array<{ value: string; color: str
 }
 
 const WRAPPER_COLORS = {
-  ike: '#16a34a',      // green-600
+  ike: '#0d9488',      // teal-600
   ikze: '#7c3aed',     // violet-600
   regular: '#2563eb',  // blue-600
   inflation: '#6b7280', // gray-500
-  counterfactual: '#ef4444', // red-500
+  counterfactual: '#ea580c', // orange-600
 } as const;
 
 const WRAPPER_COLORS_DARK = {
-  ike: '#22c55e',
+  ike: '#2dd4bf',      // teal-400
   ikze: '#a78bfa',
   regular: '#60a5fa',
   inflation: '#9ca3af',
-  counterfactual: '#f87171',
+  counterfactual: '#fb923c', // orange-400
 } as const;
 
 function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps) {

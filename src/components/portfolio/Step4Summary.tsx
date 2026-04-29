@@ -130,7 +130,7 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
           icon={<Shield size={18} />}
           label="Oszczędność IKE (brak Belki)"
           value={fmtPLN(derived.ikeSavings)}
-          colorClass="text-green-600 dark:text-green-400"
+          colorClass="text-teal-600 dark:text-teal-400"
         />
         <MetricCard
           icon={<PiggyBank size={18} />}
@@ -154,7 +154,7 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
           icon={<Award size={18} />}
           label="Wartość NETTO"
           value={fmtPLN(result.totalTerminalNet)}
-          colorClass="text-green-700 dark:text-green-300"
+          colorClass="text-teal-700 dark:text-teal-300"
           emphasized
         />
         <MetricCard
@@ -183,7 +183,7 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
           <div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Z IKE/IKZE</p>
-            <p className="text-xl font-bold text-green-700 dark:text-green-300 tabular-nums">
+            <p className="text-xl font-bold text-teal-700 dark:text-teal-300 tabular-nums">
               {fmtPLN(result.totalTerminalNet)}
             </p>
           </div>
@@ -195,10 +195,10 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
           </div>
         </div>
         <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-sm">
-          <span className={result.taxSavings >= 0 ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-red-600 dark:text-red-400 font-semibold'}>
+          <span className={result.taxSavings >= 0 ? 'text-teal-600 dark:text-teal-400 font-semibold' : 'text-orange-600 dark:text-orange-400 font-semibold'}>
             {result.taxSavings >= 0 ? '+' : ''}{fmtPLN(result.taxSavings)}
           </span>
-          <span className={result.taxSavingsPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+          <span className={result.taxSavingsPercent >= 0 ? 'text-teal-600 dark:text-teal-400' : 'text-orange-600 dark:text-orange-400'}>
             ({result.taxSavingsPercent >= 0 ? '+' : ''}{result.taxSavingsPercent.toFixed(2)}%)
           </span>
         </div>
@@ -264,7 +264,7 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
                     <td className="px-2 py-1.5 text-right tabular-nums text-gray-600 dark:text-gray-300">{fmtPLN(row.regularValue)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums font-medium text-gray-700 dark:text-gray-200">{fmtPLN(row.totalContributed)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums font-medium text-gray-700 dark:text-gray-200">{fmtPLN(row.totalValue)}</td>
-                    <td className={`px-2 py-1.5 text-right tabular-nums font-medium ${row.cumulativeGain >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    <td className={`px-2 py-1.5 text-right tabular-nums font-medium ${row.cumulativeGain >= 0 ? 'text-teal-600 dark:text-teal-400' : 'text-orange-600 dark:text-orange-400'}`}>
                       {fmtPLN(row.cumulativeGain)}
                     </td>
                   </tr>

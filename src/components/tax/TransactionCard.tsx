@@ -85,7 +85,7 @@ function RateStatusBadge({
 
   if (rate !== null && rate > 0) {
     return (
-      <p className="text-[11px] text-green-600 dark:text-green-400 flex items-center gap-1 flex-wrap">
+      <p className="text-[11px] text-teal-600 dark:text-cyan-400 flex items-center gap-1 flex-wrap">
         <CheckCircle2 size={10} aria-hidden="true" className="flex-shrink-0" />
         <span>Kurs NBP: {rate.toFixed(4)}</span>
         {effectiveDate && (
