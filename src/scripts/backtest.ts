@@ -649,7 +649,7 @@ function printReport(
 
   const aboveBull  = zones.above_bull;
   const belowBear  = zones.below_bear;
-  const biasRatio  = belowBear > 0 ? aboveBull / belowBear : Infinity;
+  const biasRatio  = belowBear > 0 ? aboveBull / belowBear : (aboveBull > 0 ? Infinity : 1);
 
   console.log(`  Misses above bull:  ${aboveBull} stocks  (${(aboveBull / n * 100).toFixed(1)}%)  [expected ~25%]`);
   console.log(`  Misses below bear:  ${belowBear} stocks  (${(belowBear / n * 100).toFixed(1)}%)  [expected ~25%]`);
