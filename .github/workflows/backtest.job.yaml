@@ -9,12 +9,12 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      actions: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          # PAT triggers CI on created PRs; GITHUB_TOKEN doesn't (GitHub anti-loop rule)
-          token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: ./.github/actions/setup
@@ -30,8 +30,7 @@ jobs:
         if: ${{ !cancelled() }}
         run: bash scripts/ci/create-backtest-pr.sh
         env:
-          GH_TOKEN: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
-          USING_PAT: ${{ secrets.PAT != '' }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUN_ID: ${{ github.run_id }}
 
       - name: Upload report
