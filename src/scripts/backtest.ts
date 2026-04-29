@@ -52,6 +52,102 @@ const WARNINGS = {
   maxBucketShare: 50,  // W2: any single quantile bucket > 50% is severe asymmetry
 };
 
+// ── Sector taxonomy ──────────────────────────────────────────────────────────
+
+type Sector =
+  | 'mega-tech' | 'semis' | 'internet' | 'cloud-saas' | 'high-growth'
+  | 'networking' | 'speculative' | 'biotech' | 'pharma' | 'consumer'
+  | 'fintech' | 'media' | 'auto-industrial' | 'cybersecurity' | 'etf'
+  | 'energy';
+
+const SECTOR_MAP: Record<string, Sector> = {
+  // Mega-cap tech
+  AAPL: 'mega-tech', MSFT: 'mega-tech', GOOGL: 'mega-tech', GOOG: 'mega-tech',
+  AMZN: 'mega-tech', NVDA: 'mega-tech', META: 'mega-tech', TSLA: 'mega-tech',
+  AVGO: 'mega-tech', ORCL: 'mega-tech', ADBE: 'mega-tech',
+  // Semiconductors
+  AMD: 'semis', INTC: 'semis', QCOM: 'semis', TXN: 'semis', MU: 'semis',
+  AMAT: 'semis', LRCX: 'semis', KLAC: 'semis', NXPI: 'semis', MRVL: 'semis',
+  MCHP: 'semis', ON: 'semis', SWKS: 'semis', QRVO: 'semis', MPWR: 'semis', WOLF: 'semis',
+  // Internet & platforms
+  NFLX: 'internet', PYPL: 'internet', EBAY: 'internet', BKNG: 'internet',
+  ABNB: 'internet', UBER: 'internet', LYFT: 'internet', DASH: 'internet',
+  EXPE: 'internet', TRIP: 'internet', MTCH: 'internet', ETSY: 'internet',
+  W: 'internet', SHOP: 'internet', SE: 'internet', GRAB: 'internet', CPNG: 'internet',
+  // Cloud / enterprise SaaS
+  CRM: 'cloud-saas', NOW: 'cloud-saas', WDAY: 'cloud-saas', INTU: 'cloud-saas',
+  TEAM: 'cloud-saas', ANSS: 'cloud-saas', CDNS: 'cloud-saas', SNPS: 'cloud-saas',
+  MANH: 'cloud-saas', VEEV: 'cloud-saas', HUBS: 'cloud-saas', PANW: 'cloud-saas',
+  FTNT: 'cloud-saas', SPLK: 'cloud-saas', DDOG: 'cloud-saas', ZM: 'cloud-saas',
+  OKTA: 'cloud-saas', TWLO: 'cloud-saas',
+  // High-growth tech
+  SNOW: 'high-growth', PLTR: 'high-growth', CRWD: 'high-growth', ZS: 'high-growth',
+  NET: 'high-growth', MDB: 'high-growth', DOCN: 'high-growth', BILL: 'high-growth',
+  PATH: 'high-growth', GTLB: 'high-growth', S: 'high-growth', CFLT: 'high-growth',
+  ESTC: 'high-growth', FRSH: 'high-growth', DLO: 'high-growth',
+  // Networking / hardware / IT infrastructure
+  CSCO: 'networking', ANET: 'networking', PALO: 'networking', JNPR: 'networking',
+  FFIV: 'networking', NTAP: 'networking', PSTG: 'networking', SMCI: 'networking',
+  HPE: 'networking', HPQ: 'networking', DELL: 'networking',
+  // High-vol / speculative
+  GME: 'speculative', AMC: 'speculative', MSTR: 'speculative', RIVN: 'speculative',
+  LCID: 'speculative', SPCE: 'speculative', BYND: 'speculative', PTON: 'speculative',
+  CHWY: 'speculative', PARA: 'speculative', SOFI: 'speculative', OPEN: 'speculative',
+  WISH: 'speculative', BBAI: 'speculative', IONQ: 'speculative',
+  // Biotech & life sciences
+  AMGN: 'biotech', GILD: 'biotech', BIIB: 'biotech', MRNA: 'biotech',
+  REGN: 'biotech', VRTX: 'biotech', ISRG: 'biotech', IDXX: 'biotech',
+  ILMN: 'biotech', ALGN: 'biotech', DXCM: 'biotech', HOLX: 'biotech',
+  BMRN: 'biotech', EXAS: 'biotech', RARE: 'biotech', NBIX: 'biotech',
+  PCVX: 'biotech', ALNY: 'biotech',
+  // Pharma
+  JNJ: 'pharma', PFE: 'pharma', MRK: 'pharma', ABBV: 'pharma',
+  LLY: 'pharma', BMY: 'pharma', AZN: 'pharma', NVO: 'pharma',
+  // Consumer & retail
+  COST: 'consumer', SBUX: 'consumer', LULU: 'consumer', MNST: 'consumer',
+  CTAS: 'consumer', FAST: 'consumer', PAYX: 'consumer', ODFL: 'consumer',
+  POOL: 'consumer', ULTA: 'consumer', ROST: 'consumer', TGT: 'consumer',
+  DG: 'consumer', DLTR: 'consumer', FIVE: 'consumer', DECK: 'consumer',
+  CROX: 'consumer', TPR: 'consumer', RL: 'consumer',
+  // Fintech & financial
+  COIN: 'fintech', SQ: 'fintech', AFRM: 'fintech', UPST: 'fintech',
+  IBKR: 'fintech', HOOD: 'fintech', LPLA: 'fintech', MKTX: 'fintech',
+  NDAQ: 'fintech', SSNC: 'fintech', FIS: 'fintech', FISV: 'fintech',
+  GPN: 'fintech', WEX: 'fintech', TOST: 'fintech',
+  // Media & communication
+  CMCSA: 'media', WBD: 'media', FOXA: 'media', FOX: 'media', NWSA: 'media',
+  IPG: 'media', DIS: 'media', ROKU: 'media', SPOT: 'media', RBLX: 'media',
+  // Auto / EV / industrial tech
+  F: 'auto-industrial', GM: 'auto-industrial', TM: 'auto-industrial',
+  XPEV: 'auto-industrial', NIO: 'auto-industrial', LI: 'auto-industrial',
+  DKNG: 'auto-industrial', CGNX: 'auto-industrial', TER: 'auto-industrial',
+  // Cybersecurity (deduplicated — CRWD/ZS/OKTA also in cloud-saas/high-growth; primary = cybersecurity)
+  VRNS: 'cybersecurity', TENB: 'cybersecurity', QLYS: 'cybersecurity',
+  RPD: 'cybersecurity', CYBR: 'cybersecurity',
+  // ETFs
+  QQQ: 'etf', TQQQ: 'etf', SQQQ: 'etf', ARKK: 'etf', XLK: 'etf',
+  XBI: 'etf', IBB: 'etf', SMH: 'etf', SOXX: 'etf', VGT: 'etf',
+  SPY: 'etf', IWM: 'etf', DIA: 'etf', VOO: 'etf', VTI: 'etf',
+  EEM: 'etf', GLD: 'etf', TLT: 'etf',
+  // Additional large/mid cap
+  ADSK: 'cloud-saas', MELI: 'internet', PDD: 'internet', JD: 'internet', BIDU: 'internet',
+  PINS: 'media', SNAP: 'media', TTD: 'media', PUBM: 'media', MGNI: 'media',
+  APPS: 'high-growth', IQ: 'media', NTES: 'internet',
+  CSGP: 'cloud-saas', CPRT: 'consumer', VRSK: 'fintech', CBRE: 'consumer',
+  WBA: 'consumer', SIRI: 'media',
+  // Industrial / materials
+  CAT: 'auto-industrial', DE: 'auto-industrial', HON: 'auto-industrial',
+  UNP: 'auto-industrial', LMT: 'auto-industrial', RTX: 'auto-industrial',
+  BA: 'auto-industrial', GE: 'auto-industrial',
+  // Energy
+  XOM: 'energy', CVX: 'energy', COP: 'energy', SLB: 'energy',
+  OXY: 'energy', DVN: 'energy', EOG: 'energy',
+};
+
+function getSector(ticker: string): Sector {
+  return SECTOR_MAP[ticker] ?? 'speculative';
+}
+
 // ── NASDAQ / NYSE Universe (~250 liquid tickers) ─────────────────────────────
 // Diverse mix across sectors and volatility profiles.
 // We sample SAMPLE_SIZE randomly each run (seeded by date).
@@ -249,6 +345,7 @@ function stddev(arr: number[]): number {
 
 interface BacktestResult {
   ticker: string;
+  sector: Sector;
   sigmaAnnual: number;    // annualized vol (%)
   muAnnual: number;       // annualized mean return (%)
   bear: number;           // p25 scenario (%)
@@ -299,6 +396,7 @@ function backtest(stock: YahooResult): BacktestResult | null {
 
   return {
     ticker: stock.ticker,
+    sector: getSector(stock.ticker),
     sigmaAnnual: sigmaAnnual * 100,
     muAnnual: muAnnual * 100,
     bear,
@@ -321,6 +419,30 @@ interface RunMetrics {
   base_mae_pp: number;
   stocks: number;
   overall: 'PASS' | 'FAIL';
+  regime: 'bull' | 'bear' | 'neutral';
+  worst_sector: string;
+  worst_sector_coverage_pct: number;
+}
+
+/** Per-miss detail for the miss log artifact */
+interface MissDetail {
+  ticker: string;
+  sector: Sector;
+  direction: 'above_bull' | 'below_bear';
+  miss_pp: number;
+  sigma: number;
+}
+
+/** Per-sector aggregated stats */
+interface SectorStats {
+  sector: Sector;
+  count: number;
+  hits: number;
+  coveragePct: number;
+  aboveBull: number;
+  belowBear: number;
+  biasRatio: number;
+  mae: number;
 }
 
 // ── Reporting ─────────────────────────────────────────────────────────────────
@@ -329,12 +451,75 @@ function fmt(n: number, digits = 1): string {
   return (n >= 0 ? '+' : '') + n.toFixed(digits) + '%';
 }
 
-function printReport(results: BacktestResult[]): { passed: boolean; metrics: RunMetrics } {
+function computeSectorStats(results: BacktestResult[]): SectorStats[] {
+  const grouped = new Map<Sector, BacktestResult[]>();
+  for (const r of results) {
+    const list = grouped.get(r.sector) ?? [];
+    list.push(r);
+    grouped.set(r.sector, list);
+  }
+
+  const stats: SectorStats[] = [];
+  for (const [sector, items] of grouped) {
+    const count = items.length;
+    const hits = items.filter(r => r.hit).length;
+    const aboveBull = items.filter(r => r.zone === 'above_bull').length;
+    const belowBear = items.filter(r => r.zone === 'below_bear').length;
+    const mae = items.reduce((s, r) => s + Math.abs(r.base - r.actual), 0) / count;
+    stats.push({
+      sector,
+      count,
+      hits,
+      coveragePct: (hits / count) * 100,
+      aboveBull,
+      belowBear,
+      biasRatio: belowBear > 0 ? aboveBull / belowBear : (aboveBull > 0 ? Infinity : 1),
+      mae,
+    });
+  }
+  return stats.sort((a, b) => a.coveragePct - b.coveragePct);
+}
+
+function buildMissLog(results: BacktestResult[]): MissDetail[] {
+  return results
+    .filter(r => !r.hit)
+    .map(r => {
+      const direction = r.actual < r.bear ? 'below_bear' as const : 'above_bull' as const;
+      const missPp = direction === 'below_bear'
+        ? r.bear - r.actual
+        : r.actual - r.bull;
+      return {
+        ticker: r.ticker,
+        sector: r.sector,
+        direction,
+        miss_pp: parseFloat(missPp.toFixed(1)),
+        sigma: parseFloat(r.sigmaAnnual.toFixed(1)),
+      };
+    })
+    .sort((a, b) => b.miss_pp - a.miss_pp);
+}
+
+function detectRegime(results: BacktestResult[]): 'bull' | 'bear' | 'neutral' {
+  const spy = results.find(r => r.ticker === 'SPY');
+  if (!spy) return 'neutral';
+  if (spy.actual > 15) return 'bull';
+  if (spy.actual < -10) return 'bear';
+  return 'neutral';
+}
+
+function printReport(
+  results: BacktestResult[],
+): { passed: boolean; metrics: RunMetrics; misses: MissDetail[] } {
   const n = results.length;
   if (n === 0) {
     console.log('No results — all fetches failed.');
-    const metrics: RunMetrics = { date: new Date().toISOString().slice(0, 10), coverage_pct: 0, above_bull_pct: 0, below_bear_pct: 0, bias_ratio: 0, base_mae_pp: 0, stocks: 0, overall: 'FAIL' };
-    return { passed: false, metrics };
+    const metrics: RunMetrics = {
+      date: new Date().toISOString().slice(0, 10),
+      coverage_pct: 0, above_bull_pct: 0, below_bear_pct: 0, bias_ratio: 0,
+      base_mae_pp: 0, stocks: 0, overall: 'FAIL',
+      regime: 'neutral', worst_sector: '', worst_sector_coverage_pct: 0,
+    };
+    return { passed: false, metrics, misses: [] };
   }
 
   // Aggregate metrics
@@ -358,19 +543,25 @@ function printReport(results: BacktestResult[]): { passed: boolean; metrics: Run
     zones.above_bull / n * 100,
   );
 
+  const regime = detectRegime(results);
+  const sectorStats = computeSectorStats(results);
+  const missLog = buildMissLog(results);
+  const worstSector = sectorStats[0]; // sorted ascending by coverage
+
   // Per-stock table
-  const colW = [7, 8, 8, 8, 8, 8, 5];
-  const header = ['TICKER', 'σ/yr', 'BEAR', 'BASE', 'BULL', 'ACTUAL', 'HIT']
+  const colW = [7, 14, 8, 8, 8, 8, 8, 5];
+  const header = ['TICKER', 'SECTOR', 'σ/yr', 'BEAR', 'BASE', 'BULL', 'ACTUAL', 'HIT']
     .map((h, i) => h.padStart(colW[i]))
     .join('  ');
   const sep = '-'.repeat(header.length);
 
-  console.log('\n═══════════════════════════════════════════════════════════');
+  console.log('\n═══════════════════════════════════════════════════════════════════════');
   console.log(' NJORD PREDICTION ENGINE — NASDAQ BACKTEST');
   console.log(` Run date: ${new Date().toISOString().slice(0, 10)}`);
   console.log(` Calibration: ${CALIBRATION_DAYS} trading days → predict ${HORIZON_YEARS * 12}-month return`);
   console.log(` Stocks processed: ${n}`);
-  console.log('═══════════════════════════════════════════════════════════\n');
+  console.log(` Market regime: ${regime.toUpperCase()}`);
+  console.log('═══════════════════════════════════════════════════════════════════════\n');
 
   console.log(header);
   console.log(sep);
@@ -379,12 +570,13 @@ function printReport(results: BacktestResult[]): { passed: boolean; metrics: Run
   for (const r of sorted) {
     const row = [
       r.ticker.padStart(colW[0]),
-      fmt(r.sigmaAnnual).padStart(colW[1]),
-      fmt(r.bear).padStart(colW[2]),
-      fmt(r.base).padStart(colW[3]),
-      fmt(r.bull).padStart(colW[4]),
-      fmt(r.actual).padStart(colW[5]),
-      (r.hit ? '✓' : '✗').padStart(colW[6]),
+      r.sector.padStart(colW[1]),
+      fmt(r.sigmaAnnual).padStart(colW[2]),
+      fmt(r.bear).padStart(colW[3]),
+      fmt(r.base).padStart(colW[4]),
+      fmt(r.bull).padStart(colW[5]),
+      fmt(r.actual).padStart(colW[6]),
+      (r.hit ? '✓' : '✗').padStart(colW[7]),
     ].join('  ');
     console.log(row);
   }
@@ -416,6 +608,32 @@ function printReport(results: BacktestResult[]): { passed: boolean; metrics: Run
   console.log(`  Bear sign accuracy (bear < 0):             ${bearSignPct.toFixed(1)}%  (should be 100%)`);
   console.log(`  Base scenario MAE vs actual:               ${baseMAE.toFixed(1)}pp`);
 
+  // ── Per-Sector Breakdown ──────────────────────────────────────────────────
+  console.log('\n── PER-SECTOR BREAKDOWN ────────────────────────────────────\n');
+
+  const sColW = [16, 6, 10, 10, 10, 8];
+  const sHeader = ['SECTOR', 'N', 'COVERAGE', 'ABOVE_BULL', 'BELOW_BEAR', 'MAE']
+    .map((h, i) => h.padStart(sColW[i]))
+    .join('  ');
+  console.log(sHeader);
+  console.log('-'.repeat(sHeader.length));
+
+  for (const s of sectorStats) {
+    const row = [
+      s.sector.padStart(sColW[0]),
+      String(s.count).padStart(sColW[1]),
+      (s.coveragePct.toFixed(1) + '%').padStart(sColW[2]),
+      ((s.aboveBull / s.count * 100).toFixed(1) + '%').padStart(sColW[3]),
+      ((s.belowBear / s.count * 100).toFixed(1) + '%').padStart(sColW[4]),
+      (s.mae.toFixed(1) + 'pp').padStart(sColW[5]),
+    ].join('  ');
+    console.log(row);
+  }
+
+  if (worstSector) {
+    console.log(`\n  Worst sector: ${worstSector.sector} (coverage ${worstSector.coveragePct.toFixed(1)}%, n=${worstSector.count})`);
+  }
+
   // ── Directional Bias ────────────────────────────────────────────────────────
   console.log('\n── DIRECTIONAL BIAS ────────────────────────────────────────\n');
 
@@ -425,7 +643,8 @@ function printReport(results: BacktestResult[]): { passed: boolean; metrics: Run
 
   console.log(`  Misses above bull:  ${aboveBull} stocks  (${(aboveBull / n * 100).toFixed(1)}%)  [expected ~25%]`);
   console.log(`  Misses below bear:  ${belowBear} stocks  (${(belowBear / n * 100).toFixed(1)}%)  [expected ~25%]`);
-  console.log(`  Above/Below ratio:  ${isFinite(biasRatio) ? biasRatio.toFixed(2) : '∞'}  (ideal: ~1.0)\n`);
+  console.log(`  Above/Below ratio:  ${isFinite(biasRatio) ? biasRatio.toFixed(2) : '∞'}  (ideal: ~1.0)`);
+  console.log(`  Market regime:      ${regime.toUpperCase()}\n`);
 
   if (biasRatio > 2.0) {
     console.log('  ⚠ POSSIBLE DRIFT UNDERESTIMATION — significantly more misses above bull than below bear.');
@@ -441,14 +660,9 @@ function printReport(results: BacktestResult[]): { passed: boolean; metrics: Run
   }
 
   console.log('\n── WORST MISSES ────────────────────────────────────────────\n');
-  const misses = results
-    .filter(r => !r.hit)
-    .sort((a, b) => Math.abs(b.actual - (b.actual < b.bear ? b.bear : b.bull)) - Math.abs(a.actual - (a.actual < a.bear ? a.bear : a.bull)));
-  for (const r of misses.slice(0, 10)) {
-    const miss = r.actual < r.bear
-      ? `actual ${fmt(r.actual)} was ${(r.bear - r.actual).toFixed(1)}pp below bear ${fmt(r.bear)}`
-      : `actual ${fmt(r.actual)} was ${(r.actual - r.bull).toFixed(1)}pp above bull ${fmt(r.bull)}`;
-    console.log(`  ${r.ticker.padEnd(6)}  ${miss}`);
+  for (const m of missLog.slice(0, 10)) {
+    const dirLabel = m.direction === 'below_bear' ? 'below bear' : 'above bull';
+    console.log(`  ${m.ticker.padEnd(6)}  [${m.sector.padEnd(14)}]  ${m.miss_pp.toFixed(1)}pp ${dirLabel}  (σ=${m.sigma.toFixed(1)}%)`);
   }
 
   // ── Acceptance Gates ────────────────────────────────────────────────────────
@@ -484,16 +698,220 @@ function printReport(results: BacktestResult[]): { passed: boolean; metrics: Run
     base_mae_pp: parseFloat(baseMAE.toFixed(1)),
     stocks: n,
     overall: allGatesPass ? 'PASS' : 'FAIL',
+    regime,
+    worst_sector: worstSector?.sector ?? '',
+    worst_sector_coverage_pct: parseFloat((worstSector?.coveragePct ?? 0).toFixed(1)),
   };
 
-  return { passed: allGatesPass, metrics };
+  return { passed: allGatesPass, metrics, misses: missLog };
+}
+
+// ── Max-vol experiment ────────────────────────────────────────────────────────
+// Runs GBM with max(σ₂yr, σ₆m) and compares coverage side-by-side.
+
+interface MaxVolResult {
+  ticker: string;
+  sigma2yr: number;
+  sigma6m: number;
+  sigmaUsed: number;
+  bear: number;
+  bull: number;
+  actual: number;
+  hit: boolean;
+}
+
+function backtestMaxVol(stock: YahooResult): MaxVolResult | null {
+  const prices = stock.adjClose;
+  if (prices.length < TOTAL_DAYS_NEEDED) return null;
+
+  const window = prices.slice(prices.length - TOTAL_DAYS_NEEDED);
+  const calibPrices = window.slice(0, CALIBRATION_DAYS + 1);
+  const testStart = window[CALIBRATION_DAYS];
+  const testEnd = window[TOTAL_DAYS_NEEDED - 1];
+
+  const dailyLogRet = logReturns(calibPrices);
+  if (dailyLogRet.length < 50) return null;
+
+  const sigma2yr = stddev(dailyLogRet) * Math.sqrt(252);
+  const muAnnual = mean(dailyLogRet) * 252;
+
+  // 6-month vol: last 126 trading days of calibration window
+  const recent = dailyLogRet.slice(-126);
+  const sigma6m = recent.length >= 50 ? stddev(recent) * Math.sqrt(252) : sigma2yr;
+
+  const sigmaUsed = Math.max(sigma2yr, sigma6m);
+
+  const pred = gbmPredict(sigmaUsed, muAnnual, CALIBRATION_DAYS / 252, HORIZON_YEARS);
+  if (pred.confidence === 0) return null;
+
+  const [, p25, , p75] = pred.percentiles;
+  const actual = (testEnd / testStart - 1) * 100;
+
+  return {
+    ticker: stock.ticker,
+    sigma2yr: sigma2yr * 100,
+    sigma6m: sigma6m * 100,
+    sigmaUsed: sigmaUsed * 100,
+    bear: p25,
+    bull: p75,
+    actual,
+    hit: actual >= p25 && actual <= p75,
+  };
+}
+
+function printMaxVolComparison(standardResults: BacktestResult[], stocks: YahooResult[]): void {
+  const maxVolResults = stocks
+    .map(backtestMaxVol)
+    .filter((r): r is MaxVolResult => r !== null);
+
+  if (maxVolResults.length === 0) return;
+
+  const standardCoverage = (standardResults.filter(r => r.hit).length / standardResults.length) * 100;
+  const maxVolCoverage = (maxVolResults.filter(r => r.hit).length / maxVolResults.length) * 100;
+
+  const standardAboveBull = standardResults.filter(r => r.zone === 'above_bull').length;
+  const standardBelowBear = standardResults.filter(r => r.zone === 'below_bear').length;
+
+  const mvAboveBull = maxVolResults.filter(r => r.actual > r.bull).length;
+  const mvBelowBear = maxVolResults.filter(r => r.actual < r.bear).length;
+
+  console.log('\n── MAX-VOL EXPERIMENT: max(σ₂yr, σ₆m) ─────────────────────\n');
+  console.log('  Comparison: standard 2yr vol vs max(2yr, 6m) vol');
+  console.log('  NOTE: Experiment only — does NOT change production model.\n');
+
+  const lw = 24;
+  console.log(`  ${'Metric'.padEnd(lw)}  ${'Standard'.padStart(10)}  ${'Max-Vol'.padStart(10)}`);
+  console.log(`  ${'-'.repeat(lw)}  ${'-'.repeat(10)}  ${'-'.repeat(10)}`);
+  console.log(`  ${'Coverage'.padEnd(lw)}  ${(standardCoverage.toFixed(1) + '%').padStart(10)}  ${(maxVolCoverage.toFixed(1) + '%').padStart(10)}`);
+  console.log(`  ${'Above bull (misses)'.padEnd(lw)}  ${String(standardAboveBull).padStart(10)}  ${String(mvAboveBull).padStart(10)}`);
+  console.log(`  ${'Below bear (misses)'.padEnd(lw)}  ${String(standardBelowBear).padStart(10)}  ${String(mvBelowBear).padStart(10)}`);
+  console.log(`  ${'Stocks'.padEnd(lw)}  ${String(standardResults.length).padStart(10)}  ${String(maxVolResults.length).padStart(10)}`);
+
+  // Show tickers where 6m vol > 2yr vol (regime-adaptive widening happened)
+  const widened = maxVolResults.filter(r => r.sigma6m > r.sigma2yr);
+  if (widened.length > 0) {
+    console.log(`\n  Tickers where σ₆m > σ₂yr (${widened.length} / ${maxVolResults.length}):`);
+    for (const r of widened.slice(0, 15)) {
+      const delta = r.sigma6m - r.sigma2yr;
+      console.log(`    ${r.ticker.padEnd(6)}  σ₂yr=${r.sigma2yr.toFixed(1)}%  σ₆m=${r.sigma6m.toFixed(1)}%  (Δ=${delta.toFixed(1)}pp)  hit=${r.hit ? '✓' : '✗'}`);
+    }
+    if (widened.length > 15) console.log(`    ... and ${widened.length - 15} more`);
+  }
+  console.log('');
+}
+
+// ── Multi-window backtest ─────────────────────────────────────────────────────
+
+interface WindowConfig {
+  label: string;
+  offsetDays: number; // shift calibration + test window back by this many trading days
+}
+
+const MULTI_WINDOWS: WindowConfig[] = [
+  { label: 'latest', offsetDays: 0 },
+  { label: '1yr-ago', offsetDays: 252 },
+  { label: '2yr-ago', offsetDays: 504 },
+];
+
+function backtestWindow(stock: YahooResult, offsetDays: number): BacktestResult | null {
+  const prices = stock.adjClose;
+  const needed = TOTAL_DAYS_NEEDED + offsetDays;
+  if (prices.length < needed) return null;
+
+  const window = prices.slice(prices.length - needed, prices.length - offsetDays);
+  if (window.length < TOTAL_DAYS_NEEDED) return null;
+
+  const calibPrices = window.slice(0, CALIBRATION_DAYS + 1);
+  const testStart = window[CALIBRATION_DAYS];
+  const testEnd = window[TOTAL_DAYS_NEEDED - 1];
+
+  const dailyLogRet = logReturns(calibPrices);
+  if (dailyLogRet.length < 50) return null;
+
+  const sigmaDaily = stddev(dailyLogRet);
+  const muDaily = mean(dailyLogRet);
+  const sigmaAnnual = sigmaDaily * Math.sqrt(252);
+  const muAnnual = muDaily * 252;
+
+  const pred = gbmPredict(sigmaAnnual, muAnnual, CALIBRATION_DAYS / 252, HORIZON_YEARS);
+  if (pred.confidence === 0) return null;
+
+  const [, p25, p50, p75] = pred.percentiles;
+  const actual = (testEnd / testStart - 1) * 100;
+  const hit = actual >= p25 && actual <= p75;
+
+  let zone: BacktestResult['zone'];
+  if (actual < p25) zone = 'below_bear';
+  else if (actual < p50) zone = 'bear_base';
+  else if (actual <= p75) zone = 'base_bull';
+  else zone = 'above_bull';
+
+  return {
+    ticker: stock.ticker,
+    sector: getSector(stock.ticker),
+    sigmaAnnual: sigmaAnnual * 100,
+    muAnnual: muAnnual * 100,
+    bear: p25,
+    base: p50,
+    bull: p75,
+    actual,
+    hit,
+    zone,
+  };
+}
+
+function printMultiWindowComparison(stocks: YahooResult[]): void {
+  console.log('\n═══════════════════════════════════════════════════════════════════════');
+  console.log(' MULTI-WINDOW COMPARISON — "Is this always bad or just now?"');
+  console.log('═══════════════════════════════════════════════════════════════════════\n');
+
+  const lw = 24;
+  const colHeaders = MULTI_WINDOWS.map(w => w.label);
+  console.log(`  ${'Metric'.padEnd(lw)}  ${colHeaders.map(h => h.padStart(12)).join('  ')}`);
+  console.log(`  ${'-'.repeat(lw)}  ${colHeaders.map(() => '-'.repeat(12)).join('  ')}`);
+
+  const windowResults = MULTI_WINDOWS.map(w => {
+    const results = stocks
+      .map(s => backtestWindow(s, w.offsetDays))
+      .filter((r): r is BacktestResult => r !== null);
+    const n = results.length;
+    const coverage = n > 0 ? (results.filter(r => r.hit).length / n) * 100 : 0;
+    const aboveBull = n > 0 ? results.filter(r => r.zone === 'above_bull').length : 0;
+    const belowBear = n > 0 ? results.filter(r => r.zone === 'below_bear').length : 0;
+    const biasRatio = belowBear > 0 ? aboveBull / belowBear : (aboveBull > 0 ? Infinity : 1);
+    const baseMAE = n > 0 ? results.reduce((s, r) => s + Math.abs(r.base - r.actual), 0) / n : 0;
+    const regime = detectRegime(results);
+    return { label: w.label, n, coverage, aboveBull, belowBear, biasRatio, baseMAE, regime };
+  });
+
+  const metrics = [
+    { name: 'Stocks', fn: (w: typeof windowResults[0]) => String(w.n) },
+    { name: 'Coverage', fn: (w: typeof windowResults[0]) => w.coverage.toFixed(1) + '%' },
+    { name: 'Above bull', fn: (w: typeof windowResults[0]) => String(w.aboveBull) },
+    { name: 'Below bear', fn: (w: typeof windowResults[0]) => String(w.belowBear) },
+    { name: 'Bias ratio', fn: (w: typeof windowResults[0]) => isFinite(w.biasRatio) ? w.biasRatio.toFixed(2) : '∞' },
+    { name: 'Base MAE', fn: (w: typeof windowResults[0]) => w.baseMAE.toFixed(1) + 'pp' },
+    { name: 'Regime', fn: (w: typeof windowResults[0]) => w.regime },
+  ];
+
+  for (const m of metrics) {
+    const vals = windowResults.map(w => m.fn(w).padStart(12));
+    console.log(`  ${m.name.padEnd(lw)}  ${vals.join('  ')}`);
+  }
+  console.log('');
 }
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
 async function main(): Promise<void> {
+  const multiWindowMode = process.argv.includes('--windows');
   const seed = dateSeed();
-  const tickers = sampleTickers(SAMPLE_SIZE, seed);
+  let tickers = sampleTickers(SAMPLE_SIZE, seed);
+
+  // Force-include SPY for regime detection
+  if (!tickers.includes('SPY')) {
+    tickers = ['SPY', ...tickers.slice(0, SAMPLE_SIZE - 1)];
+  }
 
   // Approximate calendar dates for the calibration / test windows.
   // Yahoo returns ~252 trading days per year; we use the last TOTAL_DAYS_NEEDED points.
@@ -501,12 +919,13 @@ async function main(): Promise<void> {
   const msPerTradingDay = 365.25 / 252 * 24 * 60 * 60 * 1000;
   const testStart  = new Date(now.getTime() - TEST_DAYS * msPerTradingDay);
   const calibStart = new Date(now.getTime() - TOTAL_DAYS_NEEDED * msPerTradingDay);
-  const fmt2 = (d: Date) => d.toISOString().slice(0, 7); // YYYY-MM
+  const fmtDate = (d: Date) => d.toISOString().slice(0, 7); // YYYY-MM
 
   console.log(`\nNjord NASDAQ Backtest — ${new Date().toISOString().slice(0, 10)}`);
   console.log(`Seed: ${seed} | Sampled ${tickers.length} tickers from ${TICKERS.length}-stock universe`);
-  console.log(`Calibration window: ~${fmt2(calibStart)} → ~${fmt2(testStart)}`);
-  console.log(`Test window:        ~${fmt2(testStart)} → ~${fmt2(now)}`);
+  console.log(`Calibration window: ~${fmtDate(calibStart)} → ~${fmtDate(testStart)}`);
+  console.log(`Test window:        ~${fmtDate(testStart)} → ~${fmtDate(now)}`);
+  if (multiWindowMode) console.log(`Mode: MULTI-WINDOW (latest + 1yr-ago + 2yr-ago)`);
   console.log(`Fetching 5yr price history from Yahoo Finance...\n`);
 
   const stocks = await fetchAll(tickers);
@@ -518,11 +937,22 @@ async function main(): Promise<void> {
   }
 
   const results = stocks.map(backtest).filter((r): r is BacktestResult => r !== null);
-  const { passed, metrics } = printReport(results);
+  const { passed, metrics, misses } = printReport(results);
+
+  // Max-vol experiment (always runs — informational only)
+  printMaxVolComparison(results, stocks);
+
+  // Multi-window comparison (only when --windows flag is passed)
+  if (multiWindowMode) {
+    printMultiWindowComparison(stocks);
+  }
 
   // Write machine-readable metrics for CI time-series tracking.
   // The workflow reads this file and appends a row to backtest-history.csv.
   writeFileSync('backtest-metrics.json', JSON.stringify(metrics, null, 2));
+
+  // Write miss log for CI artifact upload
+  writeFileSync('backtest-misses.json', JSON.stringify(misses, null, 2));
 
   process.exit(passed ? 0 : 1);
 }
