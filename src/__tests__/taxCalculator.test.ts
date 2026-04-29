@@ -669,8 +669,8 @@ describe('solidarity levy', () => {
   });
 });
 
-describe('PIT-38 field mapping', () => {
-  it('maps profitable transaction to correct Poz. fields', () => {
+describe('PIT-38 field mapping (v18)', () => {
+  it('maps profitable PLN transaction to correct Section C/D fields', () => {
     const tx: TaxTransaction = {
       ...BASE_TX,
       id: 'tx-pit38',
@@ -681,15 +681,29 @@ describe('PIT-38 field mapping', () => {
       exchangeRateAcquisitionToPLN: 1,
     };
     const s = calcMultiTaxSummary([tx]);
-    expect(s.pit38Fields.poz24_revenue).toBe(100_000);
-    expect(s.pit38Fields.poz25_costs).toBe(60_000);
-    expect(s.pit38Fields.poz26_income).toBe(40_000);
-    expect(s.pit38Fields.poz27_loss).toBe(0);
-    expect(s.pit38Fields.poz33_taxBase).toBe(40_000);
-    expect(s.pit38Fields.poz34_tax).toBe(7_600);
+    // Section C — domestic (PLN = PIT-8C row)
+    expect(s.pit38Fields.poz20_pit8cRevenue).toBe(100_000);
+    expect(s.pit38Fields.poz21_pit8cCosts).toBe(60_000);
+    expect(s.pit38Fields.poz22_foreignRevenue).toBe(0);
+    expect(s.pit38Fields.poz23_foreignCosts).toBe(0);
+    // Section C — totals
+    expect(s.pit38Fields.poz26_totalRevenue).toBe(100_000);
+    expect(s.pit38Fields.poz27_totalCosts).toBe(60_000);
+    expect(s.pit38Fields.poz28_income).toBe(40_000);
+    expect(s.pit38Fields.poz29_loss).toBe(0);
+    // Section D
+    expect(s.pit38Fields.poz31_taxBase).toBe(40_000);
+    expect(s.pit38Fields.poz33_tax).toBe(7_600);
+    expect(s.pit38Fields.poz34_foreignTaxCredit).toBe(0);
+    expect(s.pit38Fields.poz35_taxDue).toBe(7_600);
+    // Section G — no dividends
+    expect(s.pit38Fields.poz47_dividendTax).toBe(0);
+    expect(s.pit38Fields.poz49_dividendTaxDue).toBe(0);
+    // Final
+    expect(s.pit38Fields.poz51_totalTaxDue).toBe(7_600);
   });
 
-  it('maps loss to Poz. 27, income fields are zero', () => {
+  it('maps loss to Poz. 29, income/tax fields are zero', () => {
     const tx: TaxTransaction = {
       ...BASE_TX,
       id: 'tx-loss-pit38',
@@ -700,19 +714,148 @@ describe('PIT-38 field mapping', () => {
       exchangeRateAcquisitionToPLN: 1,
     };
     const s = calcMultiTaxSummary([tx]);
-    expect(s.pit38Fields.poz24_revenue).toBe(40_000);
-    expect(s.pit38Fields.poz25_costs).toBe(60_000);
-    expect(s.pit38Fields.poz26_income).toBe(0);
-    expect(s.pit38Fields.poz27_loss).toBe(20_000);
-    expect(s.pit38Fields.poz33_taxBase).toBe(0);
-    expect(s.pit38Fields.poz34_tax).toBe(0);
+    expect(s.pit38Fields.poz26_totalRevenue).toBe(40_000);
+    expect(s.pit38Fields.poz27_totalCosts).toBe(60_000);
+    expect(s.pit38Fields.poz28_income).toBe(0);
+    expect(s.pit38Fields.poz29_loss).toBe(20_000);
+    expect(s.pit38Fields.poz31_taxBase).toBe(0);
+    expect(s.pit38Fields.poz33_tax).toBe(0);
+    expect(s.pit38Fields.poz35_taxDue).toBe(0);
+    expect(s.pit38Fields.poz51_totalTaxDue).toBe(0);
   });
 
   it('empty list yields all-zero fields', () => {
     const s = calcMultiTaxSummary([]);
-    expect(s.pit38Fields.poz24_revenue).toBe(0);
-    expect(s.pit38Fields.poz34_tax).toBe(0);
+    expect(s.pit38Fields.poz26_totalRevenue).toBe(0);
+    expect(s.pit38Fields.poz35_taxDue).toBe(0);
+    expect(s.pit38Fields.poz51_totalTaxDue).toBe(0);
     expect(s.solidarityLevyPLN).toBe(0);
+  });
+
+  it('splits domestic and foreign revenue into Poz. 20-23', () => {
+    const plnTx: TaxTransaction = {
+      ...BASE_TX,
+      id: 'tx-pln',
+      currency: 'PLN',
+      saleGrossAmount: 50_000,
+      acquisitionCostAmount: 30_000,
+      exchangeRateSaleToPLN: 1,
+      exchangeRateAcquisitionToPLN: 1,
+    };
+    const usdTx: TaxTransaction = {
+      ...BASE_TX,
+      id: 'tx-usd',
+      currency: 'USD',
+      saleGrossAmount: 10_000,
+      acquisitionCostAmount: 6_000,
+      exchangeRateSaleToPLN: 4.0,
+      exchangeRateAcquisitionToPLN: 4.0,
+    };
+    const s = calcMultiTaxSummary([plnTx, usdTx]);
+    // Domestic (PLN) → Poz. 20/21
+    expect(s.pit38Fields.poz20_pit8cRevenue).toBe(50_000);
+    expect(s.pit38Fields.poz21_pit8cCosts).toBe(30_000);
+    // Foreign (USD) → Poz. 22/23
+    expect(s.pit38Fields.poz22_foreignRevenue).toBe(40_000);
+    expect(s.pit38Fields.poz23_foreignCosts).toBe(24_000);
+    // Totals
+    expect(s.pit38Fields.poz26_totalRevenue).toBe(90_000);
+    expect(s.pit38Fields.poz27_totalCosts).toBe(54_000);
+    expect(s.pit38Fields.poz28_income).toBe(36_000);
+  });
+
+  it('maps dividend WHT to Section G fields (Poz. 47-49)', () => {
+    const divTx: TaxTransaction = {
+      ...BASE_TX,
+      id: 'tx-div-pit38',
+      tradeType: 'dividend',
+      currency: 'USD',
+      saleGrossAmount: 0,
+      saleDate: '2024-06-15',
+      dividendGrossAmount: 1_000,
+      withholdingTaxRate: 0.15,
+      withholdingTaxAmount: 150,
+      exchangeRateSaleToPLN: 4.0,
+    };
+    const s = calcMultiTaxSummary([divTx]);
+    // 19% of 4000 PLN gross = 760 PLN
+    expect(s.pit38Fields.poz47_dividendTax).toBe(760);
+    // WHT credit = min(600, 760) = 600
+    expect(s.pit38Fields.poz48_dividendForeignTaxCredit).toBe(600);
+    // Due = 760 - 600 = 160
+    expect(s.pit38Fields.poz49_dividendTaxDue).toBe(160);
+    // Total = capital gains tax (0) + dividend tax (160)
+    expect(s.pit38Fields.poz51_totalTaxDue).toBe(160);
+  });
+
+  it('combines capital gains and dividend tax in Poz. 51', () => {
+    const saleTx: TaxTransaction = {
+      ...BASE_TX,
+      id: 'tx-sale-combined',
+      currency: 'PLN',
+      saleGrossAmount: 100_000,
+      acquisitionCostAmount: 60_000,
+      exchangeRateSaleToPLN: 1,
+      exchangeRateAcquisitionToPLN: 1,
+    };
+    const divTx: TaxTransaction = {
+      ...BASE_TX,
+      id: 'tx-div-combined',
+      tradeType: 'dividend',
+      currency: 'USD',
+      saleGrossAmount: 0,
+      saleDate: '2024-06-15',
+      dividendGrossAmount: 1_000,
+      withholdingTaxRate: 0.15,
+      withholdingTaxAmount: 150,
+      exchangeRateSaleToPLN: 4.0,
+    };
+    const s = calcMultiTaxSummary([saleTx, divTx]);
+    // Capital gains: 40_000 × 19% = 7_600
+    expect(s.pit38Fields.poz35_taxDue).toBe(7_600);
+    // Dividend: 160 (from previous test)
+    expect(s.pit38Fields.poz49_dividendTaxDue).toBe(160);
+    // Total
+    expect(s.pit38Fields.poz51_totalTaxDue).toBe(7_760);
+  });
+});
+
+// ─── PIT/ZG field mapping ─────────────────────────────────────────────────────
+
+describe('PIT/ZG field mapping', () => {
+  it('populates pitZgFields for countries with positive income', () => {
+    const tx: TaxTransaction = {
+      ...BASE_TX,
+      id: 'tx-us-pitzg',
+      currency: 'USD',
+      saleGrossAmount: 10_000,
+      acquisitionCostAmount: 6_000,
+      exchangeRateSaleToPLN: 4.0,
+      exchangeRateAcquisitionToPLN: 4.0,
+    };
+    const s = calcMultiTaxSummary([tx]);
+    expect(s.pitZgByCurrency).toHaveLength(1);
+    const entry = s.pitZgByCurrency[0];
+    expect(entry.pitZgFields).toBeDefined();
+    expect(entry.pitZgFields!.countryCode).toBe('US');
+    expect(entry.pitZgFields!.countryName).toBe('Stany Zjednoczone');
+    expect(entry.pitZgFields!.poz29_income).toBe(16_000);
+    expect(entry.pitZgFields!.poz30_foreignTaxPaid).toBe(0);
+  });
+
+  it('does not populate pitZgFields for countries with loss', () => {
+    const tx: TaxTransaction = {
+      ...BASE_TX,
+      id: 'tx-us-loss',
+      currency: 'USD',
+      saleGrossAmount: 5_000,
+      acquisitionCostAmount: 10_000,
+      exchangeRateSaleToPLN: 4.0,
+      exchangeRateAcquisitionToPLN: 4.0,
+    };
+    const s = calcMultiTaxSummary([tx]);
+    expect(s.pitZgByCurrency).toHaveLength(1);
+    expect(s.pitZgByCurrency[0].pitZgFields).toBeUndefined();
   });
 });
 

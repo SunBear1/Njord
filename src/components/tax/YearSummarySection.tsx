@@ -67,9 +67,9 @@ function PitZgSection({ entries }: { entries: PitZgCurrencyEntry[] }) {
       <div className="bg-orange-50 dark:bg-orange-950/30 px-4 py-3 flex items-start gap-2 border-b border-orange-200 dark:border-orange-800">
         <Globe size={15} className="text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
         <div className="text-xs text-orange-800 dark:text-orange-200 space-y-0.5">
-          <p className="font-semibold uppercase tracking-wide">PIT-ZG — Dochody zagraniczne (per kraj)</p>
+          <p className="font-semibold uppercase tracking-wide">PIT/ZG (v8) — Sekcja C.3 — Dochody zagraniczne (per kraj)</p>
           <p className="text-orange-700/80 dark:text-orange-300/80 font-normal normal-case tracking-normal">
-            Transakcje w walutach obcych to dochody zagraniczne. Do PIT-38 musisz dołączyć załącznik PIT-ZG — jeden na kraj.
+            Transakcje w walutach obcych to dochody zagraniczne. Do PIT-38 musisz dołączyć załącznik PIT/ZG — jeden na kraj.
           </p>
         </div>
       </div>
@@ -80,10 +80,10 @@ function PitZgSection({ entries }: { entries: PitZgCurrencyEntry[] }) {
           <span>Kraj (waluta)</span>
           <span className="text-right">Przychód</span>
           <span className="text-right">Koszty</span>
-          <span className="text-right">Dochód / Strata</span>
+          <span className="text-right">Dochód (Poz. 29)</span>
         </div>
 
-        {entries.map(({ currency, revenuePLN, costPLN, incomePLN }) => {
+        {entries.map(({ currency, revenuePLN, costPLN, incomePLN, pitZgFields }) => {
           const country = CURRENCY_COUNTRY[currency];
           const isEurAmbiguous = currency === 'EUR';
           const g = fmtGain(incomePLN);
@@ -91,7 +91,7 @@ function PitZgSection({ entries }: { entries: PitZgCurrencyEntry[] }) {
             <div key={currency} className="grid grid-cols-4 gap-2 px-3 py-2.5 text-xs items-center">
               <div className="flex items-center gap-1.5">
                 <span className="bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide flex-shrink-0">
-                  {currency}
+                  {pitZgFields?.countryCode || currency}
                 </span>
                 {country ? (
                   <span className="text-gray-600 dark:text-gray-400 truncate">{country}</span>
@@ -120,7 +120,7 @@ function PitZgSection({ entries }: { entries: PitZgCurrencyEntry[] }) {
 
       {/* Footer note */}
       <div className="bg-orange-50/50 dark:bg-orange-950/20 px-3 py-2 text-[10px] text-orange-700/70 dark:text-orange-400/70 border-t border-orange-100 dark:border-orange-900/40">
-        Podatek zapłacony za granicą: <strong>0 zł</strong> — sprzedaż akcji nie podlega podatkowi u źródła w USA ani UE
+        Podatek zapłacony za granicą (Poz. 30): <strong>0 zł</strong> — sprzedaż akcji nie podlega podatkowi u źródła w USA ani UE
         (umowa o unikaniu podwójnego opodatkowania). Belka 19% pobierana wyłącznie w Polsce.
       </div>
     </div>
@@ -200,19 +200,53 @@ export function YearSummarySection({
           <div className="bg-blue-50 dark:bg-blue-950/30 px-3 py-2 flex items-center gap-1.5">
             <FileText size={12} className="text-blue-600 dark:text-blue-400" aria-hidden="true" />
             <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wide">
-              PIT-38 — Podsumowanie
+              PIT-38 — Część C — Dochody / straty
             </span>
           </div>
           <div className="px-4 py-3 space-y-0.5">
+            {/* Section C — Domestic / Foreign split */}
+            {(summary.domesticRevenuePLN > 0 || summary.foreignRevenuePLN > 0) && (
+              <>
+                {summary.domesticRevenuePLN > 0 && (
+                  <>
+                    <SummaryRow
+                      label="Przychód (PIT-8C)"
+                      note="(Poz. 20)"
+                      value={fmtPLNGrosze(summary.pit38Fields.poz20_pit8cRevenue)}
+                    />
+                    <SummaryRow
+                      label="Koszty (PIT-8C)"
+                      note="(Poz. 21)"
+                      value={fmtPLNGrosze(summary.pit38Fields.poz21_pit8cCosts)}
+                    />
+                  </>
+                )}
+                {summary.foreignRevenuePLN > 0 && (
+                  <>
+                    <SummaryRow
+                      label="Inne przychody (zagraniczne)"
+                      note="(Poz. 22)"
+                      value={fmtPLNGrosze(summary.pit38Fields.poz22_foreignRevenue)}
+                    />
+                    <SummaryRow
+                      label="Koszty (zagraniczne)"
+                      note="(Poz. 23)"
+                      value={fmtPLNGrosze(summary.pit38Fields.poz23_foreignCosts)}
+                    />
+                  </>
+                )}
+              </>
+            )}
+            {/* Section C — Totals (Row 4: Razem) */}
             <SummaryRow
-              label="Przychód"
-              note="(Poz. 24)"
-              value={fmtPLNGrosze(summary.totalRevenuePLN)}
+              label="Razem przychód"
+              note="(Poz. 26)"
+              value={fmtPLNGrosze(summary.pit38Fields.poz26_totalRevenue)}
             />
             <SummaryRow
-              label="Koszty uzyskania przychodu"
-              note="(Poz. 25)"
-              value={fmtPLNGrosze(summary.totalCostPLN)}
+              label="Razem koszty uzyskania przychodu"
+              note="(Poz. 27)"
+              value={fmtPLNGrosze(summary.pit38Fields.poz27_totalCosts)}
             />
             {summary.totalLossPLN > 0 && (
               <SummaryRow
@@ -230,7 +264,7 @@ export function YearSummarySection({
             )}
             <SummaryRow
               label={summary.netIncomePLN >= 0 ? 'Dochód' : 'Strata'}
-              note={summary.netIncomePLN >= 0 ? '(Poz. 26)' : '(Poz. 27)'}
+              note={summary.netIncomePLN >= 0 ? '(Poz. 28)' : '(Poz. 29)'}
               value={`${summary.netIncomePLN >= 0 ? '+' : ''}${fmtPLNGrosze(summary.netIncomePLN)}`}
               valueClass={summary.netIncomePLN >= 0 ? 'text-gray-800 dark:text-gray-100' : 'text-red-600 dark:text-red-400'}
               bold
@@ -238,29 +272,98 @@ export function YearSummarySection({
           </div>
         </div>
 
+        {/* ── PIT-38 Section D — Tax calculation ── */}
+        {summary.netIncomePLN > 0 && (
+          <div className="rounded-xl border border-blue-100 dark:border-blue-900/60 overflow-hidden">
+            <div className="bg-blue-50 dark:bg-blue-950/30 px-3 py-2 flex items-center gap-1.5">
+              <FileText size={12} className="text-blue-600 dark:text-blue-400" aria-hidden="true" />
+              <span className="text-[11px] font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wide">
+                PIT-38 — Część D — Obliczenie podatku
+              </span>
+            </div>
+            <div className="px-4 py-3 space-y-0.5">
+              <SummaryRow
+                label="Podstawa obliczenia podatku"
+                note="(Poz. 31)"
+                value={fmtPLNGrosze(summary.pit38Fields.poz31_taxBase)}
+              />
+              <SummaryRow
+                label="Podatek 19%"
+                note="(Poz. 33)"
+                value={fmtPLNGrosze(summary.pit38Fields.poz33_tax)}
+              />
+              {summary.pit38Fields.poz34_foreignTaxCredit > 0 && (
+                <SummaryRow
+                  label="Podatek zapłacony za granicą"
+                  note="(Poz. 34)"
+                  value={`−${fmtPLNGrosze(summary.pit38Fields.poz34_foreignTaxCredit)}`}
+                  valueClass="text-green-700 dark:text-green-400"
+                />
+              )}
+              <SummaryRow
+                label="Podatek należny"
+                note="(Poz. 35)"
+                value={fmtPLNGrosze(summary.pit38Fields.poz35_taxDue)}
+                bold
+              />
+            </div>
+          </div>
+        )}
+
+        {/* ── PIT-38 Section G — Dividend tax (when dividends present) ── */}
+        {summary.totalDividendGrossPLN > 0 && (
+          <div className="rounded-xl border border-purple-100 dark:border-purple-900/60 overflow-hidden">
+            <div className="bg-purple-50 dark:bg-purple-950/30 px-3 py-2 flex items-center gap-1.5">
+              <FileText size={12} className="text-purple-600 dark:text-purple-400" aria-hidden="true" />
+              <span className="text-[11px] font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wide">
+                PIT-38 — Część G — Dywidendy zagraniczne
+              </span>
+            </div>
+            <div className="px-4 py-3 space-y-0.5">
+              <SummaryRow
+                label="Podatek zryczałtowany (19%)"
+                note="(Poz. 47)"
+                value={fmtPLNGrosze(summary.pit38Fields.poz47_dividendTax)}
+              />
+              <SummaryRow
+                label="Podatek zapłacony za granicą"
+                note="(Poz. 48)"
+                value={`−${fmtPLNGrosze(summary.pit38Fields.poz48_dividendForeignTaxCredit)}`}
+                valueClass="text-green-700 dark:text-green-400"
+              />
+              <SummaryRow
+                label="Podatek od dywidend do zapłaty"
+                note="(Poz. 49)"
+                value={fmtPLNGrosze(summary.pit38Fields.poz49_dividendTaxDue)}
+                bold
+              />
+            </div>
+          </div>
+        )}
+
         {/* ── PIT-ZG section ── */}
         {summary.requiresPitZg && <PitZgSection entries={summary.pitZgByCurrency} />}
 
         {/* ── Tax due box ── */}
         <div className={`rounded-xl border px-5 py-4 flex items-center justify-between gap-4 ${
-          summary.taxDuePLN > 0
+          summary.pit38Fields.poz51_totalTaxDue > 0
             ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800'
             : 'bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700'
         }`}>
           <div>
-            <p className={`text-xs font-semibold mb-0.5 ${summary.taxDuePLN > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-gray-500 dark:text-gray-400'}`}>
-              Podatek należny (Poz. 34)
+            <p className={`text-xs font-semibold mb-0.5 ${summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-gray-500 dark:text-gray-400'}`}>
+              Podatek do zapłaty (Poz. 51)
             </p>
-            <p className={`text-[11px] ${summary.taxDuePLN > 0 ? 'text-amber-600/70 dark:text-amber-500/70' : 'text-gray-400 dark:text-gray-500'}`}>
-              {summary.netIncomePLN > 0
-                ? `19% od ${fmtPLNGrosze(summary.netIncomePLN)}`
+            <p className={`text-[11px] ${summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-amber-600/70 dark:text-amber-500/70' : 'text-gray-400 dark:text-gray-500'}`}>
+              {summary.netIncomePLN > 0 || summary.totalDividendGrossPLN > 0
+                ? `Poz. 35 + Poz. 49 = ${fmtPLNGrosze(summary.pit38Fields.poz35_taxDue)} + ${fmtPLNGrosze(summary.pit38Fields.poz49_dividendTaxDue)}`
                 : 'brak podatku — dochód ≤ 0'}
             </p>
           </div>
           <p className={`text-2xl font-bold tabular-nums flex-shrink-0 ${
-            summary.taxDuePLN > 0 ? 'text-amber-800 dark:text-amber-300' : 'text-gray-400 dark:text-gray-500'
+            summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-amber-800 dark:text-amber-300' : 'text-gray-400 dark:text-gray-500'
           }`}>
-            {fmtPLNGrosze(summary.taxDuePLN)}
+            {fmtPLNGrosze(summary.pit38Fields.poz51_totalTaxDue)}
           </p>
         </div>
 
