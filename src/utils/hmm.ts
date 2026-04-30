@@ -274,7 +274,7 @@ function baumWelchSingle(
 // Public: Fit HMM with multiple restarts
 // ---------------------------------------------------------------------------
 
-const N_RESTARTS = 5;
+const N_RESTARTS = 12;
 const MAX_ITER = 100;
 const MIN_STD = 1e-8;
 
