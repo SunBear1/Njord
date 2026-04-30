@@ -16,7 +16,7 @@ import { describe, it, expect } from 'vitest';
 import type { HistoricalPrice, AssetType } from '../types/asset';
 
 // ---------------------------------------------------------------------------
-// Yahoo Finance fetch — extracted from functions/api/analyze.ts
+// Yahoo Finance fetch — extracted from functions/api/market-data.ts
 // (We can't import the Pages Function directly, so we duplicate the fetch logic)
 // ---------------------------------------------------------------------------
 

@@ -24,12 +24,12 @@ export class ErrorBoundary extends Component<Props, State> {
   override render() {
     if (this.state.hasError) {
       return this.props.fallback ?? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="rounded-lg border border-red-200 dark:border-red-800/50 bg-red-50 dark:bg-red-950/30 p-4 text-sm text-red-700 dark:text-red-300">
           Wystąpił błąd podczas renderowania tego komponentu.
           <button
             type="button"
             onClick={() => this.setState({ hasError: false })}
-            className="ml-2 underline hover:text-red-900"
+            className="ml-2 underline hover:text-red-900 dark:hover:text-red-200"
           >
             Spróbuj ponownie
           </button>

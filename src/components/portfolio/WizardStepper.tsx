@@ -51,7 +51,7 @@ export default function WizardStepper({ currentStep, onStepClick }: WizardSteppe
                     ${
                       isActive
                         ? 'bg-accent-info text-white ring-2 ring-blue-300 dark:ring-blue-400/50'
-                        : 'bg-gray-200 dark:bg-gray-700 text-text-muted'
+                        : 'bg-gray-200 dark:bg-bg-muted text-text-muted'
                     }`}
                 >
                   {step}
@@ -65,7 +65,7 @@ export default function WizardStepper({ currentStep, onStepClick }: WizardSteppe
                   className={`flex-1 h-0.5 mx-1.5 sm:mx-2 md:mx-3 rounded-full transition-colors duration-200 ${
                     step < currentStep
                       ? 'bg-accent-success'
-                      : 'bg-gray-200 dark:bg-gray-700'
+                      : 'bg-gray-200 dark:bg-bg-muted'
                   }`}
                 />
               ) : null}

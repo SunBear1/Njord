@@ -1,8 +1,8 @@
-import type { ProxyResponse, ProxyErrorResponse, ErrorCode } from '../types/analyze';
+import type { ProxyResponse, ProxyErrorResponse, ErrorCode } from '../types/marketData';
 import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 
 /**
- * Calls the Cloudflare Pages Function at /api/analyze which fetches stock/ETF
+ * Calls the Cloudflare Pages Function at /api/market-data which fetches stock/ETF
  * data from Yahoo Finance (primary) or Twelve Data (fallback on rate limit).
  * FX rates come from NBP. API key is never exposed to the browser.
  * All heavy computation runs client-side.
@@ -31,7 +31,7 @@ export async function fetchAssetData(
   ticker: string,
   signal?: AbortSignal,
 ): Promise<ProxyResponse> {
-  const url = `/api/analyze?ticker=${encodeURIComponent(ticker)}`;
+  const url = `/api/market-data?ticker=${encodeURIComponent(ticker)}`;
 
   const res = await fetchWithTimeout(url, signal);
 

@@ -1,12 +1,12 @@
 /**
- * Fetches the company/fund name for a given ticker symbol via /api/analyze.
+ * Fetches the company/fund name for a given ticker symbol via /api/market-data.
  * The backend caches responses for 1 hour, so repeated lookups are cheap.
  */
 export async function fetchTickerName(ticker: string): Promise<string> {
   const t = ticker.trim().toUpperCase();
   if (!t) throw new Error('Brak symbolu.');
 
-  const res = await fetch(`/api/analyze?ticker=${encodeURIComponent(t)}`);
+  const res = await fetch(`/api/market-data?ticker=${encodeURIComponent(t)}`);
 
   if (res.status === 404) throw new Error(`Nie rozpoznano tickera «${t}» — nazwa niedostępna`);
   if (!res.ok) {

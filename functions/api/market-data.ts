@@ -1,5 +1,5 @@
 /**
- * Pages Function: GET /api/analyze?ticker=AAPL
+ * Pages Function: GET /api/market-data?ticker=AAPL
  *
  * Thin proxy that fetches stock/ETF data and FX rates from NBP.
  *
@@ -17,7 +17,7 @@
 
 import type { HistoricalPrice, AssetType } from '../../src/types/asset';
 import type { FxRate } from '../../src/providers/nbpProvider';
-import type { ProxyResponse, ErrorCode } from '../../src/types/analyze';
+import type { ProxyResponse, ErrorCode } from '../../src/types/marketData';
 
 interface Env {
   TWELVE_DATA_API_KEY?: string;

@@ -59,7 +59,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
       />
 
       {/* Modal */}
-      <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div className="relative bg-bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-border">
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-2">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -67,7 +67,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
           </h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-text-primary hover:bg-bg-muted transition-colors"
             aria-label="Zamknij"
           >
             <X size={20} />
@@ -75,12 +75,12 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
         </div>
 
         {/* Tab switcher */}
-        <div className="flex mx-6 mt-2 mb-4 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg">
+        <div className="flex mx-6 mt-2 mb-4 p-1 bg-bg-muted rounded-lg">
           <button
             className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
               tab === 'login'
-                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                ? 'bg-white dark:bg-bg-muted text-gray-900 dark:text-white shadow-sm'
+                : 'text-text-muted hover:text-text-primary'
             }`}
             onClick={() => switchTab('login')}
           >
@@ -89,8 +89,8 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
           <button
             className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
               tab === 'register'
-                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                ? 'bg-white dark:bg-bg-muted text-gray-900 dark:text-white shadow-sm'
+                : 'text-text-muted hover:text-text-primary'
             }`}
             onClick={() => switchTab('register')}
           >
@@ -102,14 +102,14 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
         <div className="px-6 space-y-2">
           <a
             href="/api/auth/github"
-            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-gray-900 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors font-medium text-sm"
+            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-gray-900 dark:bg-bg-muted text-white rounded-lg hover:bg-gray-800 dark:hover:bg-bg-muted transition-colors font-medium text-sm"
           >
             <GitHubIcon />
             Kontynuuj przez GitHub
           </a>
           <a
             href="/api/auth/google"
-            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-white dark:bg-gray-600 text-gray-700 dark:text-white rounded-lg border border-gray-300 dark:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-500 transition-colors font-medium text-sm"
+            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-white dark:bg-bg-muted text-gray-700 dark:text-white rounded-lg border border-gray-300 dark:border-border-strong hover:bg-gray-50 dark:hover:bg-bg-muted transition-colors font-medium text-sm"
           >
             <GoogleIcon />
             Kontynuuj przez Google
@@ -118,9 +118,9 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
 
         {/* Divider */}
         <div className="flex items-center gap-3 px-6 my-4">
-          <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600" />
-          <span className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider">lub</span>
-          <div className="flex-1 h-px bg-gray-200 dark:bg-gray-600" />
+          <div className="flex-1 h-px bg-gray-200 dark:bg-bg-muted" />
+          <span className="text-xs text-text-faint uppercase tracking-wider">lub</span>
+          <div className="flex-1 h-px bg-gray-200 dark:bg-bg-muted" />
         </div>
 
         {/* Form */}
@@ -134,7 +134,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoComplete="name"
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border-strong bg-white dark:bg-bg-muted text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           )}
@@ -149,7 +149,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
               required
               autoComplete="email"
               spellCheck={false}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border-strong bg-white dark:bg-bg-muted text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -163,7 +163,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
               required
               minLength={8}
               autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border-strong bg-white dark:bg-bg-muted text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 

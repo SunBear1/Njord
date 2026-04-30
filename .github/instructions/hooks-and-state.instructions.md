@@ -1,25 +1,26 @@
 ---
 description: >
-  Architecture and safety rules for React hooks, App.tsx state management, and data providers.
-  Apply when reading or modifying any hook, the App.tsx root component, or provider modules.
+  Architecture and safety rules for React hooks, page-level state management, and data providers.
+  Apply when reading or modifying any hook, page component, Layout, or provider modules.
   Prevents race conditions, localStorage corruption, and state architecture violations.
 globs:
   - src/hooks/**
-  - src/App.tsx
+  - src/pages/**
+  - src/components/Layout.tsx
   - src/providers/**
 ---
 
 # Hooks, State, and Providers
 
-## 1. App.tsx — Single Source of Truth
+## 1. Page-Level State Ownership
 
-**All app state lives in `App.tsx` and flows down via props.** No exceptions.
+**Each page component owns its own state.** `Layout.tsx` owns shared concerns (dark mode, auth, route persistence). No global store.
 
 - No Zustand, Redux, Recoil, Context API stores, or any other global state
 - Child components receive data and callbacks via explicitly typed props interfaces
-- If a new feature needs state, add it to `App.tsx` and thread it down via props
+- If a new feature needs state, add it to the relevant page component and thread it down via props
 
-**Auto-apply pattern** (`userScenarios === null` guard):
+**Auto-apply pattern** (`userScenarios === null` guard in `ComparisonPage.tsx`):
 
 ```typescript
 // scenarios is derived: user overrides take priority, then model suggestions, then defaults
@@ -165,7 +166,7 @@ return () => { cancelled = true; clearInterval(interval); };
 
 Providers are thin fetch wrappers — no state, no React hooks.
 
-- `twelveDataProvider.ts` — calls `/api/analyze` and translates errors to user-friendly messages
+- `twelveDataProvider.ts` — calls `/api/market-data` and translates errors to user-friendly messages
 - `nbpProvider.ts` — fetches current USD/PLN mid rate directly from NBP
 
 **Rules:**

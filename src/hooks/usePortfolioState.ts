@@ -90,7 +90,6 @@ export interface PortfolioState {
 }
 
 export function usePortfolioState(
-  activeSection: string,
   autofill: AutofillSources,
 ): PortfolioState {
   const [saved] = useState(loadState);
@@ -168,7 +167,7 @@ export function usePortfolioState(
         ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId,
         horizonMonths, benchmarkType, userScenarios, avgCostUSD, isRSU,
         brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent,
-        etfTerPercent, etfTicker, activeSection,
+        etfTerPercent, etfTicker,
       });
     }, 600);
     return () => clearTimeout(timer);
@@ -176,7 +175,7 @@ export function usePortfolioState(
     ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId,
     horizonMonths, benchmarkType, userScenarios, avgCostUSD, isRSU,
     brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent,
-    etfTerPercent, etfTicker, activeSection,
+    etfTerPercent, etfTicker,
   ]);
 
   const resetForNewTicker = useCallback(() => {

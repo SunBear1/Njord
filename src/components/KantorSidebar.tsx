@@ -1,4 +1,5 @@
-import { ArrowDownUp } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { ArrowDownUp, ChevronLeft, ChevronRight, ArrowDown, ArrowUp } from 'lucide-react';
 import type { CurrencyRates } from '../hooks/useCurrencyRates';
 
 interface KantorSidebarProps {
@@ -15,24 +16,40 @@ function fmtTime(d: Date): string {
   return d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
+function RateRow({ label, value, direction }: { label: string; value: number; direction: 'buy' | 'sell' | 'spread' }) {
+  return (
+    <div className="flex items-center justify-between text-xs">
+      <span className="text-text-muted flex items-center gap-1">
+        {direction === 'sell' && <ArrowDown size={10} className="text-orange-600 dark:text-orange-400" aria-hidden="true" />}
+        {direction === 'buy' && <ArrowUp size={10} className="text-blue-600 dark:text-blue-400" aria-hidden="true" />}
+        {label}
+      </span>
+      <span className={`font-mono font-medium tabular-nums ${
+        direction === 'sell' ? 'text-orange-600 dark:text-orange-400' :
+        direction === 'buy' ? 'text-blue-600 dark:text-blue-400' :
+        'text-text-muted'
+      }`}>
+        {direction === 'spread' ? `${value}%` : value.toFixed(4)}
+      </span>
+    </div>
+  );
+}
+
 function RateBlock({ label, href, buy, sell }: { label: string; href: string; buy: number; sell: number }) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       <a
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 uppercase tracking-wider"
+        className="text-[11px] font-semibold text-text-muted hover:text-accent-info uppercase tracking-wider"
       >
-        {label}
+        {label} ↗
       </a>
-      <div className="grid grid-cols-2 gap-x-2 text-xs">
-        <div className="text-gray-400 dark:text-gray-500">Kupno USD</div>
-        <div className="text-right font-mono text-red-600 dark:text-red-400 font-medium">{sell.toFixed(4)}</div>
-        <div className="text-gray-400 dark:text-gray-500">Sprzedaż USD</div>
-        <div className="text-right font-mono text-green-700 dark:text-green-400 font-medium">{buy.toFixed(4)}</div>
-        <div className="text-gray-400 dark:text-gray-500">Spread</div>
-        <div className="text-right font-mono text-gray-500 dark:text-gray-400">{spreadPct(buy, sell)}%</div>
+      <div className="space-y-0.5">
+        <RateRow label="Kupno USD" value={sell} direction="sell" />
+        <RateRow label="Sprzedaż USD" value={buy} direction="buy" />
+        <RateRow label="Spread" value={parseFloat(spreadPct(buy, sell))} direction="spread" />
       </div>
     </div>
   );
@@ -40,79 +57,122 @@ function RateBlock({ label, href, buy, sell }: { label: string; href: string; bu
 
 export function KantorSidebar({ rates }: KantorSidebarProps) {
   const { alior, nbp, isLoading, error, lastUpdated } = rates;
+  const [expanded, setExpanded] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!expanded) return;
+    function handleClick(e: MouseEvent) {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setExpanded(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [expanded]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!expanded) return;
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setExpanded(false);
+    }
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [expanded]);
+
+  const primaryRate = alior?.sell ?? nbp?.sell ?? 0;
+  const hasData = !!(alior || nbp);
 
   return (
-    <div className="w-48 space-y-3">
-      {/* Header */}
-      <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
-        <ArrowDownUp size={12} className="text-blue-600 dark:text-blue-400" />
-        <span>USD / PLN</span>
-      </div>
-
-      {isLoading && !alior && !nbp ? (
-        <div className="text-[11px] text-gray-400 dark:text-gray-500 animate-pulse motion-reduce:animate-none">Pobieram kursy…</div>
-      ) : error && !alior && !nbp ? (
-        <div className="text-[11px] text-red-400">{error}</div>
-      ) : (
-        <>
-          {alior && (
-            <RateBlock
-              label="Alior Kantor"
-              href="https://kantor.aliorbank.pl"
-              buy={alior.buy}
-              sell={alior.sell}
-            />
-          )}
-
-          {alior && nbp && <hr className="border-gray-200 dark:border-gray-700" />}
-
-          {nbp && (
-            <RateBlock
-              label="NBP (tabela C)"
-              href="https://www.nbp.pl/home.aspx?f=/kursy/kursyc.html"
-              buy={nbp.buy}
-              sell={nbp.sell}
-            />
-          )}
-        </>
+    <div ref={panelRef} className="fixed right-0 top-1/3 z-40" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+      {/* Collapsed pill */}
+      {!expanded && (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="flex items-center gap-1.5 pl-2.5 pr-1.5 py-2 bg-bg-card border border-r-0 border-border-strong rounded-l-lg shadow-md hover:shadow-lg transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+          aria-label="Pokaż kursy walut"
+        >
+          <ArrowDownUp size={12} className="text-accent-info shrink-0" aria-hidden="true" />
+          <div className="text-xs">
+            <div className="font-semibold text-text-primary tabular-nums whitespace-nowrap">
+              {isLoading && !hasData ? '…' : primaryRate > 0 ? primaryRate.toFixed(2) : '—'}
+            </div>
+            <div className="text-[9px] text-text-faint leading-none">USD/PLN</div>
+          </div>
+          <ChevronLeft size={12} className="text-text-faint" aria-hidden="true" />
+        </button>
       )}
 
-      {/* Live indicator + timestamp */}
-      <div className="flex items-center gap-1.5 text-[10px] text-gray-400 dark:text-gray-500">
-        {!error && (alior || nbp) ? (
-          <>
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping motion-reduce:animate-none absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-            </span>
-            <span>
-              {lastUpdated ? fmtTime(lastUpdated) : 'live'}
-              <span className="text-gray-300 dark:text-gray-600"> · 60s</span>
-            </span>
-          </>
-        ) : null}
-      </div>
-
-      <p className="text-[9px] text-gray-300 dark:text-gray-600 leading-tight">
-        Aktualnie wspierany jest tylko Alior Kantor.
-      </p>
-
-      {/* Role explanation — which rate is used where */}
-      {(alior || nbp) && !isLoading && (
-        <div className="bg-blue-50/60 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900 rounded-md px-2.5 py-2 space-y-1">
-          <div className="text-[10px] font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wider">Jak liczymy?</div>
-          {alior && (
-            <div className="flex items-start gap-1.5 text-[10px] text-gray-600 dark:text-gray-400">
-              <span className="text-green-600 mt-0.5">●</span>
-              <span><strong className="text-gray-700 dark:text-gray-300">Kantor</strong> → wycena portfela w PLN</span>
+      {/* Expanded card */}
+      {expanded && (
+        <div className="w-56 bg-bg-card border border-r-0 border-border-strong rounded-l-xl shadow-xl overflow-y-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+          <div className="p-3 space-y-3">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-text-primary">
+                <ArrowDownUp size={13} className="text-accent-info" aria-hidden="true" />
+                USD / PLN
+              </div>
+              <button
+                type="button"
+                onClick={() => setExpanded(false)}
+                className="p-0.5 rounded text-text-faint hover:text-text-secondary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                aria-label="Zwiń kursy walut"
+              >
+                <ChevronRight size={14} />
+              </button>
             </div>
-          )}
-          {nbp && (
-            <div className="flex items-start gap-1.5 text-[10px] text-gray-600 dark:text-gray-400">
-              <span className="text-blue-500 mt-0.5">●</span>
-              <span><strong className="text-gray-700 dark:text-gray-300">NBP</strong> → podstawa podatku Belki</span>
-            </div>
-          )}
+
+            {isLoading && !hasData ? (
+              <div className="text-xs text-text-faint animate-pulse motion-reduce:animate-none">Pobieram kursy…</div>
+            ) : error && !hasData ? (
+              <div className="text-xs text-accent-error">{error}</div>
+            ) : (
+              <>
+                {alior && (
+                  <RateBlock label="Alior Kantor" href="https://kantor.aliorbank.pl" buy={alior.buy} sell={alior.sell} />
+                )}
+                {alior && nbp && <hr className="border-border" />}
+                {nbp && (
+                  <RateBlock label="NBP (tabela C)" href="https://www.nbp.pl/home.aspx?f=/kursy/kursyc.html" buy={nbp.buy} sell={nbp.sell} />
+                )}
+              </>
+            )}
+
+            {/* Live indicator */}
+            {!error && hasData && (
+              <div className="flex items-center gap-1.5 text-[10px] text-text-faint">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping motion-reduce:animate-none absolute inline-flex h-full w-full rounded-full bg-accent-success opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-accent-success" />
+                </span>
+                <span>
+                  {lastUpdated ? fmtTime(lastUpdated) : 'live'}
+                  <span className="text-text-faint opacity-60"> · 60s</span>
+                </span>
+              </div>
+            )}
+
+            {/* How rates are used */}
+            {hasData && !isLoading && (
+              <div className="bg-blue-50/60 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/50 rounded-md px-2.5 py-2 space-y-0.5">
+                <div className="text-[10px] font-semibold text-accent-info uppercase tracking-wider">Jak liczymy?</div>
+                {alior && (
+                  <div className="text-[10px] text-text-secondary">
+                    <strong className="text-text-primary">Kantor</strong> → wycena w PLN
+                  </div>
+                )}
+                {nbp && (
+                  <div className="text-[10px] text-text-secondary">
+                    <strong className="text-text-primary">NBP</strong> → podatek Belki
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
