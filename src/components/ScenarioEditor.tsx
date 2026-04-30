@@ -30,21 +30,21 @@ const SCENARIO_CONFIG: {
   inputBorder: string;
 }[] = [
   {
-    key: 'bear', label: 'Niedźwiedzi',
+    key: 'bear', label: 'Bear',
     icon: <TrendingDown size={14} aria-hidden="true" />,
     headerBg: 'bg-red-100 dark:bg-red-900/40', headerText: 'text-red-800 dark:text-red-200',
     cardBorder: 'border-red-200 dark:border-red-800', cardBg: 'bg-red-50/30 dark:bg-red-950/20',
     inputBorder: 'border-red-300 dark:border-red-600 focus:ring-red-400',
   },
   {
-    key: 'base', label: 'Bazowy',
+    key: 'base', label: 'Base',
     icon: <Minus size={14} aria-hidden="true" />,
     headerBg: 'bg-amber-100 dark:bg-amber-900/40', headerText: 'text-amber-700 dark:text-amber-300',
     cardBorder: 'border-amber-200 dark:border-amber-800', cardBg: 'bg-amber-50/30 dark:bg-amber-950/20',
     inputBorder: 'border-amber-300 dark:border-amber-600 focus:ring-amber-400',
   },
   {
-    key: 'bull', label: 'Byczy',
+    key: 'bull', label: 'Bull',
     icon: <TrendingUp size={14} aria-hidden="true" />,
     headerBg: 'bg-green-100 dark:bg-green-900/40', headerText: 'text-green-700 dark:text-green-300',
     cardBorder: 'border-green-200 dark:border-green-800', cardBg: 'bg-green-50/30 dark:bg-green-950/20',
@@ -360,13 +360,18 @@ export function ScenarioEditor({
             })}
             <Tooltip
               side="bottom"
-              width="w-72"
+              width="w-80"
               content={
                 <span>
-                  Scenariusze generowane przez kalibrowane modele predykcyjne:<br /><br />
-                  <strong>GBM</strong> — geometryczny ruch Browna z rozkładem Studenta; drift wyrównany do długoterminowej premii rynkowej<br />
-                  <strong>Bootstrap</strong> — losuje bloki historycznych zwrotów, zero założeń o rozkładzie<br /><br />
-                  {'\u2605'} = rekomendowany model dla danego horyzontu
+                  <strong>Jak działa prognoza?</strong><br /><br />
+                  <strong>1. Rozpoznanie nastroju rynku</strong><br />
+                  Algorytm analizuje ostatnie ~2 lata kursów i ocenia, czy akcja jest teraz w trendzie wzrostowym czy spadkowym. To wpływa na założenia w kolejnym kroku.<br /><br />
+                  <strong>2. Budowa scenariuszy</strong><br />
+                  Do 6 miesięcy → algorytm losuje fragmenty prawdziwej historii kursu i skleja je w możliwe ścieżki cenowe.<br />
+                  Powyżej 6 miesięcy → wzór matematyczny symuluje ruch kursu z uwzględnieniem historycznej zmienności i długoterminowego wzrostu rynku (~8%/rok). Gdy akcja jest w trendzie wzrostowym, założenie jest wyższe (~12%/rok); w spadkowym — niższe (~3%/rok).<br /><br />
+                  <strong>3. Pamiętaj</strong><br />
+                  Model nie zna wyników finansowych spółki, decyzji banków centralnych ani bieżących nastrojów. Każdy wynik to <em>scenariusz</em>, nie przepowiednia.<br /><br />
+                  {'\u2605'} = zalecany algorytm dla wybranego horyzontu
                 </span>
               }
             >
@@ -478,13 +483,15 @@ export function ScenarioEditor({
               <Info size={12} aria-hidden="true" className="text-indigo-400 dark:text-indigo-300 shrink-0" />
               <span className="font-medium">Analiza historyczna</span>
               {volatilityStats.regime && (
-                <Tooltip content={`Prawdopodobieństwo: ${Math.round(volatilityStats.regime.posteriorProbability * 100)}%`}>
+                <Tooltip content={
+                  `Trend ${volatilityStats.regime.currentRegimeLabel === 'bull' ? 'wzrostowy' : 'spadkowy'} — pewność ${Math.round(volatilityStats.regime.posteriorProbability * 100)}%. Wpływa na założenia prognozy: trend wzrostowy → ~12%/rok; trend spadkowy → ~3%/rok.`
+                }>
                   <span className={`rounded px-1.5 py-0.5 border text-[11px] font-semibold cursor-help ${
                     volatilityStats.regime.currentRegimeLabel === 'bull'
                       ? 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800'
                       : 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
                   }`}>
-                    {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Faza wzrostowa' : 'Faza spadkowa'}
+                    {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Trend wzrostowy' : 'Trend spadkowy'}
                   </span>
                 </Tooltip>
               )}
@@ -533,7 +540,7 @@ export function ScenarioEditor({
                     : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300'
                 }`}>
                   <span className="font-semibold">
-                    {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Faza wzrostów' : 'Faza spadków'}
+                    {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Trend wzrostowy' : 'Trend spadkowy'}
                     {' — '}{Math.round(volatilityStats.regime.posteriorProbability * 100)}%
                   </span>
                   <span className="opacity-70 text-xs">
@@ -541,6 +548,9 @@ export function ScenarioEditor({
                     {' · '}{volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState] >= 0 ? '+' : ''}{volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState].toFixed(0)}%/r
                     {' · '}~{volatilityStats.regime.expectedDurations[volatilityStats.regime.currentState].toFixed(0)} sesji
                   </span>
+                  <div className="text-xs opacity-60 mt-1">
+                    Wykryty trend wpływa na założenia prognozy: wzrostowy → ~12%/rok, spadkowy → ~3%/rok.
+                  </div>
                 </div>
               )}
 

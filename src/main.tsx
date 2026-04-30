@@ -46,18 +46,18 @@ function loadFonts() {
 }
 loadFonts();
 
-// Prefetch lazy route chunks during browser idle time so route transitions feel
-// instant (chunks already in the HTTP cache by the time the user clicks).
-// Without this, the first click on each nav link triggers a network round-trip
-// for the route chunk + its dependencies (e.g. recharts ~98KB gzip), which was
-// the visible "slow navigation" symptom in production.
+// Prefetch lazy route chunks during idle time. Because routes use lazyWithYield
+// (adds a 16ms async gap), even prefetched modules still go through Suspense on
+// each navigation — making rapid tab switches interruptible by startTransition.
 function prefetchRoutes() {
-  // Fire-and-forget — errors are harmless (chunk will load on demand later).
-  void import('./pages/ComparisonPage');
-  void import('./pages/ForecastPage');
-  void import('./pages/TaxPage');
-  void import('./pages/PortfolioPage');
-  void import('./pages/RatesPage');
+  const routes = [
+    () => import('./pages/ComparisonPage'),
+    () => import('./pages/ForecastPage'),
+    () => import('./pages/TaxPage'),
+    () => import('./pages/PortfolioPage'),
+    () => import('./pages/RatesPage'),
+  ];
+  routes.forEach((load) => { void load(); });
 }
 
 if (typeof window !== 'undefined') {
