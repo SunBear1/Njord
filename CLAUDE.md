@@ -1,60 +1,74 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Project
 
-**Njord** — Polish-language SPA for comparing USD stock portfolios against Polish savings instruments (savings accounts, government bonds). Educational tool only. Hosted on Cloudflare Pages with a thin Pages Functions backend.
+**Njord** — Polish-language investment calculator SPA comparing USD stock/ETF portfolios against Polish savings instruments (savings accounts, 8 types of government bonds, ETFs). All financial computation runs client-side. Hosted on Cloudflare Pages with thin Pages Functions backend.
+
+- **Live:** https://njord.pages.dev
+- **UI language:** Polish | **Code/commits/docs:** English
+- **Base currency:** PLN (converted from USD via NBP)
 
 ## Commands
 
 ```bash
-npm run dev              # Frontend only (Vite) → localhost:5173
-npm run dev:full         # Full stack: Vite + Pages Functions → localhost:8788
-npm run build            # tsc -b && vite build → dist/
-npm run lint             # ESLint (zero-error enforced)
-
-npm test                 # Vitest unit tests
-npm run test:watch       # Vitest watch mode
-npm run test:coverage    # Coverage report (targets src/utils/**)
-npm run test:backtest    # tsx src/scripts/backtest.ts
-npm run test:e2e         # Playwright (requires running preview server)
-npm run test:e2e:ui      # Playwright with UI
+npm run dev          # Frontend only (Vite) → localhost:5173
+npm run dev:full     # Full stack: Vite + Pages Functions → localhost:8788
+npm run build        # tsc -b && vite build → dist/
+npm run lint         # ESLint (zero-error enforced)
+npm test             # Vitest unit tests (446+ tests)
+npm run test:watch   # Vitest watch mode
+npm run test:e2e     # Playwright (requires preview server)
+npx tsc --noEmit     # Type-check only (fast)
 ```
-
-Local full-stack dev requires `.dev.vars` with `JWT_SECRET`, OAuth secrets, and optionally `TWELVE_DATA_API_KEY`.
 
 ## Architecture
 
-All financial computation runs **client-side**. The backend (`functions/api/`) is a thin proxy layer only.
-
 ```
-App.tsx (root — all state lives here, no global store)
-├── components/          React UI components; props-drilled from App.tsx
-│   └── portfolio/       4-step portfolio wizard
-├── hooks/               Data fetching (useAssetData, useFxData, useAuth, etc.)
-├── utils/               Pure calculation functions
-│   └── models/          GBM, Bootstrap, HMM prediction models
-├── providers/           twelveDataProvider, nbpProvider (Yahoo Finance fallback)
-├── workers/             Web Worker for HMM Monte Carlo (sellAnalysis.worker.ts)
-└── types/               TypeScript interfaces
+src/
+├── pages/              Route-level components (own their state)
+├── components/         UI components (props from pages)
+├── hooks/              Data fetching + state management
+├── utils/              Pure calculation functions (ZERO side effects)
+│   └── models/         GBM, Bootstrap, HMM prediction models
+├── providers/          API adapters (Yahoo Finance, NBP)
+├── workers/            Web Worker for HMM Monte Carlo (browser, NOT CF Worker)
+└── types/              TypeScript interfaces
 
-functions/api/
-├── analyze.ts           Yahoo Finance → stocks + FX (1h cache)
-├── bonds.ts             Bond presets CSV (24h cache)
-├── currency-rates.ts    Alior Kantor + NBP Table C (real-time)
-├── inflation.ts         ECB HICP CPI (24h cache)
-└── auth/                JWT + OAuth (GitHub, Google)
+functions/api/          Cloudflare Pages Functions (thin proxy/cache)
+infrastructure/         Terraform (CF Pages + D1)
 ```
 
-**Prediction model selection:** ≤6 months → Block Bootstrap; >6 months → Calibrated GBM; HMM only for sell analysis.
+## Rules (detailed in `.claude/rules/`)
 
-## Rules
+Read and follow ALL rules files. They are mandatory, not advisory.
 
-- **UI text:** Polish. **Code, commits, docs:** English.
-- **Commits:** Conventional Commits (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`).
-- **State:** All state in `App.tsx`, passed via props. No global store.
-- **React 19:** Use `use()` instead of `useContext()`. Pass `ref` as regular prop — no `forwardRef`.
-- **Styling:** Tailwind CSS v4 utility classes only. Semantic color tokens defined in `src/index.css` via `@theme`. Never hardcode hex values.
-- **Infrastructure:** Terraform in `/infrastructure/` manages Cloudflare Pages + D1 database (SQLite).
-- **Node:** ≥22 required.
+| Rule File | Scope |
+|-----------|-------|
+| `ui-ux-design.md` | Visual design, layout, anti-slop UI patterns, accessibility |
+| `color-palette.md` | Semantic tokens, chart colors, dark mode, contrast |
+| `css-tailwind.md` | Tailwind v4 only, class ordering, responsive, forbidden CSS |
+| `react-development.md` | React 19 conventions, hooks, state, components, performance |
+| `efficiency-performance.md` | Computation budgets, memory, network, bundle, workers |
+| `validation-loops.md` | Mandatory test/lint/build sequences, quality gates |
+| `financial-correctness.md` | Tax law, bond math, FX, rounding — HARD constraints |
+| `financial-methodology.md` | GBM, Bootstrap, HMM model specs, clamping, data quality |
+| `anti-slop-quality.md` | Code smell detection, naming, comments, git hygiene |
+
+## Critical Invariants (never violate)
+
+1. **Belka tax = 19% on PROFIT only** — never on principal.
+2. **FX × stock deltas are multiplicative** — `(1+dS) × (1+dFX)`, never additive.
+3. **NBP rate = last business day BEFORE transaction** — never the transaction date.
+4. **No global state** — pages own state, pass via props.
+5. **Pure financial functions** — no `fetch`, no `localStorage`, no DOM in `src/utils/`.
+6. **UI in Polish, code in English** — no mixing.
+7. **Tailwind tokens only** — no hardcoded colors, no CSS modules.
+8. **All tests pass before commit** — `npm run lint && npm test && npm run build`.
+
+## Validation (every change)
+
+```bash
+npx tsc --noEmit && npm run lint && npm test && npm run build
+```
+
+No exceptions. No skipping. Fix failures before proceeding.
