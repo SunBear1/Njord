@@ -1,15 +1,13 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import type { HistoricalPrice } from '../types/asset';
 import type { FxRate } from '../providers/nbpProvider';
 import type { Scenarios } from '../types/scenario';
 import type { RegimeInfo } from '../utils/hmm';
 import type { ModelResults, PredictionResult } from '../utils/models/types';
-import { bootstrapPredict } from '../utils/models/bootstrap';
-import { gbmPredict, clampScenario } from '../utils/models/gbmModel';
-import { hmmPredict } from '../utils/models/hmmModel';
-import { getRegimeAdjustedPrior } from '../utils/models/regimePrior';
+import { clampScenario } from '../utils/models/gbmModel';
 import { useDebouncedValue } from './useDebouncedValue';
 import { TRADING_DAYS_PER_YEAR } from '../utils/assetConfig';
+import type { VolatilityWorkerResult } from '../workers/volatility.worker';
 
 export interface VolatilityStats {
   stockSigmaAnnual: number; // annualized σ in %
@@ -163,6 +161,27 @@ export function useHistoricalVolatility(
     regime: RegimeInfo | null;
   } | null>(null);
   const [computing, setComputing] = useState(false);
+  const workerRef = useRef<Worker | null>(null);
+  const handlerRef = useRef<((event: MessageEvent) => void) | null>(null);
+
+  // Create the worker once on mount
+  useEffect(() => {
+    let worker: Worker | null = null;
+    try {
+      worker = new Worker(
+        new URL('../workers/volatility.worker.ts', import.meta.url),
+        { type: 'module' },
+      );
+      workerRef.current = worker;
+    } catch {
+      workerRef.current = null;
+    }
+
+    return () => {
+      worker?.terminate();
+      workerRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     if (!baseStats) {
@@ -174,80 +193,138 @@ export function useHistoricalVolatility(
 
     setComputing(true);
     let cancelled = false;
+    const worker = workerRef.current;
 
-    // Delay >0 so that rapid mount/unmount (fast tab switching) can cancel
-    // before heavy synchronous computation starts. 50ms is enough for React
-    // to process the unmount cleanup while still feeling instant to the user.
-    const timer = setTimeout(() => {
-      if (cancelled) return;
+    if (worker) {
+      // Remove any stale handler from a previous run
+      if (handlerRef.current) {
+        worker.removeEventListener('message', handlerRef.current);
+        handlerRef.current = null;
+      }
 
-      const { rho, stockLogRet, seed } = baseStats;
-      const T = debouncedHorizon / 12; // horizon in years
-      const fxSigma = baseStats.fxSigmaAnnual / 100;
-      const dataYears = stockLogRet.length / TRADING_DAYS_PER_YEAR;
+      const handler = (event: MessageEvent<{ type: string; payload?: VolatilityWorkerResult; message?: string }>) => {
+        if (cancelled) return;
+        worker.removeEventListener('message', handler);
+        handlerRef.current = null;
 
-      // FX magnitude for scenario correlation
-      const fxMagPct = (Math.exp(1.645 * fxSigma * Math.sqrt(T) + (-(fxSigma * fxSigma) / 2) * T) - 1) * 100;
+        if (event.data.type === 'result' && event.data.payload) {
+          const { modelResults, regime, predictions, recommendedIndex } = event.data.payload;
+          const { rho } = baseStats;
+          const T = debouncedHorizon / 12;
+          const fxSigma = baseStats.fxSigmaAnnual / 100;
+          const fxMagPct = (Math.exp(1.645 * fxSigma * Math.sqrt(T) + (-(fxSigma * fxSigma) / 2) * T) - 1) * 100;
 
-      // ── Regime detection (HMM — informational only, not a model tab) ──
-      // Run HMM first so its regime output can inform the GBM drift prior.
-      const bootstrapHorizonDays = Math.min(Math.round(debouncedHorizon * 21), 504);
-      const hmmResult = hmmPredict(stockLogRet, bootstrapHorizonDays, seed);
+          // Build per-model scenarios on main thread (cheap — no Monte Carlo)
+          const modelScenarios: Record<string, Scenarios> = {};
+          for (const pred of predictions) {
+            if (pred.confidence > 0) {
+              modelScenarios[pred.id] = toScenarios(
+                pred as PredictionResult,
+                rho, fxMagPct, T,
+              );
+            }
+          }
 
-      // Derive regime-adjusted prior: bull posterior → higher prior, bear → lower.
-      // Falls back to neutral 8% when HMM unavailable or USE_REGIME_PRIOR is false.
-      const hmmPosteriorBull = hmmResult.regime?.currentRegimeLabel === 'bull'
-        ? hmmResult.regime.posteriorProbability
-        : hmmResult.regime
-          ? 1 - hmmResult.regime.posteriorProbability
-          : null;
-      const regimePrior = getRegimeAdjustedPrior(hmmPosteriorBull);
+          const recommendedPred = predictions[recommendedIndex];
+          const suggestedScenarios = toScenarios(
+            recommendedPred as PredictionResult,
+            rho, fxMagPct, T,
+          );
 
-      // ── Model 1: GBM (closed-form, works for all horizons) ────────────
-      const gbmResult = gbmPredict(
-        baseStats.stockSigmaAnnual / 100,
-        baseStats.stockMeanAnnual / 100,
-        dataYears,
-        T,
-        regimePrior,
-      );
-
-      // ── Model 2: Bootstrap (Monte Carlo, best for short horizons) ─────
-      const bootstrapResult = bootstrapPredict(stockLogRet, bootstrapHorizonDays, seed);
-
-      // ── Tiered selection (GBM + Bootstrap only) ─────────────────────
-      const allPredictions: PredictionResult[] = [gbmResult, bootstrapResult];
-      const useBootstrapPrimary = debouncedHorizon <= BOOTSTRAP_HORIZON_MONTHS;
-      const recommendedIndex = useBootstrapPrimary ? 1 : 0;
-      const recommended = allPredictions[recommendedIndex];
-
-      const scoring = {
-        scored: allPredictions,
-        recommendedIndex,
-        bestCoverage: 0,
+          setModelResult({ modelResults, modelScenarios, suggestedScenarios, regime });
+        }
+        setComputing(false);
       };
 
-      const modelResults: ModelResults = { models: allPredictions, recommended, scoring };
+      handlerRef.current = handler;
+      worker.addEventListener('message', handler);
+      worker.postMessage({
+        type: 'run',
+        payload: {
+          stockLogRet: baseStats.stockLogRet,
+          stockSigmaAnnual: baseStats.stockSigmaAnnual,
+          stockMeanAnnual: baseStats.stockMeanAnnual,
+          seed: baseStats.seed,
+          debouncedHorizon,
+        },
+      });
+    } else {
+      // Fallback: main thread with setTimeout guard (test/SSR environments)
+      const timer = setTimeout(() => {
+        if (cancelled) return;
+        void (async () => {
+          try {
+            const { bootstrapPredict } = await import('../utils/models/bootstrap');
+            const { gbmPredict } = await import('../utils/models/gbmModel');
+            const { hmmPredict } = await import('../utils/models/hmmModel');
+            const { getRegimeAdjustedPrior } = await import('../utils/models/regimePrior');
 
-      // Build per-model scenarios for tab switching
-      const modelScenarios: Record<string, Scenarios> = {};
-      for (const pred of allPredictions) {
-        if (pred.confidence > 0) {
-          modelScenarios[pred.id] = toScenarios(pred, rho, fxMagPct, T);
-        }
-      }
+            const { rho, stockLogRet, seed } = baseStats;
+            const T = debouncedHorizon / 12;
+            const fxSigma = baseStats.fxSigmaAnnual / 100;
+            const dataYears = stockLogRet.length / TRADING_DAYS_PER_YEAR;
+            const fxMagPct = (Math.exp(1.645 * fxSigma * Math.sqrt(T) + (-(fxSigma * fxSigma) / 2) * T) - 1) * 100;
 
-      const suggestedScenarios = toScenarios(recommended, rho, fxMagPct, T);
+            const bootstrapHorizonDays = Math.min(Math.round(debouncedHorizon * 21), 504);
+            const hmmResult = hmmPredict(stockLogRet, bootstrapHorizonDays, seed);
 
-      if (!cancelled) {
-        setModelResult({ modelResults, modelScenarios, suggestedScenarios, regime: hmmResult.regime });
-        setComputing(false);
-      }
-    }, 50);
+            const hmmPosteriorBull = hmmResult.regime?.currentRegimeLabel === 'bull'
+              ? hmmResult.regime.posteriorProbability
+              : hmmResult.regime
+                ? 1 - hmmResult.regime.posteriorProbability
+                : null;
+            const regimePrior = getRegimeAdjustedPrior(hmmPosteriorBull);
+
+            const gbmResult = gbmPredict(
+              baseStats.stockSigmaAnnual / 100,
+              baseStats.stockMeanAnnual / 100,
+              dataYears,
+              T,
+              regimePrior,
+            );
+            const bootstrapResult = bootstrapPredict(stockLogRet, bootstrapHorizonDays, seed);
+
+            const allPredictions: PredictionResult[] = [gbmResult, bootstrapResult];
+            const useBootstrapPrimary = debouncedHorizon <= BOOTSTRAP_HORIZON_MONTHS;
+            const recommendedIndex = useBootstrapPrimary ? 1 : 0;
+            const recommended = allPredictions[recommendedIndex];
+
+            const modelResults: ModelResults = {
+              models: allPredictions,
+              recommended,
+              scoring: { scored: allPredictions, recommendedIndex, bestCoverage: 0 },
+            };
+
+            const modelScenarios: Record<string, Scenarios> = {};
+            for (const pred of allPredictions) {
+              if (pred.confidence > 0) {
+                modelScenarios[pred.id] = toScenarios(pred, rho, fxMagPct, T);
+              }
+            }
+            const suggestedScenarios = toScenarios(recommended, rho, fxMagPct, T);
+
+            if (!cancelled) {
+              setModelResult({ modelResults, modelScenarios, suggestedScenarios, regime: hmmResult.regime });
+              setComputing(false);
+            }
+          } catch {
+            if (!cancelled) setComputing(false);
+          }
+        })();
+      }, 50);
+
+      return () => {
+        cancelled = true;
+        clearTimeout(timer);
+      };
+    }
 
     return () => {
       cancelled = true;
-      clearTimeout(timer);
+      if (worker && handlerRef.current) {
+        worker.removeEventListener('message', handlerRef.current);
+        handlerRef.current = null;
+      }
     };
   }, [baseStats, debouncedHorizon]);
 
