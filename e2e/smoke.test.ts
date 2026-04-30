@@ -127,7 +127,7 @@ test.describe('Njord smoke tests', () => {
     await expect(page).toHaveURL(/\/tax/);
 
     // Click home via logo
-    await page.getByRole('link', { name: /Strona główna/i }).click();
+    await page.locator('nav').getByRole('link', { name: /Strona główna/i }).click();
     await expect(page).toHaveURL(/\/$/);
   });
 

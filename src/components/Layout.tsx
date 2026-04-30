@@ -1,6 +1,6 @@
 import { useState, Suspense, lazy, useEffect } from 'react';
 import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
-import { Moon, Sun, BarChart3, Receipt, Sprout, TrendingUp, ArrowDownUp } from 'lucide-react';
+import { Moon, Sun, Home, BarChart3, Receipt, Sprout, TrendingUp, ArrowDownUp } from 'lucide-react';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useAuth } from '../hooks/useAuth';
 import { UserMenu } from '../components/UserMenu';
@@ -11,6 +11,7 @@ const AuthModalLazy = lazy(() => import('../components/AuthModal').then(m => ({ 
 const AccountPanelLazy = lazy(() => import('../components/AccountPanel').then(m => ({ default: m.AccountPanel })));
 
 const NAV_ITEMS = [
+  { to: '/', icon: Home, label: 'Strona główna', end: true },
   { to: '/comparison', icon: BarChart3, label: 'Porównanie inwestycji' },
   { to: '/forecast', icon: TrendingUp, label: 'Prognoza cenowa' },
   { to: '/tax', icon: Receipt, label: 'Podatek Belki' },
@@ -82,10 +83,11 @@ export function Layout() {
 
       <nav className="bg-bg-secondary border-b border-border shadow-sm">
         <div className="max-w-7xl mx-auto px-4 flex items-center gap-1 py-1.5 overflow-x-auto">
-          {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
+          {NAV_ITEMS.map(({ to, icon: Icon, label, ...rest }) => (
             <NavLink
               key={to}
               to={to}
+              end={'end' in rest}
               className={({ isActive }) =>
                 `flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
                   isActive
