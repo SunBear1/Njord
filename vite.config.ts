@@ -7,18 +7,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: '/',
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
-            return 'vendor';
-          }
-          if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) {
-            return 'recharts';
-          }
-        },
-      },
-    },
+    modulePreload: { polyfill: false },
   },
   test: {
     globals: true,
