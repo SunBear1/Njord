@@ -9,3 +9,4 @@ date,coverage_pct,above_bull_pct,below_bear_pct,bias_ratio,base_mae_pp,stocks,ov
 2026-04-21,38.9,48.4,12.6,3.83,51.1,95,PASS
 2026-04-29,51.6,33.7,14.7,2.29,42.4,95,PASS,bull,etf,0
 2026-04-29,51.6,33.7,14.7,2.29,42.9,95,PASS,bull,etf,0
+2026-04-30,41.5,36.2,22.3,1.62,52.7,94,PASS,bull,energy,0
