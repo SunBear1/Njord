@@ -360,13 +360,18 @@ export function ScenarioEditor({
             })}
             <Tooltip
               side="bottom"
-              width="w-72"
+              width="w-80"
               content={
                 <span>
-                  Scenariusze generowane przez kalibrowane modele predykcyjne:<br /><br />
-                  <strong>GBM</strong> — geometryczny ruch Browna z rozkładem Studenta; drift wyrównany do długoterminowej premii rynkowej<br />
-                  <strong>Bootstrap</strong> — losuje bloki historycznych zwrotów, zero założeń o rozkładzie<br /><br />
-                  {'\u2605'} = rekomendowany model dla danego horyzontu
+                  <strong>Jak działa prognoza?</strong><br /><br />
+                  <strong>1. Detekcja reżimu (HMM)</strong><br />
+                  Algorytm Hidden Markov Model analizuje ostatnie ~2 lata dziennych zwrotów i rozpoznaje, czy akcja jest w fazie wzrostowej czy spadkowej. Wynik wpływa na punkt startowy prognozy.<br /><br />
+                  <strong>2. Prognoza scenariuszy</strong><br />
+                  Horyzont ≤ 6 mies. → <strong>Bootstrap</strong>: losuje bloki historycznych zwrotów — zero założeń o rozkładzie, uczciwe ogony.<br />
+                  Horyzont &gt; 6 mies. → <strong>GBM</strong>: geometryczny ruch Browna (wzór analityczny). Drift historyczny wymieszany z długoterminową premią rynkową (8%/rok). W fazie wzrostowej premia rośnie do 12%; w spadkowej — spada do 3%.<br /><br />
+                  <strong>3. Ograniczenia</strong><br />
+                  Model nie widzi wyników kwartalnych, stóp procentowych ani nastrojów rynku. Każdy wynik to <em>scenariusz</em>, nie przepowiednia.<br /><br />
+                  {'\u2605'} = rekomendowany model dla wybranego horyzontu
                 </span>
               }
             >
@@ -478,7 +483,9 @@ export function ScenarioEditor({
               <Info size={12} aria-hidden="true" className="text-indigo-400 dark:text-indigo-300 shrink-0" />
               <span className="font-medium">Analiza historyczna</span>
               {volatilityStats.regime && (
-                <Tooltip content={`Prawdopodobieństwo: ${Math.round(volatilityStats.regime.posteriorProbability * 100)}%`}>
+                <Tooltip content={
+                  `Reżim: ${volatilityStats.regime.currentRegimeLabel === 'bull' ? 'wzrostowy' : 'spadkowy'} — pewność ${Math.round(volatilityStats.regime.posteriorProbability * 100)}%. Wpływa na punkt odniesienia GBM: faza wzrostowa → premia 12%/rok; faza spadkowa → 3%/rok.`
+                }>
                   <span className={`rounded px-1.5 py-0.5 border text-[11px] font-semibold cursor-help ${
                     volatilityStats.regime.currentRegimeLabel === 'bull'
                       ? 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800'
@@ -541,6 +548,9 @@ export function ScenarioEditor({
                     {' · '}{volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState] >= 0 ? '+' : ''}{volatilityStats.regime.stateMeansAnnual[volatilityStats.regime.currentState].toFixed(0)}%/r
                     {' · '}~{volatilityStats.regime.expectedDurations[volatilityStats.regime.currentState].toFixed(0)} sesji
                   </span>
+                  <div className="text-xs opacity-60 mt-1">
+                    Reżim przesuwa punkt odniesienia GBM: wzrost → 12%/rok, spadek → 3%/rok.
+                  </div>
                 </div>
               )}
 
