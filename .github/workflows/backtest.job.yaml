@@ -8,11 +8,19 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
+      - name: Generate App Token
+        uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.NJORD_AUTOMATION_APP_ID }}
+          private-key: ${{ secrets.NJORD_AUTOMATION_PRIVATE_KEY }}
+
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Node.js
         uses: ./.github/actions/setup
@@ -24,9 +32,31 @@ jobs:
         if: ${{ !cancelled() }}
         run: node scripts/ci/append-backtest-metrics.cjs
 
-      - name: Push updated history to main
+      - name: Create Pull Request with updated metrics
         if: ${{ !cancelled() }}
-        run: bash scripts/ci/create-backtest-pr.sh
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          commit-message: "chore: backtest metrics ${{ github.run_id }}"
+          branch: chore/backtest-metrics
+          title: "chore: daily backtest metrics"
+          body: |
+            Automated daily backtest metrics update.
+
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          add-paths: |
+            data/backtest-history.csv
+          delete-branch: true
+
+      - name: Enable auto-merge
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          PR_NUMBER=$(gh pr list --head chore/backtest-metrics --json number -q '.[0].number')
+          if [ -n "$PR_NUMBER" ]; then
+            gh pr merge "$PR_NUMBER" --auto --squash
+          fi
 
       - name: Upload report
         if: ${{ !cancelled() }}
