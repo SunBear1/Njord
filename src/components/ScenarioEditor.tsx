@@ -364,14 +364,14 @@ export function ScenarioEditor({
               content={
                 <span>
                   <strong>Jak działa prognoza?</strong><br /><br />
-                  <strong>1. Detekcja reżimu (HMM)</strong><br />
-                  Algorytm Hidden Markov Model analizuje ostatnie ~2 lata dziennych zwrotów i rozpoznaje, czy akcja jest w fazie wzrostowej czy spadkowej. Wynik wpływa na punkt startowy prognozy.<br /><br />
-                  <strong>2. Prognoza scenariuszy</strong><br />
-                  Horyzont ≤ 6 mies. → <strong>Bootstrap</strong>: losuje bloki historycznych zwrotów — zero założeń o rozkładzie, uczciwe ogony.<br />
-                  Horyzont &gt; 6 mies. → <strong>GBM</strong>: geometryczny ruch Browna (wzór analityczny). Drift historyczny wymieszany z długoterminową premią rynkową (8%/rok). W fazie wzrostowej premia rośnie do 12%; w spadkowej — spada do 3%.<br /><br />
-                  <strong>3. Ograniczenia</strong><br />
-                  Model nie widzi wyników kwartalnych, stóp procentowych ani nastrojów rynku. Każdy wynik to <em>scenariusz</em>, nie przepowiednia.<br /><br />
-                  {'\u2605'} = rekomendowany model dla wybranego horyzontu
+                  <strong>1. Rozpoznanie nastroju rynku</strong><br />
+                  Algorytm analizuje ostatnie ~2 lata kursów i ocenia, czy akcja jest teraz w trendzie wzrostowym czy spadkowym. To wpływa na założenia w kolejnym kroku.<br /><br />
+                  <strong>2. Budowa scenariuszy</strong><br />
+                  Do 6 miesięcy → algorytm losuje fragmenty prawdziwej historii kursu i skleja je w możliwe ścieżki cenowe.<br />
+                  Powyżej 6 miesięcy → wzór matematyczny symuluje ruch kursu z uwzględnieniem historycznej zmienności i długoterminowego wzrostu rynku (~8%/rok). Gdy akcja jest w trendzie wzrostowym, założenie jest wyższe (~12%/rok); w spadkowym — niższe (~3%/rok).<br /><br />
+                  <strong>3. Pamiętaj</strong><br />
+                  Model nie zna wyników finansowych spółki, decyzji banków centralnych ani bieżących nastrojów. Każdy wynik to <em>scenariusz</em>, nie przepowiednia.<br /><br />
+                  {'\u2605'} = zalecany algorytm dla wybranego horyzontu
                 </span>
               }
             >
@@ -484,14 +484,14 @@ export function ScenarioEditor({
               <span className="font-medium">Analiza historyczna</span>
               {volatilityStats.regime && (
                 <Tooltip content={
-                  `Reżim: ${volatilityStats.regime.currentRegimeLabel === 'bull' ? 'wzrostowy' : 'spadkowy'} — pewność ${Math.round(volatilityStats.regime.posteriorProbability * 100)}%. Wpływa na punkt odniesienia GBM: faza wzrostowa → premia 12%/rok; faza spadkowa → 3%/rok.`
+                  `Trend ${volatilityStats.regime.currentRegimeLabel === 'bull' ? 'wzrostowy' : 'spadkowy'} — pewność ${Math.round(volatilityStats.regime.posteriorProbability * 100)}%. Wpływa na założenia prognozy: trend wzrostowy → ~12%/rok; trend spadkowy → ~3%/rok.`
                 }>
                   <span className={`rounded px-1.5 py-0.5 border text-[11px] font-semibold cursor-help ${
                     volatilityStats.regime.currentRegimeLabel === 'bull'
                       ? 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800'
                       : 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
                   }`}>
-                    {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Faza wzrostowa' : 'Faza spadkowa'}
+                    {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Trend wzrostowy' : 'Trend spadkowy'}
                   </span>
                 </Tooltip>
               )}
@@ -540,7 +540,7 @@ export function ScenarioEditor({
                     : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300'
                 }`}>
                   <span className="font-semibold">
-                    {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Faza wzrostów' : 'Faza spadków'}
+                    {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Trend wzrostowy' : 'Trend spadkowy'}
                     {' — '}{Math.round(volatilityStats.regime.posteriorProbability * 100)}%
                   </span>
                   <span className="opacity-70 text-xs">
@@ -549,7 +549,7 @@ export function ScenarioEditor({
                     {' · '}~{volatilityStats.regime.expectedDurations[volatilityStats.regime.currentState].toFixed(0)} sesji
                   </span>
                   <div className="text-xs opacity-60 mt-1">
-                    Reżim przesuwa punkt odniesienia GBM: wzrost → 12%/rok, spadek → 3%/rok.
+                    Wykryty trend wpływa na założenia prognozy: wzrostowy → ~12%/rok, spadkowy → ~3%/rok.
                   </div>
                 </div>
               )}
