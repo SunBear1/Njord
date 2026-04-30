@@ -2,7 +2,7 @@
 const fs = require('fs');
 
 const metrics = JSON.parse(fs.readFileSync('backtest-metrics.json', 'utf8'));
-const csvFile = 'backtest-history.csv';
+const csvFile = 'data/backtest-history.csv';
 const header = 'date,coverage_pct,above_bull_pct,below_bear_pct,bias_ratio,base_mae_pp,stocks,overall,regime,worst_sector,worst_sector_coverage_pct';
 const row = [
   metrics.date,
