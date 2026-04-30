@@ -43,7 +43,7 @@ function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate, i
           Szara linia przerywana „Siła nabywcza" — wartość wyjściowa skorygowana o inflację ({inflationRate.toFixed(1)}% śr./rok).
         </p>
       )}
-      <ResponsiveContainer width="100%" height={420}>
+      <ResponsiveContainer width="100%" height={420} debounce={32}>
         <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 24, left: 10 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
           <XAxis

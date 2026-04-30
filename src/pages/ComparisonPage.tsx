@@ -143,6 +143,12 @@ export function ComparisonPage() {
   const timeline = useMemo(() => canCalc ? calcTimeline(calcInputs, scenarios) : null, [canCalc, calcInputs, scenarios]);
   const heatmap = useMemo(() => canCalc ? calcHeatmap(calcInputs) : null, [canCalc, calcInputs]);
 
+  // Defer chart data to prevent Recharts' internal Redux store from being overwhelmed
+  // by concurrent React 19 renders during rapid state updates (ticker load + model completion)
+  const deferredResults = useDeferredValue(results);
+  const deferredTimeline = useDeferredValue(timeline);
+  const deferredHeatmap = useDeferredValue(heatmap);
+
   const [inputCollapsed, setInputCollapsed] = useState(false);
 
   const inputPanelProps = {
@@ -234,7 +240,7 @@ export function ComparisonPage() {
           </>
         )}
 
-        {results && (
+        {deferredResults && (
           <>
             <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-bg-muted border border-border text-xs text-text-muted" role="note">
               <span aria-hidden="true">ℹ️</span>
@@ -244,7 +250,7 @@ export function ComparisonPage() {
             </div>
             <ErrorBoundary>
               <VerdictBanner
-                results={results}
+                results={deferredResults}
                 inflationRate={effectiveInflation}
                 currentInflationRate={inflationRate}
                 inflationSource={inflationData?.source}
@@ -255,28 +261,28 @@ export function ComparisonPage() {
               />
             </ErrorBoundary>
             <ErrorBoundary>
-              <ComparisonChart results={results} isDark={isDark} />
+              <ComparisonChart results={deferredResults} isDark={isDark} />
             </ErrorBoundary>
-            {timeline && (
+            {deferredTimeline && (
               <ErrorBoundary>
                 <Suspense fallback={<Skeleton.Chart height={220} />}>
                   <TimelineChartLazy
-                    data={timeline}
-                    currentValuePLN={results[0]?.currentValuePLN ?? 0}
-                    benchmarkLabel={results[0]?.benchmarkLabel ?? 'Konto'}
+                    data={deferredTimeline}
+                    currentValuePLN={deferredResults[0]?.currentValuePLN ?? 0}
+                    benchmarkLabel={deferredResults[0]?.benchmarkLabel ?? 'Konto'}
                     inflationRate={effectiveInflation}
                     isDark={isDark}
                   />
                 </Suspense>
               </ErrorBoundary>
             )}
-            {heatmap && (
+            {deferredHeatmap && (
               <ErrorBoundary>
                 <Suspense fallback={<Skeleton.Chart height={220} />}>
                   <BreakevenChartLazy
-                    cells={heatmap}
-                    benchmarkEndValuePLN={results[0]?.benchmarkEndValuePLN ?? 0}
-                    benchmarkLabel={results[0]?.benchmarkLabel ?? 'Konto'}
+                    cells={deferredHeatmap}
+                    benchmarkEndValuePLN={deferredResults[0]?.benchmarkEndValuePLN ?? 0}
+                    benchmarkLabel={deferredResults[0]?.benchmarkLabel ?? 'Konto'}
                   />
                 </Suspense>
               </ErrorBoundary>

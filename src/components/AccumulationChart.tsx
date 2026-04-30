@@ -125,7 +125,7 @@ function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps)
         </div>
       )}
 
-      <ResponsiveContainer width="100%" height={420}>
+      <ResponsiveContainer width="100%" height={420} debounce={32}>
         {viewMode === 'stacked' ? (
           <AreaChart data={chartData} margin={{ top: 5, right: 5, bottom: 24, left: 10 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />

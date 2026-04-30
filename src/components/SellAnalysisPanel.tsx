@@ -250,7 +250,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
               Pasma pokazują zakres cen: ciemniejsze = bardziej prawdopodobne (p25–p75), jaśniejsze = ogon rozkładu (p10–p90).
               Linia niebieska przerywana = optymalna cena sprzedaży.
             </p>
-            <ResponsiveContainer width="100%" height={400}>
+            <ResponsiveContainer width="100%" height={400} debounce={32}>
               <AreaChart data={fanChartBands} margin={{ top: 10, right: 10, bottom: 24, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                 <XAxis
@@ -307,7 +307,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
             <p className="text-xs text-muted dark:text-faint">
               Stromy spadek krzywej = „granica chciwości" — powyżej tego progu szansa realizacji gwałtownie maleje.
             </p>
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={300} debounce={32}>
               <LineChart data={touchCurveData} margin={{ top: 10, right: 10, bottom: 24, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                 <XAxis

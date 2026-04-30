@@ -47,7 +47,7 @@ function ComparisonChart({ results, isDark }: ComparisonChartProps) {
   return (
     <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-5 space-y-3">
       <h3 className="text-base font-semibold text-heading dark:text-on-dark">Wartość końcowa — porównanie</h3>
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={300} debounce={32}>
         <BarChart data={data} barCategoryGap="25%">
           <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
           <XAxis dataKey="name" tick={{ fontSize: 13, fill: tickColor }} />
