@@ -119,7 +119,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                 type="button"
                 key={p.days}
                 onClick={() => { onHorizonChange(p.days); setIsCustomActive(false); setShowCustomPicker(false); }}
-                className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-all ${
+                className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-colors ${
                   isActive
                     ? 'bg-accent border-accent text-on-dark shadow-sm'
                     : 'bg-surface dark:bg-surface-dark border-edge dark:border-edge-strong text-body hover:border-accent hover:bg-accent-light dark:hover:bg-surface-dark/30'
@@ -137,7 +137,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           <button
             type="button"
             onClick={() => setShowCustomPicker((v) => !v)}
-            className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-all ${
+            className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-colors ${
               isCustomActive || showCustomPicker
                 ? 'bg-accent border-accent text-on-dark shadow-sm'
                 : 'bg-surface dark:bg-surface-dark border-edge dark:border-edge-strong text-body hover:border-accent hover:bg-accent-light dark:hover:bg-surface-dark/30'
@@ -359,23 +359,25 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                     {analysis.expectedSellPrices.map((sp) => {
                       const isOptimal = sp.target === analysis.optimalTarget.target;
                       const changePct = ((sp.target / analysis.currentPrice - 1) * 100);
+                      const isDownside = sp.type === 'downside';
                       return (
                         <tr
                           key={sp.target}
-                          className={`border-b border-edge dark:border-edge-strong ${isOptimal ? 'bg-accent-light dark:bg-surface-dark/30 font-semibold' : ''}`}
+                          className={`border-b border-edge dark:border-edge-strong ${isOptimal ? 'bg-accent-light dark:bg-surface-dark/30 font-semibold' : isDownside ? 'bg-red-50/40 dark:bg-red-950/10' : ''}`}
                         >
                           <td className="py-2 pr-4">
                             {fmtUSD(sp.target)}
                             {isOptimal && <span className="ml-1.5 text-[10px] text-accent dark:text-accent font-bold">★ OPTYMALNY</span>}
+                            {isDownside && <span className="ml-1.5 text-[10px] text-red-600 dark:text-red-400 font-medium">↓ drawdown</span>}
                           </td>
-                          <td className={`py-2 pr-4 ${changePct >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-600'}`}>
+                          <td className={`py-2 pr-4 ${changePct >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                             {changePct >= 0 ? '+' : ''}{changePct.toFixed(1)}%
                           </td>
                           <td className="py-2 pr-4">
                             <div className="flex items-center gap-2">
                               <div className="w-16 h-1.5 bg-surface-muted dark:bg-surface-dark-alt rounded-full overflow-hidden">
                                 <div
-                                  className={`h-full rounded-full ${sp.pTouch > 0.5 ? 'bg-green-500' : sp.pTouch > 0.2 ? 'bg-amber-500' : 'bg-red-500'}`}
+                                  className={`h-full rounded-full ${isDownside ? 'bg-red-500' : sp.pTouch > 0.5 ? 'bg-green-500' : sp.pTouch > 0.2 ? 'bg-amber-500' : 'bg-red-500'}`}
                                   style={{ width: `${sp.pTouch * 100}%` }}
                                 />
                               </div>
