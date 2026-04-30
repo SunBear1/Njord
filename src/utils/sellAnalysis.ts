@@ -46,7 +46,9 @@ export function simulateFullPaths(
       const sigma = model.stds[state];
 
       const [z] = boxMuller(rng);
-      // mu is the mean of observed log-returns — no extra Itô correction needed
+      // mu is the mean of observed daily log-returns as fitted by Baum-Welch.
+      // Because log-returns already embed the Itô correction (E[log(S_t/S_{t-1})] = μ_simple - σ²/2),
+      // no additional -0.5·σ² term is needed here. Adding it would double-correct and bias paths down.
       const logReturn = mu + sigma * z;
       price *= Math.exp(logReturn);
       path[t + 1] = price;
@@ -120,13 +122,20 @@ export function analyzePaths(paths: Float64Array[]) {
 // ---------------------------------------------------------------------------
 
 /**
- * Generate target price levels: from current price up to +40% in ~12 steps,
- * plus a few levels below current price.
+ * Generate target price levels around the current price.
+ *
+ * Downside range: -25% to -5% (3% steps + existing -10%, -5%)
+ * Flat:           0% (current price itself)
+ * Upside range:   +5% to +40% in 5% steps
+ *
+ * The current price (0%) is included as a natural boundary.
+ * Downside targets use `P(min_path ≤ target)` (drawdown risk).
+ * Upside targets use `P(max_path ≥ target)` (touch probability).
  */
 export function generateTargets(currentPrice: number): number[] {
   const targets: number[] = [];
-  // -10% to +40% in 5% steps
-  for (let pct = -10; pct <= 40; pct += 5) {
+  // -25% to +40% in 5% steps
+  for (let pct = -25; pct <= 40; pct += 5) {
     targets.push(Math.round(currentPrice * (1 + pct / 100) * 100) / 100);
   }
   return targets;
@@ -135,20 +144,37 @@ export function generateTargets(currentPrice: number): number[] {
 export function computeTouchProbabilities(
   paths: Float64Array[],
   targets: number[],
+  currentPrice: number,
 ): TouchResult[] {
   const nPaths = paths.length;
 
   return targets.map((target) => {
+    const isDownside = target < currentPrice;
     let touches = 0;
+    const touchDays: number[] = [];
+
     for (const path of paths) {
       for (let i = 0; i < path.length; i++) {
-        if (path[i] >= target) {
+        const touched = isDownside ? path[i] <= target : path[i] >= target;
+        if (touched) {
           touches++;
+          touchDays.push(i);
           break;
         }
       }
     }
-    return { target, pTouch: touches / nPaths };
+
+    const pTouch = touches / nPaths;
+    const meanTouchDay = touchDays.length > 0
+      ? touchDays.reduce((a, b) => a + b, 0) / touchDays.length
+      : 0;
+
+    return {
+      target,
+      pTouch,
+      type: isDownside ? 'downside' : 'upside',
+      meanTouchDay,
+    };
   });
 }
 
@@ -156,21 +182,54 @@ export function computeTouchProbabilities(
 // Expected sell price
 // ---------------------------------------------------------------------------
 
+/**
+ * Annual risk-free rate for reinvestment gain calculation (time-weighted EV).
+ * Represents the opportunity cost of capital for Polish investors (~4% NBP rate).
+ * Set to 0 to collapse the formula to the unweighted original.
+ */
+const RISK_FREE_RATE = 0.04;
+
+/**
+ * Compute expected sell prices with time-weighted expected value.
+ *
+ * When a target is touched early, the remaining holding period can be
+ * reinvested at the risk-free rate. Early-touching targets are therefore
+ * worth more than late-touching targets with the same pTouch.
+ *
+ * Formula:
+ *   EV = pTouch × target × (1 + rf × remainingDays/252)
+ *      + (1 - pTouch) × medianFinalPrice
+ *
+ * where remainingDays = horizonDays - meanTouchDay.
+ *
+ * With RISK_FREE_RATE = 0 this collapses to the original unweighted formula.
+ */
 export function computeExpectedSellPrices(
   touchResults: TouchResult[],
   medianFinalPrice: number,
   riskOfForcedSale: number,
+  horizonDays: number,
 ): SellTarget[] {
-  return touchResults.map(({ target, pTouch }) => ({
-    target,
-    pTouch,
-    expectedValue: pTouch * target + (1 - pTouch) * medianFinalPrice,
-    riskOfForcedSale,
-  }));
+  return touchResults.map(({ target, pTouch, type, meanTouchDay }) => {
+    const remainingDays = horizonDays - meanTouchDay;
+    const reinvestmentGain = 1 + RISK_FREE_RATE * (remainingDays / 252);
+    const expectedValue = pTouch * target * reinvestmentGain
+      + (1 - pTouch) * medianFinalPrice;
+    return {
+      target,
+      pTouch,
+      expectedValue,
+      riskOfForcedSale,
+      meanTouchDay,
+      type,
+    };
+  });
 }
 
 export function findOptimalTarget(targets: SellTarget[]): SellTarget {
-  if (targets.length === 0) return { target: 0, pTouch: 0, expectedValue: 0, riskOfForcedSale: 1 };
+  if (targets.length === 0) {
+    return { target: 0, pTouch: 0, expectedValue: 0, riskOfForcedSale: 1, meanTouchDay: 0, type: 'upside' };
+  }
   let best = targets[0];
   for (const t of targets) {
     if (t.expectedValue > best.expectedValue) best = t;
@@ -227,7 +286,7 @@ export function runSellAnalysis(
     analyzePaths(paths);
 
   const targets = generateTargets(currentPrice);
-  const touchProbabilities = computeTouchProbabilities(paths, targets);
+  const touchProbabilities = computeTouchProbabilities(paths, targets, currentPrice);
 
   // Risk = P(final price < current price)
   let belowCount = 0;
@@ -236,7 +295,7 @@ export function runSellAnalysis(
   }
   const riskOfForcedSale = belowCount / paths.length;
 
-  const expectedSellPrices = computeExpectedSellPrices(touchProbabilities, medianFinalPrice, riskOfForcedSale);
+  const expectedSellPrices = computeExpectedSellPrices(touchProbabilities, medianFinalPrice, riskOfForcedSale, horizonDays);
   const optimalTarget = findOptimalTarget(expectedSellPrices);
 
   const fanChart = computeFanChart(paths, horizonDays);

@@ -40,7 +40,7 @@ export function Layout() {
 
   return (
     <div className="min-h-screen" style={ROOT_STYLE}>
-      <header className="bg-gradient-to-r from-slate-800 to-slate-900 dark:from-[#010409] dark:to-[#010409] text-white shadow-lg dark:border-b dark:border-[#21262d]">
+      <header className="bg-header-bg text-white shadow-lg border-b border-header-border">
         <div className="max-w-7xl mx-auto px-4 py-5 flex items-center gap-3">
           <Link to="/" className="flex items-center gap-3 min-w-0 flex-1" aria-label="Strona główna">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="36" height="36" className="shrink-0" aria-hidden="true">

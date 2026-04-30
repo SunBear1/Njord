@@ -153,7 +153,7 @@ function AllocationBar({
         {allocations.map((a, i) => (
           <div
             key={`${a.instrumentId}-${i}`}
-            className={`${INSTRUMENT_COLORS[a.instrumentType]} transition-all duration-200`}
+            className={`${INSTRUMENT_COLORS[a.instrumentType]}`}
             style={{ width: `${Math.max(a.allocationPercent, 0)}%` }}
             title={`${instrumentLabel(a)}: ${Math.round(a.allocationPercent)}% · ${fmtPLN(wrapperMonthlyPLN * a.allocationPercent / 100)}/mies.`}
           />

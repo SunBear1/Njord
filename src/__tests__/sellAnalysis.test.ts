@@ -142,32 +142,54 @@ describe('computeTouchProbabilities', () => {
     const model = realisticModel();
     const paths = simulateFullPaths(model, 0, 100, 10, 50, 42);
     const targets = [90, 100, 110, 120];
-    const results = computeTouchProbabilities(paths, targets);
+    const results = computeTouchProbabilities(paths, targets, 100);
     expect(results).toHaveLength(4);
     expect(results.map((r) => r.target)).toEqual(targets);
   });
 
-  it('target below current price has pTouch ≈ 1 (always touched at day 0)', () => {
+  it('upside target at currentPrice has pTouch = 1 (already at target on day 0)', () => {
     const model = realisticModel();
     const paths = simulateFullPaths(model, 0, 100, 10, 100, 42);
-    const results = computeTouchProbabilities(paths, [0.01]); // trivially low target
+    // Target exactly at current price → all paths start at currentPrice and immediately satisfy >= target
+    const results = computeTouchProbabilities(paths, [100], 100);
     expect(results[0].pTouch).toBe(1);
+    expect(results[0].type).toBe('upside');
+  });
+
+  it('impossibly deep downside target has pTouch ≈ 0', () => {
+    const model = zeroVolModel(0); // flat paths at 100
+    const paths = simulateFullPaths(model, 0, 100, 10, 20, 42);
+    // Target 0.01 is a downside target (0.01 < 100); flat paths never touch it
+    const results = computeTouchProbabilities(paths, [0.01], 100);
+    expect(results[0].pTouch).toBe(0);
+    expect(results[0].type).toBe('downside');
   });
 
   it('impossibly high target has pTouch = 0', () => {
     const model = zeroVolModel(0);
     const paths = simulateFullPaths(model, 0, 100, 10, 20, 42); // flat paths at ~100
-    const results = computeTouchProbabilities(paths, [1_000_000]);
+    const results = computeTouchProbabilities(paths, [1_000_000], 100);
     expect(results[0].pTouch).toBe(0);
   });
 
-  it('pTouch is monotonically non-increasing as target increases', () => {
+  it('upside pTouch is non-increasing as target increases above currentPrice', () => {
     const model = realisticModel();
     const paths = simulateFullPaths(model, 0, 100, 30, 500, 42);
-    const targets = [80, 90, 100, 110, 120, 140, 160];
-    const results = computeTouchProbabilities(paths, targets);
+    const upsideTargets = [100, 110, 120, 140, 160];
+    const results = computeTouchProbabilities(paths, upsideTargets, 100);
     for (let i = 1; i < results.length; i++) {
       expect(results[i].pTouch).toBeLessThanOrEqual(results[i - 1].pTouch);
+    }
+  });
+
+  it('downside pTouch is non-decreasing as target increases toward currentPrice', () => {
+    const model = realisticModel();
+    const paths = simulateFullPaths(model, 0, 100, 30, 500, 42);
+    const downsideTargets = [60, 70, 80, 90];
+    const results = computeTouchProbabilities(paths, downsideTargets, 100);
+    for (let i = 1; i < results.length; i++) {
+      // Higher downside target is easier to reach → pTouch should be ≥ lower target
+      expect(results[i].pTouch).toBeGreaterThanOrEqual(results[i - 1].pTouch);
     }
   });
 
@@ -175,10 +197,38 @@ describe('computeTouchProbabilities', () => {
     const model = realisticModel();
     const paths = simulateFullPaths(model, 0, 100, 20, 100, 42);
     const targets = generateTargets(100);
-    const results = computeTouchProbabilities(paths, targets);
+    const results = computeTouchProbabilities(paths, targets, 100);
     for (const r of results) {
       expect(r.pTouch).toBeGreaterThanOrEqual(0);
       expect(r.pTouch).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('each result has correct type field based on currentPrice', () => {
+    const model = realisticModel();
+    const paths = simulateFullPaths(model, 0, 100, 10, 20, 42);
+    const targets = [85, 95, 105, 115];
+    const results = computeTouchProbabilities(paths, targets, 100);
+    expect(results[0].type).toBe('downside'); // 85 < 100
+    expect(results[1].type).toBe('downside'); // 95 < 100
+    expect(results[2].type).toBe('upside');   // 105 >= 100
+    expect(results[3].type).toBe('upside');   // 115 >= 100
+  });
+
+  it('meanTouchDay is 0 when pTouch = 0', () => {
+    const model = zeroVolModel(0);
+    const paths = simulateFullPaths(model, 0, 100, 10, 20, 42);
+    const results = computeTouchProbabilities(paths, [1_000_000], 100);
+    expect(results[0].meanTouchDay).toBe(0);
+  });
+
+  it('meanTouchDay is <= horizonDays when pTouch > 0', () => {
+    const model = realisticModel();
+    const paths = simulateFullPaths(model, 0, 100, 30, 200, 42);
+    const results = computeTouchProbabilities(paths, [105], 100);
+    if (results[0].pTouch > 0) {
+      expect(results[0].meanTouchDay).toBeGreaterThanOrEqual(0);
+      expect(results[0].meanTouchDay).toBeLessThanOrEqual(30);
     }
   });
 });
@@ -248,24 +298,46 @@ describe('computeFanChart', () => {
 describe('computeExpectedSellPrices', () => {
   it('returns one SellTarget per TouchResult', () => {
     const touchResults = [
-      { target: 100, pTouch: 0.9 },
-      { target: 110, pTouch: 0.6 },
-      { target: 120, pTouch: 0.3 },
+      { target: 100, pTouch: 0.9, type: 'upside' as const, meanTouchDay: 0 },
+      { target: 110, pTouch: 0.6, type: 'upside' as const, meanTouchDay: 0 },
+      { target: 120, pTouch: 0.3, type: 'upside' as const, meanTouchDay: 0 },
     ];
-    const results = computeExpectedSellPrices(touchResults, 95, 0.2);
+    const results = computeExpectedSellPrices(touchResults, 95, 0.2, 0);
     expect(results).toHaveLength(3);
   });
 
   it('expectedValue = pTouch × target + (1-pTouch) × medianFinalPrice', () => {
-    const touchResults = [{ target: 110, pTouch: 0.7 }];
+    // Use horizonDays=0 and meanTouchDay=0 so reinvestmentGain=1 and formula is exact.
+    const touchResults = [{ target: 110, pTouch: 0.7, type: 'upside' as const, meanTouchDay: 0 }];
     const median = 95;
-    const results = computeExpectedSellPrices(touchResults, median, 0.15);
+    const results = computeExpectedSellPrices(touchResults, median, 0.15, 0);
     const expected = 0.7 * 110 + 0.3 * 95;
     expect(results[0].expectedValue).toBeCloseTo(expected, 6);
   });
 
+  it('early touch produces higher expectedValue than late touch for same pTouch and target', () => {
+    const horizonDays = 252;
+    const earlyTouch = [{ target: 110, pTouch: 0.5, type: 'upside' as const, meanTouchDay: 20 }];
+    const lateTouch = [{ target: 110, pTouch: 0.5, type: 'upside' as const, meanTouchDay: 200 }];
+    const median = 95;
+    const earlyEV = computeExpectedSellPrices(earlyTouch, median, 0.1, horizonDays)[0].expectedValue;
+    const lateEV = computeExpectedSellPrices(lateTouch, median, 0.1, horizonDays)[0].expectedValue;
+    // Earlier touch → more remaining days → higher reinvestment gain on target price
+    expect(earlyEV).toBeGreaterThan(lateEV);
+  });
+
+  it('meanTouchDay and type are propagated to SellTarget', () => {
+    const touchResults = [{ target: 85, pTouch: 0.3, type: 'downside' as const, meanTouchDay: 12 }];
+    const results = computeExpectedSellPrices(touchResults, 100, 0.3, 60);
+    expect(results[0].meanTouchDay).toBe(12);
+    expect(results[0].type).toBe('downside');
+  });
+
   it('riskOfForcedSale is passed through unchanged', () => {
-    const results = computeExpectedSellPrices([{ target: 100, pTouch: 0.5 }], 90, 0.333);
+    const results = computeExpectedSellPrices(
+      [{ target: 100, pTouch: 0.5, type: 'upside' as const, meanTouchDay: 0 }],
+      90, 0.333, 0,
+    );
     expect(results[0].riskOfForcedSale).toBeCloseTo(0.333, 6);
   });
 });
@@ -301,16 +373,16 @@ describe('findOptimalTarget', () => {
 // ---------------------------------------------------------------------------
 
 describe('generateTargets', () => {
-  it('generates levels from -10% to +40% in 5% steps', () => {
+  it('generates levels from -25% to +40% in 5% steps', () => {
     const targets = generateTargets(100);
-    expect(targets[0]).toBeCloseTo(90, 2);   // -10%
+    expect(targets[0]).toBeCloseTo(75, 2);   // -25%
     expect(targets[targets.length - 1]).toBeCloseTo(140, 2); // +40%
   });
 
-  it('generates 11 targets for 100 price', () => {
-    // -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40 → 11 steps
+  it('generates 14 targets for 100 price', () => {
+    // -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40 → 14 steps
     const targets = generateTargets(100);
-    expect(targets).toHaveLength(11);
+    expect(targets).toHaveLength(14);
   });
 
   it('scales proportionally with price', () => {

@@ -21,6 +21,11 @@ export interface DistributionStats {
 export interface TouchResult {
   target: number;
   pTouch: number;
+  /** 'upside' — probability price rises to or above target at any point.
+   *  'downside' — probability price drops to or below target at any point. */
+  type: 'upside' | 'downside';
+  /** Mean number of trading days until the target is first touched (0 when pTouch = 0). */
+  meanTouchDay: number;
 }
 
 export interface SellTarget {
@@ -28,6 +33,10 @@ export interface SellTarget {
   pTouch: number;
   expectedValue: number;
   riskOfForcedSale: number; // P(final price < current price)
+  /** Mean number of trading days until the target is first touched (from TouchResult). */
+  meanTouchDay: number;
+  /** Type of touch direction, propagated from TouchResult. */
+  type: 'upside' | 'downside';
 }
 
 export interface SellAnalysisResult {

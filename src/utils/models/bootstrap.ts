@@ -9,7 +9,22 @@
 import type { PredictionResult } from './types';
 import { mulberry32, extractPercentiles } from './types';
 
-const BLOCK_SIZE = 5; // trading days — preserves weekly autocorrelation
+/**
+ * Compute adaptive block size for the given horizon.
+ *
+ * Fixed blocks of 5 days capture weekly autocorrelation but miss
+ * monthly momentum (20–60 day scale). Larger blocks for longer
+ * horizons better capture persistence.
+ *
+ * Formula: min(20, max(5, floor(horizonDays / 20)))
+ *   21 days  → block 5   (weekly autocorrelation)
+ *   126 days → block 6   (slightly larger for 6-month horizon)
+ *   252 days → block 12  (captures monthly momentum)
+ *   400 days → block 20  (maximum)
+ */
+export function adaptiveBlockSize(horizonDays: number): number {
+  return Math.min(20, Math.max(5, Math.floor(horizonDays / 20)));
+}
 const N_PATHS = 3000;
 
 /**
@@ -36,8 +51,20 @@ export function bootstrapPredict(
   }
 
   const rng = mulberry32(seed);
-  const nBlocks = Math.ceil(horizonDays / BLOCK_SIZE);
-  const maxStart = n - BLOCK_SIZE; // last valid block start index
+  const blockSize = adaptiveBlockSize(horizonDays);
+  const nBlocks = Math.ceil(horizonDays / blockSize);
+  const maxStart = n - blockSize; // last valid block start index
+
+  if (maxStart < 0) {
+    return {
+      id: 'bootstrap',
+      name: 'Bootstrap',
+      description: 'Za mało danych historycznych dla wybranego rozmiaru bloku.',
+      percentiles: [0, 0, 0, 0, 0],
+      confidence: 0,
+    };
+  }
+
   const finalReturns: number[] = [];
 
   for (let p = 0; p < N_PATHS; p++) {
@@ -46,7 +73,7 @@ export function bootstrapPredict(
 
     for (let b = 0; b < nBlocks && daysAccumulated < horizonDays; b++) {
       const start = Math.floor(rng() * (maxStart + 1));
-      const blockEnd = Math.min(BLOCK_SIZE, horizonDays - daysAccumulated);
+      const blockEnd = Math.min(blockSize, horizonDays - daysAccumulated);
 
       for (let d = 0; d < blockEnd; d++) {
         cumLogReturn += logReturns[start + d];

@@ -7,6 +7,7 @@ import type { ModelResults, PredictionResult } from '../utils/models/types';
 import { bootstrapPredict } from '../utils/models/bootstrap';
 import { gbmPredict, clampScenario } from '../utils/models/gbmModel';
 import { hmmPredict } from '../utils/models/hmmModel';
+import { getRegimeAdjustedPrior } from '../utils/models/regimePrior';
 import { useDebouncedValue } from './useDebouncedValue';
 import { TRADING_DAYS_PER_YEAR } from '../utils/assetConfig';
 
@@ -182,20 +183,31 @@ export function useHistoricalVolatility(
       // FX magnitude for scenario correlation
       const fxMagPct = (Math.exp(1.645 * fxSigma * Math.sqrt(T) + (-(fxSigma * fxSigma) / 2) * T) - 1) * 100;
 
+      // ── Regime detection (HMM — informational only, not a model tab) ──
+      // Run HMM first so its regime output can inform the GBM drift prior.
+      const bootstrapHorizonDays = Math.min(Math.round(debouncedHorizon * 21), 504);
+      const hmmResult = hmmPredict(stockLogRet, bootstrapHorizonDays, seed);
+
+      // Derive regime-adjusted prior: bull posterior → higher prior, bear → lower.
+      // Falls back to neutral 8% when HMM unavailable or USE_REGIME_PRIOR is false.
+      const hmmPosteriorBull = hmmResult.regime?.currentRegimeLabel === 'bull'
+        ? hmmResult.regime.posteriorProbability
+        : hmmResult.regime
+          ? 1 - hmmResult.regime.posteriorProbability
+          : null;
+      const regimePrior = getRegimeAdjustedPrior(hmmPosteriorBull);
+
       // ── Model 1: GBM (closed-form, works for all horizons) ────────────
       const gbmResult = gbmPredict(
         baseStats.stockSigmaAnnual / 100,
         baseStats.stockMeanAnnual / 100,
         dataYears,
         T,
+        regimePrior,
       );
 
       // ── Model 2: Bootstrap (Monte Carlo, best for short horizons) ─────
-      const bootstrapHorizonDays = Math.min(Math.round(debouncedHorizon * 21), 504);
       const bootstrapResult = bootstrapPredict(stockLogRet, bootstrapHorizonDays, seed);
-
-      // ── Regime detection (HMM — informational only, not a model tab) ──
-      const hmmResult = hmmPredict(stockLogRet, bootstrapHorizonDays, seed);
 
       // ── Tiered selection (GBM + Bootstrap only) ─────────────────────
       const allPredictions: PredictionResult[] = [gbmResult, bootstrapResult];

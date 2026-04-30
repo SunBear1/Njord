@@ -9,7 +9,7 @@ import { describe, it, expect } from 'vitest';
 
 import { syntheticLogReturns } from './scenarioSanity.test';
 import { gbmPredict } from '../utils/models/gbmModel';
-import { bootstrapPredict } from '../utils/models/bootstrap';
+import { bootstrapPredict, adaptiveBlockSize } from '../utils/models/bootstrap';
 import { mulberry32, boxMuller } from '../utils/models/types';
 
 // ── GBM Coverage Calibration ─────────────────────────────────────────────────
@@ -148,6 +148,47 @@ describe('Determinism — Bootstrap', () => {
 
     for (let i = 0; i < 5; i++) {
       expect(a.percentiles[i]).toBe(b.percentiles[i]);
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Adaptive block size
+// ---------------------------------------------------------------------------
+
+describe('adaptiveBlockSize', () => {
+  it('21 trading days (1 month) → block size 5', () => {
+    expect(adaptiveBlockSize(21)).toBe(5); // floor(21/20) = 1 → clamped to 5
+  });
+
+  it('126 trading days (6 months) → block size 6', () => {
+    expect(adaptiveBlockSize(126)).toBe(6); // floor(126/20) = 6
+  });
+
+  it('252 trading days (1 year) → block size 12', () => {
+    expect(adaptiveBlockSize(252)).toBe(12); // floor(252/20) = 12
+  });
+
+  it('400 trading days → block size 20 (maximum)', () => {
+    expect(adaptiveBlockSize(400)).toBe(20); // floor(400/20) = 20 (at cap)
+  });
+
+  it('1000 trading days → block size still capped at 20', () => {
+    expect(adaptiveBlockSize(1000)).toBe(20); // min cap
+  });
+
+  it('always returns at least 5 for very short horizons', () => {
+    expect(adaptiveBlockSize(1)).toBe(5);
+    expect(adaptiveBlockSize(10)).toBe(5);
+  });
+
+  it('is monotonically non-decreasing with horizon', () => {
+    const horizons = [21, 42, 63, 126, 180, 252, 360, 400, 504];
+    let prev = 0;
+    for (const h of horizons) {
+      const bs = adaptiveBlockSize(h);
+      expect(bs).toBeGreaterThanOrEqual(prev);
+      prev = bs;
     }
   });
 });
