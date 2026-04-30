@@ -46,21 +46,25 @@ function loadFonts() {
 }
 loadFonts();
 
-// Route chunk prefetching strategy:
-// We intentionally do NOT eagerly import() route chunks here. While eager
-// import() eliminates the network delay on first navigation, it also fully
-// evaluates the modules — causing React.lazy to resolve synchronously. This
-// makes the entire page component render in one uninterruptible frame, which
-// blocks the main thread during rapid tab switching (the "freeze" symptom).
-//
-// Instead, we rely on:
-// 1. Immutable caching (public/_headers: max-age=31536000 for /assets/*)
-//    — after the first visit to a route, subsequent loads are from disk cache
-// 2. React.lazy + Suspense shows <PageLoader> during the brief first load
-// 3. react-router v7 wraps navigations in startTransition, so the old UI
-//    stays visible while the new route loads (no blank screen)
-// 4. HTTP/2 server push / 103 Early Hints from Cloudflare warm connections
-//
-// Net result: first click on each route takes ~50-100ms (cache hit after
-// initial page load triggers prefetch via browser's speculative parser),
-// subsequent clicks are instant, and rapid switching never freezes.
+// Prefetch lazy route chunks during idle time. Because routes use lazyWithYield
+// (adds a 16ms async gap), even prefetched modules still go through Suspense on
+// each navigation — making rapid tab switches interruptible by startTransition.
+function prefetchRoutes() {
+  const routes = [
+    () => import('./pages/ComparisonPage'),
+    () => import('./pages/ForecastPage'),
+    () => import('./pages/TaxPage'),
+    () => import('./pages/PortfolioPage'),
+    () => import('./pages/RatesPage'),
+  ];
+  routes.forEach((load) => { void load(); });
+}
+
+if (typeof window !== 'undefined') {
+  const idle = (window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback;
+  if (idle) {
+    idle(prefetchRoutes, { timeout: 4000 });
+  } else {
+    setTimeout(prefetchRoutes, 2000);
+  }
+}
