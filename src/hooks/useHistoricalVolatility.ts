@@ -173,8 +173,14 @@ export function useHistoricalVolatility(
     }
 
     setComputing(true);
+    let cancelled = false;
 
+    // Delay >0 so that rapid mount/unmount (fast tab switching) can cancel
+    // before heavy synchronous computation starts. 50ms is enough for React
+    // to process the unmount cleanup while still feeling instant to the user.
     const timer = setTimeout(() => {
+      if (cancelled) return;
+
       const { rho, stockLogRet, seed } = baseStats;
       const T = debouncedHorizon / 12; // horizon in years
       const fxSigma = baseStats.fxSigmaAnnual / 100;
@@ -233,11 +239,14 @@ export function useHistoricalVolatility(
 
       const suggestedScenarios = toScenarios(recommended, rho, fxMagPct, T);
 
-      setModelResult({ modelResults, modelScenarios, suggestedScenarios, regime: hmmResult.regime });
-      setComputing(false);
-    }, 0);
+      if (!cancelled) {
+        setModelResult({ modelResults, modelScenarios, suggestedScenarios, regime: hmmResult.regime });
+        setComputing(false);
+      }
+    }, 50);
 
     return () => {
+      cancelled = true;
       clearTimeout(timer);
     };
   }, [baseStats, debouncedHorizon]);
