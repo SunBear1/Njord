@@ -8,10 +8,14 @@
     <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
     <title>Njord — Kalkulator inwestycyjny</title>
     <meta name="description" content="Porównaj opłacalność akcji vs. konto oszczędnościowe w scenariuszach Bear/Base/Bull, z uwzględnieniem kursu walutowego i podatku Belki." />
-    <!-- Inter Variable — neutral, legible at financial data densities -->
+    <!-- Inter Variable — loaded asynchronously from main.tsx (CSP-compliant,
+         no inline event handlers). Preconnect lets the browser warm up the
+         TLS connections to Google's font hosts in parallel. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" />
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap" />
+    </noscript>
   </head>
   <body>
     <div id="root"></div>

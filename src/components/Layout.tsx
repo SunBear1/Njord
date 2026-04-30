@@ -4,11 +4,11 @@ import { Moon, Sun, Home, BarChart3, Receipt, Sprout, TrendingUp, ArrowDownUp } 
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useAuth } from '../hooks/useAuth';
 import { UserMenu } from '../components/UserMenu';
-import { PrivacyPolicy } from '../components/PrivacyPolicy';
 import { saveLastRoute } from '../utils/routePersistence';
 
 const AuthModalLazy = lazy(() => import('../components/AuthModal').then(m => ({ default: m.AuthModal })));
 const AccountPanelLazy = lazy(() => import('../components/AccountPanel').then(m => ({ default: m.AccountPanel })));
+const PrivacyPolicyLazy = lazy(() => import('../components/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
 
 const NAV_ITEMS = [
   { to: '/', icon: Home, label: 'Strona główna', end: true },
@@ -146,7 +146,11 @@ export function Layout() {
         </div>
       </footer>
 
-      {showPrivacy && <PrivacyPolicy onClose={() => setShowPrivacy(false)} />}
+      {showPrivacy && (
+        <Suspense fallback={null}>
+          <PrivacyPolicyLazy onClose={() => setShowPrivacy(false)} />
+        </Suspense>
+      )}
       {showAuthModal && (
         <Suspense fallback={null}>
           <AuthModalLazy
