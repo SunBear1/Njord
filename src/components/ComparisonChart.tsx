@@ -18,10 +18,14 @@ interface ComparisonChartProps {
   isDark?: boolean;
 }
 
-function ComparisonChart({ results, isDark }: ComparisonChartProps) {
+function ComparisonChart({ results }: ComparisonChartProps) {
   const bmLabel = results[0]?.benchmarkLabel ?? 'Konto';
-  const gridColor = isDark ? '#374151' : '#f0f0f0';
-  const tickColor = isDark ? '#9ca3af' : '#666666';
+  const style = getComputedStyle(document.documentElement);
+  const gridColor = style.getPropertyValue('--color-chart-grid').trim();
+  const tickColor = style.getPropertyValue('--color-chart-tick').trim();
+  const referenceColor = style.getPropertyValue('--color-chart-reference').trim();
+  const brandColor = style.getPropertyValue('--color-brand').trim();
+  const benchmarkColor = style.getPropertyValue('--color-chart-benchmark').trim();
 
   const data = useMemo(() => [
     {
@@ -54,9 +58,9 @@ function ComparisonChart({ results, isDark }: ComparisonChartProps) {
           <YAxis tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 12, fill: tickColor }} />
           <Tooltip formatter={fmtTooltipPLN} />
           <Legend />
-          <ReferenceLine y={currentValue} stroke="#94a3b8" strokeDasharray="5 5" label={{ value: 'Wartość dziś', fontSize: 11, fill: '#94a3b8' }} />
-          <Bar dataKey="Akcje (netto)" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-          <Bar dataKey={bmKey} fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+          <ReferenceLine y={currentValue} stroke={referenceColor} strokeDasharray="5 5" label={{ value: 'Wartość dziś', fontSize: 11, fill: referenceColor }} />
+          <Bar dataKey="Akcje (netto)" fill={brandColor} radius={[4, 4, 0, 0]} />
+          <Bar dataKey={bmKey} fill={benchmarkColor} radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

@@ -93,7 +93,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
                         key={df}
                         className={`p-1 text-center rounded cursor-default transition-colors relative group/cell ${
                           beatsBenchmark
-                            ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 font-medium'
+                            ? 'bg-teal-100 dark:bg-teal-900/40 text-teal-800 dark:text-teal-200 font-medium'
                             : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
                         }`}
                       >
@@ -129,12 +129,12 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
                   return (
                     <div
                       key={`${cell.deltaStock},${cell.deltaFx}`}
-                      className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/40 text-xs"
+                      className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-teal-50 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-900/40 text-xs"
                     >
-                      <span className="text-blue-700 dark:text-blue-300 font-medium tabular-nums">
+                      <span className="text-teal-700 dark:text-teal-300 font-medium tabular-nums">
                         Akcje {cell.deltaStock > 0 ? '+' : ''}{cell.deltaStock}% / USD {cell.deltaFx > 0 ? '+' : ''}{cell.deltaFx}%
                       </span>
-                      <span className="text-blue-600 dark:text-blue-400 tabular-nums font-semibold">
+                      <span className="text-teal-600 dark:text-teal-400 tabular-nums font-semibold">
                         +{fmtPLN(diff)}
                       </span>
                     </div>
@@ -153,7 +153,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
 
       <div className="flex items-center gap-4 text-xs text-text-muted pt-1 flex-wrap">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-4 h-4 rounded bg-blue-100 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800" />
+          <span className="inline-block w-4 h-4 rounded bg-blue-100 dark:bg-blue-900/40 border border-teal-200 dark:border-teal-800" />
           Akcje lepsze (✓)
         </span>
         <span className="flex items-center gap-1.5">

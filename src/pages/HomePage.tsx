@@ -57,14 +57,14 @@ export function HomePage() {
           <Link
             key={to}
             to={to}
-            className={`group block rounded-xl border ${border} ${bg} p-6 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400`}
+            className={`group block rounded-xl border ${border} ${bg} p-6 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand`}
           >
             <div className="flex items-start gap-4">
               <div className={`shrink-0 p-2.5 rounded-lg ${color} bg-white/60 dark:bg-white/10`}>
                 <Icon size={24} aria-hidden="true" />
               </div>
               <div className="min-w-0 space-y-1.5">
-                <h3 className="font-semibold text-text-primary group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
+                <h3 className="font-semibold text-text-primary group-hover:text-brand dark:group-hover:text-brand transition-colors">
                   {title}
                 </h3>
                 <p className="text-sm text-text-secondary leading-relaxed">

@@ -245,9 +245,9 @@ export function InputPanel({
               <span className="text-text-faint">·</span>
               <span>{bmSummary}</span>
               <span className="text-text-faint">·</span>
-              <span className="text-blue-600 dark:text-blue-400 font-medium">{horizonLabel}</span>
+              <span className="text-teal-600 dark:text-teal-400 font-medium">{horizonLabel}</span>
             </div>
-            <span className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-medium whitespace-nowrap shrink-0">
+            <span className="flex items-center gap-1 text-xs text-teal-600 dark:text-teal-400 font-medium whitespace-nowrap shrink-0">
               Rozwiń <ChevronDown size={16} />
             </span>
           </button>
@@ -275,7 +275,7 @@ export function InputPanel({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition-colors"
+            className="flex items-center gap-1 text-xs text-teal-600 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 font-medium transition-colors"
           >
             Zwiń <ChevronUp size={16} />
           </button>
@@ -311,10 +311,10 @@ export function InputPanel({
               value={localTicker}
               onChange={(e) => setLocalTicker(e.target.value.toUpperCase())}
               placeholder="np. AAPL, NVDA, VOO"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint pr-9"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint pr-9"
             />
             {assetLoading && (
-              <Loader2 size={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin motion-reduce:animate-none text-blue-500" aria-hidden="true" />
+              <Loader2 size={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin motion-reduce:animate-none text-brand" aria-hidden="true" />
             )}
           </div>
           <button
@@ -357,24 +357,24 @@ export function InputPanel({
           value={shares || ''}
           onChange={(e) => onSharesChange(Number(e.target.value))}
           placeholder="np. 50"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
         />
         <button
           type="button"
           onClick={() => setShowValueCalc((v) => !v)}
-          className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+          className="flex items-center gap-1 text-xs text-teal-600 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 transition-colors"
         >
           <Calculator size={12} />
           {showValueCalc ? 'Ukryj kalkulator' : 'Nie wiesz ile masz akcji, ale znasz wartość?'}
         </button>
         {showValueCalc && (
-          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900 rounded-lg p-3 space-y-2">
-            <p className="text-xs text-blue-700 dark:text-blue-300">
+          <div className="bg-teal-50 dark:bg-teal-950/30 border border-teal-100 dark:border-teal-900 rounded-lg p-3 space-y-2">
+            <p className="text-xs text-teal-700 dark:text-teal-300">
               Wpisz całkowitą wartość portfela w USD — obliczymy liczbę akcji.
             </p>
             <div className="flex gap-2 items-end">
               <div className="flex-1 space-y-1">
-                <label className="text-xs text-blue-600 dark:text-blue-400">Wartość portfela (USD)</label>
+                <label className="text-xs text-teal-600 dark:text-teal-400">Wartość portfela (USD)</label>
                 <input
                   type="number"
                   min={0}
@@ -382,7 +382,7 @@ export function InputPanel({
                   value={totalValueStr}
                   onChange={(e) => setTotalValueStr(e.target.value)}
                   placeholder="np. 5000.00"
-                  className="w-full border border-blue-200 dark:border-blue-700 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:text-text-primary dark:placeholder-text-faint bg-bg-card"
+                  className="w-full border border-teal-200 dark:border-teal-700 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand dark:bg-bg-muted dark:text-text-primary dark:placeholder-text-faint bg-bg-card"
                 />
               </div>
               <button
@@ -397,13 +397,13 @@ export function InputPanel({
                     setTotalValueStr('');
                   }
                 }}
-                className="px-3 py-1.5 text-xs font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-40 transition-colors"
+                className="px-3 py-1.5 text-xs font-medium bg-brand text-white rounded-md hover:bg-brand-hover disabled:opacity-40 transition-colors"
               >
                 Przelicz
               </button>
             </div>
             {currentPriceUSD > 0 && totalValueStr && parseFloat(totalValueStr) > 0 && (
-              <p className="text-xs text-blue-600 dark:text-blue-400">
+              <p className="text-xs text-teal-600 dark:text-teal-400">
                 {fmtUSD(parseFloat(totalValueStr))} ÷ {fmtUSD(currentPriceUSD)} ≈{' '}
                 <strong>{Math.floor(parseFloat(totalValueStr) / currentPriceUSD)} akcji</strong>
                 {' '}(zaokrąglone w dół)
@@ -436,7 +436,7 @@ export function InputPanel({
           value={currentPriceUSD || ''}
           onChange={(e) => onPriceChange(Number(e.target.value))}
           placeholder="np. 185.00"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
         />
       </div>
 
@@ -451,7 +451,7 @@ export function InputPanel({
           <span className="flex items-center gap-1.5">
             Ustawienia zaawansowane
             {(avgCostUSD > 0 || isRSU || brokerFeeUSD > 0 || dividendYieldPercent > 0) && (
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              <span className="w-1.5 h-1.5 rounded-full bg-brand" />
             )}
           </span>
           <ChevronDown size={14} className={`transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} aria-hidden="true" />
@@ -481,7 +481,7 @@ export function InputPanel({
           onChange={(e) => onAvgCostUSDChange(Number(e.target.value))}
           placeholder={isRSU ? 'RSU: $0' : 'np. 50.00'}
           disabled={isRSU}
-          className={`w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint ${isRSU ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint ${isRSU ? 'opacity-50 cursor-not-allowed' : ''}`}
         />
         {/* RSU toggle */}
         <label className="flex items-center gap-2 text-sm text-text-muted cursor-pointer mt-1">
@@ -492,7 +492,7 @@ export function InputPanel({
               onIsRSUChange(e.target.checked);
               if (e.target.checked) onAvgCostUSDChange(0);
             }}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-border-strong dark:bg-bg-muted"
+            className="rounded border-gray-300 text-blue-600 focus:ring-brand dark:border-border-strong dark:bg-bg-muted"
           />
           <span>RSU / akcje przyznane (koszt nabycia = $0)</span>
           <Tooltip content="Restricted Stock Units — akcje przyznane przez pracodawcę. Cena nabycia wynosi $0, więc cały przychód ze sprzedaży podlega opodatkowaniu podatkiem Belki." />
@@ -533,7 +533,7 @@ export function InputPanel({
           value={brokerFeeUSD || ''}
           onChange={(e) => onBrokerFeeUSDChange(Number(e.target.value))}
           placeholder="np. 1.00"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
         />
       </div>
 
@@ -555,7 +555,7 @@ export function InputPanel({
           value={dividendYieldPercent || ''}
           onChange={(e) => onDividendYieldChange(Number(e.target.value))}
           placeholder="np. 1.5"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
         />
         {dividendYieldPercent > 0 && (
           <p className="text-xs text-text-muted">
@@ -593,7 +593,7 @@ export function InputPanel({
           value={currentFxRate || ''}
           onChange={(e) => onFxRateChange(Number(e.target.value))}
           placeholder="np. 4.1500"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
         />
       </div>
 
@@ -606,7 +606,7 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('savings')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'savings'
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 text-teal-700 dark:text-teal-300'
                 : 'border-border bg-white dark:bg-bg-muted text-text-muted hover:bg-gray-50 dark:hover:bg-bg-muted'
             }`}
           >
@@ -617,7 +617,7 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('bonds')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'bonds'
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 text-teal-700 dark:text-teal-300'
                 : 'border-border bg-white dark:bg-bg-muted text-text-muted hover:bg-gray-50 dark:hover:bg-bg-muted'
             }`}
           >
@@ -628,7 +628,7 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('etf')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'etf'
-                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300'
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30 text-teal-700 dark:text-teal-300'
                 : 'border-border bg-white dark:bg-bg-muted text-text-muted hover:bg-gray-50 dark:hover:bg-bg-muted'
             }`}
           >
@@ -670,7 +670,7 @@ export function InputPanel({
             value={wiborStr}
             onChange={(e) => handleWiborChange(e.target.value)}
             placeholder="np. 5.82"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand dark:bg-bg-muted dark:border-border-strong dark:text-text-primary dark:placeholder-text-faint"
           />
           {!monthlyRate && (
             <p className="text-xs text-text-faint">
@@ -720,7 +720,7 @@ export function InputPanel({
       <div className="space-y-2">
         <label className="text-sm font-medium text-text-secondary">
           Horyzont czasowy:{' '}
-          <span className="text-blue-600 dark:text-blue-400 font-semibold">
+          <span className="text-teal-600 dark:text-teal-400 font-semibold">
             {horizonMonths <= 11
               ? `${horizonMonths} ${horizonMonths === 1 ? 'miesiąc' : horizonMonths < 5 ? 'miesiące' : 'miesięcy'}`
               : horizonMonths % 12 === 0

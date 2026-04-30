@@ -38,27 +38,26 @@ function CustomLegend({ payload }: { payload?: Array<{ value: string; color: str
   );
 }
 
-const WRAPPER_COLORS = {
-  ike: '#0d9488',      // teal-600
-  ikze: '#7c3aed',     // violet-600
-  regular: '#2563eb',  // blue-600
-  inflation: '#6b7280', // gray-500
-  counterfactual: '#ea580c', // orange-600
-} as const;
+function getChartColors() {
+  const style = getComputedStyle(document.documentElement);
+  return {
+    ike: style.getPropertyValue('--color-chart-ike').trim(),
+    ikze: style.getPropertyValue('--color-chart-ikze').trim(),
+    regular: style.getPropertyValue('--color-chart-regular').trim(),
+    inflation: style.getPropertyValue('--color-chart-inflation').trim(),
+    counterfactual: style.getPropertyValue('--color-chart-counterfactual').trim(),
+    grid: style.getPropertyValue('--color-chart-grid').trim(),
+    tick: style.getPropertyValue('--color-chart-tick').trim(),
+    tooltipBg: style.getPropertyValue('--color-chart-tooltip-bg').trim(),
+    tooltipBorder: style.getPropertyValue('--color-chart-tooltip-border').trim(),
+    tooltipText: style.getPropertyValue('--color-chart-tooltip-text').trim(),
+  };
+}
 
-const WRAPPER_COLORS_DARK = {
-  ike: '#2dd4bf',      // teal-400
-  ikze: '#a78bfa',
-  regular: '#60a5fa',
-  inflation: '#9ca3af',
-  counterfactual: '#fb923c', // orange-400
-} as const;
-
-function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps) {
+function AccumulationChart({ data, milestones }: AccumulationChartProps) {
   const [viewMode, setViewMode] = useState<'stacked' | 'lines'>('stacked');
-  const colors = isDark ? WRAPPER_COLORS_DARK : WRAPPER_COLORS;
-  const gridColor = isDark ? '#374151' : '#f0f0f0';
-  const tickColor = isDark ? '#9ca3af' : '#666666';
+  const chartColors = getChartColors();
+  const { grid: gridColor, tick: tickColor } = chartColors;
 
   const chartData = useMemo(() =>
     data.map(snap => ({
@@ -142,17 +141,17 @@ function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps)
               formatter={formatTooltip}
               labelFormatter={(v) => `Rok ${v}`}
               contentStyle={{
-                backgroundColor: isDark ? '#1e293b' : '#fff',
-                borderColor: isDark ? '#334155' : '#e5e7eb',
-                color: isDark ? '#f8fafc' : '#111827',
+                backgroundColor: chartColors.tooltipBg,
+                borderColor: chartColors.tooltipBorder,
+                color: chartColors.tooltipText,
               }}
             />
             <Legend content={<CustomLegend />} />
-            <Area type="monotone" dataKey="Rachunek maklerski" stackId="1" stroke={colors.regular} fill={colors.regular} fillOpacity={0.3} />
-            <Area type="monotone" dataKey="IKZE" stackId="1" stroke={colors.ikze} fill={colors.ikze} fillOpacity={0.3} />
-            <Area type="monotone" dataKey="IKE" stackId="1" stroke={colors.ike} fill={colors.ike} fillOpacity={0.3} />
-            <Line type="monotone" dataKey="Siła nabywcza" stroke={colors.inflation} strokeDasharray="6 3" dot={false} strokeWidth={1.5} />
-            <Line type="monotone" dataKey="Bez IKE/IKZE" stroke={colors.counterfactual} strokeDasharray="4 4" dot={false} strokeWidth={1.5} />
+            <Area type="monotone" dataKey="Rachunek maklerski" stackId="1" stroke={chartColors.regular} fill={chartColors.regular} fillOpacity={0.3} />
+            <Area type="monotone" dataKey="IKZE" stackId="1" stroke={chartColors.ikze} fill={chartColors.ikze} fillOpacity={0.3} />
+            <Area type="monotone" dataKey="IKE" stackId="1" stroke={chartColors.ike} fill={chartColors.ike} fillOpacity={0.3} />
+            <Line type="monotone" dataKey="Siła nabywcza" stroke={chartColors.inflation} strokeDasharray="6 3" dot={false} strokeWidth={1.5} />
+            <Line type="monotone" dataKey="Bez IKE/IKZE" stroke={chartColors.counterfactual} strokeDasharray="4 4" dot={false} strokeWidth={1.5} />
           </AreaChart>
         ) : (
           <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 24, left: 10 }}>
@@ -170,17 +169,17 @@ function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps)
               formatter={formatTooltip}
               labelFormatter={(v) => `Rok ${v}`}
               contentStyle={{
-                backgroundColor: isDark ? '#1e293b' : '#fff',
-                borderColor: isDark ? '#334155' : '#e5e7eb',
-                color: isDark ? '#f8fafc' : '#111827',
+                backgroundColor: chartColors.tooltipBg,
+                borderColor: chartColors.tooltipBorder,
+                color: chartColors.tooltipText,
               }}
             />
             <Legend content={<CustomLegend />} />
-            <Line type="monotone" dataKey="IKE" stroke={colors.ike} strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="IKZE" stroke={colors.ikze} strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="Rachunek maklerski" stroke={colors.regular} strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="Siła nabywcza" stroke={colors.inflation} strokeDasharray="6 3" dot={false} strokeWidth={1.5} />
-            <Line type="monotone" dataKey="Bez IKE/IKZE" stroke={colors.counterfactual} strokeDasharray="4 4" dot={false} strokeWidth={1.5} />
+            <Line type="monotone" dataKey="IKE" stroke={chartColors.ike} strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="IKZE" stroke={chartColors.ikze} strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="Rachunek maklerski" stroke={chartColors.regular} strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="Siła nabywcza" stroke={chartColors.inflation} strokeDasharray="6 3" dot={false} strokeWidth={1.5} />
+            <Line type="monotone" dataKey="Bez IKE/IKZE" stroke={chartColors.counterfactual} strokeDasharray="4 4" dot={false} strokeWidth={1.5} />
           </LineChart>
         )}
       </ResponsiveContainer>

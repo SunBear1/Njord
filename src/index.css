@@ -8,62 +8,146 @@
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
 
-  /* Brand & scenario colors */
-  --color-brand: #1a56db;
-  --color-bear: #c2410c;    /* orange-700 — colorblind-safe negative */
-  --color-base: #d97706;    /* amber-600 */
-  --color-bull: #0e7490;    /* cyan-700 — colorblind-safe positive */
+  /* Brand colors */
+  --color-brand: #0d9488;           /* teal-600 */
+  --color-brand-hover: #0f766e;     /* teal-700 */
+  --color-brand-light: #ccfbf1;     /* teal-100 */
+  --color-brand-muted: #99f6e4;     /* teal-200 */
 
-  /* Semantic surface tokens (light mode defaults) */
-  --color-bg-primary: #f9fafb;     /* gray-50 */
-  --color-bg-secondary: #ffffff;    /* white */
+  /* Scenario colors (bear/base/bull) */
+  --color-bear: #dc2626;            /* red-600 */
+  --color-base: #d97706;            /* amber-600 */
+  --color-bull: #16a34a;            /* green-600 */
+
+  /* Semantic surface tokens */
+  --color-bg-primary: #f0fdfa;      /* teal-50 */
+  --color-bg-secondary: #ffffff;
   --color-bg-card: #ffffff;
-  --color-bg-muted: #f3f4f6;       /* gray-100 */
+  --color-bg-muted: #f0fdf4;        /* green-50 — subtle warmth */
 
   /* Semantic text tokens */
-  --color-text-primary: #111827;    /* gray-900 */
+  --color-text-primary: #134e4a;    /* teal-900 */
   --color-text-secondary: #374151;  /* gray-700 */
   --color-text-muted: #6b7280;      /* gray-500 */
   --color-text-faint: #9ca3af;      /* gray-400 */
 
   /* Semantic border tokens */
-  --color-border: #e5e7eb;          /* gray-200 */
-  --color-border-strong: #d1d5db;   /* gray-300 */
+  --color-border: #ccfbf1;          /* teal-100 */
+  --color-border-strong: #99f6e4;   /* teal-200 */
 
   /* Accent colors */
-  --color-accent-info: #2563eb;     /* blue-600 */
+  --color-accent-info: #0891b2;     /* cyan-600 */
   --color-accent-warning: #f97316;  /* orange-500 */
   --color-accent-success: #16a34a;  /* green-600 */
   --color-accent-error: #dc2626;    /* red-600 */
 
   /* Input state tokens */
-  --color-input-border: #d1d5db;        /* gray-300 */
-  --color-input-border-focus: #3b82f6;  /* blue-500 */
+  --color-input-border: #99f6e4;        /* teal-200 */
+  --color-input-border-focus: #0d9488;  /* teal-600 */
+
+  /* Chart tokens */
+  --color-chart-grid: #e2e8f0;      /* slate-200 */
+  --color-chart-tick: #6b7280;      /* gray-500 */
+  --color-chart-benchmark: #7c3aed; /* violet-600 */
+  --color-chart-reference: #94a3b8; /* slate-400 */
+  --color-chart-ike: #0d9488;       /* teal-600 */
+  --color-chart-ikze: #7c3aed;      /* violet-600 */
+  --color-chart-regular: #0891b2;   /* cyan-600 */
+  --color-chart-inflation: #6b7280; /* gray-500 */
+  --color-chart-counterfactual: #ea580c; /* orange-600 */
+  --color-chart-tooltip-bg: #ffffff;
+  --color-chart-tooltip-border: #e2e8f0;
+  --color-chart-tooltip-text: #111827;
+
+  /* Feature card accent tokens */
+  --color-feature-comparison: #0891b2;     /* cyan-600 */
+  --color-feature-comparison-bg: #ecfeff;  /* cyan-50 */
+  --color-feature-comparison-border: #a5f3fc; /* cyan-200 */
+  --color-feature-forecast: #0d9488;       /* teal-600 */
+  --color-feature-forecast-bg: #f0fdfa;    /* teal-50 */
+  --color-feature-forecast-border: #99f6e4; /* teal-200 */
+  --color-feature-tax: #d97706;            /* amber-600 */
+  --color-feature-tax-bg: #fffbeb;         /* amber-50 */
+  --color-feature-tax-border: #fde68a;     /* amber-200 */
+  --color-feature-portfolio: #7c3aed;      /* violet-600 */
+  --color-feature-portfolio-bg: #f5f3ff;   /* violet-50 */
+  --color-feature-portfolio-border: #ddd6fe; /* violet-200 */
+  --color-feature-rates: #0284c7;          /* sky-600 */
+  --color-feature-rates-bg: #f0f9ff;       /* sky-50 */
+  --color-feature-rates-border: #bae6fd;   /* sky-200 */
 }
 
 /* Dark theme — active when <html class="dark"> */
 html.dark {
   color-scheme: dark;
-  --color-brand: #58a6ff;
-  --color-bear: #fb923c;    /* orange-400 — colorblind-safe negative */
-  --color-base: #fbbf24;    /* amber-400 */
-  --color-bull: #38bdf8;    /* sky-400 — colorblind-safe positive */
-  --color-bg-primary: #0d1117;       /* GitHub Dark — page background */
-  --color-bg-secondary: #161b22;     /* GitHub Dark — secondary surface */
-  --color-bg-card: #161b22;          /* GitHub Dark — card surface */
-  --color-bg-muted: #21262d;         /* GitHub Dark — muted/input bg */
-  --color-text-primary: #e6edf3;     /* GitHub Dark — primary text */
-  --color-text-secondary: #8b949e;   /* GitHub Dark — secondary text */
-  --color-text-muted: #6e7681;       /* GitHub Dark — muted text */
-  --color-text-faint: #484f58;       /* GitHub Dark — faint text */
-  --color-border: #21262d;           /* GitHub Dark — border */
-  --color-border-strong: #30363d;    /* GitHub Dark — strong border */
-  --color-accent-info: #58a6ff;      /* GitHub Dark — blue accent */
-  --color-accent-warning: #d29922;   /* GitHub Dark — warning */
-  --color-accent-success: #3fb950;   /* GitHub Dark — success */
-  --color-accent-error: #f85149;     /* GitHub Dark — error */
-  --color-input-border: #30363d;
-  --color-input-border-focus: #58a6ff;
+
+  /* Brand */
+  --color-brand: #2dd4bf;           /* teal-400 */
+  --color-brand-hover: #5eead4;     /* teal-300 */
+  --color-brand-light: #134e4a;     /* teal-900 */
+  --color-brand-muted: #115e59;     /* teal-800 */
+
+  /* Scenarios */
+  --color-bear: #f87171;            /* red-400 */
+  --color-base: #fbbf24;            /* amber-400 */
+  --color-bull: #4ade80;            /* green-400 */
+
+  /* Surfaces */
+  --color-bg-primary: #0f1f1d;      /* custom dark teal-gray */
+  --color-bg-secondary: #1a2f2d;    /* mid dark teal-gray */
+  --color-bg-card: #1a2f2d;
+  --color-bg-muted: #264040;        /* lighter teal-gray */
+
+  /* Text */
+  --color-text-primary: #f0fdfa;    /* teal-50 */
+  --color-text-secondary: #ccfbf1;  /* teal-100 */
+  --color-text-muted: #5eead4;      /* teal-300 */
+  --color-text-faint: #2dd4bf;      /* teal-400 */
+
+  /* Borders */
+  --color-border: #264040;
+  --color-border-strong: #336666;
+
+  /* Accents */
+  --color-accent-info: #22d3ee;     /* cyan-400 */
+  --color-accent-warning: #fb923c;  /* orange-400 */
+  --color-accent-success: #4ade80;  /* green-400 */
+  --color-accent-error: #f87171;    /* red-400 */
+
+  /* Inputs */
+  --color-input-border: #336666;
+  --color-input-border-focus: #2dd4bf;
+
+  /* Charts */
+  --color-chart-grid: #264040;
+  --color-chart-tick: #5eead4;
+  --color-chart-benchmark: #a78bfa; /* violet-400 */
+  --color-chart-reference: #94a3b8;
+  --color-chart-ike: #2dd4bf;       /* teal-400 */
+  --color-chart-ikze: #a78bfa;      /* violet-400 */
+  --color-chart-regular: #22d3ee;   /* cyan-400 */
+  --color-chart-inflation: #9ca3af;
+  --color-chart-counterfactual: #fb923c; /* orange-400 */
+  --color-chart-tooltip-bg: #1a2f2d;
+  --color-chart-tooltip-border: #336666;
+  --color-chart-tooltip-text: #f0fdfa;
+
+  /* Feature cards */
+  --color-feature-comparison: #22d3ee;     /* cyan-400 */
+  --color-feature-comparison-bg: #0c1f2e;
+  --color-feature-comparison-border: #164e63;
+  --color-feature-forecast: #2dd4bf;       /* teal-400 */
+  --color-feature-forecast-bg: #0f1f1d;
+  --color-feature-forecast-border: #115e59;
+  --color-feature-tax: #fbbf24;            /* amber-400 */
+  --color-feature-tax-bg: #1f1a0a;
+  --color-feature-tax-border: #78350f;
+  --color-feature-portfolio: #a78bfa;      /* violet-400 */
+  --color-feature-portfolio-bg: #1a1033;
+  --color-feature-portfolio-border: #4c1d95;
+  --color-feature-rates: #38bdf8;          /* sky-400 */
+  --color-feature-rates-bg: #0c1929;
+  --color-feature-rates-border: #075985;
 }
 
 body {

@@ -25,9 +25,9 @@ const SCENARIO_ICON = {
 
 const SCENARIO_STYLE = {
   bear: {
-    bg: 'bg-orange-50 dark:bg-orange-950/30',
-    border: 'border-orange-200 dark:border-orange-900',
-    badge: 'bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-200 border border-orange-200 dark:border-orange-800',
+    bg: 'bg-red-50 dark:bg-red-950/30',
+    border: 'border-red-200 dark:border-red-900',
+    badge: 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800',
   },
   base: {
     bg: 'bg-amber-50 dark:bg-amber-950/30',
@@ -35,9 +35,9 @@ const SCENARIO_STYLE = {
     badge: 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800',
   },
   bull: {
-    bg: 'bg-cyan-50 dark:bg-cyan-950/30',
-    border: 'border-cyan-200 dark:border-cyan-900',
-    badge: 'bg-cyan-100 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800',
+    bg: 'bg-green-50 dark:bg-green-950/30',
+    border: 'border-green-200 dark:border-green-900',
+    badge: 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800',
   },
 };
 
@@ -83,7 +83,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
           const gain = r.unrealizedGainPLN ?? 0;
           const gainPct = r.unrealizedGainPercent ?? 0;
           return (
-            <div className={`flex items-start gap-2 px-3 py-2.5 rounded-xl border text-sm ${isProfit ? 'bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300' : 'bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800 text-orange-800 dark:text-orange-200'}`}>
+            <div className={`flex items-start gap-2 px-3 py-2.5 rounded-xl border text-sm ${isProfit ? 'bg-teal-50 dark:bg-teal-950/20 border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-300' : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'}`}>
               <span className="text-lg leading-tight flex-shrink-0" aria-hidden="true">{isProfit ? '▲' : '▼'}</span>
               <div className="flex-1">
                 <span className="font-semibold">
@@ -125,14 +125,14 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
               <div className="grid grid-cols-2 gap-2">
                 {/* Akcje column */}
                 <div className={`rounded-xl p-3 text-center space-y-1 ${stockWins ? 'bg-bg-card shadow-sm ring-2 ring-amber-300' : 'bg-white/60 dark:bg-bg-card/60'}`}>
-                  <div className="flex items-center justify-center gap-1 text-xs font-bold text-blue-700 dark:text-blue-300 uppercase tracking-wide">
+                  <div className="flex items-center justify-center gap-1 text-xs font-bold text-teal-700 dark:text-teal-300 uppercase tracking-wide">
                     {stockWins && <Trophy size={12} className="text-amber-400" aria-hidden="true" />}
                     Akcje
                   </div>
                   <div className="text-base font-bold text-text-primary tabular-nums">{fmtPLN(r.stockNetEndValuePLN)}</div>
-                  <div className="text-xs font-medium text-blue-600 dark:text-blue-400 tabular-nums">{fmtDiffPct(r.stockReturnNet)}</div>
+                  <div className="text-xs font-medium text-teal-600 dark:text-teal-400 tabular-nums">{fmtDiffPct(r.stockReturnNet)}</div>
                   {hasInflation && (
-                    <div className="text-[10px] text-orange-600 dark:text-orange-400 font-medium">
+                    <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
                       realnie {r.stockRealReturnNet >= 0 ? '+' : ''}{r.stockRealReturnNet.toFixed(2)}%
                     </div>
                   )}
@@ -154,7 +154,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
                     {r.benchmarkReturnNet >= 0 ? '+' : ''}{r.benchmarkReturnNet.toFixed(2)}%
                   </div>
                   {hasInflation && (
-                    <div className="text-[10px] text-orange-600 dark:text-orange-400 font-medium">
+                    <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
                       realnie {r.benchmarkRealReturnNet >= 0 ? '+' : ''}{r.benchmarkRealReturnNet.toFixed(2)}%
                     </div>
                   )}
@@ -172,8 +172,8 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
 
       {/* Inflation projection note */}
       {hasInflation && (
-        <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-xl px-4 py-3 text-xs text-orange-800 dark:text-orange-300 flex items-start gap-2">
-          <TrendingDown size={16} className="mt-0.5 flex-shrink-0 text-orange-500 dark:text-orange-400" aria-hidden="true" />
+        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2">
+          <TrendingDown size={16} className="mt-0.5 flex-shrink-0 text-amber-500 dark:text-amber-400" aria-hidden="true" />
           <p>
             <strong>Inflacja {currentInflationRate.toFixed(1)}%</strong>
             {cpiPeriod ? ` (${inflationSource ?? 'Eurostat'}, ${cpiPeriod})` : ''}.{' '}

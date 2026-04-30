@@ -115,15 +115,15 @@ test.describe('Njord smoke tests', () => {
     await page.waitForSelector('main', { timeout: 10_000 });
 
     // Click comparison nav link
-    await page.getByRole('link', { name: /Porównanie inwestycji/i }).click();
+    await page.locator('nav').getByRole('link', { name: /Porównanie inwestycji/i }).click();
     await expect(page).toHaveURL(/\/comparison/);
 
     // Click forecast nav link
-    await page.getByRole('link', { name: /Prognoza cenowa/i }).click();
+    await page.locator('nav').getByRole('link', { name: /Prognoza cenowa/i }).click();
     await expect(page).toHaveURL(/\/forecast/);
 
     // Click tax nav link
-    await page.getByRole('link', { name: /Podatek Belki/i }).click();
+    await page.locator('nav').getByRole('link', { name: /Podatek Belki/i }).click();
     await expect(page).toHaveURL(/\/tax/);
 
     // Click home via logo

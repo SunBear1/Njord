@@ -32,9 +32,9 @@ const SCENARIO_CONFIG: {
   {
     key: 'bear', label: 'Niedźwiedzi',
     icon: <TrendingDown size={14} aria-hidden="true" />,
-    headerBg: 'bg-orange-100 dark:bg-orange-900/40', headerText: 'text-orange-800 dark:text-orange-200',
-    cardBorder: 'border-orange-200 dark:border-orange-800', cardBg: 'bg-orange-50/30 dark:bg-orange-950/20',
-    inputBorder: 'border-orange-300 dark:border-orange-600 focus:ring-orange-400',
+    headerBg: 'bg-red-100 dark:bg-red-900/40', headerText: 'text-red-800 dark:text-red-200',
+    cardBorder: 'border-red-200 dark:border-red-800', cardBg: 'bg-red-50/30 dark:bg-red-950/20',
+    inputBorder: 'border-red-300 dark:border-red-600 focus:ring-red-400',
   },
   {
     key: 'base', label: 'Bazowy',
@@ -46,9 +46,9 @@ const SCENARIO_CONFIG: {
   {
     key: 'bull', label: 'Byczy',
     icon: <TrendingUp size={14} aria-hidden="true" />,
-    headerBg: 'bg-cyan-100 dark:bg-cyan-900/40', headerText: 'text-cyan-700 dark:text-cyan-300',
-    cardBorder: 'border-cyan-200 dark:border-cyan-800', cardBg: 'bg-cyan-50/30 dark:bg-cyan-950/20',
-    inputBorder: 'border-cyan-300 dark:border-cyan-600 focus:ring-cyan-400',
+    headerBg: 'bg-green-100 dark:bg-green-900/40', headerText: 'text-green-700 dark:text-green-300',
+    cardBorder: 'border-green-200 dark:border-green-800', cardBg: 'bg-green-50/30 dark:bg-green-950/20',
+    inputBorder: 'border-green-300 dark:border-green-600 focus:ring-green-400',
   },
 ];
 
@@ -71,8 +71,8 @@ function ModeToggle({ mode, onToggle, labelA, labelB, disabled }: { mode: InputM
       title={disabled ? 'Wpisz ticker, aby przełączyć tryb' : 'Przełącz tryb wpisywania'}
       aria-label={disabled ? 'Przełącz tryb wpisywania (brak danych)' : `Tryb: ${mode === 'pct' ? labelA : labelB} — kliknij, aby zmienić`}
     >
-      <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'pct' ? 'bg-blue-600 text-white' : 'bg-bg-card text-text-faint hover:bg-bg-muted'}`}>{labelA}</span>
-      <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'fixed' ? 'bg-blue-600 text-white' : 'bg-bg-card text-text-faint hover:bg-bg-muted'}`}>{labelB}</span>
+      <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'pct' ? 'bg-brand text-white' : 'bg-bg-card text-text-faint hover:bg-bg-muted'}`}>{labelA}</span>
+      <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'fixed' ? 'bg-brand text-white' : 'bg-bg-card text-text-faint hover:bg-bg-muted'}`}>{labelB}</span>
     </button>
   );
 }
