@@ -8,146 +8,165 @@
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
 
-  /* Brand colors */
-  --color-brand: #0d9488;           /* teal-600 */
-  --color-brand-hover: #0f766e;     /* teal-700 */
-  --color-brand-light: #ccfbf1;     /* teal-100 */
-  --color-brand-muted: #99f6e4;     /* teal-200 */
+  /* ===== PALETTE =====
+   * #2d3142 — dark navy (headings, dark surfaces, active states)
+   * #4f5d75 — slate gray (body text, secondary)
+   * #bfc0c0 — silver (borders, muted)
+   * #ffffff — white (backgrounds, cards)
+   * #ef8354 — warm orange (CTAs only — buttons, slider, key highlights)
+   * ======================== */
 
-  /* Scenario colors (bear/base/bull) */
-  --color-bear: #dc2626;            /* red-600 */
-  --color-base: #d97706;            /* amber-600 */
-  --color-bull: #16a34a;            /* green-600 */
+  /* --- Surfaces --- */
+  --color-surface: #ffffff;
+  --color-surface-alt: #f8f9fa;
+  --color-surface-muted: #f1f2f4;
+  --color-surface-dark: #2d3142;
+  --color-surface-dark-alt: #3b4055;
 
-  /* Semantic surface tokens */
-  --color-bg-primary: #f0fdfa;      /* teal-50 */
+  /* --- Text --- */
+  --color-heading: #2d3142;
+  --color-body: #4f5d75;
+  --color-muted: #6b7486;
+  --color-faint: #bfc0c0;
+  --color-on-dark: #ffffff;
+  --color-on-dark-muted: #d0d1d2;
+
+  /* --- Accent (orange — use sparingly: CTAs, slider, key interactive) --- */
+  --color-accent: #ef8354;
+  --color-accent-hover: #e06f3e;
+  --color-accent-light: #fdf5f1;
+  --color-accent-muted: #fbe8dd;
+
+  /* --- Border --- */
+  --color-edge: #e2e3e5;
+  --color-edge-strong: #bfc0c0;
+
+  /* --- Status / scenario --- */
+  --color-success: #16a34a;
+  --color-error: #dc2626;
+  --color-warning: #ef8354;
+  --color-bear: #dc2626;
+  --color-base: #ef8354;
+  --color-bull: #16a34a;
+
+  /* --- Legacy aliases --- */
+  --color-brand: #ef8354;
+  --color-bg-primary: #f8f9fa;
   --color-bg-secondary: #ffffff;
   --color-bg-card: #ffffff;
-  --color-bg-muted: #f0fdf4;        /* green-50 — subtle warmth */
+  --color-bg-muted: #f1f2f4;
+  --color-text-primary: #2d3142;
+  --color-text-secondary: #4f5d75;
+  --color-text-muted: #6b7486;
+  --color-text-faint: #bfc0c0;
+  --color-border: #e2e3e5;
+  --color-border-strong: #bfc0c0;
+  --color-accent-info: #2d3142;
+  --color-accent-warning: #ef8354;
+  --color-accent-success: #16a34a;
+  --color-accent-error: #dc2626;
+  --color-input-border: #bfc0c0;
+  --color-input-border-focus: #2d3142;
 
-  /* Semantic text tokens */
-  --color-text-primary: #134e4a;    /* teal-900 */
-  --color-text-secondary: #374151;  /* gray-700 */
-  --color-text-muted: #6b7280;      /* gray-500 */
-  --color-text-faint: #9ca3af;      /* gray-400 */
+  /* --- Tailwind overrides ---
+   * "blue" → navy (active/selected states, focus rings)
+   * "gray/slate" → palette neutrals */
 
-  /* Semantic border tokens */
-  --color-border: #ccfbf1;          /* teal-100 */
-  --color-border-strong: #99f6e4;   /* teal-200 */
+  --color-blue-50: #f3f4f7;
+  --color-blue-100: #e6e8ee;
+  --color-blue-200: #c8ccd6;
+  --color-blue-300: #8e95a8;
+  --color-blue-400: #4f5d75;
+  --color-blue-500: #3b4055;
+  --color-blue-600: #2d3142;
+  --color-blue-700: #2d3142;
+  --color-blue-800: #222635;
+  --color-blue-900: #1a1d2b;
+  --color-blue-950: #101320;
 
-  /* Accent colors */
-  --color-accent-info: #0891b2;     /* cyan-600 */
-  --color-accent-warning: #f97316;  /* orange-500 */
-  --color-accent-success: #16a34a;  /* green-600 */
-  --color-accent-error: #dc2626;    /* red-600 */
+  --color-indigo-50: #f3f4f7;
+  --color-indigo-100: #e6e8ee;
+  --color-indigo-200: #c8ccd6;
+  --color-indigo-300: #8e95a8;
+  --color-indigo-400: #4f5d75;
+  --color-indigo-500: #3b4055;
+  --color-indigo-600: #2d3142;
+  --color-indigo-700: #2d3142;
+  --color-indigo-800: #222635;
+  --color-indigo-900: #1a1d2b;
+  --color-indigo-950: #101320;
 
-  /* Input state tokens */
-  --color-input-border: #99f6e4;        /* teal-200 */
-  --color-input-border-focus: #0d9488;  /* teal-600 */
+  --color-gray-50: #f8f9fa;
+  --color-gray-100: #f1f2f4;
+  --color-gray-200: #e2e3e5;
+  --color-gray-300: #bfc0c0;
+  --color-gray-400: #6b7486;
+  --color-gray-500: #4f5d75;
+  --color-gray-600: #4f5d75;
+  --color-gray-700: #3b4055;
+  --color-gray-800: #2d3142;
+  --color-gray-900: #2d3142;
+  --color-gray-950: #1a1d2b;
 
-  /* Chart tokens */
-  --color-chart-grid: #e2e8f0;      /* slate-200 */
-  --color-chart-tick: #6b7280;      /* gray-500 */
-  --color-chart-benchmark: #7c3aed; /* violet-600 */
-  --color-chart-reference: #94a3b8; /* slate-400 */
-  --color-chart-ike: #0d9488;       /* teal-600 */
-  --color-chart-ikze: #7c3aed;      /* violet-600 */
-  --color-chart-regular: #0891b2;   /* cyan-600 */
-  --color-chart-inflation: #6b7280; /* gray-500 */
-  --color-chart-counterfactual: #ea580c; /* orange-600 */
-  --color-chart-tooltip-bg: #ffffff;
-  --color-chart-tooltip-border: #e2e8f0;
-  --color-chart-tooltip-text: #111827;
-
-  /* Feature card accent tokens */
-  --color-feature-comparison: #0891b2;     /* cyan-600 */
-  --color-feature-comparison-bg: #ecfeff;  /* cyan-50 */
-  --color-feature-comparison-border: #a5f3fc; /* cyan-200 */
-  --color-feature-forecast: #0d9488;       /* teal-600 */
-  --color-feature-forecast-bg: #f0fdfa;    /* teal-50 */
-  --color-feature-forecast-border: #99f6e4; /* teal-200 */
-  --color-feature-tax: #d97706;            /* amber-600 */
-  --color-feature-tax-bg: #fffbeb;         /* amber-50 */
-  --color-feature-tax-border: #fde68a;     /* amber-200 */
-  --color-feature-portfolio: #7c3aed;      /* violet-600 */
-  --color-feature-portfolio-bg: #f5f3ff;   /* violet-50 */
-  --color-feature-portfolio-border: #ddd6fe; /* violet-200 */
-  --color-feature-rates: #0284c7;          /* sky-600 */
-  --color-feature-rates-bg: #f0f9ff;       /* sky-50 */
-  --color-feature-rates-border: #bae6fd;   /* sky-200 */
+  --color-slate-50: #f8f9fa;
+  --color-slate-100: #f1f2f4;
+  --color-slate-200: #e2e3e5;
+  --color-slate-300: #bfc0c0;
+  --color-slate-400: #6b7486;
+  --color-slate-500: #4f5d75;
+  --color-slate-600: #4f5d75;
+  --color-slate-700: #3b4055;
+  --color-slate-800: #2d3142;
+  --color-slate-900: #2d3142;
+  --color-slate-950: #1a1d2b;
 }
 
 /* Dark theme — active when <html class="dark"> */
 html.dark {
   color-scheme: dark;
 
-  /* Brand */
-  --color-brand: #2dd4bf;           /* teal-400 */
-  --color-brand-hover: #5eead4;     /* teal-300 */
-  --color-brand-light: #134e4a;     /* teal-900 */
-  --color-brand-muted: #115e59;     /* teal-800 */
+  --color-surface: #1e2130;
+  --color-surface-alt: #262a3a;
+  --color-surface-muted: #2d3142;
+  --color-surface-dark: #1e2130;
+  --color-surface-dark-alt: #3b4055;
 
-  /* Scenarios */
-  --color-bear: #f87171;            /* red-400 */
-  --color-base: #fbbf24;            /* amber-400 */
-  --color-bull: #4ade80;            /* green-400 */
+  --color-heading: #ffffff;
+  --color-body: #d0d1d2;
+  --color-muted: #8e95a8;
+  --color-faint: #4f5d75;
+  --color-on-dark: #ffffff;
+  --color-on-dark-muted: #d0d1d2;
 
-  /* Surfaces */
-  --color-bg-primary: #0f1f1d;      /* custom dark teal-gray */
-  --color-bg-secondary: #1a2f2d;    /* mid dark teal-gray */
-  --color-bg-card: #1a2f2d;
-  --color-bg-muted: #264040;        /* lighter teal-gray */
+  --color-accent: #ef8354;
+  --color-accent-hover: #f7a577;
+  --color-accent-light: #2a2220;
+  --color-accent-muted: #3d2e26;
 
-  /* Text */
-  --color-text-primary: #f0fdfa;    /* teal-50 */
-  --color-text-secondary: #ccfbf1;  /* teal-100 */
-  --color-text-muted: #5eead4;      /* teal-300 */
-  --color-text-faint: #2dd4bf;      /* teal-400 */
+  --color-edge: #3b4055;
+  --color-edge-strong: #4f5d75;
 
-  /* Borders */
-  --color-border: #264040;
-  --color-border-strong: #336666;
+  --color-bear: #ef4444;
+  --color-base: #ef8354;
+  --color-bull: #22c55e;
 
-  /* Accents */
-  --color-accent-info: #22d3ee;     /* cyan-400 */
-  --color-accent-warning: #fb923c;  /* orange-400 */
-  --color-accent-success: #4ade80;  /* green-400 */
-  --color-accent-error: #f87171;    /* red-400 */
-
-  /* Inputs */
-  --color-input-border: #336666;
-  --color-input-border-focus: #2dd4bf;
-
-  /* Charts */
-  --color-chart-grid: #264040;
-  --color-chart-tick: #5eead4;
-  --color-chart-benchmark: #a78bfa; /* violet-400 */
-  --color-chart-reference: #94a3b8;
-  --color-chart-ike: #2dd4bf;       /* teal-400 */
-  --color-chart-ikze: #a78bfa;      /* violet-400 */
-  --color-chart-regular: #22d3ee;   /* cyan-400 */
-  --color-chart-inflation: #9ca3af;
-  --color-chart-counterfactual: #fb923c; /* orange-400 */
-  --color-chart-tooltip-bg: #1a2f2d;
-  --color-chart-tooltip-border: #336666;
-  --color-chart-tooltip-text: #f0fdfa;
-
-  /* Feature cards */
-  --color-feature-comparison: #22d3ee;     /* cyan-400 */
-  --color-feature-comparison-bg: #0c1f2e;
-  --color-feature-comparison-border: #164e63;
-  --color-feature-forecast: #2dd4bf;       /* teal-400 */
-  --color-feature-forecast-bg: #0f1f1d;
-  --color-feature-forecast-border: #115e59;
-  --color-feature-tax: #fbbf24;            /* amber-400 */
-  --color-feature-tax-bg: #1f1a0a;
-  --color-feature-tax-border: #78350f;
-  --color-feature-portfolio: #a78bfa;      /* violet-400 */
-  --color-feature-portfolio-bg: #1a1033;
-  --color-feature-portfolio-border: #4c1d95;
-  --color-feature-rates: #38bdf8;          /* sky-400 */
-  --color-feature-rates-bg: #0c1929;
-  --color-feature-rates-border: #075985;
+  --color-brand: #ef8354;
+  --color-bg-primary: #1e2130;
+  --color-bg-secondary: #262a3a;
+  --color-bg-card: #262a3a;
+  --color-bg-muted: #2d3142;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #d0d1d2;
+  --color-text-muted: #8e95a8;
+  --color-text-faint: #4f5d75;
+  --color-border: #3b4055;
+  --color-border-strong: #4f5d75;
+  --color-accent-info: #ef8354;
+  --color-accent-warning: #ef8354;
+  --color-accent-success: #22c55e;
+  --color-accent-error: #ef4444;
+  --color-input-border: #4f5d75;
+  --color-input-border-focus: #ef8354;
 }
 
 body {

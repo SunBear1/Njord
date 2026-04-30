@@ -26,7 +26,7 @@ function CustomLegend({ payload }: { payload?: Array<{ value: string; color: str
   return (
     <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-2 px-2">
       {payload.map((entry) => (
-        <span key={entry.value} className="inline-flex items-center gap-1.5 text-xs text-text-muted whitespace-nowrap">
+        <span key={entry.value} className="inline-flex items-center gap-1.5 text-xs text-body dark:text-faint whitespace-nowrap">
           <span
             className="inline-block w-2.5 h-2.5 rounded-sm shrink-0"
             style={{ backgroundColor: entry.color }}
@@ -38,26 +38,27 @@ function CustomLegend({ payload }: { payload?: Array<{ value: string; color: str
   );
 }
 
-function getChartColors() {
-  const style = getComputedStyle(document.documentElement);
-  return {
-    ike: style.getPropertyValue('--color-chart-ike').trim(),
-    ikze: style.getPropertyValue('--color-chart-ikze').trim(),
-    regular: style.getPropertyValue('--color-chart-regular').trim(),
-    inflation: style.getPropertyValue('--color-chart-inflation').trim(),
-    counterfactual: style.getPropertyValue('--color-chart-counterfactual').trim(),
-    grid: style.getPropertyValue('--color-chart-grid').trim(),
-    tick: style.getPropertyValue('--color-chart-tick').trim(),
-    tooltipBg: style.getPropertyValue('--color-chart-tooltip-bg').trim(),
-    tooltipBorder: style.getPropertyValue('--color-chart-tooltip-border').trim(),
-    tooltipText: style.getPropertyValue('--color-chart-tooltip-text').trim(),
-  };
-}
+const WRAPPER_COLORS = {
+  ike: '#16a34a',      // green-600
+  ikze: '#7c3aed',     // violet-600
+  regular: '#2563eb',  // blue-600
+  inflation: '#6b7280', // gray-500
+  counterfactual: '#ef4444', // red-500
+} as const;
 
-function AccumulationChart({ data, milestones }: AccumulationChartProps) {
+const WRAPPER_COLORS_DARK = {
+  ike: '#22c55e',
+  ikze: '#a78bfa',
+  regular: '#60a5fa',
+  inflation: '#9ca3af',
+  counterfactual: '#f87171',
+} as const;
+
+function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps) {
   const [viewMode, setViewMode] = useState<'stacked' | 'lines'>('stacked');
-  const chartColors = getChartColors();
-  const { grid: gridColor, tick: tickColor } = chartColors;
+  const colors = isDark ? WRAPPER_COLORS_DARK : WRAPPER_COLORS;
+  const gridColor = isDark ? '#374151' : '#f0f0f0';
+  const tickColor = isDark ? '#9ca3af' : '#666666';
 
   const chartData = useMemo(() =>
     data.map(snap => ({
@@ -86,16 +87,16 @@ function AccumulationChart({ data, milestones }: AccumulationChartProps) {
   const formatTooltip = (value: unknown) => fmtPLN(Number(value ?? 0));
 
   return (
-    <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-3">
+    <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-5 space-y-3">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <h3 className="text-base font-semibold text-text-primary">
+        <h3 className="text-base font-semibold text-heading dark:text-on-dark">
           Wzrost portfela w czasie
         </h3>
-        <div className="flex rounded-lg border border-border overflow-hidden text-xs" role="group" aria-label="Widok wykresu">
+        <div className="flex rounded-lg border border-edge dark:border-edge-strong overflow-hidden text-xs" role="group" aria-label="Widok wykresu">
           <button
             type="button"
             onClick={() => setViewMode('stacked')}
-            className={`px-2.5 py-1 transition-colors ${viewMode === 'stacked' ? 'bg-bg-muted font-semibold text-text-primary' : 'text-text-muted hover:bg-bg-muted/50'}`}
+            className={`px-2.5 py-1 transition-colors ${viewMode === 'stacked' ? 'bg-surface-muted dark:bg-surface-dark-alt font-semibold text-heading dark:text-on-dark' : 'text-muted dark:text-faint hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50'}`}
             aria-pressed={viewMode === 'stacked'}
           >
             Skumulowany
@@ -103,7 +104,7 @@ function AccumulationChart({ data, milestones }: AccumulationChartProps) {
           <button
             type="button"
             onClick={() => setViewMode('lines')}
-            className={`px-2.5 py-1 transition-colors ${viewMode === 'lines' ? 'bg-bg-muted font-semibold text-text-primary' : 'text-text-muted hover:bg-bg-muted/50'}`}
+            className={`px-2.5 py-1 transition-colors ${viewMode === 'lines' ? 'bg-surface-muted dark:bg-surface-dark-alt font-semibold text-heading dark:text-on-dark' : 'text-muted dark:text-faint hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50'}`}
             aria-pressed={viewMode === 'lines'}
           >
             Linie
@@ -141,17 +142,17 @@ function AccumulationChart({ data, milestones }: AccumulationChartProps) {
               formatter={formatTooltip}
               labelFormatter={(v) => `Rok ${v}`}
               contentStyle={{
-                backgroundColor: chartColors.tooltipBg,
-                borderColor: chartColors.tooltipBorder,
-                color: chartColors.tooltipText,
+                backgroundColor: isDark ? '#1e293b' : '#fff',
+                borderColor: isDark ? '#334155' : '#e5e7eb',
+                color: isDark ? '#f8fafc' : '#111827',
               }}
             />
             <Legend content={<CustomLegend />} />
-            <Area type="monotone" dataKey="Rachunek maklerski" stackId="1" stroke={chartColors.regular} fill={chartColors.regular} fillOpacity={0.3} />
-            <Area type="monotone" dataKey="IKZE" stackId="1" stroke={chartColors.ikze} fill={chartColors.ikze} fillOpacity={0.3} />
-            <Area type="monotone" dataKey="IKE" stackId="1" stroke={chartColors.ike} fill={chartColors.ike} fillOpacity={0.3} />
-            <Line type="monotone" dataKey="Siła nabywcza" stroke={chartColors.inflation} strokeDasharray="6 3" dot={false} strokeWidth={1.5} />
-            <Line type="monotone" dataKey="Bez IKE/IKZE" stroke={chartColors.counterfactual} strokeDasharray="4 4" dot={false} strokeWidth={1.5} />
+            <Area type="monotone" dataKey="Rachunek maklerski" stackId="1" stroke={colors.regular} fill={colors.regular} fillOpacity={0.3} />
+            <Area type="monotone" dataKey="IKZE" stackId="1" stroke={colors.ikze} fill={colors.ikze} fillOpacity={0.3} />
+            <Area type="monotone" dataKey="IKE" stackId="1" stroke={colors.ike} fill={colors.ike} fillOpacity={0.3} />
+            <Line type="monotone" dataKey="Siła nabywcza" stroke={colors.inflation} strokeDasharray="6 3" dot={false} strokeWidth={1.5} />
+            <Line type="monotone" dataKey="Bez IKE/IKZE" stroke={colors.counterfactual} strokeDasharray="4 4" dot={false} strokeWidth={1.5} />
           </AreaChart>
         ) : (
           <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 24, left: 10 }}>
@@ -169,17 +170,17 @@ function AccumulationChart({ data, milestones }: AccumulationChartProps) {
               formatter={formatTooltip}
               labelFormatter={(v) => `Rok ${v}`}
               contentStyle={{
-                backgroundColor: chartColors.tooltipBg,
-                borderColor: chartColors.tooltipBorder,
-                color: chartColors.tooltipText,
+                backgroundColor: isDark ? '#1e293b' : '#fff',
+                borderColor: isDark ? '#334155' : '#e5e7eb',
+                color: isDark ? '#f8fafc' : '#111827',
               }}
             />
             <Legend content={<CustomLegend />} />
-            <Line type="monotone" dataKey="IKE" stroke={chartColors.ike} strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="IKZE" stroke={chartColors.ikze} strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="Rachunek maklerski" stroke={chartColors.regular} strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="Siła nabywcza" stroke={chartColors.inflation} strokeDasharray="6 3" dot={false} strokeWidth={1.5} />
-            <Line type="monotone" dataKey="Bez IKE/IKZE" stroke={chartColors.counterfactual} strokeDasharray="4 4" dot={false} strokeWidth={1.5} />
+            <Line type="monotone" dataKey="IKE" stroke={colors.ike} strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="IKZE" stroke={colors.ikze} strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="Rachunek maklerski" stroke={colors.regular} strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="Siła nabywcza" stroke={colors.inflation} strokeDasharray="6 3" dot={false} strokeWidth={1.5} />
+            <Line type="monotone" dataKey="Bez IKE/IKZE" stroke={colors.counterfactual} strokeDasharray="4 4" dot={false} strokeWidth={1.5} />
           </LineChart>
         )}
       </ResponsiveContainer>

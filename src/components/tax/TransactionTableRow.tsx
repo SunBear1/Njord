@@ -46,13 +46,13 @@ function RateStatusBadge({
 }) {
   if (currency.toUpperCase() === 'PLN') {
     return (
-      <p className="text-[11px] text-text-faint">PLN — brak przeliczenia</p>
+      <p className="text-[11px] text-faint dark:text-muted">PLN — brak przeliczenia</p>
     );
   }
 
   if (isLoading) {
     return (
-      <p className="text-[11px] text-blue-500 dark:text-blue-400 flex items-center gap-1">
+      <p className="text-[11px] text-accent dark:text-accent flex items-center gap-1">
         <Loader2 size={10} className="animate-spin" aria-hidden="true" />
         Pobieranie kursu NBP…
       </p>
@@ -76,7 +76,7 @@ function RateStatusBadge({
             if (v > 0) onManualChange(v);
           }}
           placeholder="Kurs ręcznie (np. 3.9785)"
-          className="w-full border border-red-300 dark:border-red-700 rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-red-500 dark:bg-bg-muted dark:text-text-primary"
+          className="w-full border border-red-300 dark:border-red-700 rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-red-500 dark:bg-surface-dark-alt dark:text-on-dark"
         />
       </div>
     );
@@ -84,11 +84,11 @@ function RateStatusBadge({
 
   if (rate !== null && rate > 0) {
     return (
-      <p className="text-[11px] text-teal-600 dark:text-cyan-400 flex items-center gap-1 flex-wrap">
+      <p className="text-[11px] text-green-600 dark:text-green-400 flex items-center gap-1 flex-wrap">
         <CheckCircle2 size={10} aria-hidden="true" className="flex-shrink-0" />
         <span>Kurs NBP: {rate.toFixed(4)}</span>
         {effectiveDate && (
-          <span className="text-text-faint">z {fmtDatePL(effectiveDate)}</span>
+          <span className="text-faint dark:text-muted">z {fmtDatePL(effectiveDate)}</span>
         )}
       </p>
     );
@@ -114,14 +114,14 @@ function ResultCell({
 }) {
   return (
     <div
-      className={`flex-1 min-w-[90px] bg-bg-card px-3 py-2 text-center ${total ? 'ring-1 ring-inset ring-border-strong rounded-sm' : ''}`}
+      className={`flex-1 min-w-[90px] bg-surface dark:bg-surface-dark px-3 py-2 text-center ${total ? 'ring-1 ring-inset ring-edge-strong dark:ring-edge-strong rounded-sm' : ''}`}
     >
-      <p className="text-[10px] text-text-faint uppercase tracking-wide mb-0.5">
+      <p className="text-[10px] text-faint dark:text-muted uppercase tracking-wide mb-0.5">
         {subtract && '− '}
         {label}
       </p>
       <p
-        className={`text-sm font-semibold tabular-nums ${valueClass ?? 'text-text-primary'}`}
+        className={`text-sm font-semibold tabular-nums ${valueClass ?? 'text-heading dark:text-on-dark'}`}
       >
         {value}
       </p>
@@ -353,7 +353,7 @@ export function TransactionTableRow({
     <>
       {/* Summary row */}
       <tr
-        className={`border-b border-gray-100 dark:border-border cursor-pointer hover:bg-bg-muted/50 select-none transition-colors ${isExpanded ? 'bg-gray-50/50 dark:bg-bg-muted/30' : ''}`}
+        className={`border-b border-edge dark:border-edge-strong cursor-pointer hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50 select-none transition-colors ${isExpanded ? 'bg-surface-alt/50 dark:bg-surface-dark-alt/30' : ''}`}
         onClick={onToggle}
         tabIndex={0}
         onKeyDown={(e) => e.key === 'Enter' && onToggle()}
@@ -361,7 +361,7 @@ export function TransactionTableRow({
         aria-label={`Transakcja ${index}`}
       >
         <td className="px-3 py-2.5 text-center">
-          <span className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-bold inline-flex items-center justify-center">
+          <span className="w-6 h-6 rounded-full bg-accent-muted dark:bg-surface-dark/40 text-accent-hover dark:text-accent text-xs font-bold inline-flex items-center justify-center">
             {index}
           </span>
         </td>
@@ -373,27 +373,27 @@ export function TransactionTableRow({
                 {tx.ticker}
               </span>
             ) : (
-              <span className="text-gray-300 dark:text-text-faint">—</span>
+              <span className="text-on-dark-muted dark:text-body">—</span>
             )}
             {tx.tickerName && (
-              <span className="text-text-faint text-xs truncate max-w-[120px] hidden lg:inline">
+              <span className="text-faint dark:text-muted text-xs truncate max-w-[120px] hidden lg:inline">
                 {tx.tickerName}
               </span>
             )}
           </div>
         </td>
-        <td className="px-3 py-2.5 text-text-secondary whitespace-nowrap">
-          {tx.saleDate ? fmtDatePL(tx.saleDate) : <span className="text-gray-400 italic text-xs">Brak daty</span>}
+        <td className="px-3 py-2.5 text-body dark:text-on-dark-muted whitespace-nowrap">
+          {tx.saleDate ? fmtDatePL(tx.saleDate) : <span className="text-faint italic text-xs">Brak daty</span>}
         </td>
-        <td className="px-3 py-2.5 text-right tabular-nums text-text-secondary whitespace-nowrap">
+        <td className="px-3 py-2.5 text-right tabular-nums text-body dark:text-on-dark-muted whitespace-nowrap">
           {tx.saleGrossAmount > 0
             ? `${tx.saleGrossAmount.toLocaleString('pl-PL', { maximumFractionDigits: 2 })} ${tx.currency}`
             : '—'}
         </td>
-        <td className="hidden sm:table-cell px-3 py-2.5 text-right tabular-nums text-text-secondary whitespace-nowrap">
+        <td className="hidden sm:table-cell px-3 py-2.5 text-right tabular-nums text-body dark:text-on-dark-muted whitespace-nowrap">
           {result ? fmtPLNGrosze(result.revenuePLN) : '—'}
         </td>
-        <td className="hidden sm:table-cell px-3 py-2.5 text-right tabular-nums text-text-secondary whitespace-nowrap">
+        <td className="hidden sm:table-cell px-3 py-2.5 text-right tabular-nums text-body dark:text-on-dark-muted whitespace-nowrap">
           {result ? fmtPLNGrosze(result.costPLN) : '—'}
         </td>
         <td className="px-3 py-2.5 text-right tabular-nums whitespace-nowrap">
@@ -405,27 +405,27 @@ export function TransactionTableRow({
           {result && !result.isLoss ? (
             <span className="text-amber-700 dark:text-amber-400 font-medium">{fmtPLNGrosze(result.taxEstimatePLN)}</span>
           ) : result ? (
-            <span className="text-text-faint">—</span>
+            <span className="text-faint dark:text-muted">—</span>
           ) : '—'}
         </td>
         <td className="px-3 py-2.5">
           <div className="flex items-center justify-end gap-1">
             {tx.importSource && (
-              <span className="inline-flex items-center bg-bg-muted/60 text-text-muted px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide">
+              <span className="inline-flex items-center bg-surface-muted dark:bg-surface-dark-alt/60 text-muted dark:text-faint px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide">
                 {tx.importSource}
               </span>
             )}
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onDelete(); }}
-              className="p-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
+              className="p-1.5 text-faint hover:text-red-500 dark:hover:text-red-400 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
               aria-label="Usuń transakcję"
             >
               <Trash2 size={14} aria-hidden="true" />
             </button>
             {isExpanded
-              ? <ChevronUp size={14} className="text-gray-400" aria-hidden="true" />
-              : <ChevronDown size={14} className="text-gray-400" aria-hidden="true" />
+              ? <ChevronUp size={14} className="text-faint" aria-hidden="true" />
+              : <ChevronDown size={14} className="text-faint" aria-hidden="true" />
             }
           </div>
         </td>
@@ -434,14 +434,14 @@ export function TransactionTableRow({
       {/* Expanded edit form */}
       {isExpanded && (
         <tr>
-          <td colSpan={COL_COUNT} className="border-b border-border bg-gray-50/50 dark:bg-bg-card/50 px-4 py-4">
+          <td colSpan={COL_COUNT} className="border-b border-edge dark:border-edge-strong bg-surface-alt/50 dark:bg-surface-dark/50 px-4 py-4">
             <div className="space-y-4">
 
           {/* Row 0: Ticker (optional) */}
           <div className="space-y-1">
             <label htmlFor={`${tx.id}-ticker`} className={LABEL_CLS}>
               Ticker giełdowy
-              <span className="ml-1 text-text-faint font-normal">(opcjonalne)</span>
+              <span className="ml-1 text-faint dark:text-muted font-normal">(opcjonalne)</span>
             </label>
             <div className="relative">
               <input
@@ -459,7 +459,7 @@ export function TransactionTableRow({
               {tx.isLoadingTicker && (
                 <Loader2
                   size={14}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-blue-400"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-accent"
                   aria-hidden="true"
                 />
               )}
@@ -553,11 +553,11 @@ export function TransactionTableRow({
                   exchangeRateAcquisitionToPLN: zeroCostFlag ? null : tx.exchangeRateAcquisitionToPLN,
                 });
               }}
-              className="rounded border-border-strong text-blue-600 focus:ring-blue-500"
+              className="rounded border-edge-strong dark:border-edge-strong text-accent focus:ring-accent"
             />
-            <span className="text-text-secondary">
+            <span className="text-body dark:text-on-dark-muted">
               Koszt nabycia = 0
-              <span className="ml-1.5 text-text-faint text-xs font-normal">
+              <span className="ml-1.5 text-faint dark:text-muted text-xs font-normal">
                 (grant, RSU, akcje przyznane nieodpłatnie)
               </span>
             </span>
@@ -565,7 +565,7 @@ export function TransactionTableRow({
 
           {/* Acquisition fields (conditional) */}
           {!tx.zeroCostFlag && (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 pt-2 border-t border-dashed border-border">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 pt-2 border-t border-dashed border-edge dark:border-edge-strong">
               <div className="space-y-1">
                 <label htmlFor={`${tx.id}-acq-date`} className={LABEL_CLS}>
                   Data nabycia <span className="text-red-500">*</span>
@@ -614,19 +614,19 @@ export function TransactionTableRow({
               <button
                 type="button"
                 onClick={() => onUpdate({ showCommissions: true })}
-                className="text-xs text-text-faint hover:text-blue-500 dark:hover:text-blue-400 underline underline-offset-2 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
+                className="text-xs text-faint dark:text-muted hover:text-accent dark:hover:text-accent underline underline-offset-2 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded"
               >
                 + Dodaj prowizję brokera
               </button>
             ) : (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-text-muted">Prowizje brokera</span>
+                  <span className="text-xs font-medium text-body dark:text-faint">Prowizje brokera</span>
                   {!hasCommissions && (
                     <button
                       type="button"
                       onClick={() => onUpdate({ showCommissions: false })}
-                      className="text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-text-secondary focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
+                      className="text-[11px] text-faint hover:text-body dark:hover:text-on-dark-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded"
                     >
                       Ukryj
                     </button>
@@ -668,7 +668,7 @@ export function TransactionTableRow({
 
           {/* Result row */}
           {result && (
-            <div className="flex flex-wrap items-stretch gap-px bg-bg-muted rounded-lg overflow-hidden border border-border mt-1">
+            <div className="flex flex-wrap items-stretch gap-px bg-surface-muted dark:bg-surface-dark-alt rounded-lg overflow-hidden border border-edge dark:border-edge-strong mt-1">
               <ResultCell label="Przychód" value={fmtPLNGrosze(result.revenuePLN)} />
               <ResultCell label="Koszt" value={fmtPLNGrosze(result.costPLN)} subtract />
               <ResultCell
@@ -689,7 +689,7 @@ export function TransactionTableRow({
 
           {/* Not-ready hint */}
           {!result && tx.saleGrossAmount > 0 && tx.saleDate && (
-            <p className="text-xs text-text-faint">
+            <p className="text-xs text-faint dark:text-muted">
               {tx.isLoadingRateSale || tx.isLoadingRateAcquisition
                 ? 'Pobieranie kursu NBP…'
                 : !tx.exchangeRateSaleToPLN

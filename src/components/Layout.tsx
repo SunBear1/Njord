@@ -60,14 +60,14 @@ export function Layout() {
             </svg>
             <div className="min-w-0">
               <h1 className="text-2xl font-bold tracking-tight">Njord</h1>
-              <p className="text-sm text-slate-400 truncate">Akcje · Obligacje · Konto oszczędnościowe · Podatek Belki</p>
+              <p className="text-sm text-faint truncate">Akcje · Obligacje · Konto oszczędnościowe · Podatek Belki</p>
             </div>
           </Link>
           <button
             type="button"
             onClick={toggleDarkMode}
             aria-label={isDark ? 'Włącz tryb jasny' : 'Włącz tryb ciemny'}
-            className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            className="p-2 rounded-lg text-on-dark-muted hover:text-on-dark hover:bg-surface-dark-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             {isDark ? <Sun size={20} /> : <Moon size={20} />}
           </button>
@@ -91,7 +91,7 @@ export function Layout() {
               className={({ isActive }) =>
                 `flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
                   isActive
-                    ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 shadow-sm border border-teal-200 dark:border-teal-800'
+                    ? 'bg-accent text-on-dark shadow-sm'
                     : 'text-text-muted hover:text-text-primary hover:bg-bg-muted'
                 }`
               }
@@ -112,14 +112,14 @@ export function Layout() {
         <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
           <button
             onClick={() => setShowPrivacy(true)}
-            className="underline hover:no-underline focus-visible:ring-2 focus-visible:ring-brand rounded"
+            className="underline hover:no-underline focus-visible:ring-2 focus-visible:ring-accent rounded"
           >
             Polityka prywatności
           </button>
           {!showClearConfirm ? (
             <button
               onClick={() => setShowClearConfirm(true)}
-              className="underline hover:no-underline focus-visible:ring-2 focus-visible:ring-brand rounded"
+              className="underline hover:no-underline focus-visible:ring-2 focus-visible:ring-accent rounded"
             >
               Wyczyść wszystkie dane
             </button>

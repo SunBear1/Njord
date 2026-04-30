@@ -47,13 +47,13 @@ function RateStatusBadge({
 }) {
   if (currency.toUpperCase() === 'PLN') {
     return (
-      <p className="text-[11px] text-text-faint">PLN — brak przeliczenia</p>
+      <p className="text-[11px] text-faint dark:text-muted">PLN — brak przeliczenia</p>
     );
   }
 
   if (isLoading) {
     return (
-      <p className="text-[11px] text-blue-500 dark:text-blue-400 flex items-center gap-1">
+      <p className="text-[11px] text-accent dark:text-accent flex items-center gap-1">
         <Loader2 size={10} className="animate-spin" aria-hidden="true" />
         Pobieranie kursu NBP…
       </p>
@@ -77,7 +77,7 @@ function RateStatusBadge({
             if (v > 0) onManualChange(v);
           }}
           placeholder="Kurs ręcznie (np. 3.9785)"
-          className="w-full border border-red-300 dark:border-red-700 rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-red-500 dark:bg-bg-muted dark:text-text-primary"
+          className="w-full border border-red-300 dark:border-red-700 rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-red-500 dark:bg-surface-dark-alt dark:text-on-dark"
         />
       </div>
     );
@@ -85,11 +85,11 @@ function RateStatusBadge({
 
   if (rate !== null && rate > 0) {
     return (
-      <p className="text-[11px] text-teal-600 dark:text-cyan-400 flex items-center gap-1 flex-wrap">
+      <p className="text-[11px] text-green-600 dark:text-green-400 flex items-center gap-1 flex-wrap">
         <CheckCircle2 size={10} aria-hidden="true" className="flex-shrink-0" />
         <span>Kurs NBP: {rate.toFixed(4)}</span>
         {effectiveDate && (
-          <span className="text-text-faint">z {fmtDatePL(effectiveDate)}</span>
+          <span className="text-faint dark:text-muted">z {fmtDatePL(effectiveDate)}</span>
         )}
       </p>
     );
@@ -115,7 +115,7 @@ function CalculationBreakdown({ tx, result }: { tx: TaxTransaction; result: Tran
   const hasAnyFee = saleFee > 0 || acqFee > 0;
 
   return (
-    <div className="rounded-lg border border-border bg-bg-card overflow-hidden">
+    <div className="rounded-lg border border-edge dark:border-edge-strong bg-surface dark:bg-surface-dark overflow-hidden">
       <div className="px-3.5 py-3 space-y-1.5 text-xs tabular-nums">
         {/* Revenue */}
         <CalcLine
@@ -170,7 +170,7 @@ function CalculationBreakdown({ tx, result }: { tx: TaxTransaction; result: Tran
           </>
         )}
 
-        <div className="border-t border-dashed border-border-strong my-1" />
+        <div className="border-t border-dashed border-edge-strong dark:border-edge-strong my-1" />
 
         {/* Gain/loss */}
         <div className="flex items-center justify-between pt-0.5">
@@ -187,7 +187,7 @@ function CalculationBreakdown({ tx, result }: { tx: TaxTransaction; result: Tran
           <div className="flex items-center justify-between">
             <span className="text-amber-700 dark:text-amber-400 font-medium">
               Podatek 19%
-              <span className="ml-1.5 text-text-faint font-normal">
+              <span className="ml-1.5 text-faint dark:text-muted font-normal">
                 {fmtPLNGrosze(result.gainPLN)} × 0,19
               </span>
             </span>
@@ -197,8 +197,8 @@ function CalculationBreakdown({ tx, result }: { tx: TaxTransaction; result: Tran
           </div>
         ) : (
           <div className="flex items-center justify-between">
-            <span className="text-text-faint">Podatek</span>
-            <span className="text-text-faint font-medium">brak (strata)</span>
+            <span className="text-faint dark:text-muted">Podatek</span>
+            <span className="text-faint dark:text-muted font-medium">brak (strata)</span>
           </div>
         )}
       </div>
@@ -226,18 +226,18 @@ function CalcLine({
   minor?: boolean;
 }) {
   return (
-    <div className={`flex items-baseline justify-between gap-2 ${minor ? 'text-[11px] text-text-muted' : ''}`}>
+    <div className={`flex items-baseline justify-between gap-2 ${minor ? 'text-[11px] text-muted dark:text-faint' : ''}`}>
       <div className="flex items-baseline gap-1 min-w-0">
-        <span className={`flex-shrink-0 ${minor ? '' : 'font-medium text-text-secondary'}`}>
+        <span className={`flex-shrink-0 ${minor ? '' : 'font-medium text-body dark:text-on-dark-muted'}`}>
           {subtract && <span className="text-red-500 dark:text-red-400 mr-0.5">−</span>}
           {label}
         </span>
-        <span className="text-text-faint truncate">
+        <span className="text-faint dark:text-muted truncate">
           {fmtAmt(amount)} {currency}
           {!isPLN && ` × ${rate.toFixed(4)}`}
         </span>
       </div>
-      <span className={`flex-shrink-0 font-semibold whitespace-nowrap ${subtract ? 'text-text-secondary' : 'text-text-primary'}`}>
+      <span className={`flex-shrink-0 font-semibold whitespace-nowrap ${subtract ? 'text-body dark:text-on-dark-muted' : 'text-heading dark:text-on-dark'}`}>
         {subtract ? `−${fmtPLNGrosze(resultPLN)}` : fmtPLNGrosze(resultPLN)}
       </span>
     </div>
@@ -511,17 +511,17 @@ export function TransactionCard({
   const showCommissions = tx.showCommissions || hasCommissions;
 
   return (
-    <div className="rounded-xl border border-border bg-bg-card shadow-sm overflow-hidden transition-shadow hover:shadow-md">
+    <div className="rounded-xl border border-edge dark:border-edge-strong bg-surface dark:bg-surface-dark shadow-sm overflow-hidden transition-shadow hover:shadow-md">
       {/* Collapsed summary bar */}
       <button
         type="button"
-        className="w-full flex items-center gap-3 px-4 py-3 text-left select-none transition-colors hover:bg-bg-muted/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
+        className="w-full flex items-center gap-3 px-4 py-3 text-left select-none transition-colors hover:bg-surface-alt dark:hover:bg-surface-dark-alt/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
         onClick={onToggle}
         aria-expanded={isExpanded}
         aria-label={`Transakcja ${index}`}
       >
         {/* Index badge */}
-        <span className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-xs font-bold inline-flex items-center justify-center flex-shrink-0">
+        <span className="w-7 h-7 rounded-full bg-accent-muted dark:bg-surface-dark/40 text-accent-hover dark:text-accent text-xs font-bold inline-flex items-center justify-center flex-shrink-0">
           {index}
         </span>
 
@@ -533,29 +533,29 @@ export function TransactionCard({
               {tx.ticker}
             </span>
           ) : (
-            <span className="text-gray-300 dark:text-text-faint text-sm">—</span>
+            <span className="text-on-dark-muted dark:text-body text-sm">—</span>
           )}
           {tx.tickerName && (
-            <span className="text-text-faint text-xs truncate max-w-[120px] hidden lg:inline">
+            <span className="text-faint dark:text-muted text-xs truncate max-w-[120px] hidden lg:inline">
               {tx.tickerName}
             </span>
           )}
         </div>
 
         {/* Sale date */}
-        <span className="text-sm text-text-secondary whitespace-nowrap hidden sm:inline">
-          {tx.saleDate ? fmtDatePL(tx.saleDate) : <span className="text-gray-400 italic text-xs">Brak daty</span>}
+        <span className="text-sm text-body dark:text-on-dark-muted whitespace-nowrap hidden sm:inline">
+          {tx.saleDate ? fmtDatePL(tx.saleDate) : <span className="text-faint italic text-xs">Brak daty</span>}
         </span>
 
         {/* Amount */}
-        <span className="text-sm tabular-nums text-text-muted whitespace-nowrap hidden md:inline ml-auto">
+        <span className="text-sm tabular-nums text-muted dark:text-faint whitespace-nowrap hidden md:inline ml-auto">
           {tx.saleGrossAmount > 0
             ? `${tx.saleGrossAmount.toLocaleString('pl-PL', { maximumFractionDigits: 2 })} ${tx.currency}`
             : ''}
         </span>
 
         {/* Gain/loss */}
-        <span className={`text-sm tabular-nums font-semibold whitespace-nowrap ${gainInfo?.cls ?? 'text-gray-400'} ${tx.saleGrossAmount > 0 ? '' : 'md:ml-auto'}`}>
+        <span className={`text-sm tabular-nums font-semibold whitespace-nowrap ${gainInfo?.cls ?? 'text-faint'} ${tx.saleGrossAmount > 0 ? '' : 'md:ml-auto'}`}>
           {gainInfo ? gainInfo.text : '—'}
         </span>
 
@@ -569,12 +569,12 @@ export function TransactionCard({
         {/* Actions */}
         <div className="flex items-center gap-1 flex-shrink-0 ml-1">
           {tx.importSource && (
-            <span className="inline-flex items-center bg-bg-muted/60 text-text-muted px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide">
+            <span className="inline-flex items-center bg-surface-muted dark:bg-surface-dark-alt/60 text-muted dark:text-faint px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide">
               {tx.importSource}
             </span>
           )}
           {tx.notes && (
-            <span className="inline-flex items-center text-text-faint text-[10px] italic truncate max-w-[80px] hidden sm:inline-flex" title={tx.notes}>
+            <span className="inline-flex items-center text-faint dark:text-muted text-[10px] italic truncate max-w-[80px] hidden sm:inline-flex" title={tx.notes}>
               {tx.notes}
             </span>
           )}
@@ -583,27 +583,27 @@ export function TransactionCard({
             tabIndex={0}
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); onDelete(); } }}
-            className="p-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
+            className="p-1.5 text-faint hover:text-red-500 dark:hover:text-red-400 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
             aria-label="Usuń transakcję"
           >
             <Trash2 size={14} aria-hidden="true" />
           </span>
           {isExpanded
-            ? <ChevronUp size={14} className="text-gray-400" aria-hidden="true" />
-            : <ChevronDown size={14} className="text-gray-400" aria-hidden="true" />
+            ? <ChevronUp size={14} className="text-faint" aria-hidden="true" />
+            : <ChevronDown size={14} className="text-faint" aria-hidden="true" />
           }
         </div>
       </button>
 
       {/* Expanded edit form */}
       {isExpanded && (
-        <div className="border-t border-border bg-gray-50/50 dark:bg-bg-card/50 px-4 py-4 space-y-4">
+        <div className="border-t border-edge dark:border-edge-strong bg-surface-alt/50 dark:bg-surface-dark/50 px-4 py-4 space-y-4">
 
           {/* Ticker (optional) */}
           <div className="space-y-1">
             <label htmlFor={`${tx.id}-ticker`} className={LABEL_CLS}>
               Ticker giełdowy
-              <span className="ml-1 text-text-faint font-normal">(opcjonalne)</span>
+              <span className="ml-1 text-faint dark:text-muted font-normal">(opcjonalne)</span>
             </label>
             <div className="relative">
               <input
@@ -621,7 +621,7 @@ export function TransactionCard({
               {tx.isLoadingTicker && (
                 <Loader2
                   size={14}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-blue-400"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-accent"
                   aria-hidden="true"
                 />
               )}
@@ -717,11 +717,11 @@ export function TransactionCard({
                 });
                 if (zeroCostFlag) setShowDualCurrency(false);
               }}
-              className="rounded border-border-strong text-blue-600 focus:ring-blue-500"
+              className="rounded border-edge-strong dark:border-edge-strong text-accent focus:ring-accent"
             />
-            <span className="text-text-secondary">
+            <span className="text-body dark:text-on-dark-muted">
               Koszt nabycia = 0
-              <span className="ml-1.5 text-text-faint text-xs font-normal">
+              <span className="ml-1.5 text-faint dark:text-muted text-xs font-normal">
                 (grant, RSU, akcje przyznane nieodpłatnie)
               </span>
             </span>
@@ -729,17 +729,17 @@ export function TransactionCard({
 
           {/* Acquisition fields */}
           {!tx.zeroCostFlag && (
-            <div className="pt-2 border-t border-dashed border-border space-y-3">
+            <div className="pt-2 border-t border-dashed border-edge dark:border-edge-strong space-y-3">
               {/* Dual currency toggle */}
               <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={showDualCurrency}
                   onChange={(e) => handleDualCurrencyToggle(e.target.checked)}
-                  className="rounded border-border-strong text-blue-600 focus:ring-blue-500"
+                  className="rounded border-edge-strong dark:border-edge-strong text-accent focus:ring-accent"
                 />
-                <ArrowRightLeft size={12} className="text-gray-400" aria-hidden="true" />
-                <span className="text-text-muted">
+                <ArrowRightLeft size={12} className="text-faint" aria-hidden="true" />
+                <span className="text-body dark:text-faint">
                   Inna waluta nabycia niż sprzedaży
                 </span>
               </label>
@@ -812,19 +812,19 @@ export function TransactionCard({
               <button
                 type="button"
                 onClick={() => onUpdate({ showCommissions: true })}
-                className="text-xs text-text-faint hover:text-blue-500 dark:hover:text-blue-400 underline underline-offset-2 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
+                className="text-xs text-faint dark:text-muted hover:text-accent dark:hover:text-accent underline underline-offset-2 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded"
               >
                 + Dodaj prowizję brokera
               </button>
             ) : (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-text-muted">Prowizje brokera</span>
+                  <span className="text-xs font-medium text-body dark:text-faint">Prowizje brokera</span>
                   {!hasCommissions && (
                     <button
                       type="button"
                       onClick={() => onUpdate({ showCommissions: false })}
-                      className="text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-text-secondary focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
+                      className="text-[11px] text-faint hover:text-body dark:hover:text-on-dark-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded"
                     >
                       Ukryj
                     </button>
@@ -868,7 +868,7 @@ export function TransactionCard({
           <div className="space-y-1 pt-1">
             <label htmlFor={`${tx.id}-notes`} className={LABEL_CLS}>
               Notatka
-              <span className="ml-1 text-text-faint font-normal">(opcjonalne)</span>
+              <span className="ml-1 text-faint dark:text-muted font-normal">(opcjonalne)</span>
             </label>
             <textarea
               id={`${tx.id}-notes`}
@@ -885,7 +885,7 @@ export function TransactionCard({
           {/* Result bar */}
           {result && <CalculationBreakdown tx={tx} result={result} />}
           {!result && tx.saleGrossAmount > 0 && tx.saleDate && (
-            <p className="text-xs text-text-faint">
+            <p className="text-xs text-faint dark:text-muted">
               {tx.isLoadingRateSale || tx.isLoadingRateAcquisition
                 ? 'Pobieranie kursu NBP…'
                 : !tx.exchangeRateSaleToPLN

@@ -2,10 +2,10 @@ import { fmtPLNGrosze } from '../../utils/formatting';
 import type { TaxTransaction } from '../../types/tax';
 
 export const INPUT_CLS =
-  'w-full border border-border-strong rounded-lg px-3 py-2 text-sm ' +
-  'focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-bg-muted dark:text-text-primary ' +
-  'dark:placeholder-text-faint';
-export const LABEL_CLS = 'text-xs font-medium text-text-muted';
+  'w-full border border-edge-strong dark:border-edge-strong rounded-lg px-3 py-2 text-sm ' +
+  'focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:bg-surface-dark-alt dark:text-on-dark ' +
+  'dark:placeholder-faint';
+export const LABEL_CLS = 'text-xs font-medium text-body dark:text-faint';
 export const COL_COUNT = 9;
 
 export const CURRENCIES = ['USD', 'EUR', 'GBP', 'CHF', 'DKK', 'SEK', 'PLN'] as const;
@@ -35,9 +35,9 @@ export function newTransaction(): TaxTransaction {
 }
 
 export function fmtGain(gain: number): { text: string; cls: string } {
-  if (gain > 0) return { text: `+${fmtPLNGrosze(gain)}`, cls: 'text-teal-700 dark:text-cyan-400' };
-  if (gain < 0) return { text: fmtPLNGrosze(gain), cls: 'text-orange-700 dark:text-orange-400' };
-  return { text: fmtPLNGrosze(0), cls: 'text-text-secondary' };
+  if (gain > 0) return { text: `+${fmtPLNGrosze(gain)}`, cls: 'text-green-700 dark:text-green-400' };
+  if (gain < 0) return { text: fmtPLNGrosze(gain), cls: 'text-red-600 dark:text-red-400' };
+  return { text: fmtPLNGrosze(0), cls: 'text-body dark:text-on-dark-muted' };
 }
 
 /** Returns YYYY-MM-DD of (date − 1 day), or '' if date is empty. */

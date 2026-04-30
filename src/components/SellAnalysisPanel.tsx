@@ -104,10 +104,10 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
   return (
     <div className="space-y-5">
       {/* Header with unified horizon selector */}
-      <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5">
+      <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-5">
         <div className="flex items-center gap-2 mb-3">
-          <Target size={20} className="text-blue-600 dark:text-blue-400" />
-          <h2 className="text-lg font-semibold text-text-primary">Optymalna cena sprzedaży</h2>
+          <Target size={20} className="text-accent dark:text-accent" />
+          <h2 className="text-lg font-semibold text-heading dark:text-on-dark">Optymalna cena sprzedaży</h2>
         </div>
 
         {/* Unified horizon chips — each shows duration + dynamically computed target month */}
@@ -121,12 +121,12 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                 onClick={() => { onHorizonChange(p.days); setIsCustomActive(false); setShowCustomPicker(false); }}
                 className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-all ${
                   isActive
-                    ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
-                    : 'bg-bg-card border-border text-gray-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30'
+                    ? 'bg-accent border-accent text-on-dark shadow-sm'
+                    : 'bg-surface dark:bg-surface-dark border-edge dark:border-edge-strong text-body hover:border-accent hover:bg-accent-light dark:hover:bg-surface-dark/30'
                 }`}
               >
                 <span className="text-sm font-semibold leading-snug">{p.label}</span>
-                <span className={`text-[11px] leading-snug ${isActive ? 'text-blue-200' : 'text-gray-400'}`}>
+                <span className={`text-[11px] leading-snug ${isActive ? 'text-on-dark-muted' : 'text-faint'}`}>
                   {targetMonthLabel(p.days)}
                 </span>
               </button>
@@ -139,12 +139,12 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
             onClick={() => setShowCustomPicker((v) => !v)}
             className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-all ${
               isCustomActive || showCustomPicker
-                ? 'bg-blue-600 border-blue-600 text-white shadow-sm'
-                : 'bg-bg-card border-border text-gray-700 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/30'
+                ? 'bg-accent border-accent text-on-dark shadow-sm'
+                : 'bg-surface dark:bg-surface-dark border-edge dark:border-edge-strong text-body hover:border-accent hover:bg-accent-light dark:hover:bg-surface-dark/30'
             }`}
           >
             <span className="text-sm font-semibold leading-snug">Własny</span>
-            <span className={`text-[11px] leading-snug ${isCustomActive || showCustomPicker ? 'text-blue-200' : 'text-gray-400'}`}>
+            <span className={`text-[11px] leading-snug ${isCustomActive || showCustomPicker ? 'text-on-dark-muted' : 'text-faint'}`}>
               {isCustomActive ? targetMonthLabel(horizonDays) : '↓ wybierz'}
             </span>
           </button>
@@ -162,17 +162,17 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                   setIsCustomActive(true);
                   setShowCustomPicker(false);
                 }}
-                className="flex flex-col items-center px-3 py-1.5 rounded-lg border border-border bg-bg-card hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                className="flex flex-col items-center px-3 py-1.5 rounded-lg border border-edge dark:border-edge-strong bg-surface dark:bg-surface-dark hover:border-accent hover:bg-accent-light transition-colors"
               >
-                <span className="text-xs font-medium text-text-primary">{mo.label}</span>
-                <span className="text-[10px] text-gray-400">~{Math.round(mo.days / 21)} mies.</span>
+                <span className="text-xs font-medium text-heading dark:text-on-dark">{mo.label}</span>
+                <span className="text-[10px] text-faint">~{Math.round(mo.days / 21)} mies.</span>
               </button>
             ))}
           </div>
         )}
 
         {isLoading && (
-          <div className="flex items-center gap-2 mt-4 text-sm text-text-muted">
+          <div className="flex items-center gap-2 mt-4 text-sm text-muted dark:text-faint">
             <Loader2 size={16} className="animate-spin motion-reduce:animate-none" />
             Symulacja Monte Carlo (10 000 ścieżek)…
           </div>
@@ -193,7 +193,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
               label="P(realizacja)"
               value={`${(analysis.optimalTarget.pTouch * 100).toFixed(0)}%`}
               subvalue="szansa osiągnięcia ceny"
-              accent="teal"
+              accent="green"
             />
             <SummaryCard
               label="Oczekiwana wartość"
@@ -205,48 +205,48 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
               label="Ryzyko spadku"
               value={`${(analysis.riskOfForcedSale * 100).toFixed(0)}%`}
               subvalue="P(cena końcowa < dziś)"
-              accent="orange"
+              accent="red"
             />
           </div>
 
           {/* Regime + peak info */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="bg-bg-card rounded-xl border border-border shadow-sm p-4">
-              <div className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Reżim rynkowy</div>
-              <div className={`text-lg font-bold ${analysis.regimeInfo.currentRegimeLabel === 'bull' ? 'text-teal-700 dark:text-cyan-400' : 'text-orange-700 dark:text-orange-400'}`}>
+            <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-4">
+              <div className="text-xs font-semibold text-muted dark:text-faint uppercase tracking-wide mb-1">Reżim rynkowy</div>
+              <div className={`text-lg font-bold ${analysis.regimeInfo.currentRegimeLabel === 'bull' ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
                 {analysis.regimeInfo.currentRegimeLabel === 'bull' ? '📈 Faza wzrostowa' : '📉 Faza spadkowa'}
               </div>
-              <div className="text-xs text-text-muted mt-1">
+              <div className="text-xs text-muted dark:text-faint mt-1">
                 Pewność: {Math.round(analysis.regimeInfo.posteriorProbability * 100)}%
                 {' · ~'}{analysis.regimeInfo.expectedDurations[analysis.regimeInfo.currentState].toFixed(0)} sesji
               </div>
             </div>
-            <div className="bg-bg-card rounded-xl border border-border shadow-sm p-4">
-              <div className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Mediana szczytowej ceny</div>
-              <div className="text-lg font-bold text-text-primary">{fmtUSD(analysis.peakDistribution.p50)}</div>
-              <div className="text-xs text-text-muted mt-1">
+            <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-4">
+              <div className="text-xs font-semibold text-muted dark:text-faint uppercase tracking-wide mb-1">Mediana szczytowej ceny</div>
+              <div className="text-lg font-bold text-heading dark:text-on-dark">{fmtUSD(analysis.peakDistribution.p50)}</div>
+              <div className="text-xs text-muted dark:text-faint mt-1">
                 Zakres: {fmtUSD(analysis.peakDistribution.p10)} – {fmtUSD(analysis.peakDistribution.p90)}
               </div>
             </div>
-            <div className="bg-bg-card rounded-xl border border-border shadow-sm p-4">
-              <div className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Szczyt (dzień)</div>
-              <div className="text-lg font-bold text-text-primary flex items-center gap-1.5">
-                <Calendar size={16} className="text-gray-400" />
+            <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-4">
+              <div className="text-xs font-semibold text-muted dark:text-faint uppercase tracking-wide mb-1">Szczyt (dzień)</div>
+              <div className="text-lg font-bold text-heading dark:text-on-dark flex items-center gap-1.5">
+                <Calendar size={16} className="text-faint" />
                 dzień {analysis.peakTimingDistribution.p50.toFixed(0)}
               </div>
-              <div className="text-xs text-text-muted mt-1">
+              <div className="text-xs text-muted dark:text-faint mt-1">
                 Zakres: dzień {analysis.peakTimingDistribution.p10.toFixed(0)} – {analysis.peakTimingDistribution.p90.toFixed(0)}
               </div>
             </div>
           </div>
 
           {/* Fan Chart */}
-          <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-3">
-            <h3 className="text-base font-semibold text-text-primary flex items-center gap-2">
-              <TrendingUp size={16} className="text-blue-500" />
+          <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-5 space-y-3">
+            <h3 className="text-base font-semibold text-heading dark:text-on-dark flex items-center gap-2">
+              <TrendingUp size={16} className="text-accent" />
               Wachlarz cenowy (10 000 symulacji)
             </h3>
-            <p className="text-xs text-text-muted">
+            <p className="text-xs text-muted dark:text-faint">
               Pasma pokazują zakres cen: ciemniejsze = bardziej prawdopodobne (p25–p75), jaśniejsze = ogon rozkładu (p10–p90).
               Linia niebieska przerywana = optymalna cena sprzedaży.
             </p>
@@ -270,13 +270,13 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                     const d = payload[0]?.payload as Record<string, number> | undefined;
                     if (!d) return null;
                     return (
-                      <div className="bg-bg-card border border-border rounded-lg shadow-sm p-2 text-xs">
+                      <div className="bg-surface dark:bg-surface-dark border border-edge dark:border-edge-strong rounded-lg shadow-sm p-2 text-xs">
                         <div className="font-semibold mb-1">Dzień {label}</div>
-                        <div className="text-text-muted">p90: {fmtUSD(d.p90)}</div>
-                        <div className="text-text-muted">p75: {fmtUSD(d.p75)}</div>
-                        <div className="text-blue-600 dark:text-blue-400 font-medium">p50: {fmtUSD(d.p50)}</div>
-                        <div className="text-text-muted">p25: {fmtUSD(d.p25)}</div>
-                        <div className="text-text-muted">p10: {fmtUSD(d.p10)}</div>
+                        <div className="text-body dark:text-faint">p90: {fmtUSD(d.p90)}</div>
+                        <div className="text-body dark:text-faint">p75: {fmtUSD(d.p75)}</div>
+                        <div className="text-accent dark:text-accent font-medium">p50: {fmtUSD(d.p50)}</div>
+                        <div className="text-body dark:text-faint">p25: {fmtUSD(d.p25)}</div>
+                        <div className="text-body dark:text-faint">p10: {fmtUSD(d.p10)}</div>
                       </div>
                     );
                   }}
@@ -302,9 +302,9 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           </div>
 
           {/* Touch Probability Curve */}
-          <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-3">
-            <h3 className="text-base font-semibold text-text-primary">Prawdopodobieństwo osiągnięcia ceny</h3>
-            <p className="text-xs text-text-muted">
+          <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-5 space-y-3">
+            <h3 className="text-base font-semibold text-heading dark:text-on-dark">Prawdopodobieństwo osiągnięcia ceny</h3>
+            <p className="text-xs text-muted dark:text-faint">
               Stromy spadek krzywej = „granica chciwości" — powyżej tego progu szansa realizacji gwałtownie maleje.
             </p>
             <ResponsiveContainer width="100%" height={300}>
@@ -326,19 +326,19 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                   labelFormatter={(v) => `Cel: ${fmtUSD(Number(v))}`}
                 />
                 <Line type="monotone" dataKey="pTouch" stroke="#2563eb" strokeWidth={2.5} dot={{ r: 3 }} name="P(touch)" />
-                <ReferenceLine x={analysis.optimalTarget.target} stroke="#0d9488" strokeDasharray="6 3" label={{ value: 'Optymalny', position: 'top', fontSize: 10, fill: '#0d9488' }} />
+                <ReferenceLine x={analysis.optimalTarget.target} stroke="#16a34a" strokeDasharray="6 3" label={{ value: 'Optymalny', position: 'top', fontSize: 10, fill: '#16a34a' }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
           {/* Summary Table */}
-          <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-3">
+          <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold text-text-primary">Tabela celów sprzedaży</h3>
+              <h3 className="text-base font-semibold text-heading dark:text-on-dark">Tabela celów sprzedaży</h3>
               <button
                 type="button"
                 onClick={() => setShowTable((v) => !v)}
-                className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800"
+                className="text-xs text-accent dark:text-accent hover:text-accent-hover"
               >
                 {showTable ? 'Zwiń' : 'Rozwiń'}
               </button>
@@ -347,7 +347,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-border text-left text-xs text-text-muted uppercase tracking-wide">
+                    <tr className="border-b border-edge dark:border-edge-strong text-left text-xs text-muted dark:text-faint uppercase tracking-wide">
                       <th className="pb-2 pr-4">Cel (USD)</th>
                       <th className="pb-2 pr-4">Zmiana</th>
                       <th className="pb-2 pr-4">P(realizacja)</th>
@@ -362,20 +362,20 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                       return (
                         <tr
                           key={sp.target}
-                          className={`border-b border-gray-100 dark:border-border ${isOptimal ? 'bg-blue-50 dark:bg-blue-950/30 font-semibold' : ''}`}
+                          className={`border-b border-edge dark:border-edge-strong ${isOptimal ? 'bg-accent-light dark:bg-surface-dark/30 font-semibold' : ''}`}
                         >
                           <td className="py-2 pr-4">
                             {fmtUSD(sp.target)}
-                            {isOptimal && <span className="ml-1.5 text-[10px] text-blue-600 dark:text-blue-400 font-bold">★ OPTYMALNY</span>}
+                            {isOptimal && <span className="ml-1.5 text-[10px] text-accent dark:text-accent font-bold">★ OPTYMALNY</span>}
                           </td>
-                          <td className={`py-2 pr-4 ${changePct >= 0 ? 'text-teal-700 dark:text-cyan-400' : 'text-orange-700 dark:text-orange-400'}`}>
+                          <td className={`py-2 pr-4 ${changePct >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-600'}`}>
                             {changePct >= 0 ? '+' : ''}{changePct.toFixed(1)}%
                           </td>
                           <td className="py-2 pr-4">
                             <div className="flex items-center gap-2">
-                              <div className="w-16 h-1.5 bg-gray-200 dark:bg-bg-muted rounded-full overflow-hidden">
+                              <div className="w-16 h-1.5 bg-surface-muted dark:bg-surface-dark-alt rounded-full overflow-hidden">
                                 <div
-                                  className={`h-full rounded-full ${sp.pTouch > 0.5 ? 'bg-teal-500' : sp.pTouch > 0.2 ? 'bg-amber-500' : 'bg-orange-500'}`}
+                                  className={`h-full rounded-full ${sp.pTouch > 0.5 ? 'bg-green-500' : sp.pTouch > 0.2 ? 'bg-amber-500' : 'bg-red-500'}`}
                                   style={{ width: `${sp.pTouch * 100}%` }}
                                 />
                               </div>
@@ -383,7 +383,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                             </div>
                           </td>
                           <td className="py-2 pr-4">{fmtUSD(sp.expectedValue)}</td>
-                          <td className="py-2 text-text-muted">{(sp.expectedValue * currentFxRate).toFixed(0)} zł</td>
+                          <td className="py-2 text-body dark:text-faint">{(sp.expectedValue * currentFxRate).toFixed(0)} zł</td>
                         </tr>
                       );
                     })}
@@ -409,7 +409,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           </div>
         </>
       ) : !isLoading ? (
-        <div className="bg-bg-card rounded-xl border border-border shadow-sm p-8 text-center text-gray-400">
+        <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-8 text-center text-faint">
           <Target size={32} className="mx-auto mb-3 opacity-50" />
           <p className="text-sm">Wczytaj dane akcji, aby uruchomić analizę optymalnej ceny sprzedaży.</p>
           <p className="text-xs mt-1">Wymaga minimum 30 sesji danych historycznych.</p>
@@ -423,24 +423,24 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
 // Subcomponent
 // ---------------------------------------------------------------------------
 
-function SummaryCard({ label, value, subvalue, accent }: { label: string; value: string; subvalue: string; accent: 'blue' | 'teal' | 'purple' | 'orange' }) {
+function SummaryCard({ label, value, subvalue, accent }: { label: string; value: string; subvalue: string; accent: 'blue' | 'green' | 'purple' | 'red' }) {
   const colors = {
-    blue: 'border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/30',
-    teal: 'border-teal-200 dark:border-teal-800 bg-teal-50/50 dark:bg-teal-950/30',
+    blue: 'border-accent dark:border-accent bg-accent-light/50 dark:bg-surface-dark/30',
+    green: 'border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/30',
     purple: 'border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/30',
-    orange: 'border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-950/30',
+    red: 'border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-950/30',
   };
   const textColors = {
-    blue: 'text-blue-700 dark:text-blue-300',
-    teal: 'text-teal-700 dark:text-cyan-400',
+    blue: 'text-accent-hover dark:text-accent',
+    green: 'text-green-700 dark:text-green-400',
     purple: 'text-purple-700',
-    orange: 'text-orange-700 dark:text-orange-400',
+    red: 'text-red-700 dark:text-red-400',
   };
   return (
     <div className={`rounded-xl border shadow-sm p-4 ${colors[accent]}`}>
-      <div className="text-xs font-semibold text-text-muted uppercase tracking-wide">{label}</div>
+      <div className="text-xs font-semibold text-muted dark:text-faint uppercase tracking-wide">{label}</div>
       <div className={`text-2xl font-bold mt-1 ${textColors[accent]}`}>{value}</div>
-      <div className="text-xs text-text-muted mt-0.5">{subvalue}</div>
+      <div className="text-xs text-muted dark:text-faint mt-0.5">{subvalue}</div>
     </div>
   );
 }

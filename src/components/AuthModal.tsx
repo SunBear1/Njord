@@ -59,15 +59,15 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
       />
 
       {/* Modal */}
-      <div className="relative bg-bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-border">
+      <div className="relative bg-surface dark:bg-surface-dark rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-edge dark:border-edge-strong">
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-2">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-xl font-bold text-heading dark:text-on-dark">
             {tab === 'login' ? 'Zaloguj się' : 'Utwórz konto'}
           </h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-text-primary hover:bg-bg-muted transition-colors"
+            className="p-1.5 rounded-lg text-faint hover:text-body dark:hover:text-on-dark-muted hover:bg-surface-muted dark:hover:bg-surface-dark-alt transition-colors"
             aria-label="Zamknij"
           >
             <X size={20} />
@@ -75,12 +75,12 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
         </div>
 
         {/* Tab switcher */}
-        <div className="flex mx-6 mt-2 mb-4 p-1 bg-bg-muted rounded-lg">
+        <div className="flex mx-6 mt-2 mb-4 p-1 bg-surface-muted dark:bg-surface-dark-alt rounded-lg">
           <button
             className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
               tab === 'login'
-                ? 'bg-white dark:bg-bg-muted text-gray-900 dark:text-white shadow-sm'
-                : 'text-text-muted hover:text-text-primary'
+                ? 'bg-surface dark:bg-surface-dark-alt text-heading dark:text-on-dark shadow-sm'
+                : 'text-muted dark:text-faint hover:text-body dark:hover:text-on-dark-muted'
             }`}
             onClick={() => switchTab('login')}
           >
@@ -89,8 +89,8 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
           <button
             className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
               tab === 'register'
-                ? 'bg-white dark:bg-bg-muted text-gray-900 dark:text-white shadow-sm'
-                : 'text-text-muted hover:text-text-primary'
+                ? 'bg-surface dark:bg-surface-dark-alt text-heading dark:text-on-dark shadow-sm'
+                : 'text-muted dark:text-faint hover:text-body dark:hover:text-on-dark-muted'
             }`}
             onClick={() => switchTab('register')}
           >
@@ -102,14 +102,14 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
         <div className="px-6 space-y-2">
           <a
             href="/api/auth/github"
-            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-gray-900 dark:bg-bg-muted text-white rounded-lg hover:bg-gray-800 dark:hover:bg-bg-muted transition-colors font-medium text-sm"
+            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-surface-dark dark:bg-surface-dark-alt text-on-dark rounded-lg hover:bg-surface-dark dark:hover:bg-surface-dark-alt transition-colors font-medium text-sm"
           >
             <GitHubIcon />
             Kontynuuj przez GitHub
           </a>
           <a
             href="/api/auth/google"
-            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-white dark:bg-bg-muted text-gray-700 dark:text-white rounded-lg border border-gray-300 dark:border-border-strong hover:bg-gray-50 dark:hover:bg-bg-muted transition-colors font-medium text-sm"
+            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-surface dark:bg-surface-dark-alt text-body dark:text-on-dark rounded-lg border border-edge-strong dark:border-edge-strong hover:bg-surface-alt dark:hover:bg-surface-dark-alt transition-colors font-medium text-sm"
           >
             <GoogleIcon />
             Kontynuuj przez Google
@@ -118,29 +118,29 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
 
         {/* Divider */}
         <div className="flex items-center gap-3 px-6 my-4">
-          <div className="flex-1 h-px bg-gray-200 dark:bg-bg-muted" />
-          <span className="text-xs text-text-faint uppercase tracking-wider">lub</span>
-          <div className="flex-1 h-px bg-gray-200 dark:bg-bg-muted" />
+          <div className="flex-1 h-px bg-surface-muted dark:bg-surface-dark-alt" />
+          <span className="text-xs text-faint dark:text-muted uppercase tracking-wider">lub</span>
+          <div className="flex-1 h-px bg-surface-muted dark:bg-surface-dark-alt" />
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-3">
           {tab === 'register' && (
             <div className="relative">
-              <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+              <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-faint" aria-hidden="true" />
               <input
                 type="text"
                 placeholder="Imię (opcjonalnie)…"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoComplete="name"
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border-strong bg-white dark:bg-bg-muted text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-edge-strong dark:border-edge-strong bg-surface dark:bg-surface-dark-alt text-heading dark:text-on-dark text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-surface-dark/30 focus:border-transparent"
               />
             </div>
           )}
 
           <div className="relative">
-            <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+            <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-faint" aria-hidden="true" />
             <input
               type="email"
               placeholder="Email…"
@@ -149,12 +149,12 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
               required
               autoComplete="email"
               spellCheck={false}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border-strong bg-white dark:bg-bg-muted text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-edge-strong dark:border-edge-strong bg-surface dark:bg-surface-dark-alt text-heading dark:text-on-dark text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-surface-dark/30 focus:border-transparent"
             />
           </div>
 
           <div className="relative">
-            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-faint" aria-hidden="true" />
             <input
               type="password"
               placeholder="Hasło…"
@@ -163,7 +163,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
               required
               minLength={8}
               autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border-strong bg-white dark:bg-bg-muted text-gray-900 dark:text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-edge-strong dark:border-edge-strong bg-surface dark:bg-surface-dark-alt text-heading dark:text-on-dark text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-surface-dark/30 focus:border-transparent"
             />
           </div>
 
@@ -176,7 +176,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-2.5 px-4 bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
+            className="w-full py-2.5 px-4 bg-accent text-on-dark rounded-lg font-medium text-sm hover:bg-accent-hover disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
           >
             {isSubmitting
               ? (tab === 'login' ? 'Logowanie…' : 'Tworzenie konta…')

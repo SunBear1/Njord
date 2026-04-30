@@ -21,7 +21,7 @@ function RateCell({ value, direction }: { value: number; direction: 'buy' | 'sel
   const isSell = direction === 'sell';
   return (
     <td className="px-3 py-2 text-right font-mono tabular-nums">
-      <span className={`inline-flex items-center gap-1 ${isSell ? 'text-orange-700 dark:text-orange-400' : 'text-blue-700 dark:text-blue-400'}`}>
+      <span className={`inline-flex items-center gap-1 ${isSell ? 'text-orange-700 dark:text-orange-400' : 'text-heading dark:text-on-dark'}`}>
         {isSell
           ? <ArrowDown size={12} aria-hidden="true" />
           : <ArrowUp size={12} aria-hidden="true" />
@@ -61,7 +61,7 @@ function SourceTable({ title, href, rates, getRate }: {
               <th className="px-4 py-2 text-left font-medium">Waluta</th>
               <th className="px-3 py-2 text-right font-medium">
                 <span className="inline-flex items-center gap-1">
-                  <ArrowUp size={10} className="text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                  <ArrowUp size={10} className="text-heading dark:text-on-dark" aria-hidden="true" />
                   Kupno
                 </span>
               </th>

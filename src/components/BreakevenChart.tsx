@@ -34,15 +34,15 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
   );
 
   return (
-    <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-3">
+    <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-5 space-y-3">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <h3 className="text-base font-semibold text-text-primary">Break-even — mapa rentowności</h3>
+        <h3 className="text-base font-semibold text-heading dark:text-on-dark">Break-even — mapa rentowności</h3>
         {/* View toggle — grid on desktop, list on mobile */}
-        <div className="flex rounded-lg border border-border overflow-hidden text-xs" role="group" aria-label="Widok mapy">
+        <div className="flex rounded-lg border border-edge dark:border-edge-strong overflow-hidden text-xs" role="group" aria-label="Widok mapy">
           <button
             type="button"
             onClick={() => setView('grid')}
-            className={`px-2.5 py-1 ${view === 'grid' ? 'bg-bg-muted font-semibold text-text-primary' : 'text-text-muted hover:bg-bg-muted/50'}`}
+            className={`px-2.5 py-1 ${view === 'grid' ? 'bg-surface-muted dark:bg-surface-dark-alt font-semibold text-heading dark:text-on-dark' : 'text-muted dark:text-faint hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50'}`}
             aria-pressed={view === 'grid'}
           >
             Siatka
@@ -50,14 +50,14 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
           <button
             type="button"
             onClick={() => setView('list')}
-            className={`px-2.5 py-1 border-l border-border ${view === 'list' ? 'bg-bg-muted font-semibold text-text-primary' : 'text-text-muted hover:bg-bg-muted/50'}`}
+            className={`px-2.5 py-1 border-l border-edge dark:border-edge-strong ${view === 'list' ? 'bg-surface-muted dark:bg-surface-dark-alt font-semibold text-heading dark:text-on-dark' : 'text-muted dark:text-faint hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50'}`}
             aria-pressed={view === 'list'}
           >
             Lista
           </button>
         </div>
       </div>
-      <p className="text-xs text-text-muted">
+      <p className="text-xs text-muted dark:text-faint">
         Komórki oznaczają, w których kombinacjach zmian akcje biją {benchmarkLabel.toLowerCase()} (netto). {benchmarkLabel} docelowe:{' '}
         <strong>{fmtPLN(benchmarkEndValuePLN)}</strong>.
       </p>
@@ -67,11 +67,11 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
           <table className="text-xs border-collapse mx-auto">
             <thead>
               <tr>
-                <th className="p-1 text-text-faint font-normal text-right pr-2">
+                <th className="p-1 text-faint dark:text-muted font-normal text-right pr-2">
                   Akcje ↓ / USD/PLN →
                 </th>
                 {deltaFxValues.map((df) => (
-                  <th key={df} className="p-1 font-medium text-text-muted text-center min-w-[48px] tabular-nums">
+                  <th key={df} className="p-1 font-medium text-body dark:text-faint text-center min-w-[48px] tabular-nums">
                     {df > 0 ? '+' : ''}{df}%
                   </th>
                 ))}
@@ -80,7 +80,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
             <tbody>
               {deltaStockValues.map((ds) => (
                 <tr key={ds}>
-                  <td className="p-1 font-medium text-text-muted text-right pr-2 tabular-nums">
+                  <td className="p-1 font-medium text-body dark:text-faint text-right pr-2 tabular-nums">
                     {ds > 0 ? '+' : ''}{ds}%
                   </td>
                   {deltaFxValues.map((df) => {
@@ -93,12 +93,12 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
                         key={df}
                         className={`p-1 text-center rounded cursor-default transition-colors relative group/cell ${
                           beatsBenchmark
-                            ? 'bg-teal-100 dark:bg-teal-900/40 text-teal-800 dark:text-teal-200 font-medium'
-                            : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                            ? 'bg-accent-muted dark:bg-surface-dark/40 text-accent-hover dark:text-on-dark-muted font-medium'
+                            : 'bg-surface-muted dark:bg-surface-dark-alt text-muted dark:text-faint'
                         }`}
                       >
                         {beatsBenchmark ? '✓' : '✗'}
-                        <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 rounded bg-gray-800 text-white text-[10px] whitespace-nowrap opacity-0 group-hover/cell:opacity-100 transition-opacity z-10 shadow-lg">
+                        <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 rounded bg-surface-dark text-on-dark text-[10px] whitespace-nowrap opacity-0 group-hover/cell:opacity-100 transition-opacity z-10 shadow-lg">
                           Akcje: {fmtPLN(stockNetEnd)}
                           <br />
                           Różnica: {diff >= 0 ? '+' : ''}{fmtPLN(diff)}
@@ -115,12 +115,12 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
         /* List view — mobile-friendly, shows winning combinations */
         <div className="space-y-1.5">
           {winnerCells.length === 0 ? (
-            <p className="text-xs text-text-muted text-center py-4">
+            <p className="text-xs text-muted dark:text-faint text-center py-4">
               W żadnym scenariuszu akcje nie biją benchmarku.
             </p>
           ) : (
             <>
-              <p className="text-xs text-text-faint">
+              <p className="text-xs text-faint dark:text-muted">
                 {winnerCells.length} z {cells.length} kombinacji — akcje lepsze:
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
@@ -129,19 +129,19 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
                   return (
                     <div
                       key={`${cell.deltaStock},${cell.deltaFx}`}
-                      className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-teal-50 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-900/40 text-xs"
+                      className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-accent-light dark:bg-surface-dark/20 border border-accent dark:border-accent/40 text-xs"
                     >
-                      <span className="text-teal-700 dark:text-teal-300 font-medium tabular-nums">
+                      <span className="text-accent-hover dark:text-accent font-medium tabular-nums">
                         Akcje {cell.deltaStock > 0 ? '+' : ''}{cell.deltaStock}% / USD {cell.deltaFx > 0 ? '+' : ''}{cell.deltaFx}%
                       </span>
-                      <span className="text-teal-600 dark:text-teal-400 tabular-nums font-semibold">
+                      <span className="text-accent dark:text-accent tabular-nums font-semibold">
                         +{fmtPLN(diff)}
                       </span>
                     </div>
                   );
                 })}
                 {winnerCells.length > 20 && (
-                  <p className="text-xs text-text-faint col-span-full text-center pt-1">
+                  <p className="text-xs text-faint dark:text-muted col-span-full text-center pt-1">
                     …i {winnerCells.length - 20} więcej
                   </p>
                 )}
@@ -151,17 +151,17 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
         </div>
       )}
 
-      <div className="flex items-center gap-4 text-xs text-text-muted pt-1 flex-wrap">
+      <div className="flex items-center gap-4 text-xs text-muted dark:text-faint pt-1 flex-wrap">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-4 h-4 rounded bg-blue-100 dark:bg-blue-900/40 border border-teal-200 dark:border-teal-800" />
+          <span className="inline-block w-4 h-4 rounded bg-accent-muted dark:bg-surface-dark/40 border border-accent dark:border-accent" />
           Akcje lepsze (✓)
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-4 h-4 rounded bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600" />
+          <span className="inline-block w-4 h-4 rounded bg-surface-muted dark:bg-surface-dark-alt border border-edge dark:border-edge-strong" />
           {benchmarkLabel} lepsze (✗)
         </span>
         {view === 'grid' && (
-          <span className="text-text-faint hidden sm:inline">Najedź kursorem na komórkę, by zobaczyć wartość</span>
+          <span className="text-faint dark:text-muted hidden sm:inline">Najedź kursorem na komórkę, by zobaczyć wartość</span>
         )}
       </div>
     </div>

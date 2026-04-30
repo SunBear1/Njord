@@ -211,12 +211,12 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5 min-w-0">
-          <Receipt size={22} className="text-blue-600 dark:text-blue-400 flex-shrink-0" aria-hidden="true" />
+          <Receipt size={22} className="text-accent dark:text-accent flex-shrink-0" aria-hidden="true" />
           <div className="min-w-0">
-            <h2 className="text-lg font-semibold text-text-primary">
+            <h2 className="text-lg font-semibold text-heading dark:text-on-dark">
               Kalkulator podatku Belki
             </h2>
-            <p className="text-xs text-text-muted">
+            <p className="text-xs text-muted dark:text-faint">
               Podatek 19% (Belka) od sprzedaży papierów wartościowych · kurs NBP Tabela A
             </p>
           </div>
@@ -237,7 +237,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
             type="button"
             onClick={() => { setShowImportDropdown((v) => !v); setImportError(null); }}
             disabled={importLoading}
-            className="flex items-center gap-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="flex items-center gap-1.5 text-xs font-medium text-on-dark bg-accent hover:bg-accent-hover disabled:opacity-50 rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             aria-expanded={showImportDropdown}
             aria-haspopup="true"
             aria-label="Automatyczny import z brokera"
@@ -254,22 +254,22 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
           {transactions.length > 0 && (
             <div className="relative">
               {confirmClearAll ? (
-                <div className="absolute top-full right-0 mt-1 z-20 w-56 bg-bg-card border border-border rounded-xl shadow-lg p-3 space-y-2">
-                  <p className="text-xs text-text-secondary">
+                <div className="absolute top-full right-0 mt-1 z-20 w-56 bg-surface dark:bg-surface-dark border border-edge dark:border-edge-strong rounded-xl shadow-lg p-3 space-y-2">
+                  <p className="text-xs text-body dark:text-on-dark-muted">
                     Usunąć wszystkie {transactions.length} {transactions.length === 1 ? 'transakcję' : transactions.length < 5 ? 'transakcje' : 'transakcji'}?
                   </p>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={handleClearAll}
-                      className="flex-1 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                      className="flex-1 text-xs font-semibold text-on-dark bg-red-600 hover:bg-red-700 rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                     >
                       Tak, usuń
                     </button>
                     <button
                       type="button"
                       onClick={() => setConfirmClearAll(false)}
-                      className="flex-1 text-xs text-text-muted hover:text-text-primary border border-border rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-gray-400"
+                      className="flex-1 text-xs text-muted dark:text-faint hover:text-body dark:hover:text-on-dark-muted border border-edge dark:border-edge-strong rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-edge-strong"
                     >
                       Anuluj
                     </button>
@@ -279,7 +279,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
               <button
                 type="button"
                 onClick={() => { setConfirmClearAll((v) => !v); setShowImportDropdown(false); }}
-                className="flex items-center justify-center p-1.5 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                className="flex items-center justify-center p-1.5 text-faint hover:text-red-500 dark:hover:text-red-400 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                 aria-label={`Usuń wszystkie transakcje (${transactions.length})`}
                 title={`Usuń wszystkie transakcje (${transactions.length})`}
               >
@@ -290,13 +290,13 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
 
           {/* Broker import dropdown */}
           {showImportDropdown && (
-            <div className="absolute top-full right-0 mt-1 z-20 w-72 bg-bg-card border border-border rounded-xl shadow-lg p-4 space-y-3">
+            <div className="absolute top-full right-0 mt-1 z-20 w-72 bg-surface dark:bg-surface-dark border border-edge dark:border-edge-strong rounded-xl shadow-lg p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-text-secondary">Importuj historię transakcji</p>
+                <p className="text-xs font-semibold text-body dark:text-on-dark-muted">Importuj historię transakcji</p>
                 <button
                   type="button"
                   onClick={() => setShowImportDropdown(false)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 rounded"
+                  className="text-faint hover:text-body dark:hover:text-on-dark-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded"
                   aria-label="Zamknij"
                 >
                   <X size={14} aria-hidden="true" />
@@ -304,22 +304,22 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
               </div>
 
               {/* Broker selector — segmented control */}
-              <div className="flex rounded-lg border border-border overflow-hidden text-xs">
+              <div className="flex rounded-lg border border-edge dark:border-edge-strong overflow-hidden text-xs">
                 {BROKER_PARSERS.map((broker, i) => (
                   <button
                     key={broker.id}
                     type="button"
                     onClick={() => { setSelectedBrokerId(broker.id); setShowBrokerHelp(false); }}
-                    className={`flex-1 flex flex-col items-center py-2 px-3 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 ${
-                      i > 0 ? 'border-l border-border' : ''
+                    className={`flex-1 flex flex-col items-center py-2 px-3 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent ${
+                      i > 0 ? 'border-l border-edge dark:border-edge-strong' : ''
                     } ${
                       selectedBrokerId === broker.id
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-bg-card text-text-secondary hover:bg-bg-muted/50'
+                        ? 'bg-accent text-on-dark'
+                        : 'bg-surface dark:bg-surface-dark text-body dark:text-on-dark-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50'
                     }`}
                   >
                     <span className="font-semibold">{broker.name}</span>
-                    <span className={`text-[10px] mt-0.5 ${selectedBrokerId === broker.id ? 'text-blue-100' : 'text-text-faint'}`}>
+                    <span className={`text-[10px] mt-0.5 ${selectedBrokerId === broker.id ? 'text-on-dark' : 'text-faint dark:text-muted'}`}>
                       {broker.fileLabel}
                     </span>
                   </button>
@@ -332,21 +332,21 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                   <button
                     type="button"
                     onClick={() => setShowBrokerHelp((v) => !v)}
-                    className="flex items-center gap-1 text-[11px] text-text-muted hover:text-text-primary transition-colors"
+                    className="flex items-center gap-1 text-[11px] text-muted dark:text-faint hover:text-body dark:hover:text-on-dark-muted transition-colors"
                   >
                     <HelpCircle size={12} aria-hidden="true" />
                     Jak pobrać plik?
                     {showBrokerHelp ? <ChevronUp size={12} aria-hidden="true" /> : <ChevronDown size={12} aria-hidden="true" />}
                   </button>
                   {showBrokerHelp && (
-                    <div className="mt-1.5 bg-gray-50 dark:bg-bg-muted/50 rounded-lg px-3 py-2.5 text-[11px] text-text-muted space-y-1">
+                    <div className="mt-1.5 bg-surface-alt dark:bg-surface-dark-alt/50 rounded-lg px-3 py-2.5 text-[11px] text-body dark:text-faint space-y-1">
                       <ol className="list-decimal list-inside space-y-0.5">
                         {selectedBroker.downloadInstructions.map((step, i) => (
                           <li key={i}>{step}</li>
                         ))}
                       </ol>
                       {selectedBroker.formatNote && (
-                        <p className="mt-1.5 text-[10px] text-text-faint">{selectedBroker.formatNote}</p>
+                        <p className="mt-1.5 text-[10px] text-faint dark:text-muted">{selectedBroker.formatNote}</p>
                       )}
                     </div>
                   )}
@@ -354,7 +354,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
               )}
 
               {/* Privacy note inside dropdown */}
-              <div className="flex items-start gap-1.5 text-[11px] text-text-muted">
+              <div className="flex items-start gap-1.5 text-[11px] text-muted dark:text-faint">
                 <Shield size={11} className="mt-0.5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
                 <span>Plik przetwarzany lokalnie — nigdy nie opuszcza urządzenia. Jedyne zapytania sieciowe to publiczne kursy walut z NBP.</span>
               </div>
@@ -364,7 +364,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={importLoading || !selectedBroker}
-                className="w-full flex items-center justify-center gap-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-lg px-3 py-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                className="w-full flex items-center justify-center gap-2 text-xs font-medium text-on-dark bg-accent hover:bg-accent-hover disabled:opacity-50 rounded-lg px-3 py-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
               >
                 {importLoading ? (
                   <><Loader2 size={13} className="animate-spin" aria-hidden="true" /> Importowanie…</>
@@ -424,7 +424,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
 
       {/* Transaction cards — grouped by sale date */}
       {transactions.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border-strong p-10 text-center text-text-faint space-y-2">
+        <div className="rounded-xl border border-dashed border-edge-strong dark:border-edge-strong p-10 text-center text-faint dark:text-muted space-y-2">
           <Receipt size={32} className="mx-auto opacity-30" aria-hidden="true" />
           <p className="text-sm">Nie masz jeszcze żadnych transakcji. Dodaj pierwszą transakcję sprzedaży.</p>
         </div>
@@ -438,17 +438,17 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                 {showHeader && (
                   <div className="flex items-center gap-2 px-1 pt-2">
                     <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-blue-400 dark:bg-blue-500 flex-shrink-0" />
-                      <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+                      <span className="w-2 h-2 rounded-full bg-accent dark:bg-accent flex-shrink-0" />
+                      <span className="text-sm font-semibold text-accent-hover dark:text-accent">
                         {fmtDatePL(dateKey)}
                       </span>
                     </div>
-                    <span className="text-xs text-text-faint">
+                    <span className="text-xs text-faint dark:text-muted">
                       {group.length === 1
                         ? '1 transakcja'
                         : `${group.length} ${group.length < 5 ? 'transakcje' : 'transakcji'} · wspólny kurs NBP`}
                     </span>
-                    <div className="flex-1 border-t border-blue-200 dark:border-blue-800 ml-2" />
+                    <div className="flex-1 border-t border-accent dark:border-accent ml-2" />
                   </div>
                 )}
                 {group.map(({ tx, globalIndex }) => (
@@ -473,7 +473,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
         <button
           type="button"
           onClick={addTransaction}
-          className="w-full flex items-center gap-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg px-3 py-2 border border-dashed border-blue-300 dark:border-blue-700 hover:border-blue-500 dark:hover:border-blue-500 justify-center transition-colors"
+          className="w-full flex items-center gap-2 text-sm font-medium text-accent dark:text-accent hover:text-accent-hover dark:hover:text-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-lg px-3 py-2 border border-dashed border-accent dark:border-accent hover:border-accent dark:hover:border-accent justify-center transition-colors"
         >
           <Plus size={16} aria-hidden="true" />
           Dodaj transakcję
@@ -484,7 +484,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
       {readyCount > 0 && <YearSummary transactions={transactions} />}
 
       {/* Disclaimer */}
-      <p className="text-xs text-text-faint text-center pb-1">
+      <p className="text-xs text-faint dark:text-muted text-center pb-1">
         Wyniki na podstawie kursów NBP Tabela A. Ostateczna kwota podatku wynika z pełnej dokumentacji i formularza PIT-38.
       </p>
     </div>

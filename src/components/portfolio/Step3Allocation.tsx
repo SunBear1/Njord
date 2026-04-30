@@ -39,7 +39,7 @@ interface Step3Props {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const INSTRUMENT_COLORS: Record<PortfolioInstrumentType, string> = {
-  etf: 'bg-blue-500',
+  etf: 'bg-accent',
   stocks_pl: 'bg-indigo-500',
   stocks_foreign: 'bg-violet-500',
   bonds: 'bg-amber-500',
@@ -149,7 +149,7 @@ function AllocationBar({
 
   return (
     <div className="mb-4">
-      <div className="flex h-5 rounded-lg overflow-hidden border border-border">
+      <div className="flex h-5 rounded-lg overflow-hidden border border-edge dark:border-edge-strong">
         {allocations.map((a, i) => (
           <div
             key={`${a.instrumentId}-${i}`}
@@ -160,13 +160,13 @@ function AllocationBar({
         ))}
         {sum < 99.9 ? (
           <div
-            className="bg-gray-200 dark:bg-bg-muted"
+            className="bg-surface-muted dark:bg-surface-dark-alt"
             style={{ width: `${100 - sum}%` }}
           />
         ) : null}
       </div>
       <div className="mt-1 flex items-center gap-3 text-xs">
-        <span className={valid ? 'text-teal-600 dark:text-teal-400' : 'text-red-500'}>
+        <span className={valid ? 'text-green-600 dark:text-green-400' : 'text-red-500'}>
           {valid ? '✓' : '⚠'} {Math.round(sum)}%
         </span>
         <div className="flex flex-wrap gap-x-3 gap-y-1">
@@ -177,10 +177,10 @@ function AllocationBar({
                 <span
                   className={`inline-block h-2.5 w-2.5 rounded-sm ${INSTRUMENT_COLORS[a.instrumentType]}`}
                 />
-                <span className="text-text-muted">
+                <span className="text-body dark:text-faint">
                   {INSTRUMENT_LABELS[a.instrumentType]} {Math.round(a.allocationPercent)}%
                 </span>
-                <span className="text-text-faint">
+                <span className="text-faint dark:text-muted">
                   ({fmtPLN(plnAmount)})
                 </span>
               </span>
@@ -237,24 +237,24 @@ function AllocationRow({
   const plnAmount = wrapperMonthlyPLN * allocation.allocationPercent / 100;
 
   return (
-    <div className="p-4 border-b border-gray-100 dark:border-border last:border-0">
+    <div className="p-4 border-b border-edge dark:border-edge-strong last:border-0">
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span
-              className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium text-white ${INSTRUMENT_COLORS[allocation.instrumentType]}`}
+              className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium text-on-dark ${INSTRUMENT_COLORS[allocation.instrumentType]}`}
             >
               {typeIcon(allocation.instrumentType)}
               {INSTRUMENT_LABELS[allocation.instrumentType]}
             </span>
-            <span className="text-sm font-medium text-text-primary truncate">
+            <span className="text-sm font-medium text-heading dark:text-on-dark truncate">
               {instrumentLabel(allocation)}
             </span>
           </div>
           {subtitle ? (
-            <p className="mt-0.5 text-xs text-text-muted">{subtitle}</p>
+            <p className="mt-0.5 text-xs text-muted dark:text-faint">{subtitle}</p>
           ) : null}
-          <p className="mt-0.5 text-xs font-medium text-blue-600 dark:text-blue-400">
+          <p className="mt-0.5 text-xs font-medium text-accent dark:text-accent">
             {fmtPLN(plnAmount)}/mies.
           </p>
         </div>
@@ -263,7 +263,7 @@ function AllocationRow({
             type="button"
             onClick={() => onRemove(index)}
             aria-label="Usuń instrument"
-            className="shrink-0 rounded p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            className="shrink-0 rounded p-1 text-faint hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
           >
             <span aria-hidden="true" className="text-xs font-bold">✕</span>
           </button>
@@ -272,7 +272,7 @@ function AllocationRow({
 
       <div className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 items-center">
         <div>
-          <label className="text-xs text-text-muted">Alokacja</label>
+          <label className="text-xs text-muted dark:text-faint">Alokacja</label>
           <div className="flex items-center gap-2">
             <input
               type="range"
@@ -284,14 +284,14 @@ function AllocationRow({
               className="w-full accent-blue-600"
               aria-label={`Alokacja ${instrumentLabel(allocation)}`}
             />
-            <span className="w-12 text-right text-sm font-mono text-text-secondary">
+            <span className="w-12 text-right text-sm font-mono text-body dark:text-on-dark-muted">
               {Math.round(allocation.allocationPercent)}%
             </span>
           </div>
         </div>
 
         <div>
-          <label className="text-xs text-text-muted">Oczekiwana stopa</label>
+          <label className="text-xs text-muted dark:text-faint">Oczekiwana stopa</label>
           <div className="flex items-center gap-1">
             <input
               type="number"
@@ -300,10 +300,10 @@ function AllocationRow({
               step={0.1}
               value={allocation.expectedReturnPercent}
               onChange={(e) => onReturnChange(index, Number(e.target.value))}
-              className="w-20 rounded-md border border-border-strong bg-white dark:bg-bg-muted px-2 py-1 text-xs font-mono text-right text-text-primary focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-20 rounded-md border border-edge-strong dark:border-edge-strong bg-surface dark:bg-surface-dark-alt px-2 py-1 text-xs font-mono text-right text-heading dark:text-on-dark focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               aria-label={`Oczekiwana stopa zwrotu ${instrumentLabel(allocation)}`}
             />
-            <span className="text-xs text-text-muted">%</span>
+            <span className="text-xs text-muted dark:text-faint">%</span>
           </div>
         </div>
       </div>
@@ -367,13 +367,13 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
         onAdd(opt);
         setOpen(false);
       }}
-      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-text-secondary hover:bg-bg-muted"
+      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-body dark:text-on-dark-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt"
     >
       <span
         className={`inline-block h-2.5 w-2.5 shrink-0 rounded-sm ${INSTRUMENT_COLORS[opt.instrumentType]}`}
       />
       <span className="min-w-0 truncate">{opt.label}</span>
-      <span className="ml-auto shrink-0 text-xs text-gray-400">{opt.defaultReturn}%</span>
+      <span className="ml-auto shrink-0 text-xs text-faint">{opt.defaultReturn}%</span>
     </button>
   );
 
@@ -382,19 +382,19 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+        className="flex items-center gap-1.5 text-sm text-accent dark:text-accent hover:text-accent-hover dark:hover:text-accent font-medium"
         aria-label="Dodaj instrument"
       >
         <Plus className="h-4 w-4" aria-hidden="true" />
         Dodaj instrument
       </button>
       {open ? (
-        <div className="absolute left-3 z-10 mt-1 w-96 rounded-lg border border-border bg-bg-card shadow-lg">
-          <div className="max-h-80 overflow-y-auto divide-y divide-border">
+        <div className="absolute left-3 z-10 mt-1 w-96 rounded-lg border border-edge dark:border-edge-strong bg-surface dark:bg-surface-dark shadow-lg">
+          <div className="max-h-80 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
             {/* ETF / Stocks section */}
             {etfOptions.length > 0 ? (
               <div>
-                <div className="sticky top-0 bg-gray-50 dark:bg-bg-muted px-3 py-1.5 text-xs font-semibold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
+                <div className="sticky top-0 bg-surface-alt dark:bg-surface-dark-alt px-3 py-1.5 text-xs font-semibold text-muted dark:text-faint uppercase tracking-wider flex items-center gap-1.5">
                   <TrendingUp className="h-3 w-3" aria-hidden="true" />
                   ETF / Akcje
                 </div>
@@ -405,7 +405,7 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
             {/* Bonds section */}
             {bondOptions.length > 0 ? (
               <div>
-                <div className="sticky top-0 bg-gray-50 dark:bg-bg-muted px-3 py-1.5 text-xs font-semibold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
+                <div className="sticky top-0 bg-surface-alt dark:bg-surface-dark-alt px-3 py-1.5 text-xs font-semibold text-muted dark:text-faint uppercase tracking-wider flex items-center gap-1.5">
                   <Landmark className="h-3 w-3" aria-hidden="true" />
                   Obligacje skarbowe
                 </div>
@@ -416,7 +416,7 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
             {/* Savings section */}
             {savingsOptions.length > 0 ? (
               <div>
-                <div className="sticky top-0 bg-gray-50 dark:bg-bg-muted px-3 py-1.5 text-xs font-semibold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
+                <div className="sticky top-0 bg-surface-alt dark:bg-surface-dark-alt px-3 py-1.5 text-xs font-semibold text-muted dark:text-faint uppercase tracking-wider flex items-center gap-1.5">
                   <Banknote className="h-3 w-3" aria-hidden="true" />
                   Lokata
                 </div>
@@ -425,14 +425,14 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
             ) : null}
 
             {available.length === 0 ? (
-              <div className="px-3 py-4 text-center text-sm text-text-muted">
+              <div className="px-3 py-4 text-center text-sm text-muted dark:text-faint">
                 Wszystkie dostępne instrumenty zostały już dodane
               </div>
             ) : null}
           </div>
           {/* Custom ETF search */}
-          <div className="border-t border-border p-3">
-            <p className="text-xs text-text-muted mb-2">
+          <div className="border-t border-edge dark:border-edge-strong p-3">
+            <p className="text-xs text-muted dark:text-faint mb-2">
               Wyszukaj dowolny ETF lub akcję po tickerze (Yahoo Finance)
             </p>
             <form onSubmit={handleCustomEtfSubmit} className="flex gap-2">
@@ -441,12 +441,12 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
                 value={customTicker}
                 onChange={(e) => setCustomTicker(e.target.value.toUpperCase())}
                 placeholder="np. IWDA.AS, VOO, AAPL…"
-                className="flex-1 rounded-md border border-border-strong bg-white dark:bg-bg-muted px-2 py-1.5 text-xs text-text-primary placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="flex-1 rounded-md border border-edge-strong dark:border-edge-strong bg-surface dark:bg-surface-dark-alt px-2 py-1.5 text-xs text-heading dark:text-on-dark placeholder:text-faint focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               />
               <button
                 type="submit"
                 disabled={!customTicker.trim() || isSearching}
-                className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-on-dark hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSearching ? '...' : 'Szukaj'}
               </button>
@@ -554,34 +554,34 @@ function WrapperSection({
   );
 
   return (
-    <div className="bg-bg-card rounded-xl border border-border shadow-sm">
+    <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm">
       <button
         type="button"
         onClick={() => setCollapsed((v) => !v)}
-        className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-bg-muted/50 transition-colors rounded-t-xl"
+        className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50 transition-colors rounded-t-xl"
         aria-expanded={!collapsed}
       >
-        <span className="shrink-0 text-blue-600 dark:text-blue-400">{icon}</span>
+        <span className="shrink-0 text-accent dark:text-accent">{icon}</span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="text-base font-semibold text-text-primary">
+            <span className="text-base font-semibold text-heading dark:text-on-dark">
               {title}
             </span>
-            <span className="rounded-full bg-blue-50 dark:bg-blue-900/30 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300">
+            <span className="rounded-full bg-accent-light dark:bg-surface-dark/30 px-2.5 py-0.5 text-xs font-medium text-accent-hover dark:text-accent">
               {amount}
             </span>
           </div>
-          <p className="mt-0.5 text-xs text-text-muted">{taxBenefit}</p>
+          <p className="mt-0.5 text-xs text-muted dark:text-faint">{taxBenefit}</p>
         </div>
         {collapsed ? (
-          <ChevronDown className="h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
+          <ChevronDown className="h-5 w-5 shrink-0 text-faint" aria-hidden="true" />
         ) : (
-          <ChevronUp className="h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
+          <ChevronUp className="h-5 w-5 shrink-0 text-faint" aria-hidden="true" />
         )}
       </button>
 
       {!collapsed ? (
-        <div className="border-t border-border px-5 py-4">
+        <div className="border-t border-edge dark:border-edge-strong px-5 py-4">
           {children}
 
           {allocations.length > 0 ? (
@@ -691,19 +691,19 @@ export default function Step3Allocation({
           bondPresets={bondPresets}
           updateWrapperConfig={updateWrapperConfig}
         >
-          <div className="mb-4 rounded-lg bg-gray-50 dark:bg-bg-muted/50 p-3">
+          <div className="mb-4 rounded-lg bg-surface-alt dark:bg-surface-dark-alt/50 p-3">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-sm font-medium text-heading dark:text-on-dark-muted">
                   Reinwestuj ulgę podatkową z IKZE?
                 </p>
                 {state.reinvestIkzeDeduction ? (
-                  <p className="mt-0.5 text-xs text-text-muted">
+                  <p className="mt-0.5 text-xs text-muted dark:text-faint">
                     Ulga {fmtPLN(ikzePitDeductionAnnual)}/rok jest reinwestowana na koncie
                     oszczędnościowym
                   </p>
                 ) : (
-                  <p className="mt-0.5 text-xs text-text-muted">
+                  <p className="mt-0.5 text-xs text-muted dark:text-faint">
                     Ulga podatkowa nie jest wliczana do symulacji
                   </p>
                 )}
@@ -716,13 +716,13 @@ export default function Step3Allocation({
                 onClick={() => setReinvestIkzeDeduction(!state.reinvestIkzeDeduction)}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
                   state.reinvestIkzeDeduction
-                    ? 'bg-blue-600 dark:bg-blue-500'
-                    : 'bg-gray-300 dark:bg-bg-muted'
+                    ? 'bg-accent dark:bg-accent'
+                    : 'bg-surface-muted dark:bg-surface-dark-alt'
                 }`}
               >
                 <span
                   aria-hidden="true"
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition-transform ${
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface shadow ring-0 transition-transform ${
                     state.reinvestIkzeDeduction ? 'translate-x-5' : 'translate-x-0'
                   }`}
                 />

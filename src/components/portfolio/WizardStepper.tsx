@@ -30,7 +30,7 @@ export default function WizardStepper({ currentStep, onStepClick }: WizardSteppe
                   aria-label={`Przejdź do kroku ${step}: ${STEP_LABELS[i]}`}
                   className="relative flex items-center justify-center
                     w-8 h-8 md:w-10 md:h-10 shrink-0
-                    rounded-full bg-accent-success text-white
+                    rounded-full bg-accent-success text-on-dark
                     cursor-pointer transition-colors duration-200
                     hover:bg-green-600 dark:hover:bg-green-500
                     focus-visible:outline-none focus-visible:ring-2
@@ -50,8 +50,8 @@ export default function WizardStepper({ currentStep, onStepClick }: WizardSteppe
                     transition-colors duration-200
                     ${
                       isActive
-                        ? 'bg-accent-info text-white ring-2 ring-blue-300 dark:ring-blue-400/50'
-                        : 'bg-gray-200 dark:bg-bg-muted text-text-muted'
+                        ? 'bg-accent-info text-on-dark ring-2 ring-accent dark:ring-accent/50'
+                        : 'bg-surface-muted dark:bg-surface-dark-alt text-text-muted'
                     }`}
                 >
                   {step}
@@ -65,7 +65,7 @@ export default function WizardStepper({ currentStep, onStepClick }: WizardSteppe
                   className={`flex-1 h-0.5 mx-1.5 sm:mx-2 md:mx-3 rounded-full transition-colors duration-200 ${
                     step < currentStep
                       ? 'bg-accent-success'
-                      : 'bg-gray-200 dark:bg-bg-muted'
+                      : 'bg-surface-muted dark:bg-surface-dark-alt'
                   }`}
                 />
               ) : null}
