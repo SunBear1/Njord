@@ -47,7 +47,7 @@ export function HomePage() {
           <Link
             key={to}
             to={to}
-            className="group relative block rounded-xl bg-white dark:bg-surface-alt border border-edge dark:border-edge overflow-hidden shadow-sm hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="group relative block rounded-xl bg-white dark:bg-surface-alt border border-edge dark:border-edge overflow-hidden shadow-sm hover:shadow-lg transition-[color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
             <div className="absolute inset-y-0 left-0 w-1.5 rounded-l-xl" style={{ backgroundColor: accent }} />
 

@@ -15,7 +15,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { calcTransactionResult } from '../utils/taxCalculator';
-import { BROKER_PARSERS } from '../utils/brokerParsers/index';
+import { BROKER_PARSERS } from '../utils/brokerParsers';
 import { TaxTransactionsSchema } from '../utils/schemas';
 import type { TaxTransaction } from '../types/tax';
 import type { CurrencyRates } from '../hooks/useCurrencyRates';

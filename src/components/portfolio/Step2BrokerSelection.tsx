@@ -76,7 +76,7 @@ function BrokerCard({
       disabled={!isInteractive}
       aria-pressed={selected}
       className={`
-        relative p-4 rounded-lg border text-left transition-all w-full
+        relative p-4 rounded-lg border text-left transition-colors w-full
         ${borderClasses}
         ${sectionDisabled ? 'opacity-40 cursor-not-allowed' : ''}
         ${disabled && !sectionDisabled ? 'opacity-50 cursor-not-allowed' : ''}

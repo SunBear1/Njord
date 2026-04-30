@@ -119,7 +119,6 @@ export function RatesPage() {
         {lastUpdated && (
           <div className="flex items-center gap-1.5 text-xs text-text-faint">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping motion-reduce:animate-none absolute inline-flex h-full w-full rounded-full bg-accent-success opacity-75" />
               <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-accent-success" />
             </span>
             <span>{fmtTime(lastUpdated)}</span>
