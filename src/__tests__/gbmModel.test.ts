@@ -4,6 +4,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { gbmPredict, shrinkDrift, dampVolatility, clampScenario } from '../utils/models/gbmModel';
+import { getRegimeAdjustedPrior, USE_REGIME_PRIOR } from '../utils/models/regimePrior';
 
 // Student-t quantile for ν=5 at p=0.95 (two-sided)
 const STUDENT_T_Q95_NU5 = 2.015;
@@ -231,5 +232,71 @@ describe('gbmPredict integration', () => {
     const [p5, , , , p95] = result.percentiles;
     expect(p95).toBeLessThanOrEqual(1000);
     expect(p5).toBeGreaterThanOrEqual(-95);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Regime-conditional prior (regimePrior.ts + gbmPredict integration)
+// ---------------------------------------------------------------------------
+
+describe('Regime-conditional prior (getRegimeAdjustedPrior)', () => {
+  it('strong bull posterior (>0.7) returns BULL_PRIOR=0.12', () => {
+    const prior = getRegimeAdjustedPrior(0.9);
+    expect(prior).toBeCloseTo(0.12, 6);
+  });
+
+  it('strong bear posterior (<0.3) returns BEAR_PRIOR=0.03', () => {
+    const prior = getRegimeAdjustedPrior(0.1);
+    expect(prior).toBeCloseTo(0.03, 6);
+  });
+
+  it('uncertain posterior (0.5) returns NEUTRAL_PRIOR=0.08', () => {
+    const prior = getRegimeAdjustedPrior(0.5);
+    expect(prior).toBeCloseTo(0.08, 6);
+  });
+
+  it('null posterior returns basePrior (defaults to 0.08)', () => {
+    const prior = getRegimeAdjustedPrior(null);
+    expect(prior).toBeCloseTo(0.08, 6);
+  });
+
+  it('null posterior returns provided basePrior', () => {
+    const prior = getRegimeAdjustedPrior(null, 0.05);
+    expect(prior).toBeCloseTo(0.05, 6);
+  });
+
+  it('USE_REGIME_PRIOR feature flag is true by default', () => {
+    expect(USE_REGIME_PRIOR).toBe(true);
+  });
+});
+
+describe('gbmPredict with regime prior', () => {
+  it('bull regime prior (0.12) produces higher base scenario than neutral prior (0.08)', () => {
+    const neutralResult = gbmPredict(0.20, 0.05, 1, 1, 0.08);
+    const bullResult = gbmPredict(0.20, 0.05, 1, 1, 0.12);
+    // Higher prior → higher shrunk drift → higher base (median) scenario
+    expect(bullResult.percentiles[2]).toBeGreaterThan(neutralResult.percentiles[2]);
+  });
+
+  it('bear regime prior (0.03) produces lower base scenario than neutral prior (0.08)', () => {
+    const neutralResult = gbmPredict(0.20, 0.05, 1, 1, 0.08);
+    const bearResult = gbmPredict(0.20, 0.05, 1, 1, 0.03);
+    expect(bearResult.percentiles[2]).toBeLessThan(neutralResult.percentiles[2]);
+  });
+
+  it('without regimePrior parameter, behaves identically to explicit neutral prior', () => {
+    const defaultResult = gbmPredict(0.20, 0.10, 2, 1);
+    const explicitResult = gbmPredict(0.20, 0.10, 2, 1, 0.08);
+    for (let i = 0; i < 5; i++) {
+      expect(defaultResult.percentiles[i]).toBeCloseTo(explicitResult.percentiles[i], 8);
+    }
+  });
+});
+
+describe('shrinkDrift with custom prior', () => {
+  it('custom prior is used instead of default 0.08', () => {
+    const withDefault = shrinkDrift(0.15, 1); // w=0.1, result ≈ 0.1*0.15 + 0.9*0.08 = 0.087
+    const withCustom = shrinkDrift(0.15, 1, 0.12); // w=0.1, result ≈ 0.1*0.15 + 0.9*0.12 = 0.123
+    expect(withCustom).toBeGreaterThan(withDefault);
   });
 });

@@ -71,14 +71,18 @@ const BOUNDS: ScenarioBounds = {
 // ── Core Functions ───────────────────────────────────────────────────────────
 
 /**
- * Shrink historical drift toward the long-run equity prior.
+ * Shrink historical drift toward a drift prior (default: long-run equity prior).
  *
  * With only 1 year of data (252 days), w ≈ 0.1 — mostly prior.
  * With 10+ years, w = 1.0 — fully trust historical.
+ *
+ * @param historicalMeanAnnual Historical annualized mean log-return (decimal)
+ * @param dataYears Number of years of historical data
+ * @param prior Override the default EQUITY_RETURN_PRIOR (e.g. regime-adjusted prior)
  */
-export function shrinkDrift(historicalMeanAnnual: number, dataYears: number): number {
+export function shrinkDrift(historicalMeanAnnual: number, dataYears: number, prior: number = EQUITY_RETURN_PRIOR): number {
   const w = Math.min(1, dataYears / FULL_TRUST_YEARS);
-  return w * historicalMeanAnnual + (1 - w) * EQUITY_RETURN_PRIOR;
+  return w * historicalMeanAnnual + (1 - w) * prior;
 }
 
 /**
@@ -134,12 +138,16 @@ export function clampScenario(pctChange: number, horizonYears: number): number {
  * @param stockMeanAnnual Historical annualized mean return (decimal)
  * @param dataYears Number of years of historical data available
  * @param horizonYears Prediction horizon in years
+ * @param regimePrior Optional regime-adjusted drift prior (decimal). When provided,
+ *                    replaces the default EQUITY_RETURN_PRIOR in drift shrinkage.
+ *                    Pass the output of `getRegimeAdjustedPrior()` for regime-aware calibration.
  */
 export function gbmPredict(
   stockSigmaAnnual: number,
   stockMeanAnnual: number,
   dataYears: number,
   horizonYears: number,
+  regimePrior?: number,
 ): PredictionResult {
   if (horizonYears <= 0 || stockSigmaAnnual < 0) {
     return {
@@ -151,7 +159,7 @@ export function gbmPredict(
     };
   }
 
-  const mu = shrinkDrift(stockMeanAnnual, dataYears);
+  const mu = shrinkDrift(stockMeanAnnual, dataYears, regimePrior ?? EQUITY_RETURN_PRIOR);
   const sigma = dampVolatility(stockSigmaAnnual, horizonYears);
 
   const rawPercentiles: Percentiles = [
