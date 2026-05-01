@@ -47,7 +47,7 @@ export function BondBenchmarkSection({
   return (
     <div className="space-y-3">
       <div className="space-y-1">
-        <label htmlFor="bond-type" className="text-sm font-medium text-body dark:text-on-dark-muted">
+        <label htmlFor="bond-type" className="text-sm font-medium text-text-secondary">
           Typ obligacji
         </label>
         <select
@@ -58,7 +58,7 @@ export function BondBenchmarkSection({
             const p = bondPresets.find((b) => b.id === e.target.value);
             if (p) onSelectPreset(e.target.value, p);
           }}
-          className="w-full border border-edge-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:bg-surface-dark-alt dark:border-edge-strong dark:text-on-dark dark:placeholder-gray-400"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
         >
           {bondPresetsLoading ? (
             <option disabled>Ładowanie…</option>
@@ -81,23 +81,23 @@ export function BondBenchmarkSection({
             </div>
           )}
 
-          <div className="bg-surface-alt dark:bg-surface-dark-alt border border-edge dark:border-edge-strong rounded-lg p-3 space-y-2 text-xs">
+          <div className="bg-bg-card border border-border rounded-lg p-3 space-y-2 text-xs">
             <div className="flex justify-between">
-              <span className="text-body dark:text-on-dark-muted">Oprocentowanie 1. roku:</span>
-              <span className="font-semibold text-heading dark:text-on-dark">{bondSettings.firstYearRate.toFixed(2)}%</span>
+              <span className="text-text-secondary">Oprocentowanie 1. roku:</span>
+              <span className="font-semibold text-text-primary">{bondSettings.firstYearRate.toFixed(2)}%</span>
             </div>
 
             {preset.rateType === 'inflation' && (
               <>
                 <div className="flex justify-between">
-                  <span className="text-body dark:text-on-dark-muted">Marża:</span>
+                  <span className="text-text-secondary">Marża:</span>
                   <span className="font-medium">{bondSettings.margin.toFixed(2)}%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-body dark:text-on-dark-muted flex items-center gap-1">
+                  <span className="text-text-secondary flex items-center gap-1">
                     Inflacja CPI
                     {inflationLoading && (
-                      <span className="text-faint dark:text-muted inline-flex items-center gap-1">
+                      <span className="text-border inline-flex items-center gap-1">
                         · <Loader2 size={12} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />ładowanie…
                       </span>
                     )}
@@ -117,12 +117,12 @@ export function BondBenchmarkSection({
                     value={inflationRate || ''}
                     onChange={(e) => onInflationRateChange(parseFloat(e.target.value) || 0)}
                     aria-label="Inflacja CPI (%)"
-                    className="w-20 border border-edge-strong dark:border-edge-strong rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-accent dark:bg-surface-dark-alt dark:text-on-dark"
+                    className="w-20 border border-border rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-accent-primary"
                   />
                 </div>
-                <div className="flex justify-between border-t border-edge dark:border-edge-strong pt-1.5">
-                  <span className="text-body dark:text-on-dark-muted font-medium">Stopa efektywna (od 2. roku):</span>
-                  <span className="font-bold text-accent-hover dark:text-accent">{bondEffectiveRate.toFixed(2)}%</span>
+                <div className="flex justify-between border-t border-border pt-1.5">
+                  <span className="text-text-secondary font-medium">Stopa efektywna (od 2. roku):</span>
+                  <span className="font-bold text-accent-primary-hover dark:text-accent-primary">{bondEffectiveRate.toFixed(2)}%</span>
                 </div>
               </>
             )}
@@ -130,18 +130,18 @@ export function BondBenchmarkSection({
             {preset.rateType === 'reference' && (
               <>
                 <div className="flex justify-between">
-                  <span className="text-body dark:text-on-dark-muted">Marża:</span>
+                  <span className="text-text-secondary">Marża:</span>
                   <span className="font-medium">{bondSettings.margin.toFixed(2)}%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-body dark:text-on-dark-muted flex items-center gap-1">
+                  <span className="text-text-secondary flex items-center gap-1">
                     Stopa referencyjna NBP:
                     <a
                       href="https://www.nbp.pl/polityka-pieniezna/instrumenty/stopy-procentowe.aspx"
                       target="_blank"
                       rel="noopener noreferrer"
                       title="Sprawdź aktualną stopę NBP"
-                      className="text-accent hover:text-accent-hover"
+                      className="text-accent-primary hover:text-accent-primary-hover"
                     >
                       <ExternalLink size={12} aria-hidden="true" />
                     </a>
@@ -155,19 +155,19 @@ export function BondBenchmarkSection({
                     onChange={(e) => onNbpRefRateChange(parseFloat(e.target.value) || 0)}
                     placeholder="np. 5.75"
                     aria-label="Stopa referencyjna NBP (%)"
-                    className="w-20 border border-edge-strong dark:border-edge-strong rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-accent dark:bg-surface-dark-alt dark:text-on-dark"
+                    className="w-20 border border-border rounded px-2 py-0.5 text-right text-xs focus:outline-none focus:ring-1 focus:ring-accent-primary"
                   />
                 </div>
-                <div className="flex justify-between border-t border-edge dark:border-edge-strong pt-1.5">
-                  <span className="text-body dark:text-on-dark-muted font-medium">Stopa efektywna (od 2. okresu):</span>
-                  <span className="font-bold text-accent-hover dark:text-accent">{bondEffectiveRate.toFixed(2)}%</span>
+                <div className="flex justify-between border-t border-border pt-1.5">
+                  <span className="text-text-secondary font-medium">Stopa efektywna (od 2. okresu):</span>
+                  <span className="font-bold text-accent-primary-hover dark:text-accent-primary">{bondEffectiveRate.toFixed(2)}%</span>
                 </div>
               </>
             )}
 
             {preset.rateType === 'fixed' && (
               <div className="flex justify-between">
-                <span className="text-body dark:text-on-dark-muted">Typ:</span>
+                <span className="text-text-secondary">Typ:</span>
                 <span className="font-medium">Stała stopa przez cały okres</span>
               </div>
             )}
@@ -175,9 +175,9 @@ export function BondBenchmarkSection({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label htmlFor="bond-penalty" className="text-sm font-medium text-body dark:text-on-dark-muted">
+              <label htmlFor="bond-penalty" className="text-sm font-medium text-text-secondary">
                 Kara za wcz. wykup
-                <span className="ml-1 text-xs font-normal text-muted dark:text-muted">(% kapitału)</span>
+                <span className="ml-1 text-xs font-normal text-text-muted">(% kapitału)</span>
               </label>
               <input
                 id="bond-penalty"
@@ -191,14 +191,14 @@ export function BondBenchmarkSection({
                 onChange={(e) => {
                   onBondSettingsChange({ ...bondSettings, penalty: parseFloat(e.target.value) || 0 });
                 }}
-                className="w-full border border-edge-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:bg-surface-dark-alt dark:border-edge-strong dark:text-on-dark dark:placeholder-gray-400"
+                className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
               />
             </div>
             <div className="space-y-1">
-              <label className="text-sm font-medium text-body dark:text-on-dark-muted">
+              <label className="text-sm font-medium text-text-secondary">
                 Zapadalność
               </label>
-              <div className="px-3 py-2 text-sm text-body dark:text-on-dark-muted bg-surface-alt dark:bg-surface-dark-alt border border-edge dark:border-edge-strong rounded-lg">
+              <div className="px-3 py-2 text-sm text-text-secondary bg-bg-card border border-border rounded-lg">
                 {preset.maturityMonths} mies.
               </div>
             </div>
@@ -208,8 +208,8 @@ export function BondBenchmarkSection({
             earlyExit
               ? preset.earlyRedemptionAllowed
                 ? 'bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400'
-                : 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400'
-              : 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400'
+                : 'bg-bg-hover dark:bg-red-950/20 text-red-700 '
+              : 'bg-bg-hover dark:bg-green-950/20 text-green-700 dark:text-green-400'
           }`}>
             {earlyExit
               ? preset.earlyRedemptionAllowed
@@ -217,9 +217,9 @@ export function BondBenchmarkSection({
                 : `${preset.name} nie pozwala na wcześniejszy wykup. Wyniki obliczone dla pełnego okresu zapadalności (${preset.maturityMonths} mies.).`
               : `Horyzont pokrywa okres zapadalności obligacji — brak kary za wykup.`}
           </div>
-          <div className="text-[10px] text-faint dark:text-muted mt-1">
+          <div className="text-[10px] text-border mt-1">
             Stawki z {BOND_PRESETS_LAST_UPDATED}.{' '}
-            <a href={BOND_PRESETS_SOURCE_URL} target="_blank" rel="noopener noreferrer" className="underline hover:text-muted dark:hover:text-faint">
+            <a href={BOND_PRESETS_SOURCE_URL} target="_blank" rel="noopener noreferrer" className="underline hover:text-text-muted dark:hover:text-border">
               Aktualne stawki na obligacjeskarbowe.pl
             </a>
           </div>

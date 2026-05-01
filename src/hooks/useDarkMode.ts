@@ -7,6 +7,10 @@ function getInitialDark(): boolean {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored !== null) return stored === 'true';
   } catch { /* ignore */ }
+  // Detect OS preference
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
   return false;
 }
 

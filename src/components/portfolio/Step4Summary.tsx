@@ -38,12 +38,12 @@ interface MetricCardProps {
   emphasized?: boolean;
 }
 
-function MetricCard({ icon, label, value, colorClass = 'text-body dark:text-on-dark-muted', emphasized = false }: MetricCardProps) {
+function MetricCard({ icon, label, value, colorClass = 'text-text-secondary', emphasized = false }: MetricCardProps) {
   return (
-    <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-5 flex items-start gap-3">
+    <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 flex items-start gap-3">
       <div className={`mt-0.5 ${colorClass}`}>{icon}</div>
       <div className="min-w-0">
-        <p className="text-xs text-muted dark:text-muted leading-tight">{label}</p>
+        <p className="text-xs text-text-muted leading-tight">{label}</p>
         <p className={`font-semibold tabular-nums truncate ${emphasized ? 'text-lg' : 'text-base'} ${colorClass}`}>
           {value}
         </p>
@@ -59,7 +59,7 @@ function EditButton({ step, goToStep }: { step: WizardStep; goToStep: (s: Wizard
     <button
       type="button"
       onClick={() => goToStep(step)}
-      className="inline-flex items-center gap-1 text-xs text-accent dark:text-accent hover:text-accent-hover dark:hover:text-accent transition-colors"
+      className="inline-flex items-center gap-1 text-xs text-accent-primary dark:text-accent-primary hover:text-accent-primary-hover dark:hover:text-accent-primary transition-colors"
       aria-label={`Edytuj krok ${step}`}
     >
       <Edit3 size={12} />
@@ -108,7 +108,7 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
     <div className="space-y-6">
       {/* ── Section: Key Metrics ────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-heading dark:text-on-dark">
+        <h2 className="text-lg font-semibold text-text-primary">
           Podsumowanie portfela
         </h2>
         <EditButton step={1} goToStep={goToStep} />
@@ -124,13 +124,13 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
           icon={<TrendingUp size={18} />}
           label="Wartość portfela (brutto)"
           value={fmtPLN(derived.grossValue)}
-          colorClass="text-accent dark:text-accent"
+          colorClass="text-accent-primary dark:text-accent-primary"
         />
         <MetricCard
           icon={<Shield size={18} />}
           label="Oszczędność IKE (brak Belki)"
           value={fmtPLN(derived.ikeSavings)}
-          colorClass="text-green-600 dark:text-green-400"
+          colorClass="text-success dark:text-green-400"
         />
         <MetricCard
           icon={<PiggyBank size={18} />}
@@ -148,7 +148,7 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
           icon={<Calculator size={18} />}
           label="Podatek Belki (nadwyżka)"
           value={fmtPLN(derived.regularTax)}
-          colorClass="text-red-600 dark:text-red-400"
+          colorClass="text-danger"
         />
         <MetricCard
           icon={<Award size={18} />}
@@ -167,38 +167,38 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
           icon={<Percent size={18} />}
           label="Efektywna CAGR netto"
           value={`${derived.cagr.toFixed(2)}%`}
-          colorClass="text-accent dark:text-accent"
+          colorClass="text-accent-primary dark:text-accent-primary"
         />
       </div>
 
       {/* ── Section: Counterfactual ─────────────────────────────────────── */}
       <div className="flex items-center justify-between">
-        <h3 className="text-base font-semibold text-heading dark:text-on-dark">
+        <h3 className="text-base font-semibold text-text-primary">
           Porównanie: z IKE/IKZE vs bez
         </h3>
         <EditButton step={2} goToStep={goToStep} />
       </div>
 
-      <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-5">
+      <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
           <div>
-            <p className="text-xs text-muted dark:text-muted mb-1">Z IKE/IKZE</p>
+            <p className="text-xs text-text-muted mb-1">Z IKE/IKZE</p>
             <p className="text-xl font-bold text-green-700 dark:text-green-300 tabular-nums">
               {fmtPLN(result.totalTerminalNet)}
             </p>
           </div>
           <div>
-            <p className="text-xs text-muted dark:text-muted mb-1">Bez (zwykły rachunek)</p>
-            <p className="text-xl font-bold text-body dark:text-on-dark-muted tabular-nums">
+            <p className="text-xs text-text-muted mb-1">Bez (zwykły rachunek)</p>
+            <p className="text-xl font-bold text-text-secondary tabular-nums">
               {fmtPLN(result.counterfactualNet)}
             </p>
           </div>
         </div>
-        <div className="mt-4 pt-3 border-t border-edge dark:border-edge-strong flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-sm">
-          <span className={result.taxSavings >= 0 ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-red-600 dark:text-red-400 font-semibold'}>
+        <div className="mt-4 pt-3 border-t border-border flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-sm">
+          <span className={result.taxSavings >= 0 ? 'text-success dark:text-green-400 font-semibold' : 'text-danger font-semibold'}>
             {result.taxSavings >= 0 ? '+' : ''}{fmtPLN(result.taxSavings)}
           </span>
-          <span className={result.taxSavingsPercent >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+          <span className={result.taxSavingsPercent >= 0 ? 'text-success dark:text-green-400' : 'text-danger'}>
             ({result.taxSavingsPercent >= 0 ? '+' : ''}{result.taxSavingsPercent.toFixed(2)}%)
           </span>
         </div>
@@ -206,7 +206,7 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
 
       {/* ── Section: Chart ──────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
-        <h3 className="text-base font-semibold text-heading dark:text-on-dark">
+        <h3 className="text-base font-semibold text-text-primary">
           Projekcja wzrostu
         </h3>
         <EditButton step={3} goToStep={goToStep} />
@@ -219,11 +219,11 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
       />
 
       {/* ── Section: Annual Table (collapsible) ────────────────────────── */}
-      <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm">
+      <div className="bg-bg-card rounded-xl border border-border shadow-sm">
         <button
           type="button"
           onClick={() => setTableOpen(prev => !prev)}
-          className="w-full flex items-center justify-between px-5 py-3 text-sm font-semibold text-heading dark:text-on-dark hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50 transition-colors rounded-xl"
+          className="w-full flex items-center justify-between px-5 py-3 text-sm font-semibold text-text-primary hover:bg-bg-card dark:hover:bg-bg-hover/50 transition-colors rounded-xl"
           aria-expanded={tableOpen}
         >
           <span>Szczegóły roczne</span>
@@ -234,7 +234,7 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
           <div className="overflow-x-auto px-2 pb-4">
             <table className="w-full text-xs text-left">
               <thead>
-                <tr className="border-b border-edge dark:border-edge-strong text-muted dark:text-muted sticky top-0 bg-surface dark:bg-surface-dark">
+                <tr className="border-b border-border text-text-muted sticky top-0 bg-bg-card">
                   <th className="px-2 py-2 font-medium">Rok</th>
                   <th className="px-2 py-2 font-medium text-right">Wpłaty IKE</th>
                   <th className="px-2 py-2 font-medium text-right">Wartość IKE</th>
@@ -252,19 +252,19 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
                 {result.annualTable.map((row, i) => (
                   <tr
                     key={row.year}
-                    className={`border-b border-edge dark:border-edge-strong/50 ${i % 2 === 0 ? 'bg-surface-alt/50 dark:bg-surface-dark/50' : ''}`}
+                    className={`border-b border-border/50 ${i % 2 === 0 ? 'bg-bg-card/50/50' : ''}`}
                   >
-                    <td className="px-2 py-1.5 font-medium text-body dark:text-on-dark-muted">{row.year}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums text-body dark:text-on-dark-muted">{fmtPLN(row.ikeContributed)}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums text-body dark:text-on-dark-muted">{fmtPLN(row.ikeValue)}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums text-body dark:text-on-dark-muted">{fmtPLN(row.ikzeContributed)}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums text-body dark:text-on-dark-muted">{fmtPLN(row.ikzeValue)}</td>
+                    <td className="px-2 py-1.5 font-medium text-text-secondary">{row.year}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-text-secondary">{fmtPLN(row.ikeContributed)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-text-secondary">{fmtPLN(row.ikeValue)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-text-secondary">{fmtPLN(row.ikzeContributed)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-text-secondary">{fmtPLN(row.ikzeValue)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-violet-600 dark:text-violet-400">{fmtPLN(row.ikzePitDeduction)}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums text-body dark:text-on-dark-muted">{fmtPLN(row.regularContributed)}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums text-body dark:text-on-dark-muted">{fmtPLN(row.regularValue)}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums font-medium text-body dark:text-on-dark-muted">{fmtPLN(row.totalContributed)}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums font-medium text-body dark:text-on-dark-muted">{fmtPLN(row.totalValue)}</td>
-                    <td className={`px-2 py-1.5 text-right tabular-nums font-medium ${row.cumulativeGain >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-text-secondary">{fmtPLN(row.regularContributed)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-text-secondary">{fmtPLN(row.regularValue)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums font-medium text-text-secondary">{fmtPLN(row.totalContributed)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums font-medium text-text-secondary">{fmtPLN(row.totalValue)}</td>
+                    <td className={`px-2 py-1.5 text-right tabular-nums font-medium ${row.cumulativeGain >= 0 ? 'text-success dark:text-green-400' : 'text-danger'}`}>
                       {fmtPLN(row.cumulativeGain)}
                     </td>
                   </tr>

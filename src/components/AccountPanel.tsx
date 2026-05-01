@@ -95,13 +95,13 @@ export function AccountPanel({
       />
 
       {/* Panel */}
-      <div className="relative bg-surface dark:bg-surface-dark rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-edge dark:border-edge-strong max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-bg-card rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden border border-border max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-edge dark:border-edge-strong">
-          <h2 className="text-xl font-bold text-heading dark:text-on-dark">Ustawienia konta</h2>
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-border">
+          <h2 className="text-xl font-bold text-text-primary">Ustawienia konta</h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-faint hover:text-body dark:hover:text-on-dark-muted hover:bg-surface-muted dark:hover:bg-surface-dark-alt transition-colors"
+            className="p-1.5 rounded-lg text-border hover:text-text-primary dark:hover:text-text-primary hover:bg-bg-hover dark:hover:bg-bg-hover transition-colors"
             aria-label="Zamknij"
           >
             <X size={20} />
@@ -109,38 +109,38 @@ export function AccountPanel({
         </div>
 
         {/* User info */}
-        <div className="px-6 py-4 border-b border-edge dark:border-edge-strong">
+        <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-lg font-bold text-on-dark shrink-0">
+            <div className="w-12 h-12 rounded-full bg-accent-primary flex items-center justify-center text-lg font-bold text-white shrink-0">
               {getInitials(user.name, user.email)}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-heading dark:text-on-dark break-words">
+              <p className="text-sm font-semibold text-text-primary break-words">
                 {user.name ?? 'Użytkownik'}
               </p>
-              <p className="text-sm text-muted dark:text-muted break-all">{user.email}</p>
+              <p className="text-sm text-text-muted break-all">{user.email}</p>
             </div>
           </div>
         </div>
 
         {/* Error */}
         {error ? (
-          <div className="mx-6 mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
+          <div className="mx-6 mt-4 p-3 rounded-lg bg-bg-hover dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
             {error}
           </div>
         ) : null}
 
         {/* Success */}
         {passwordSuccess ? (
-          <div className="mx-6 mt-4 p-3 rounded-lg bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 text-sm flex items-center gap-2">
+          <div className="mx-6 mt-4 p-3 rounded-lg bg-bg-hover dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 text-sm flex items-center gap-2">
             <Check size={16} aria-hidden="true" />
             Hasło zostało zmienione.
           </div>
         ) : null}
 
         {/* Linked accounts */}
-        <div className="px-6 py-5 border-b border-edge dark:border-edge-strong">
-          <h3 className="text-sm font-semibold text-heading dark:text-on-dark flex items-center gap-2 mb-3">
+        <div className="px-6 py-5 border-b border-border">
+          <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
             <Link2 size={16} aria-hidden="true" />
             Połączone konta
           </h3>
@@ -161,15 +161,15 @@ export function AccountPanel({
         </div>
 
         {/* Change password */}
-        <form onSubmit={handleChangePassword} className="px-6 py-5 border-b border-edge dark:border-edge-strong">
-          <h3 className="text-sm font-semibold text-heading dark:text-on-dark flex items-center gap-2 mb-3">
+        <form onSubmit={handleChangePassword} className="px-6 py-5 border-b border-border">
+          <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
             <KeyRound size={16} aria-hidden="true" />
             {hasPassword ? 'Zmień hasło' : 'Ustaw hasło'}
           </h3>
 
           {hasPassword ? (
             <div className="relative mb-3">
-              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-faint" aria-hidden="true" />
+              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-border" aria-hidden="true" />
               <input
                 type="password"
                 placeholder="Aktualne hasło…"
@@ -177,13 +177,13 @@ export function AccountPanel({
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-edge-strong dark:border-edge-strong bg-surface dark:bg-surface-dark-alt text-heading dark:text-on-dark text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-surface-dark/30 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-bg-card text-text-primary text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-surface-dark/30 focus:border-transparent"
               />
             </div>
           ) : null}
 
           <div className="relative mb-3">
-            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-faint" aria-hidden="true" />
+            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-border" aria-hidden="true" />
             <input
               type="password"
               placeholder="Nowe hasło…"
@@ -192,12 +192,12 @@ export function AccountPanel({
               required
               minLength={8}
               autoComplete="new-password"
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-edge-strong dark:border-edge-strong bg-surface dark:bg-surface-dark-alt text-heading dark:text-on-dark text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-surface-dark/30 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-bg-card text-text-primary text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-surface-dark/30 focus:border-transparent"
             />
           </div>
 
           <div className="relative mb-3">
-            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-faint" aria-hidden="true" />
+            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-border" aria-hidden="true" />
             <input
               type="password"
               placeholder="Powtórz nowe hasło…"
@@ -206,22 +206,22 @@ export function AccountPanel({
               required
               minLength={8}
               autoComplete="new-password"
-              className={`w-full pl-10 pr-4 py-2.5 rounded-lg border bg-surface dark:bg-surface-dark-alt text-heading dark:text-on-dark text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent ${
+              className={`w-full pl-10 pr-4 py-2.5 rounded-lg border bg-bg-card text-text-primary text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent ${
                 passwordMismatch
                   ? 'border-red-400 focus:ring-red-500'
-                  : 'border-edge-strong dark:border-edge-strong focus:ring-accent'
+                  : 'border-border focus:ring-accent-primary'
               }`}
             />
           </div>
 
           {passwordMismatch ? (
-            <p className="text-xs text-red-500 mb-3">Hasła nie są identyczne.</p>
+            <p className="text-xs text-danger mb-3">Hasła nie są identyczne.</p>
           ) : null}
 
           <button
             type="submit"
             disabled={isChangingPassword || passwordMismatch || !newPassword}
-            className="w-full py-2.5 px-4 bg-accent text-on-dark rounded-lg font-medium text-sm hover:bg-accent-hover disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="w-full py-2.5 px-4 bg-accent-primary text-white rounded-lg font-medium text-sm hover:bg-accent-primary-hover disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2"
           >
             {isChangingPassword ? 'Zapisywanie…' : (hasPassword ? 'Zmień hasło' : 'Ustaw hasło')}
           </button>
@@ -229,25 +229,25 @@ export function AccountPanel({
 
         {/* Delete account */}
         <div className="px-6 py-5">
-          <h3 className="text-sm font-semibold text-red-600 dark:text-red-400 flex items-center gap-2 mb-2">
+          <h3 className="text-sm font-semibold text-danger flex items-center gap-2 mb-2">
             <Trash2 size={16} aria-hidden="true" />
             Usuń konto
           </h3>
-          <p className="text-xs text-muted dark:text-muted mb-3">
+          <p className="text-xs text-text-muted mb-3">
             Ta operacja jest nieodwracalna. Wszystkie Twoje dane zostaną trwale usunięte.
           </p>
 
           {!showDeleteConfirm ? (
             <button
               onClick={() => { setShowDeleteConfirm(true); onClearError(); }}
-              className="w-full py-2.5 px-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg font-medium text-sm border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2"
+              className="w-full py-2.5 px-4 bg-bg-hover dark:bg-red-900/20 text-danger rounded-lg font-medium text-sm border border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2"
             >
               Usuń konto
             </button>
           ) : (
-            <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 space-y-3">
+            <div className="p-4 rounded-lg bg-bg-hover dark:bg-red-900/20 border border-red-200 dark:border-red-800 space-y-3">
               <div className="flex items-start gap-2">
-                <AlertTriangle size={18} className="text-red-500 mt-0.5 shrink-0" aria-hidden="true" />
+                <AlertTriangle size={18} className="text-danger mt-0.5 shrink-0" aria-hidden="true" />
                 <p className="text-sm text-red-700 dark:text-red-300">
                   Czy na pewno chcesz usunąć konto? Tej operacji nie można cofnąć.
                 </p>
@@ -260,21 +260,21 @@ export function AccountPanel({
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
                   autoComplete="current-password"
-                  className="w-full px-3 py-2 rounded-lg border border-red-300 dark:border-red-700 bg-surface dark:bg-surface-dark-alt text-heading dark:text-on-dark text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-3 py-2 rounded-lg border border-red-300 dark:border-red-700 bg-bg-card text-text-primary text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
               ) : null}
 
               <div className="flex gap-2">
                 <button
                   onClick={() => { setShowDeleteConfirm(false); setDeletePassword(''); onClearError(); }}
-                  className="flex-1 py-2 px-3 text-sm font-medium text-body dark:text-on-dark-muted bg-surface dark:bg-surface-dark-alt rounded-lg border border-edge-strong dark:border-edge-strong hover:bg-surface-alt dark:hover:bg-surface-dark-alt transition-colors"
+                  className="flex-1 py-2 px-3 text-sm font-medium text-text-secondary bg-bg-card rounded-lg border border-border hover:bg-bg-card dark:hover:bg-bg-hover transition-colors"
                 >
                   Anuluj
                 </button>
                 <button
                   onClick={handleDeleteAccount}
                   disabled={isDeleting || (hasPassword && !deletePassword)}
-                  className="flex-1 py-2 px-3 text-sm font-medium text-on-dark bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 py-2 px-3 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                 >
                   {isDeleting ? 'Usuwanie…' : 'Usuń na stałe'}
                 </button>
@@ -294,20 +294,20 @@ function LinkedAccountRow({ provider, label, isLinked, icon }: {
   icon: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-surface-alt dark:bg-surface-dark-alt/50">
+    <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-bg-card/50">
       <div className="flex items-center gap-2.5">
         <span className="shrink-0">{icon}</span>
-        <span className="text-sm font-medium text-heading dark:text-on-dark">{label}</span>
+        <span className="text-sm font-medium text-text-primary">{label}</span>
       </div>
       {isLinked ? (
-        <span className="flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-400">
+        <span className="flex items-center gap-1 text-xs font-medium text-success dark:text-green-400">
           <Check size={14} aria-hidden="true" />
           Połączono
         </span>
       ) : (
         <a
           href={`/api/auth/${provider}?action=link`}
-          className="flex items-center gap-1 text-xs font-medium text-accent dark:text-accent hover:text-accent-hover dark:hover:text-accent transition-colors"
+          className="flex items-center gap-1 text-xs font-medium text-accent-primary dark:text-accent-primary hover:text-accent-primary-hover dark:hover:text-accent-primary transition-colors"
         >
           <Unlink size={14} aria-hidden="true" />
           Połącz

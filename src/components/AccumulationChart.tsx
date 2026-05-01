@@ -26,7 +26,7 @@ function CustomLegend({ payload }: { payload?: Array<{ value: string; color: str
   return (
     <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-2 px-2">
       {payload.map((entry) => (
-        <span key={entry.value} className="inline-flex items-center gap-1.5 text-xs text-body dark:text-on-dark-muted whitespace-nowrap">
+        <span key={entry.value} className="inline-flex items-center gap-1.5 text-xs text-text-secondary whitespace-nowrap">
           <span
             className="inline-block w-2.5 h-2.5 rounded-sm shrink-0"
             style={{ backgroundColor: entry.color }}
@@ -39,26 +39,26 @@ function CustomLegend({ payload }: { payload?: Array<{ value: string; color: str
 }
 
 const WRAPPER_COLORS = {
-  ike: '#16a34a',      // green-600
-  ikze: '#7c3aed',     // violet-600
-  regular: '#2563eb',  // blue-600
-  inflation: '#6b7280', // gray-500
-  counterfactual: '#ef4444', // red-500
+  ike: '#065F46',      // emerald-800
+  ikze: '#5B21B6',     // violet-800
+  regular: '#115E59',  // teal-800
+  inflation: '#475569', // slate-600
+  counterfactual: '#991B1B', // red-800
 } as const;
 
 const WRAPPER_COLORS_DARK = {
-  ike: '#22c55e',
-  ikze: '#a78bfa',
-  regular: '#60a5fa',
-  inflation: '#9ca3af',
-  counterfactual: '#f87171',
+  ike: '#6EE7B7',
+  ikze: '#C4B5FD',
+  regular: '#67E8F9',
+  inflation: '#A9B5BF',
+  counterfactual: '#FCA5A5',
 } as const;
 
 function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps) {
   const [viewMode, setViewMode] = useState<'stacked' | 'lines'>('stacked');
   const colors = isDark ? WRAPPER_COLORS_DARK : WRAPPER_COLORS;
-  const gridColor = isDark ? '#374151' : '#f0f0f0';
-  const tickColor = isDark ? '#9ca3af' : '#666666';
+  const gridColor = isDark ? '#334155' : '#F1F5F9';
+  const tickColor = isDark ? '#A9B5BF' : '#475569';
 
   const chartData = useMemo(() =>
     data.map(snap => ({
@@ -87,16 +87,16 @@ function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps)
   const formatTooltip = (value: unknown) => fmtPLN(Number(value ?? 0));
 
   return (
-    <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-5 space-y-3">
+    <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-3">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <h3 className="text-base font-semibold text-heading dark:text-on-dark">
+        <h3 className="text-base font-semibold text-text-primary">
           Wzrost portfela w czasie
         </h3>
-        <div className="flex rounded-lg border border-edge dark:border-edge-strong overflow-hidden text-xs" role="group" aria-label="Widok wykresu">
+        <div className="flex rounded-lg border border-border overflow-hidden text-xs" role="group" aria-label="Widok wykresu">
           <button
             type="button"
             onClick={() => setViewMode('stacked')}
-            className={`px-2.5 py-1 transition-colors ${viewMode === 'stacked' ? 'bg-surface-muted dark:bg-surface-dark-alt font-semibold text-heading dark:text-on-dark' : 'text-muted dark:text-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50'}`}
+            className={`px-2.5 py-1 transition-colors ${viewMode === 'stacked' ? 'bg-bg-hover font-semibold text-text-primary' : 'text-text-text-muted hover:bg-bg-hover'}`}
             aria-pressed={viewMode === 'stacked'}
           >
             Skumulowany
@@ -104,7 +104,7 @@ function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps)
           <button
             type="button"
             onClick={() => setViewMode('lines')}
-            className={`px-2.5 py-1 transition-colors ${viewMode === 'lines' ? 'bg-surface-muted dark:bg-surface-dark-alt font-semibold text-heading dark:text-on-dark' : 'text-muted dark:text-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50'}`}
+            className={`px-2.5 py-1 transition-colors ${viewMode === 'lines' ? 'bg-bg-hover font-semibold text-text-primary' : 'text-text-text-muted hover:bg-bg-hover'}`}
             aria-pressed={viewMode === 'lines'}
           >
             Linie
@@ -117,7 +117,7 @@ function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps)
           {milestoneAnnotations.map(m => (
             <span
               key={m.year}
-              className="text-xs bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 px-2 py-0.5 rounded-full"
+              className="text-xs bg-bg-hover text-accent-primary-secondary border border-border px-2 py-0.5 rounded-full"
             >
               ★ {m.label} PLN — rok {m.year}
             </span>
@@ -142,9 +142,9 @@ function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps)
               formatter={formatTooltip}
               labelFormatter={(v) => `Rok ${v}`}
               contentStyle={{
-                backgroundColor: isDark ? '#1e293b' : '#fff',
-                borderColor: isDark ? '#334155' : '#e5e7eb',
-                color: isDark ? '#f8fafc' : '#111827',
+                backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                borderColor: isDark ? '#334155' : '#CBD5E1',
+                color: isDark ? '#F1F5F9' : '#0F172A',
               }}
             />
             <Legend content={<CustomLegend />} />
@@ -170,9 +170,9 @@ function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps)
               formatter={formatTooltip}
               labelFormatter={(v) => `Rok ${v}`}
               contentStyle={{
-                backgroundColor: isDark ? '#1e293b' : '#fff',
-                borderColor: isDark ? '#334155' : '#e5e7eb',
-                color: isDark ? '#f8fafc' : '#111827',
+                backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                borderColor: isDark ? '#334155' : '#CBD5E1',
+                color: isDark ? '#F1F5F9' : '#0F172A',
               }}
             />
             <Legend content={<CustomLegend />} />

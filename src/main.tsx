@@ -5,7 +5,7 @@ import './index.css'
 import { Layout } from './components/Layout'
 import { PageLoader } from './components/PageLoader'
 import {
-  HomePage,
+  HomeRedirect,
   ComparisonPage,
   ForecastPage,
   TaxPage,
@@ -19,9 +19,9 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
-          <Route index element={<HomePage />} />
-          <Route path="comparison" element={<Suspense fallback={<PageLoader />}><ComparisonPage /></Suspense>} />
+          <Route index element={<HomeRedirect />} />
           <Route path="forecast" element={<Suspense fallback={<PageLoader />}><ForecastPage /></Suspense>} />
+          <Route path="comparison" element={<Suspense fallback={<PageLoader />}><ComparisonPage /></Suspense>} />
           <Route path="tax" element={<Suspense fallback={<PageLoader />}><TaxPage /></Suspense>} />
           <Route path="portfolio" element={<Suspense fallback={<PageLoader />}><PortfolioPage /></Suspense>} />
           <Route path="rates" element={<Suspense fallback={<PageLoader />}><RatesPage /></Suspense>} />
@@ -39,10 +39,14 @@ createRoot(document.getElementById('root')!).render(
 // (italic is decorative; browser-synthesized slant is acceptable).
 function loadFonts() {
   if (typeof document === 'undefined') return;
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap';
-  document.head.appendChild(link);
+  const inter = document.createElement('link');
+  inter.rel = 'stylesheet';
+  inter.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap';
+  document.head.appendChild(inter);
+  const jetbrains = document.createElement('link');
+  jetbrains.rel = 'stylesheet';
+  jetbrains.href = 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap';
+  document.head.appendChild(jetbrains);
 }
 loadFonts();
 

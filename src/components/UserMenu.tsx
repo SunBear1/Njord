@@ -43,7 +43,7 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSet
 
   if (isLoading) {
     return (
-      <div className="w-8 h-8 rounded-full bg-surface-dark-alt animate-pulse" />
+      <div className="w-8 h-8 rounded-full bg-bg-hover animate-pulse" />
     );
   }
 
@@ -51,7 +51,7 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSet
     return (
       <button
         onClick={onLoginClick}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-on-dark-muted hover:text-on-dark hover:bg-surface-dark-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-text-secondary hover:text-white hover:bg-bg-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
       >
         <UserIcon size={16} aria-hidden="true" />
         Zaloguj się
@@ -66,11 +66,11 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSet
     <div ref={menuRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm text-on-dark-muted hover:text-on-dark hover:bg-surface-dark-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm text-text-secondary hover:text-white hover:bg-bg-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center text-xs font-bold text-on-dark shrink-0">
+        <div className="w-7 h-7 rounded-full bg-accent-primary flex items-center justify-center text-xs font-bold text-white shrink-0">
           {initials}
         </div>
         <span className="hidden sm:inline max-w-[200px] truncate">
@@ -80,13 +80,13 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSet
       </button>
 
       {isOpen ? (
-        <div className="absolute right-0 mt-2 w-72 bg-surface dark:bg-surface-dark rounded-xl shadow-lg border border-edge dark:border-edge-strong py-2 z-50">
+        <div className="absolute right-0 mt-2 w-72 bg-bg-card rounded-xl shadow-lg border border-border py-2 z-50">
           {/* User info */}
-          <div className="px-4 py-2 border-b border-edge dark:border-edge-strong">
-            <p className="text-sm font-medium text-heading dark:text-on-dark break-words">
+          <div className="px-4 py-2 border-b border-border">
+            <p className="text-sm font-medium text-text-primary break-words">
               {user.name ?? 'Użytkownik'}
             </p>
-            <p className="text-xs text-muted dark:text-muted break-all">{user.email}</p>
+            <p className="text-xs text-text-muted break-all">{user.email}</p>
           </div>
 
           {/* Actions */}
@@ -95,7 +95,7 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSet
               setIsOpen(false);
               onAccountSettings();
             }}
-            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-body dark:text-on-dark-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt transition-colors"
+            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-text-secondary hover:bg-bg-card dark:hover:bg-bg-hover transition-colors"
           >
             <Settings size={16} aria-hidden="true" />
             Ustawienia konta
@@ -105,7 +105,7 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSet
               setIsOpen(false);
               onLogout();
             }}
-            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-body dark:text-on-dark-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt transition-colors"
+            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-text-secondary hover:bg-bg-card dark:hover:bg-bg-hover transition-colors"
           >
             <LogOut size={16} aria-hidden="true" />
             Wyloguj się

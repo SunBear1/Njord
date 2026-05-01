@@ -215,7 +215,7 @@ export function InputPanel({
 
   /* ────── Animated layout: both summary + form always in DOM ────── */
   return (
-    <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm overflow-hidden">
+    <div className="bg-bg-card rounded-xl border border-border shadow-sm overflow-hidden">
       {/* Summary bar — visible when collapsed */}
       <div
         className="grid"
@@ -234,20 +234,20 @@ export function InputPanel({
             onClick={onToggleCollapse}
             className="w-full flex items-center justify-between gap-3 px-5 py-3"
           >
-            <div className="flex items-center gap-2 flex-wrap min-w-0 text-sm text-body dark:text-on-dark-muted">
-              <span className="font-semibold text-heading dark:text-on-dark">{ticker || '—'}</span>
-              <span className="text-faint dark:text-muted">·</span>
+            <div className="flex items-center gap-2 flex-wrap min-w-0 text-sm text-text-secondary">
+              <span className="font-semibold text-text-primary">{ticker || '—'}</span>
+              <span className="text-border">·</span>
               <span>{shares} akcji</span>
-              <span className="text-faint dark:text-muted">·</span>
+              <span className="text-border">·</span>
               <span>${currentPriceUSD.toFixed(2)}</span>
-              <span className="text-faint dark:text-muted">·</span>
+              <span className="text-border">·</span>
               <span>PLN/USD {currentFxRate.toFixed(2)}</span>
-              <span className="text-faint dark:text-muted">·</span>
+              <span className="text-border">·</span>
               <span>{bmSummary}</span>
-              <span className="text-faint dark:text-muted">·</span>
-              <span className="text-accent dark:text-accent font-medium">{horizonLabel}</span>
+              <span className="text-border">·</span>
+              <span className="text-accent-primary dark:text-accent-primary font-medium">{horizonLabel}</span>
             </div>
-            <span className="flex items-center gap-1 text-xs text-heading dark:text-on-dark font-medium whitespace-nowrap shrink-0">
+            <span className="flex items-center gap-1 text-xs text-text-primary font-medium whitespace-nowrap shrink-0">
               Rozwiń <ChevronDown size={16} />
             </span>
           </button>
@@ -270,12 +270,12 @@ export function InputPanel({
           >
 
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-heading dark:text-on-dark">Dane wejściowe</h2>
+        <h2 className="text-lg font-semibold text-text-primary">Dane wejściowe</h2>
         {onToggleCollapse && (
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="flex items-center gap-1 text-xs text-heading dark:text-on-dark hover:text-body dark:hover:text-on-dark-muted font-medium transition-colors"
+            className="flex items-center gap-1 text-xs text-text-primary hover:text-text-primary dark:hover:text-text-primary font-medium transition-colors"
           >
             Zwiń <ChevronUp size={16} />
           </button>
@@ -296,11 +296,11 @@ export function InputPanel({
 
       {/* Ticker — auto-fetch */}
       <div className="space-y-1">
-        <label htmlFor="ticker-input" className="text-sm font-medium text-body dark:text-on-dark-muted flex items-center gap-1.5">
-          Ticker giełdowy <span className="text-red-500">*</span>
+        <label htmlFor="ticker-input" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
+          Ticker giełdowy <span className="text-danger">*</span>
           <Tooltip content="Wpisz symbol giełdowy (np. AAPL, NVDA, VOO). Cena i kurs USD/PLN pobiorą się automatycznie." />
         </label>
-        <p className="text-xs text-faint dark:text-muted">Zacznij pisać — dane pobiorą się automatycznie.</p>
+        <p className="text-xs text-border">Zacznij pisać — dane pobiorą się automatycznie.</p>
         <div className="flex gap-2 items-center">
           <div className="relative flex-1">
             <input
@@ -311,10 +311,10 @@ export function InputPanel({
               value={localTicker}
               onChange={(e) => setLocalTicker(e.target.value.toUpperCase())}
               placeholder="np. AAPL, NVDA, VOO"
-              className="w-full border border-edge-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:bg-surface-dark-alt dark:border-edge-strong dark:text-on-dark dark:placeholder-gray-400 pr-9"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400 pr-9"
             />
             {assetLoading && (
-              <Loader2 size={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin motion-reduce:animate-none text-accent" aria-hidden="true" />
+              <Loader2 size={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin motion-reduce:animate-none text-accent-primary" aria-hidden="true" />
             )}
           </div>
           <button
@@ -322,20 +322,20 @@ export function InputPanel({
             onClick={handleManualRefetch}
             disabled={assetLoading || !localTicker.trim()}
             aria-label="Odśwież dane giełdowe"
-            className="p-2 rounded-lg border border-edge-strong dark:border-edge-strong text-muted dark:text-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt disabled:opacity-40 transition-colors"
+            className="p-2 rounded-lg border border-border text-text-muted hover:bg-bg-card dark:hover:bg-bg-hover disabled:opacity-40 transition-colors"
           >
             <RefreshCw size={16} aria-hidden="true" />
           </button>
         </div>
 
         {assetError && !rateLimited && (
-          <p className="flex items-start gap-1.5 text-xs text-red-600 mt-1">
+          <p className="flex items-start gap-1.5 text-xs text-danger mt-1">
             <AlertCircle size={12} className="mt-0.5 flex-shrink-0" />
             {assetError}
           </p>
         )}
         {assetData && !assetLoading && (
-          <p className="flex items-center gap-1.5 text-xs text-green-600 mt-1">
+          <p className="flex items-center gap-1.5 text-xs text-success mt-1">
             <CheckCircle2 size={12} />
             {assetData.asset.name} ({assetData.asset.currency}) · {fmtUSD(assetData.asset.currentPrice)}
           </p>
@@ -344,8 +344,8 @@ export function InputPanel({
 
       {/* Shares */}
       <div className="space-y-1">
-        <label htmlFor="shares-input" className="text-sm font-medium text-body dark:text-on-dark-muted">
-          Liczba akcji <span className="text-red-500">*</span>
+        <label htmlFor="shares-input" className="text-sm font-medium text-text-secondary">
+          Liczba akcji <span className="text-danger">*</span>
         </label>
         <input
           id="shares-input"
@@ -357,24 +357,24 @@ export function InputPanel({
           value={shares || ''}
           onChange={(e) => onSharesChange(Number(e.target.value))}
           placeholder="np. 50"
-          className="w-full border border-edge-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:bg-surface-dark-alt dark:border-edge-strong dark:text-on-dark dark:placeholder-gray-400"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
         />
         <button
           type="button"
           onClick={() => setShowValueCalc((v) => !v)}
-          className="flex items-center gap-1 text-xs text-accent dark:text-accent hover:text-accent-hover dark:hover:text-accent transition-colors"
+          className="flex items-center gap-1 text-xs text-accent-primary dark:text-accent-primary hover:text-accent-primary-hover dark:hover:text-accent-primary transition-colors"
         >
           <Calculator size={12} />
           {showValueCalc ? 'Ukryj kalkulator' : 'Nie wiesz ile masz akcji, ale znasz wartość?'}
         </button>
         {showValueCalc && (
-          <div className="bg-surface-alt dark:bg-surface-muted border border-edge dark:border-edge rounded-lg p-3 space-y-2">
-            <p className="text-xs text-body dark:text-on-dark-muted">
+          <div className="bg-bg-card border border-border rounded-lg p-3 space-y-2">
+            <p className="text-xs text-text-secondary">
               Wpisz całkowitą wartość portfela w USD — obliczymy liczbę akcji.
             </p>
             <div className="flex gap-2 items-end">
               <div className="flex-1 space-y-1">
-                <label className="text-xs text-heading dark:text-on-dark font-medium">Wartość portfela (USD)</label>
+                <label className="text-xs text-text-primary font-medium">Wartość portfela (USD)</label>
                 <input
                   type="number"
                   min={0}
@@ -382,7 +382,7 @@ export function InputPanel({
                   value={totalValueStr}
                   onChange={(e) => setTotalValueStr(e.target.value)}
                   placeholder="np. 5000.00"
-                  className="w-full border border-edge-strong dark:border-edge-strong rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:bg-surface-dark-alt dark:text-on-dark dark:placeholder-gray-400 bg-surface dark:bg-surface-dark"
+                  className="w-full border border-border rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400 bg-bg-card"
                 />
               </div>
               <button
@@ -397,13 +397,13 @@ export function InputPanel({
                     setTotalValueStr('');
                   }
                 }}
-                className="px-3 py-1.5 text-xs font-medium bg-accent text-on-dark rounded-md hover:bg-accent-hover disabled:opacity-40 transition-colors"
+                className="px-3 py-1.5 text-xs font-medium bg-accent-primary text-white rounded-md hover:bg-accent-primary-hover disabled:opacity-40 transition-colors"
               >
                 Przelicz
               </button>
             </div>
             {currentPriceUSD > 0 && totalValueStr && parseFloat(totalValueStr) > 0 && (
-              <p className="text-xs text-body dark:text-on-dark-muted">
+              <p className="text-xs text-text-secondary">
                 {fmtUSD(parseFloat(totalValueStr))} ÷ {fmtUSD(currentPriceUSD)} ≈{' '}
                 <strong>{Math.floor(parseFloat(totalValueStr) / currentPriceUSD)} akcji</strong>
                 {' '}(zaokrąglone w dół)
@@ -420,8 +420,8 @@ export function InputPanel({
 
       {/* Price USD */}
       <div className="space-y-1">
-        <label htmlFor="price-usd" className="text-sm font-medium text-body dark:text-on-dark-muted flex items-center gap-1.5">
-          Aktualna cena akcji (USD) <span className="text-red-500">*</span>
+        <label htmlFor="price-usd" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
+          Aktualna cena akcji (USD) <span className="text-danger">*</span>
           {assetData && (
             <Tooltip content="Cena pobrana automatycznie z Twelve Data. Możesz ją edytować ręcznie." />
           )}
@@ -436,22 +436,22 @@ export function InputPanel({
           value={currentPriceUSD || ''}
           onChange={(e) => onPriceChange(Number(e.target.value))}
           placeholder="np. 185.00"
-          className="w-full border border-edge-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:bg-surface-dark-alt dark:border-edge-strong dark:text-on-dark dark:placeholder-gray-400"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
         />
       </div>
 
       {/* Advanced settings (collapsible) */}
-      <div className="border border-edge dark:border-edge-strong rounded-lg overflow-hidden">
+      <div className="border border-border rounded-lg overflow-hidden">
         <button
           type="button"
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-body dark:text-on-dark-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50 transition-colors"
+          className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-text-secondary hover:bg-bg-card dark:hover:bg-bg-hover/50 transition-colors"
           aria-expanded={showAdvanced}
         >
           <span className="flex items-center gap-1.5">
             Ustawienia zaawansowane
             {(avgCostUSD > 0 || isRSU || brokerFeeUSD > 0 || dividendYieldPercent > 0) && (
-              <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+              <span className="w-1.5 h-1.5 rounded-full bg-accent-primary" />
             )}
           </span>
           <ChevronDown size={14} className={`transition-transform duration-200 ${showAdvanced ? 'rotate-180' : ''}`} aria-hidden="true" />
@@ -465,9 +465,9 @@ export function InputPanel({
 
       {/* Average cost (optional) */}
       <div className="space-y-1">
-        <label htmlFor="avg-cost-usd" className="text-sm font-medium text-body dark:text-on-dark-muted flex items-center gap-1.5">
+        <label htmlFor="avg-cost-usd" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
           Cena zakupu (USD)
-          <span className="text-xs font-normal text-faint dark:text-muted">(opcjonalnie)</span>
+          <span className="text-xs font-normal text-border">(opcjonalnie)</span>
           <Tooltip content="Średnia cena zakupu za akcję. Używana do obliczenia rzeczywistego zysku/straty oraz prawidłowej podstawy podatku Belki — podatek nalicza się od zysku względem ceny zakupu, nie dzisiejszej ceny." />
         </label>
         <input
@@ -481,10 +481,10 @@ export function InputPanel({
           onChange={(e) => onAvgCostUSDChange(Number(e.target.value))}
           placeholder={isRSU ? 'RSU: $0' : 'np. 50.00'}
           disabled={isRSU}
-          className={`w-full border border-edge-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:bg-surface-dark-alt dark:border-edge-strong dark:text-on-dark dark:placeholder-gray-400 ${isRSU ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400 ${isRSU ? 'opacity-50 cursor-not-allowed' : ''}`}
         />
         {/* RSU toggle */}
-        <label className="flex items-center gap-2 text-sm text-body dark:text-on-dark-muted cursor-pointer mt-1">
+        <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer mt-1">
           <input
             type="checkbox"
             checked={isRSU}
@@ -492,7 +492,7 @@ export function InputPanel({
               onIsRSUChange(e.target.checked);
               if (e.target.checked) onAvgCostUSDChange(0);
             }}
-            className="rounded border-edge-strong text-accent focus:ring-accent dark:border-edge-strong dark:bg-surface-dark-alt"
+            className="rounded border-border text-accent-primary focus:ring-accent-primary"
           />
           <span>RSU / akcje przyznane (koszt nabycia = $0)</span>
           <Tooltip content="Restricted Stock Units — akcje przyznane przez pracodawcę. Cena nabycia wynosi $0, więc cały przychód ze sprzedaży podlega opodatkowaniu podatkiem Belki." />
@@ -504,7 +504,7 @@ export function InputPanel({
           </div>
         )}
         {!isRSU && avgCostUSD > 0 && currentPriceUSD > 0 && (
-          <div className={`flex items-center gap-2 text-xs px-2 py-1 rounded-md ${currentPriceUSD >= avgCostUSD ? 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400' : 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400'}`}>
+          <div className={`flex items-center gap-2 text-xs px-2 py-1 rounded-md ${currentPriceUSD >= avgCostUSD ? 'bg-bg-hover dark:bg-green-950/20 text-green-700 dark:text-green-400' : 'bg-bg-hover dark:bg-red-950/20 text-red-700 '}`}>
             {currentPriceUSD >= avgCostUSD ? '▲' : '▼'}
             <span>
               {fmtUSD(currentPriceUSD)} vs. zakup {fmtUSD(avgCostUSD)}
@@ -518,9 +518,9 @@ export function InputPanel({
 
       {/* Broker fee (optional) */}
       <div className="space-y-1">
-        <label htmlFor="broker-fee" className="text-sm font-medium text-body dark:text-on-dark-muted flex items-center gap-1.5">
+        <label htmlFor="broker-fee" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
           Prowizja brokera (USD)
-          <span className="text-xs font-normal text-faint dark:text-muted">(opcjonalnie)</span>
+          <span className="text-xs font-normal text-border">(opcjonalnie)</span>
           <Tooltip content="Łączna prowizja za transakcję sprzedaży w USD. Odejmowana od wartości sprzedaży i zaliczana jako koszt uzyskania przychodu — pomniejsza podstawę podatku Belki. Przykład: IBKR min $1, Exante ~0.02 USD/akcję." />
         </label>
         <input
@@ -533,15 +533,15 @@ export function InputPanel({
           value={brokerFeeUSD || ''}
           onChange={(e) => onBrokerFeeUSDChange(Number(e.target.value))}
           placeholder="np. 1.00"
-          className="w-full border border-edge-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:bg-surface-dark-alt dark:border-edge-strong dark:text-on-dark dark:placeholder-gray-400"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
         />
       </div>
 
       {/* Dividend yield (optional) */}
       <div className="space-y-1">
-        <label htmlFor="dividend-yield" className="text-sm font-medium text-body dark:text-on-dark-muted flex items-center gap-1.5">
+        <label htmlFor="dividend-yield" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
           Stopa dywidendy (% rocznie)
-          <span className="text-xs font-normal text-faint dark:text-muted">(opcjonalnie)</span>
+          <span className="text-xs font-normal text-border">(opcjonalnie)</span>
           <Tooltip content="Roczna stopa dywidendy akcji (np. 1.5 dla 1.5%). Dywidendy akumulowane jako gotówka PLN w ciągu horyzontu. Podatek 19% od całości (pokrywa 15% WHT USA + 4% dopłata do polskiego PIT-38). Spółki wzrostowe zazwyczaj nie wypłacają dywidend (0)." />
         </label>
         <input
@@ -555,10 +555,10 @@ export function InputPanel({
           value={dividendYieldPercent || ''}
           onChange={(e) => onDividendYieldChange(Number(e.target.value))}
           placeholder="np. 1.5"
-          className="w-full border border-edge-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:bg-surface-dark-alt dark:border-edge-strong dark:text-on-dark dark:placeholder-gray-400"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
         />
         {dividendYieldPercent > 0 && (
-          <p className="text-xs text-muted dark:text-muted">
+          <p className="text-xs text-text-muted">
             Szacowane dywidendy netto (base): ok.{' '}
             <strong>
               {new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(
@@ -577,8 +577,8 @@ export function InputPanel({
 
       {/* FX Rate */}
       <div className="space-y-1">
-        <label htmlFor="fx-rate" className="text-sm font-medium text-body dark:text-on-dark-muted flex items-center gap-1.5">
-          Kurs sprzedaży USD <span className="text-red-500">*</span>
+        <label htmlFor="fx-rate" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
+          Kurs sprzedaży USD <span className="text-danger">*</span>
           {nbpMidRate > 0 && (
             <Tooltip content={`Kurs z Alior Kantor — tyle PLN dostaniesz sprzedając dolary. Podatek Belki po kursie NBP (${fmtNum(nbpMidRate)} PLN/USD).`} />
           )}
@@ -593,21 +593,21 @@ export function InputPanel({
           value={currentFxRate || ''}
           onChange={(e) => onFxRateChange(Number(e.target.value))}
           placeholder="np. 4.1500"
-          className="w-full border border-edge-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:bg-surface-dark-alt dark:border-edge-strong dark:text-on-dark dark:placeholder-gray-400"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
         />
       </div>
 
       {/* Benchmark selector */}
       <div className="space-y-3">
-        <label className="text-sm font-medium text-body dark:text-on-dark-muted">Porównaj z:</label>
+        <label className="text-sm font-medium text-text-secondary">Porównaj z:</label>
         <div className="flex gap-2">
           <button
             type="button"
             onClick={() => onBenchmarkTypeChange('savings')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'savings'
-                ? 'border-surface-dark dark:border-on-dark bg-surface-dark dark:bg-surface-alt text-on-dark dark:text-heading'
-                : 'border-edge dark:border-edge-strong bg-surface dark:bg-surface-dark-alt text-muted dark:text-on-dark-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt'
+                ? 'border-surface-dark dark:border-on-dark bg-bg-card text-white'
+                : 'border-border bg-bg-card text-text-muted hover:bg-bg-card dark:hover:bg-bg-hover'
             }`}
           >
             Konto oszczędnościowe
@@ -617,8 +617,8 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('bonds')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'bonds'
-                ? 'border-surface-dark dark:border-on-dark bg-surface-dark dark:bg-surface-alt text-on-dark dark:text-heading'
-                : 'border-edge dark:border-edge-strong bg-surface dark:bg-surface-dark-alt text-muted dark:text-on-dark-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt'
+                ? 'border-surface-dark dark:border-on-dark bg-bg-card text-white'
+                : 'border-border bg-bg-card text-text-muted hover:bg-bg-card dark:hover:bg-bg-hover'
             }`}
           >
             Obligacje skarbowe
@@ -628,8 +628,8 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('etf')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'etf'
-                ? 'border-surface-dark dark:border-on-dark bg-surface-dark dark:bg-surface-alt text-on-dark dark:text-heading'
-                : 'border-edge dark:border-edge-strong bg-surface dark:bg-surface-dark-alt text-muted dark:text-on-dark-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt'
+                ? 'border-surface-dark dark:border-on-dark bg-bg-card text-white'
+                : 'border-border bg-bg-card text-text-muted hover:bg-bg-card dark:hover:bg-bg-hover'
             }`}
           >
             ETF
@@ -640,9 +640,9 @@ export function InputPanel({
       {benchmarkType === 'savings' ? (
         /* Savings account rate */
         <div className="space-y-1">
-          <label htmlFor="savings-rate" className="text-sm font-medium text-body dark:text-on-dark-muted flex items-center gap-1.5">
-            Oprocentowanie konta oszczędnościowego <span className="text-red-500">*</span>
-            <span className="text-xs font-normal text-muted dark:text-muted">(% rocznie)</span>
+          <label htmlFor="savings-rate" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
+            Oprocentowanie konta oszczędnościowego <span className="text-danger">*</span>
+            <span className="text-xs font-normal text-text-muted">(% rocznie)</span>
             <Tooltip
               content={
                 <span className="space-y-1 block">
@@ -670,10 +670,10 @@ export function InputPanel({
             value={wiborStr}
             onChange={(e) => handleWiborChange(e.target.value)}
             placeholder="np. 5.82"
-            className="w-full border border-edge-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:bg-surface-dark-alt dark:border-edge-strong dark:text-on-dark dark:placeholder-gray-400"
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
           />
           {!monthlyRate && (
-            <p className="text-xs text-faint dark:text-muted">
+            <p className="text-xs text-border">
               Podaj oprocentowanie z regulaminu banku w skali roku.
             </p>
           )}
@@ -718,9 +718,9 @@ export function InputPanel({
 
       {/* Horizon Slider */}
       <div className="space-y-2">
-        <label className="text-sm font-medium text-body dark:text-on-dark-muted">
+        <label className="text-sm font-medium text-text-secondary">
           Horyzont czasowy:{' '}
-          <span className="text-accent dark:text-accent font-semibold">
+          <span className="text-accent-primary dark:text-accent-primary font-semibold">
             {horizonMonths <= 11
               ? `${horizonMonths} ${horizonMonths === 1 ? 'miesiąc' : horizonMonths < 5 ? 'miesiące' : 'miesięcy'}`
               : horizonMonths % 12 === 0
@@ -767,7 +767,7 @@ export function InputPanel({
                 return (
                   <span
                     key={label}
-                    className="absolute text-xs text-faint dark:text-muted"
+                    className="absolute text-xs text-border"
                     style={{
                       left: `${pct}%`,
                       transform: isFirst ? 'none' : isLast ? 'translateX(-100%)' : 'translateX(-50%)',

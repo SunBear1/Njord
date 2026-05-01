@@ -29,7 +29,7 @@ export default function WizardNavigation({
           type="button"
           onClick={onBack}
           aria-label="Poprzedni krok"
-          className="flex items-center gap-2 rounded-lg border border-edge-strong px-4 py-2.5 text-sm font-medium text-body hover:bg-surface-alt dark:border-edge-strong dark:text-on-dark-muted dark:hover:bg-surface-dark-alt"
+          className="flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-card dark:hover:bg-bg-hover"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Wstecz
@@ -38,7 +38,7 @@ export default function WizardNavigation({
         <span />
       )}
 
-      <span className="text-sm text-faint dark:text-muted order-last sm:order-none w-full sm:w-auto text-center">
+      <span className="text-sm text-border order-last sm:order-none w-full sm:w-auto text-center">
         Krok {currentStep} z {TOTAL_STEPS}
       </span>
 
@@ -49,10 +49,10 @@ export default function WizardNavigation({
           disabled={!canAdvance}
           aria-label={nextLabel}
           aria-disabled={!canAdvance}
-          className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-on-dark ${
+          className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white ${
             canAdvance
-              ? 'bg-accent hover:bg-accent-hover dark:bg-accent dark:hover:bg-accent'
-              : 'bg-accent opacity-50 cursor-not-allowed dark:bg-accent'
+              ? 'bg-accent-primary hover:bg-accent-primary-hover dark:bg-accent-primary dark:hover:bg-accent-primary'
+              : 'bg-accent-primary opacity-50 cursor-not-allowed dark:bg-accent-primary'
           }`}
         >
           {nextLabel}

@@ -232,7 +232,7 @@ export function ComparisonPage() {
             </div>
 
             {!canCalc && (
-              <div className="bg-surface rounded-xl border border-dashed border-border-strong p-10 text-center text-muted dark:text-muted space-y-2">
+              <div className="bg-bg-card rounded-xl border border-dashed border-border p-10 text-center text-text-muted space-y-2">
                 <p className="text-lg">Wprowadź ticker i dane portfela, aby zobaczyć wyniki</p>
                 <p className="text-sm">Podaj ticker spółki lub ETF, liczbę akcji i parametry benchmarku.</p>
               </div>
@@ -242,7 +242,7 @@ export function ComparisonPage() {
 
         {deferredResults && (
           <>
-            <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-surface-muted border border-border text-xs text-muted" role="note">
+            <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-bg-hover border border-border text-xs text-text-muted" role="note">
               <span aria-hidden="true">ℹ️</span>
               <span>
                 <strong>Wartości szacunkowe</strong> — wyniki zależą od wybranych scenariuszy i nie uwzględniają wydarzeń fundamentalnych. Nie stanowią doradztwa inwestycyjnego ani podatkowego.

@@ -21,7 +21,7 @@ const INSTRUMENT_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 const TAG_CLASSES: Record<string, string> = {
-  blue: 'bg-accent-muted text-accent-hover dark:bg-surface-dark/30 dark:text-accent',
+  blue: 'bg-bg-hover text-accent-primary-hover/30 dark:text-accent-primary',
   green: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
   purple: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
   amber: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
@@ -66,8 +66,8 @@ function BrokerCard({
   const isInteractive = !disabled && !sectionDisabled;
 
   const borderClasses = selected && !sectionDisabled
-    ? 'border-accent bg-accent-light dark:border-accent dark:bg-surface-dark/30 ring-2 ring-accent'
-    : 'border-edge dark:border-edge-strong hover:border-edge-strong dark:hover:border-edge-strong';
+    ? 'border-accent bg-bg-hover dark:border-accent/30 ring-2 ring-accent-primary'
+    : 'border-border hover:border-border dark:hover:border-border';
 
   return (
     <button
@@ -85,8 +85,8 @@ function BrokerCard({
     >
       {/* Disabled overlay */}
       {disabled && !sectionDisabled && disabledReason ? (
-        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-surface-dark/5 dark:bg-surface-dark/40">
-          <span className="text-xs font-medium text-red-600 dark:text-red-400 bg-surface/90 dark:bg-surface-dark/90 px-3 py-1 rounded-full">
+        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-bg-card/5/40">
+          <span className="text-xs font-medium text-danger bg-bg-card/90/90 px-3 py-1 rounded-full">
             {disabledReason}
           </span>
         </div>
@@ -95,19 +95,19 @@ function BrokerCard({
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Landmark className="w-4 h-4 text-faint dark:text-muted shrink-0" />
-          <span className="font-medium text-sm text-heading dark:text-on-dark">
+          <Landmark className="w-4 h-4 text-border shrink-0" />
+          <span className="font-medium text-sm text-text-primary">
             {broker.name}
           </span>
         </div>
         {selected && !sectionDisabled ? (
-          <span className="w-5 h-5 rounded-full bg-accent dark:bg-accent flex items-center justify-center shrink-0">
-            <svg className="w-3 h-3 text-on-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+          <span className="w-5 h-5 rounded-full bg-accent-primary dark:bg-accent-primary flex items-center justify-center shrink-0">
+            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </span>
         ) : (
-          <span className="w-5 h-5 rounded-full border-2 border-edge-strong dark:border-edge-strong shrink-0" />
+          <span className="w-5 h-5 rounded-full border-2 border-border shrink-0" />
         )}
       </div>
 
@@ -117,20 +117,20 @@ function BrokerCard({
       </div>
 
       {/* Commission & spread */}
-      <div className="space-y-1 text-xs text-body dark:text-on-dark-muted mb-2">
+      <div className="space-y-1 text-xs text-text-secondary mb-2">
         <p>
-          <span className="font-medium text-body dark:text-on-dark-muted">Prowizja:</span>{' '}
+          <span className="font-medium text-text-secondary">Prowizja:</span>{' '}
           {broker.commissionEtf}
         </p>
         <p>
-          <span className="font-medium text-body dark:text-on-dark-muted">Spread:</span>{' '}
+          <span className="font-medium text-text-secondary">Spread:</span>{' '}
           {broker.fxSpread}
         </p>
       </div>
 
       {/* Notes */}
       {broker.notes ? (
-        <div className="flex items-start gap-1.5 text-xs text-muted dark:text-muted">
+        <div className="flex items-start gap-1.5 text-xs text-text-muted">
           <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
           <span>{broker.notes}</span>
         </div>
@@ -169,21 +169,21 @@ export default function Step2BrokerSelection({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* ── IKE Section ── */}
-      <section className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-5">
-        <div className="flex items-center gap-2 text-base font-semibold text-heading dark:text-on-dark mb-4">
-          <Shield className="w-5 h-5 text-accent dark:text-accent" />
+      <section className="bg-bg-card rounded-xl border border-border shadow-sm p-5">
+        <div className="flex items-center gap-2 text-base font-semibold text-text-primary mb-4">
+          <Shield className="w-5 h-5 text-accent-primary dark:text-accent-primary" />
           <span>Broker IKE</span>
           <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 font-normal">
             0% podatku po 60. r.ż.
           </span>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-body dark:text-on-dark-muted mb-4 cursor-pointer select-none">
+        <label className="flex items-center gap-2 text-sm text-text-secondary mb-4 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={!ikeEnabled}
             onChange={(e) => setIkeEnabled(!e.target.checked)}
-            className="rounded border-edge-strong dark:border-edge-strong text-accent focus:ring-accent"
+            className="rounded border-border text-accent-primary focus:ring-accent-primary"
           />
           Nie chcę korzystać z IKE
         </label>
@@ -205,8 +205,8 @@ export default function Step2BrokerSelection({
       </section>
 
       {/* ── IKZE Section ── */}
-      <section className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-5">
-        <div className="flex items-center gap-2 text-base font-semibold text-heading dark:text-on-dark mb-4">
+      <section className="bg-bg-card rounded-xl border border-border shadow-sm p-5">
+        <div className="flex items-center gap-2 text-base font-semibold text-text-primary mb-4">
           <PiggyBank className="w-5 h-5 text-purple-500 dark:text-purple-400" />
           <span>Broker IKZE</span>
           <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 font-normal">
@@ -214,12 +214,12 @@ export default function Step2BrokerSelection({
           </span>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-body dark:text-on-dark-muted mb-4 cursor-pointer select-none">
+        <label className="flex items-center gap-2 text-sm text-text-secondary mb-4 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={!ikzeEnabled}
             onChange={(e) => setIkzeEnabled(!e.target.checked)}
-            className="rounded border-edge-strong dark:border-edge-strong text-accent focus:ring-accent"
+            className="rounded border-border text-accent-primary focus:ring-accent-primary"
           />
           Nie chcę korzystać z IKZE
         </label>

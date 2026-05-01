@@ -77,7 +77,7 @@ export function PolishDateInput({
         className={`${className} ${hasError ? '!border-red-400 dark:!border-red-500 focus:!ring-red-500' : ''}`}
       />
       {hasError && (
-        <p className="text-[11px] text-red-600 dark:text-red-400 flex items-center gap-1">
+        <p className="text-[11px] text-danger flex items-center gap-1">
           <AlertTriangle size={10} aria-hidden="true" />
           {error}
         </p>

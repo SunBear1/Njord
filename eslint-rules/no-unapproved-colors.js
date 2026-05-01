@@ -15,6 +15,8 @@ const APPROVED_HEX = new Set([
   '#0E7490',
   // Also allow common neutrals that appear in borders/hover
   '#64748B',
+  // Google brand SVG colors (required by brand guidelines)
+  '#4285F4', '#34A853', '#FBBC05', '#EA4335',
 ]);
 
 // Also allow lowercase versions

@@ -30,11 +30,11 @@ export default function WizardStepper({ currentStep, onStepClick }: WizardSteppe
                   aria-label={`Przejdź do kroku ${step}: ${STEP_LABELS[i]}`}
                   className="relative flex items-center justify-center
                     w-8 h-8 md:w-10 md:h-10 shrink-0
-                    rounded-full bg-accent-success text-on-dark
+                    rounded-full bg-accent-primary-success text-white
                     cursor-pointer transition-colors duration-200
-                    hover:bg-green-600 dark:hover:bg-green-500
+                    hover:bg-green-600 dark:hover:bg-bg-hover0
                     focus-visible:outline-none focus-visible:ring-2
-                    focus-visible:ring-accent-success focus-visible:ring-offset-2
+                    focus-visible:ring-accent-primary-success focus-visible:ring-offset-2
                     dark:focus-visible:ring-offset-bg-primary"
                 >
                   <Check className="w-4 h-4 md:w-5 md:h-5" strokeWidth={3} aria-hidden="true" />
@@ -50,8 +50,8 @@ export default function WizardStepper({ currentStep, onStepClick }: WizardSteppe
                     transition-colors duration-200
                     ${
                       isActive
-                        ? 'bg-accent-info text-on-dark ring-2 ring-accent dark:ring-accent/50'
-                        : 'bg-surface-muted dark:bg-surface-dark-alt text-muted'
+                        ? 'bg-accent-primary-info text-white ring-2 ring-accent-primary dark:ring-accent-primary/50'
+                        : 'bg-bg-hover text-text-muted'
                     }`}
                 >
                   {step}
@@ -64,8 +64,8 @@ export default function WizardStepper({ currentStep, onStepClick }: WizardSteppe
                   aria-hidden="true"
                   className={`flex-1 h-0.5 mx-1.5 sm:mx-2 md:mx-3 rounded-full transition-colors duration-200 ${
                     step < currentStep
-                      ? 'bg-accent-success'
-                      : 'bg-surface-muted dark:bg-surface-dark-alt'
+                      ? 'bg-accent-primary-success'
+                      : 'bg-bg-hover'
                   }`}
                 />
               ) : null}
@@ -86,9 +86,9 @@ export default function WizardStepper({ currentStep, onStepClick }: WizardSteppe
               key={label}
               className={`flex-1 text-center text-xs md:text-sm truncate
                 hidden sm:block
-                ${isActive ? 'font-semibold text-accent-info' : ''}
-                ${isCompleted ? 'text-accent-success' : ''}
-                ${!isActive && !isCompleted ? 'text-muted' : ''}`}
+                ${isActive ? 'font-semibold text-accent-primary-info' : ''}
+                ${isCompleted ? 'text-accent-primary-success' : ''}
+                ${!isActive && !isCompleted ? 'text-text-muted' : ''}`}
             >
               {label}
             </span>
