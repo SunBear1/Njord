@@ -172,8 +172,8 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
 
       {/* Inflation projection note */}
       {hasInflation && (
-        <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-xl px-4 py-3 text-xs text-orange-800 dark:text-orange-300 flex items-start gap-2">
-          <TrendingDown size={16} className="mt-0.5 flex-shrink-0 text-orange-500 dark:text-orange-400" aria-hidden="true" />
+        <div className="bg-orange-50 dark:bg-amber-950/40 border border-orange-200 dark:border-amber-700 rounded-xl px-4 py-3 text-xs text-orange-800 dark:text-amber-200 flex items-start gap-2">
+          <TrendingDown size={16} className="mt-0.5 flex-shrink-0 text-orange-500 dark:text-amber-400" aria-hidden="true" />
           <p>
             <strong>Inflacja {currentInflationRate.toFixed(1)}%</strong>
             {cpiPeriod ? ` (${inflationSource ?? 'Eurostat'}, ${cpiPeriod})` : ''}.{' '}
@@ -181,7 +181,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
             (model: zbieżność do celu NBP {NBP_TARGET}%).{' '}
             Skumulowana: <strong>{results[0]?.inflationTotalPercent.toFixed(1)}%</strong>.
             {inflationStale && (
-              <span className="ml-1.5 text-amber-700 dark:text-amber-400 font-medium">
+              <span className="ml-1.5 text-amber-700 dark:text-amber-300 font-medium">
                 ⚠ Dane mogą być nieaktualne — sprawdź Eurostat lub NBP.
               </span>
             )}

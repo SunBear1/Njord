@@ -62,19 +62,19 @@ function SummaryRow({
 function PitZgSection({ entries }: { entries: PitZgCurrencyEntry[] }) {
   if (entries.length === 0) return null;
   return (
-    <div className="rounded-xl border border-orange-200 dark:border-orange-800 overflow-hidden">
+    <div className="rounded-xl border border-orange-200 dark:border-amber-700 overflow-hidden">
       {/* Header — merged banner + table title */}
-      <div className="bg-orange-50 dark:bg-orange-950/30 px-4 py-3 flex items-start gap-2 border-b border-orange-200 dark:border-orange-800">
-        <Globe size={15} className="text-orange-600 dark:text-orange-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
-        <div className="text-xs text-orange-800 dark:text-orange-200 space-y-0.5">
+      <div className="bg-orange-50 dark:bg-amber-950/40 px-4 py-3 flex items-start gap-2 border-b border-orange-200 dark:border-amber-700">
+        <Globe size={15} className="text-orange-600 dark:text-amber-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
+        <div className="text-xs text-orange-800 dark:text-amber-200 space-y-0.5">
           <p className="font-semibold uppercase tracking-wide">PIT/ZG (v8) — Sekcja C.3 — Dochody zagraniczne (per kraj)</p>
-          <p className="text-orange-700/80 dark:text-orange-300/80 font-normal normal-case tracking-normal">
+          <p className="text-orange-700/80 dark:text-amber-300/80 font-normal normal-case tracking-normal">
             Transakcje w walutach obcych to dochody zagraniczne. Do PIT-38 musisz dołączyć załącznik PIT/ZG — jeden na kraj.
           </p>
         </div>
       </div>
 
-      <div className="divide-y divide-orange-100 dark:divide-orange-900/40">
+      <div className="divide-y divide-orange-100 dark:divide-amber-900/40">
         {/* Column headers */}
         <div className="grid grid-cols-4 gap-2 px-3 py-1.5 text-[10px] font-semibold text-faint dark:text-muted uppercase tracking-wide">
           <span>Kraj (waluta)</span>
@@ -90,7 +90,7 @@ function PitZgSection({ entries }: { entries: PitZgCurrencyEntry[] }) {
           return (
             <div key={currency} className="grid grid-cols-4 gap-2 px-3 py-2.5 text-xs items-center">
               <div className="flex items-center gap-1.5">
-                <span className="bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide flex-shrink-0">
+                <span className="bg-orange-100 dark:bg-amber-900/40 text-orange-700 dark:text-amber-300 px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide flex-shrink-0">
                   {pitZgFields?.countryCode || currency}
                 </span>
                 {country ? (
@@ -119,7 +119,7 @@ function PitZgSection({ entries }: { entries: PitZgCurrencyEntry[] }) {
       </div>
 
       {/* Footer note */}
-      <div className="bg-orange-50/50 dark:bg-orange-950/20 px-3 py-2 text-[10px] text-orange-700/70 dark:text-orange-400/70 border-t border-orange-100 dark:border-orange-900/40">
+      <div className="bg-orange-50/50 dark:bg-amber-950/30 px-3 py-2 text-[10px] text-orange-700/70 dark:text-amber-400/80 border-t border-orange-100 dark:border-amber-900/40">
         Podatek zapłacony za granicą (Poz. 30): <strong>0 zł</strong> — sprzedaż akcji nie podlega podatkowi u źródła w USA ani UE
         (umowa o unikaniu podwójnego opodatkowania). Belka 19% pobierana wyłącznie w Polsce.
       </div>
@@ -197,11 +197,7 @@ export function YearSummarySection({
 
         {/* ── PIT-38 summary table ── */}
         <div className="rounded-xl border border-accent dark:border-accent/60 overflow-hidden">
-          <div className="bg-accent-light dark:bg-surface-dark/30 px-3 py-2 flex items-center gap-1.5">
-            <FileText size={12} className="text-accent dark:text-accent" aria-hidden="true" />
-            <span className="text-[11px] font-semibold text-accent-hover dark:text-accent uppercase tracking-wide">
-              PIT-38 — Część C — Dochody / straty
-            </span>
+          <div className="bg-accent-light dark:bg-accent/10 px-3 py-2 flex items-center gap-1.5">
           </div>
           <div className="px-4 py-3 space-y-0.5">
             {/* Section C — Domestic / Foreign split */}
@@ -275,7 +271,7 @@ export function YearSummarySection({
         {/* ── PIT-38 Section D — Tax calculation ── */}
         {summary.netIncomePLN > 0 && (
           <div className="rounded-xl border border-accent dark:border-accent/60 overflow-hidden">
-            <div className="bg-accent-light dark:bg-surface-dark/30 px-3 py-2 flex items-center gap-1.5">
+          <div className="bg-accent-light dark:bg-accent/10 px-3 py-2 flex items-center gap-1.5">
               <FileText size={12} className="text-accent dark:text-accent" aria-hidden="true" />
               <span className="text-[11px] font-semibold text-accent-hover dark:text-accent uppercase tracking-wide">
                 PIT-38 — Część D — Obliczenie podatku
@@ -313,7 +309,7 @@ export function YearSummarySection({
         {/* ── PIT-38 Section G — Dividend tax (when dividends present) ── */}
         {summary.totalDividendGrossPLN > 0 && (
           <div className="rounded-xl border border-purple-100 dark:border-purple-900/60 overflow-hidden">
-            <div className="bg-purple-50 dark:bg-purple-950/30 px-3 py-2 flex items-center gap-1.5">
+            <div className="bg-purple-50 dark:bg-purple-900/20 px-3 py-2 flex items-center gap-1.5">
               <FileText size={12} className="text-purple-600 dark:text-purple-400" aria-hidden="true" />
               <span className="text-[11px] font-semibold text-purple-700 dark:text-purple-300 uppercase tracking-wide">
                 PIT-38 — Część G — Dywidendy zagraniczne
@@ -347,11 +343,11 @@ export function YearSummarySection({
         {/* ── Tax due box ── */}
         <div className={`rounded-xl border px-5 py-4 flex items-center justify-between gap-4 ${
           summary.pit38Fields.poz51_totalTaxDue > 0
-            ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800'
+            ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-700'
             : 'bg-surface-alt dark:bg-surface-dark/50 border-edge dark:border-edge-strong'
         }`}>
           <div>
-            <p className={`text-xs font-semibold mb-0.5 ${summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-muted dark:text-muted'}`}>
+            <p className={`text-xs font-semibold mb-0.5 ${summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-amber-700 dark:text-amber-300' : 'text-muted dark:text-muted'}`}>
               Podatek do zapłaty (Poz. 51)
             </p>
             <p className={`text-[11px] ${summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-amber-600/70 dark:text-amber-500/70' : 'text-faint dark:text-muted'}`}>
@@ -386,7 +382,7 @@ export function YearSummarySection({
 
         {/* ── Loss carryforward note ── */}
         {summary.netIncomePLN < 0 && (
-          <div className="flex items-start gap-2 bg-accent-light dark:bg-surface-dark/20 border border-accent dark:border-accent rounded-xl px-4 py-3 text-xs text-accent-hover dark:text-accent">
+          <div className="flex items-start gap-2 bg-accent-light dark:bg-accent/10 border border-accent dark:border-accent rounded-xl px-4 py-3 text-xs text-accent-hover dark:text-accent">
             <TrendingDown size={14} className="flex-shrink-0 mt-0.5 text-accent dark:text-accent" aria-hidden="true" />
             <span>
               Łączna strata <strong>{fmtPLNGrosze(-summary.netIncomePLN)}</strong> może być odliczona
