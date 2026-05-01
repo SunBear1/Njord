@@ -61,7 +61,7 @@ export function Tooltip({ content, children, side = 'top', width = 'w-60' }: Too
           className={[
             'fixed z-[9999] pointer-events-none',
             width,
-            'rounded-lg bg-bg-card text-white text-xs px-2.5 py-2',
+            'rounded-lg bg-text-primary text-bg-primary text-xs px-2.5 py-2',
             'shadow-xl leading-relaxed whitespace-normal',
             '-translate-x-1/2',
             side === 'top' ? '-translate-y-full' : '',

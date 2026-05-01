@@ -111,7 +111,7 @@ export function AccountPanel({
         {/* User info */}
         <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-accent-primary flex items-center justify-center text-lg font-bold text-white shrink-0">
+            <div className="w-12 h-12 rounded-full bg-accent-interactive flex items-center justify-center text-lg font-bold text-white shrink-0">
               {getInitials(user.name, user.email)}
             </div>
             <div className="min-w-0">
@@ -221,7 +221,7 @@ export function AccountPanel({
           <button
             type="submit"
             disabled={isChangingPassword || passwordMismatch || !newPassword}
-            className="w-full py-2.5 px-4 bg-accent-primary text-white rounded-lg font-medium text-sm hover:bg-accent-primary/80 disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2"
+            className="w-full py-2.5 px-4 bg-accent-interactive text-white rounded-lg font-medium text-sm hover:bg-accent-interactive/80 disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2"
           >
             {isChangingPassword ? 'Zapisywanie…' : (hasPassword ? 'Zmień hasło' : 'Ustaw hasło')}
           </button>

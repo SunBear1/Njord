@@ -11,8 +11,10 @@ const APPROVED_HEX = new Set([
   '#5B21B6', '#115E59', '#065F46', '#991B1B', '#CBD5E1',
   // Dark mode
   '#1E293B', '#A9B5BF', '#C4B5FD', '#67E8F9', '#6EE7B7', '#FCA5A5',
-  // Aurora (shared with light)
-  '#0E7490',
+  // Aurora (violet-blue gradient)
+  '#4C1D95', '#2563EB',
+  // Accent interactive (buttons with white text)
+  '#7C3AED',
   // Also allow common neutrals that appear in borders/hover
   '#64748B',
   // Google brand SVG colors (required by brand guidelines)

@@ -98,7 +98,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
                         }`}
                       >
                         {beatsBenchmark ? '✓' : '✗'}
-                        <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 rounded bg-bg-card text-white text-[10px] whitespace-nowrap opacity-0 group-hover/cell:opacity-100 transition-opacity z-10 shadow-lg">
+                        <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 rounded bg-text-primary text-bg-primary text-[10px] whitespace-nowrap opacity-0 group-hover/cell:opacity-100 transition-opacity z-10 shadow-lg">
                           Akcje: {fmtPLN(stockNetEnd)}
                           <br />
                           Różnica: {diff >= 0 ? '+' : ''}{fmtPLN(diff)}

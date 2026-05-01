@@ -31,6 +31,7 @@
   /* --- Accent (violet) --- */
   --color-accent-primary: #5B21B6;
   --color-accent-secondary: #115E59;
+  --color-accent-interactive: #5B21B6;
 
   /* --- Status --- */
   --color-success: #065F46;
@@ -39,10 +40,10 @@
   /* --- Border --- */
   --color-border: #CBD5E1;
 
-  /* --- Aurora header gradient --- */
-  --color-aurora-start: #5B21B6;
-  --color-aurora-mid: #0E7490;
-  --color-aurora-end: #065F46;
+  /* --- Aurora header gradient (blue-violet only) --- */
+  --color-aurora-start: #4C1D95;
+  --color-aurora-mid: #5B21B6;
+  --color-aurora-end: #2563EB;
 }
 
 /* Dark theme — active when <html class="dark"> */
@@ -59,6 +60,7 @@ html.dark {
 
   --color-accent-primary: #C4B5FD;
   --color-accent-secondary: #67E8F9;
+  --color-accent-interactive: #7C3AED;
 
   --color-success: #6EE7B7;
   --color-danger: #FCA5A5;
@@ -74,16 +76,37 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Aurora header animation */
+/* Aurora header animation — multi-stop blue-violet gradient */
 .aurora-header {
-  background: linear-gradient(135deg, var(--color-aurora-start) 0%, var(--color-aurora-mid) 50%, var(--color-aurora-end) 100%);
-  background-size: 200% 200%;
-  animation: aurora-shift 60s ease-in-out infinite;
+  background: linear-gradient(
+    135deg,
+    var(--color-aurora-start) 0%,
+    var(--color-aurora-mid) 40%,
+    var(--color-aurora-end) 70%,
+    var(--color-aurora-start) 100%
+  );
+  background-size: 300% 300%;
+  animation: aurora-shift 45s ease-in-out infinite;
 }
 
 @keyframes aurora-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0% { background-position: 0% 50%; }
+  33% { background-position: 50% 100%; }
+  66% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Range slider styling */
+input[type="range"] {
+  accent-color: var(--color-accent-interactive);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+  cursor: pointer;
 }
 
 @media (prefers-reduced-motion: reduce) {

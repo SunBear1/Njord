@@ -1,6 +1,6 @@
 import { useState, Suspense, lazy, useEffect } from 'react';
 import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
-import { Moon, Sun, BarChart3, Receipt, Sprout, TrendingUp, ArrowDownUp, Menu, X } from 'lucide-react';
+import { Moon, Sun, BarChart3, Receipt, Sprout, TrendingUp, ArrowDownUp, Menu, X, Anchor } from 'lucide-react';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useAuth } from '../hooks/useAuth';
 import { UserMenu } from '../components/UserMenu';
@@ -40,6 +40,7 @@ export function Layout() {
       <header className="aurora-header text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/forecast" className="flex items-center gap-2" aria-label="Njord — Strona główna">
+            <Anchor size={24} className="text-white/90" aria-hidden="true" />
             <span className="text-2xl font-bold tracking-tight">Njord</span>
           </Link>
 

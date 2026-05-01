@@ -21,8 +21,8 @@ const CURRENCY_COUNTRY: Record<string, string> = {
 function FormBadge({ label, color }: { label: string; color: 'blue' | 'orange' }) {
   const cls =
     color === 'blue'
-      ? 'bg-accent-primary/10 text-accent-primary border border-accent-primary/40-primary/30'
-      : 'bg-accent-secondary/10 text-accent-secondary border border-accent-primary/40-secondary/30';
+      ? 'bg-accent-primary/10 text-accent-primary border border-accent-primary/30'
+      : 'bg-accent-secondary/10 text-accent-secondary border border-accent-secondary/30';
   return (
     <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-1.5 py-0.5 rounded ${cls}`}>
       <FileText size={10} aria-hidden="true" />
@@ -308,7 +308,7 @@ export function YearSummarySection({
 
         {/* ── PIT-38 Section G — Dividend tax (when dividends present) ── */}
         {summary.totalDividendGrossPLN > 0 && (
-          <div className="rounded-xl border border-accent-primary/40-primary/30 overflow-hidden">
+          <div className="rounded-xl border border-accent-primary/30 overflow-hidden">
             <div className="bg-accent-primary/5 px-3 py-2 flex items-center gap-1.5">
               <FileText size={12} className="text-accent-primary" aria-hidden="true" />
               <span className="text-[11px] font-semibold text-accent-primary uppercase tracking-wide">

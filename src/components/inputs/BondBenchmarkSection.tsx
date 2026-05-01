@@ -75,7 +75,7 @@ export function BondBenchmarkSection({
       {preset && (
         <div className="space-y-3">
           {preset.isFamily && (
-            <div className="flex items-start gap-1.5 bg-accent-primary/5 border border-accent-primary/40-primary/30 text-accent-primary text-xs rounded-lg p-2.5">
+            <div className="flex items-start gap-1.5 bg-accent-primary/5 border border-accent-primary/30 text-accent-primary text-xs rounded-lg p-2.5">
               <Info size={12} className="mt-0.5 flex-shrink-0" aria-hidden="true" />
               Obligacje rodzinne — dostępne tylko dla beneficjentów programu 800+.
             </div>

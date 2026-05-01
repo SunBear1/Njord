@@ -121,7 +121,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                 onClick={() => { onHorizonChange(p.days); setIsCustomActive(false); setShowCustomPicker(false); }}
                 className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-colors ${
                   isActive
-                    ? 'bg-accent-primary border-accent-primary/40 text-white shadow-sm'
+                    ? 'bg-accent-interactive border-accent-interactive/40 text-white shadow-sm'
                     : 'bg-bg-card border-border text-text-secondary hover:border-accent-primary/40 hover:bg-bg-hover/30'
                 }`}
               >
@@ -139,7 +139,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
             onClick={() => setShowCustomPicker((v) => !v)}
             className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-colors ${
               isCustomActive || showCustomPicker
-                ? 'bg-accent-primary border-accent-primary/40 text-white shadow-sm'
+                ? 'bg-accent-interactive border-accent-interactive/40 text-white shadow-sm'
                 : 'bg-bg-card border-border text-text-secondary hover:border-accent-primary/40 hover:bg-bg-hover/30'
             }`}
           >

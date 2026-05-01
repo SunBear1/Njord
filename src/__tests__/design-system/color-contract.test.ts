@@ -92,10 +92,14 @@ export const DESIGN_TOKENS = {
     border: '#334155',           // slate-700
   },
   aurora: {
-    start: '#5B21B6',   // violet-800
-    mid: '#0E7490',     // cyan-700
-    end: '#065F46',     // emerald-800
+    start: '#4C1D95',   // violet-900
+    mid: '#5B21B6',     // violet-800
+    end: '#2563EB',     // blue-600
     text: '#FFFFFF',    // ONLY for large text (≥18pt)
+  },
+  interactive: {
+    light: '#5B21B6',   // violet-800 (same as accentPrimary light)
+    dark: '#7C3AED',    // violet-600 (always dark enough for white text)
   },
 } as const;
 
@@ -107,6 +111,7 @@ export const APPROVED_HEX_COLORS = new Set([
   ...Object.values(DESIGN_TOKENS.light),
   ...Object.values(DESIGN_TOKENS.dark),
   ...Object.values(DESIGN_TOKENS.aurora),
+  ...Object.values(DESIGN_TOKENS.interactive),
 ]);
 
 // ============================================================
@@ -193,6 +198,14 @@ describe('WCAG AAA: UI component contrast (≥ 3:1)', () => {
     expect(contrastRatio(DESIGN_TOKENS.dark.accentPrimary, DESIGN_TOKENS.dark.bgCard))
       .toBeGreaterThanOrEqual(UI_COMPONENT);
   });
+  it('Light: white text on accent-interactive', () => {
+    expect(contrastRatio('#FFFFFF', DESIGN_TOKENS.interactive.light))
+      .toBeGreaterThanOrEqual(AAA_LARGE_TEXT);
+  });
+  it('Dark: white text on accent-interactive', () => {
+    expect(contrastRatio('#FFFFFF', DESIGN_TOKENS.interactive.dark))
+      .toBeGreaterThanOrEqual(AAA_LARGE_TEXT);
+  });
 });
 
 // ============================================================
@@ -200,8 +213,8 @@ describe('WCAG AAA: UI component contrast (≥ 3:1)', () => {
 // ============================================================
 
 describe('Color count guardrails', () => {
-  it('Total unique colors ≤ 18', () => {
-    expect(APPROVED_HEX_COLORS.size).toBeLessThanOrEqual(18);
+  it('Total unique colors ≤ 21', () => {
+    expect(APPROVED_HEX_COLORS.size).toBeLessThanOrEqual(21);
   });
 
   it('Light mode uses ≤ 11 tokens', () => {

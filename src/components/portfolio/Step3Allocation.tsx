@@ -446,7 +446,7 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
               <button
                 type="submit"
                 disabled={!customTicker.trim() || isSearching}
-                className="rounded-md bg-accent-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-md bg-accent-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-interactive/80 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSearching ? '...' : 'Szukaj'}
               </button>

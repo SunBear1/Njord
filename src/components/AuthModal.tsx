@@ -102,7 +102,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
         <div className="px-6 space-y-2">
           <a
             href="/api/auth/github"
-            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-bg-card text-white rounded-lg hover:bg-bg-card transition-colors font-medium text-sm"
+            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-text-primary text-bg-primary rounded-lg hover:bg-text-primary/90 transition-colors font-medium text-sm"
           >
             <GitHubIcon />
             Kontynuuj przez GitHub
@@ -176,7 +176,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-2.5 px-4 bg-accent-primary text-white rounded-lg font-medium text-sm hover:bg-accent-primary/80 disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2"
+            className="w-full py-2.5 px-4 bg-accent-interactive text-white rounded-lg font-medium text-sm hover:bg-accent-interactive/80 disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2"
           >
             {isSubmitting
               ? (tab === 'login' ? 'Logowanie…' : 'Tworzenie konta…')

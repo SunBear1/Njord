@@ -70,7 +70,7 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSet
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        <div className="w-7 h-7 rounded-full bg-accent-primary flex items-center justify-center text-xs font-bold text-white shrink-0">
+        <div className="w-7 h-7 rounded-full bg-accent-interactive flex items-center justify-center text-xs font-bold text-white shrink-0">
           {initials}
         </div>
         <span className="hidden sm:inline max-w-[200px] truncate">

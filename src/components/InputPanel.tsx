@@ -397,7 +397,7 @@ export function InputPanel({
                     setTotalValueStr('');
                   }
                 }}
-                className="px-3 py-1.5 text-xs font-medium bg-accent-primary text-white rounded-md hover:bg-accent-primary/80 disabled:opacity-40 transition-colors"
+                className="px-3 py-1.5 text-xs font-medium bg-accent-interactive text-white rounded-md hover:bg-accent-interactive/80 disabled:opacity-40 transition-colors"
               >
                 Przelicz
               </button>
@@ -606,8 +606,8 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('savings')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'savings'
-                ? 'border-accent-primary/40-primary bg-bg-card text-white'
-                : 'border-border bg-bg-card text-text-muted hover:bg-bg-card'
+                ? 'border-accent-interactive bg-accent-interactive text-white'
+                : 'border-border bg-bg-card text-text-muted hover:border-accent-primary/50 hover:text-accent-primary'
             }`}
           >
             Konto oszczędnościowe
@@ -617,8 +617,8 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('bonds')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'bonds'
-                ? 'border-accent-primary/40-primary bg-bg-card text-white'
-                : 'border-border bg-bg-card text-text-muted hover:bg-bg-card'
+                ? 'border-accent-interactive bg-accent-interactive text-white'
+                : 'border-border bg-bg-card text-text-muted hover:border-accent-primary/50 hover:text-accent-primary'
             }`}
           >
             Obligacje skarbowe
@@ -628,8 +628,8 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('etf')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'etf'
-                ? 'border-accent-primary/40-primary bg-bg-card text-white'
-                : 'border-border bg-bg-card text-text-muted hover:bg-bg-card'
+                ? 'border-accent-interactive bg-accent-interactive text-white'
+                : 'border-border bg-bg-card text-text-muted hover:border-accent-primary/50 hover:text-accent-primary'
             }`}
           >
             ETF

@@ -59,7 +59,7 @@ export function ForecastPage() {
               value={tickerInput}
               onChange={e => setTickerInput(e.target.value.toUpperCase())}
               placeholder="np. AAPL, MSFT, SPY…"
-              className="w-full px-3 py-2.5 border border-border rounded-lg bg-bg-card text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary/40-primary text-sm transition-colors"
+              className="w-full px-3 py-2.5 border border-border rounded-lg bg-bg-card text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary text-sm transition-colors"
               autoComplete="off"
               spellCheck={false}
             />
@@ -67,7 +67,7 @@ export function ForecastPage() {
           <button
             type="submit"
             disabled={assetLoading || !tickerInput.trim()}
-            className="flex items-center gap-2 px-5 py-2.5 bg-accent-primary text-white rounded-lg font-medium text-sm hover:bg-accent-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
+            className="flex items-center gap-2 px-5 py-2.5 bg-accent-interactive text-white rounded-lg font-medium text-sm hover:bg-accent-interactive/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
           >
             {assetLoading ? (
               <Loader2 size={16} className="animate-spin" aria-hidden="true" />
