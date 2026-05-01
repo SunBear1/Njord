@@ -61,9 +61,13 @@ export function Tooltip({ content, children, side = 'top', width = 'w-60' }: Too
           className={[
             'fixed z-[9999] pointer-events-none',
             width,
-            'rounded-lg bg-text-primary text-bg-primary text-xs px-2.5 py-2',
-            'shadow-xl leading-relaxed whitespace-normal',
+            'rounded-xl px-3 py-2.5 text-xs leading-relaxed whitespace-normal',
+            'bg-bg-surface dark:bg-slate-800 text-text-primary',
+            'shadow-lg shadow-black/10 dark:shadow-black/30',
+            'border border-border',
+            'backdrop-blur-sm',
             '-translate-x-1/2',
+            'animate-in fade-in duration-150',
             side === 'top' ? '-translate-y-full' : '',
           ].join(' ')}
           style={{ top: pos.top, left: pos.left }}
@@ -71,8 +75,9 @@ export function Tooltip({ content, children, side = 'top', width = 'w-60' }: Too
           {content}
           <span
             className={[
-              'absolute left-1/2 -translate-x-1/2 border-4 border-transparent',
-              side === 'top' ? 'top-full border-t-bg-hover' : 'bottom-full border-b-bg-hover',
+              'absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 rotate-45',
+              'bg-bg-surface dark:bg-slate-800 border-border',
+              side === 'top' ? 'top-full -mt-1.5 border-r border-b' : 'bottom-full -mb-1.5 border-l border-t',
             ].join(' ')}
           />
         </span>,

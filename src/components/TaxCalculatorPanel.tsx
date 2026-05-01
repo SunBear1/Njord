@@ -22,6 +22,7 @@ import type { CurrencyRates } from '../hooks/useCurrencyRates';
 import { newTransaction, fmtDatePL } from './tax/taxHelpers';
 import { TransactionCard } from './tax/TransactionCard';
 import { YearSummary } from './tax/YearSummarySection';
+import { Tooltip } from './Tooltip';
 
 export interface TaxCalculatorPanelProps {
   // Kept for backward compatibility with App.tsx — not used in the new multi-transaction UI.
@@ -224,14 +225,19 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
 
         {/* Privacy badge + Import button */}
         <div className="flex items-center gap-1.5 flex-shrink-0 relative">
-          <span
-            title="Plik przetwarzany lokalnie — nigdy nie opuszcza urządzenia. Jedyne zapytania sieciowe to publiczne kursy walut z NBP."
-            className="flex items-center gap-1 text-[11px] text-success bg-success/5 border border-success/30 rounded-md px-1.5 py-0.5 cursor-default select-none"
-            aria-label="Prywatność: plik przetwarzany lokalnie"
+          <Tooltip
+            content="Plik przetwarzany lokalnie — nigdy nie opuszcza urządzenia. Jedyne zapytania sieciowe to publiczne kursy walut z NBP."
+            side="bottom"
+            width="w-72"
           >
-            <Shield size={11} aria-hidden="true" />
-            <span className="hidden sm:inline">Prywatność</span>
-          </span>
+            <span
+              className="flex items-center gap-1 text-[11px] text-success bg-success/5 border border-success/30 rounded-md px-1.5 py-0.5 cursor-default select-none"
+              aria-label="Prywatność: plik przetwarzany lokalnie"
+            >
+              <Shield size={11} aria-hidden="true" />
+              <span className="hidden sm:inline">Prywatność</span>
+            </span>
+          </Tooltip>
 
           <button
             type="button"
@@ -281,7 +287,6 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                 onClick={() => { setConfirmClearAll((v) => !v); setShowImportDropdown(false); }}
                 className="flex items-center justify-center p-1.5 text-text-muted hover:text-danger rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-danger"
                 aria-label={`Usuń wszystkie transakcje (${transactions.length})`}
-                title={`Usuń wszystkie transakcje (${transactions.length})`}
               >
                 <Trash2 size={15} aria-hidden="true" />
               </button>

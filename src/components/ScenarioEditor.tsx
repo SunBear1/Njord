@@ -68,7 +68,6 @@ function ModeToggle({ mode, onToggle, labelA, labelB, disabled }: { mode: InputM
       onClick={onToggle}
       disabled={disabled}
       className={`flex w-full rounded border border-border overflow-hidden text-[11px] font-medium ${disabled ? 'opacity-40 cursor-not-allowed' : ''}`}
-      title={disabled ? 'Wpisz ticker, aby przełączyć tryb' : 'Przełącz tryb wpisywania'}
       aria-label={disabled ? 'Przełącz tryb wpisywania (brak danych)' : `Tryb: ${mode === 'pct' ? labelA : labelB} — kliknij, aby zmienić`}
     >
       <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'pct' ? 'bg-accent-interactive text-text-on-accent' : 'bg-bg-card text-text-muted hover:bg-bg-card'}`}>{labelA}</span>
