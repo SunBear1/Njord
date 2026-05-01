@@ -1,4 +1,4 @@
-import { RefreshCw, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { useMultiCurrencyRates, type CurrencyRateEntry, type RateDirection, type RateChangeInfo } from '../hooks/useMultiCurrencyRates';
 
 const CURRENCY_META: Record<string, { name: string; symbol: string }> = {
@@ -17,30 +17,47 @@ function fmtTime(d: Date): string {
   return d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
-function DirectionIcon({ dir }: { dir: RateDirection }) {
-  if (dir === 'up') return <TrendingUp size={12} className="text-success inline-block ml-1" aria-label="wzrost" />;
-  if (dir === 'down') return <TrendingDown size={12} className="text-danger inline-block ml-1" aria-label="spadek" />;
+function DirectionIcon({ dir, animKey }: { dir: RateDirection; animKey: number }) {
+  if (dir === 'up') return (
+    <TrendingUp
+      key={animKey}
+      size={12}
+      className="inline-block ml-1 text-success"
+      style={{ animation: 'flash-fade 1s ease-out forwards' }}
+      aria-label="wzrost"
+    />
+  );
+  if (dir === 'down') return (
+    <TrendingDown
+      key={animKey}
+      size={12}
+      className="inline-block ml-1 text-danger"
+      style={{ animation: 'flash-fade 1s ease-out forwards' }}
+      aria-label="spadek"
+    />
+  );
   return <Minus size={10} className="text-text-muted/40 inline-block ml-1" aria-hidden="true" />;
 }
 
-function RateCell({ value, dir, colorClass }: { value: number; dir: RateDirection; colorClass: string }) {
+function RateCell({ value, dir, colorClass, animKey }: { value: number; dir: RateDirection; colorClass: string; animKey: number }) {
   return (
     <td className="px-3 py-3 text-right font-mono tabular-nums">
       <span className={`font-semibold ${colorClass}`}>
         {value.toFixed(4)}
       </span>
-      <DirectionIcon dir={dir} />
+      <DirectionIcon dir={dir} animKey={animKey} />
     </td>
   );
 }
 
-function SourceTable({ title, href, rates, changes, getRate, getDir }: {
+function SourceTable({ title, href, rates, changes, getRate, getDir, animKey }: {
   title: string;
   href: string;
   rates: CurrencyRateEntry[];
   changes: Record<string, RateChangeInfo>;
   getRate: (r: CurrencyRateEntry) => { buy: number; sell: number } | null;
   getDir: (c: RateChangeInfo) => { buy: RateDirection; sell: RateDirection };
+  animKey: number;
 }) {
   const hasData = rates.some(r => getRate(r) !== null);
   if (!hasData) return null;
@@ -82,8 +99,8 @@ function SourceTable({ title, href, rates, changes, getRate, getDir }: {
                       <span className="text-xs text-text-muted ml-2">{meta?.name}</span>
                     </div>
                   </td>
-                  <RateCell value={data.buy} dir={dirs.buy} colorClass="text-success" />
-                  <RateCell value={data.sell} dir={dirs.sell} colorClass="text-danger" />
+                  <RateCell value={data.buy} dir={dirs.buy} colorClass="text-success" animKey={animKey} />
+                  <RateCell value={data.sell} dir={dirs.sell} colorClass="text-danger" animKey={animKey} />
                   <td className="px-3 py-3 text-right font-mono tabular-nums text-text-muted text-xs">
                     {spreadPct(data.buy, data.sell)}%
                   </td>
@@ -100,13 +117,14 @@ function SourceTable({ title, href, rates, changes, getRate, getDir }: {
 export function RatesPage() {
   const { rates, changes, isLoading, error, lastUpdated } = useMultiCurrencyRates();
   const hasData = rates.length > 0;
+  const animKey = lastUpdated?.getTime() ?? 0;
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Kursy walut</h1>
-          <p className="text-sm text-text-muted mt-1">Porównanie kursów kupna i sprzedaży — odświeżanie co 15 s</p>
+          <p className="text-sm text-text-muted mt-1">Porównanie kursów kupna i sprzedaży</p>
         </div>
         {lastUpdated && (
           <div className="flex items-center gap-2 text-xs text-text-muted bg-bg-hover/60 rounded-lg px-3 py-1.5 border border-border">
@@ -115,7 +133,6 @@ export function RatesPage() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
             </span>
             <span className="font-mono">{fmtTime(lastUpdated)}</span>
-            <RefreshCw size={11} className={`opacity-60 ${isLoading ? 'animate-spin' : ''}`} aria-hidden="true" />
           </div>
         )}
       </div>
@@ -142,6 +159,7 @@ export function RatesPage() {
               changes={changes}
               getRate={r => r.alior ? { buy: r.alior.buy, sell: r.alior.sell } : null}
               getDir={c => ({ buy: c.aliorBuy, sell: c.aliorSell })}
+              animKey={animKey}
             />
             <SourceTable
               title="NBP — Tabela C"
@@ -150,26 +168,14 @@ export function RatesPage() {
               changes={changes}
               getRate={r => r.nbp ? { buy: r.nbp.buy, sell: r.nbp.sell } : null}
               getDir={c => ({ buy: c.nbpBuy, sell: c.nbpSell })}
+              animKey={animKey}
             />
           </div>
 
-          <div className="bg-bg-hover/50 border border-border rounded-xl px-5 py-4 text-xs text-text-muted space-y-1.5">
-            <p className="text-[11px] font-semibold text-text-secondary uppercase tracking-wider mb-2">Jak czytać tabelę — perspektywa banku/kantoru</p>
-            <p>
-              <strong className="text-success">Kupno</strong> — bank kupuje walutę od Ciebie (dostajesz mniej PLN, niższy kurs).
-            </p>
-            <p>
-              <strong className="text-danger">Sprzedaż</strong> — bank sprzedaje Ci walutę (płacisz więcej PLN, wyższy kurs).
-            </p>
-            <p>
-              <strong className="text-text-secondary">Spread</strong> — różnica procentowa między sprzedażą a kupnem. Im mniejszy, tym korzystniejszy dla klienta.
-            </p>
-            <p>
-              <TrendingUp size={11} className="text-success inline-block mr-0.5" aria-hidden="true" />
-              <TrendingDown size={11} className="text-danger inline-block mr-1" aria-hidden="true" />
-              Strzałki pokazują zmianę kursu od ostatniego odświeżenia.
-            </p>
-          </div>
+          <p className="text-xs text-text-muted px-1">
+            <strong className="text-success">Kupno</strong> — bank kupuje walutę od Ciebie (dostajesz mniej PLN, niższy kurs).{' '}
+            <strong className="text-danger">Sprzedaż</strong> — bank sprzedaje Ci walutę (płacisz więcej PLN, wyższy kurs).
+          </p>
         </>
       )}
     </div>

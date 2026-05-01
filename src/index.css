@@ -175,6 +175,12 @@ body {
   animation: aurora-ribbon 30s ease-in-out 5s infinite;
 }
 
+@keyframes flash-fade {
+  0%   { opacity: 1; transform: scale(1.4); }
+  25%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+
 @keyframes aurora-serpentine {
   0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
   33% { transform: translateX(3%) translateY(-2%) rotate(0.5deg); }
