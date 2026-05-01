@@ -1,0 +1,98 @@
+name: PR Status Check
+
+on:
+  pull_request:
+    branches: ["*"]
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  check-changes:
+    name: Check Changed Files
+    runs-on: ubuntu-latest
+    outputs:
+      src: ${{ steps.filter.outputs.src }}
+      ci: ${{ steps.filter.outputs.ci }}
+      infra: ${{ steps.filter.outputs.infra }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            src:
+              - 'src/**'
+              - 'functions/**'
+              - 'public/**'
+              - 'package*.json'
+              - 'tsconfig*.json'
+              - 'vite.config.ts'
+              - 'wrangler.toml'
+              - 'playwright.config.ts'
+              - 'eslint.config.js'
+            ci:
+              - '.github/workflows/**'
+              - '.github/actions/**'
+            infra:
+              - 'infrastructure/**'
+
+  lint:
+    needs: check-changes
+    if: needs.check-changes.outputs.src == 'true'
+    uses: ./.github/workflows/lint.job.yaml
+
+  test:
+    needs: check-changes
+    if: needs.check-changes.outputs.src == 'true'
+    uses: ./.github/workflows/test.job.yaml
+
+  build:
+    needs: check-changes
+    if: needs.check-changes.outputs.src == 'true'
+    uses: ./.github/workflows/build.job.yaml
+
+  smoke-tests:
+    needs: [lint, test, build]
+    if: always() && needs.build.result == 'success'
+    uses: ./.github/workflows/smoke-tests.job.yaml
+
+  actionlint:
+    needs: check-changes
+    if: needs.check-changes.outputs.ci == 'true'
+    uses: ./.github/workflows/actionlint.job.yaml
+
+  terraform:
+    name: Terraform Plan
+    needs: check-changes
+    if: needs.check-changes.outputs.infra == 'true'
+    uses: ./.github/workflows/terraform.job.yaml
+    permissions:
+      contents: read
+      pull-requests: write
+    with:
+      dry_run: true
+    secrets:
+      CLOUDFLARE_R2_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY }}
+      CLOUDFLARE_R2_SECRET_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_KEY }}
+      TF_CF_API_KEY: ${{ secrets.TF_CF_API_KEY }}
+      CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+
+  gate:
+    name: PR Status Check Gate
+    if: always()
+    needs: [lint, test, build, smoke-tests, actionlint, terraform]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All checks passed or skipped
+        env:
+          RESULTS: ${{ toJSON(needs.*.result) }}
+        run: |
+          if echo "$RESULTS" | grep -qE '"(failure|cancelled)"'; then
+            echo "❌ One or more required jobs failed or were cancelled"
+            exit 1
+          fi
+          echo "✅ All jobs passed or were intentionally skipped"

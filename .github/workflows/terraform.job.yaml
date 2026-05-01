@@ -1,0 +1,71 @@
+name: Terraform
+
+on:
+  workflow_call:
+    inputs:
+      dry_run:
+        description: "true = plan only (PR), false = apply (push to main)"
+        required: true
+        type: boolean
+    secrets:
+      CLOUDFLARE_R2_ACCESS_KEY:
+        required: true
+      CLOUDFLARE_R2_SECRET_KEY:
+        required: true
+      TF_CF_API_KEY:
+        required: true
+      CF_ACCOUNT_ID:
+        required: true
+
+jobs:
+  terraform:
+    name: Terraform ${{ inputs.dry_run && 'Plan' || 'Apply' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    defaults:
+      run:
+        working-directory: ./infrastructure
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.14
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_KEY }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        run: |
+          terraform init \
+            -backend-config="endpoints={s3=\"https://${CF_ACCOUNT_ID}.r2.cloudflarestorage.com\"}"
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        if: ${{ inputs.dry_run }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.TF_CF_API_KEY }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        run: terraform plan -var cf_account_id="${CF_ACCOUNT_ID}"
+
+      - name: Terraform Apply
+        if: ${{ !inputs.dry_run }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.TF_CF_API_KEY }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        run: terraform apply -auto-approve -var cf_account_id="${CF_ACCOUNT_ID}"
