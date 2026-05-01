@@ -23,7 +23,7 @@ export const lightMode: Record<string, TokenPairing> = {
       "text-text-primary (17.85:1)",
       "text-text-secondary (10.35:1)",
       "text-text-muted (7.58:1)",
-      "text-accent-primary (8.98:1)",
+      "text-accent-primary (8.1:1)",
       "text-accent-secondary (7.58:1)",
       "text-success (7.68:1)",
       "text-danger (8.31:1)"
@@ -37,7 +37,7 @@ export const lightMode: Record<string, TokenPairing> = {
       "text-text-primary (17.06:1)",
       "text-text-secondary (9.9:1)",
       "text-text-muted (7.24:1)",
-      "text-accent-primary (8.59:1)",
+      "text-accent-primary (7.74:1)",
       "text-accent-secondary (7.25:1)",
       "text-success (7.34:1)",
       "text-danger (7.94:1)"
@@ -51,7 +51,7 @@ export const lightMode: Record<string, TokenPairing> = {
       "text-text-primary (16.3:1)",
       "text-text-secondary (9.45:1)",
       "text-text-muted (6.92:1)",
-      "text-accent-primary (8.2:1)",
+      "text-accent-primary (7.39:1)",
       "text-accent-secondary (6.92:1)",
       "text-success (7.01:1)",
       "text-danger (7.59:1)"

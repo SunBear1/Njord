@@ -8,11 +8,11 @@
 const APPROVED_HEX = new Set([
   // Light mode
   '#FFFFFF', '#F8FAFC', '#F1F5F9', '#0F172A', '#334155', '#475569',
-  '#5B21B6', '#115E59', '#065F46', '#991B1B', '#CBD5E1',
+  '#6024C9', '#115E59', '#065F46', '#991B1B', '#CBD5E1',
   // Dark mode
   '#1E293B', '#A9B5BF', '#C4B5FD', '#67E8F9', '#6EE7B7', '#FCA5A5',
-  // Aurora (violet-blue gradient)
-  '#4C1D95', '#2563EB',
+  // Aurora (beam colors + base)
+  '#0E0A1E', '#5B21B6', '#2563EB',
   // Accent interactive (buttons with white text)
   '#7C3AED',
   // Also allow common neutrals that appear in borders/hover

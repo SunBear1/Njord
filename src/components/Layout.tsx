@@ -38,6 +38,16 @@ export function Layout() {
     <div className="min-h-screen bg-bg-primary">
       {/* Aurora Header */}
       <header className="aurora-header text-white shadow-lg">
+        <div className="aurora-beams" aria-hidden="true">
+          <div className="aurora-beam" />
+          <div className="aurora-beam" />
+          <div className="aurora-beam" />
+          <div className="aurora-beam" />
+          <div className="aurora-beam" />
+          <div className="aurora-beam" />
+          <div className="aurora-beam" />
+          <div className="aurora-beam" />
+        </div>
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/forecast" className="flex items-center gap-2" aria-label="Njord — Strona główna">
             <Anchor size={24} className="text-white/90" aria-hidden="true" />

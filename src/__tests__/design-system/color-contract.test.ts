@@ -72,7 +72,7 @@ export const DESIGN_TOKENS = {
     textPrimary: '#0F172A',
     textSecondary: '#334155',
     textMuted: '#475569',
-    accentPrimary: '#5B21B6',    // violet-800
+    accentPrimary: '#6024C9',    // violet (lighter than old #5B21B6)
     accentSecondary: '#115E59',  // teal-800
     success: '#065F46',          // emerald-800
     danger: '#991B1B',           // red-800
@@ -92,13 +92,13 @@ export const DESIGN_TOKENS = {
     border: '#334155',           // slate-700
   },
   aurora: {
-    start: '#4C1D95',   // violet-900
-    mid: '#5B21B6',     // violet-800
-    end: '#2563EB',     // blue-600
+    base: '#0E0A1E',    // aurora header background
+    violet: '#5B21B6',  // beam color (violet-800)
+    blue: '#2563EB',    // beam color (blue-600)
     text: '#FFFFFF',    // ONLY for large text (≥18pt)
   },
   interactive: {
-    light: '#5B21B6',   // violet-800 (same as accentPrimary light)
+    light: '#6024C9',   // same as accentPrimary light
     dark: '#7C3AED',    // violet-600 (always dark enough for white text)
   },
 } as const;
@@ -173,9 +173,9 @@ describe('WCAG AAA: Normal text contrast (≥ 7:1)', () => {
 
 describe('WCAG AAA: Large text contrast (≥ 4.5:1)', () => {
   const largeTextPairs = [
-    { name: 'Aurora: white on start', fg: DESIGN_TOKENS.aurora.text, bg: DESIGN_TOKENS.aurora.start },
-    { name: 'Aurora: white on mid', fg: DESIGN_TOKENS.aurora.text, bg: DESIGN_TOKENS.aurora.mid },
-    { name: 'Aurora: white on end', fg: DESIGN_TOKENS.aurora.text, bg: DESIGN_TOKENS.aurora.end },
+    { name: 'Aurora: white on base', fg: DESIGN_TOKENS.aurora.text, bg: DESIGN_TOKENS.aurora.base },
+    { name: 'Aurora: white on violet', fg: DESIGN_TOKENS.aurora.text, bg: DESIGN_TOKENS.aurora.violet },
+    { name: 'Aurora: white on blue', fg: DESIGN_TOKENS.aurora.text, bg: DESIGN_TOKENS.aurora.blue },
   ];
 
   largeTextPairs.forEach(({ name, fg, bg }) => {

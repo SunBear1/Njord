@@ -29,9 +29,9 @@
   --color-text-muted: #475569;
 
   /* --- Accent (violet) --- */
-  --color-accent-primary: #5B21B6;
+  --color-accent-primary: #6024C9;
   --color-accent-secondary: #115E59;
-  --color-accent-interactive: #5B21B6;
+  --color-accent-interactive: #6024C9;
 
   /* --- Status --- */
   --color-success: #065F46;
@@ -39,11 +39,6 @@
 
   /* --- Border --- */
   --color-border: #CBD5E1;
-
-  /* --- Aurora header gradient (blue-violet only) --- */
-  --color-aurora-start: #4C1D95;
-  --color-aurora-mid: #5B21B6;
-  --color-aurora-end: #2563EB;
 }
 
 /* Dark theme — active when <html class="dark"> */
@@ -76,24 +71,131 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Aurora header animation — multi-stop blue-violet gradient */
+/* Aurora header — pillar-based light beams (violet + blue) */
 .aurora-header {
-  background: linear-gradient(
-    135deg,
-    var(--color-aurora-start) 0%,
-    var(--color-aurora-mid) 40%,
-    var(--color-aurora-end) 70%,
-    var(--color-aurora-start) 100%
-  );
-  background-size: 300% 300%;
-  animation: aurora-shift 45s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+  background: #0e0a1e;
 }
 
-@keyframes aurora-shift {
-  0% { background-position: 0% 50%; }
-  33% { background-position: 50% 100%; }
-  66% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+.aurora-header > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Container for all beam elements */
+.aurora-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(90deg,
+    rgba(139, 92, 246, 0.12) 0%,
+    rgba(59, 130, 246, 0.08) 30%,
+    rgba(124, 58, 237, 0.1) 60%,
+    rgba(99, 102, 241, 0.12) 100%);
+  background-size: 300% 100%;
+  animation: aurora-glow 18s ease-in-out infinite;
+}
+
+/* Beam layer — tall vertical light pillars */
+.aurora-beams {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.aurora-beam {
+  position: absolute;
+  bottom: 0;
+  width: 8%;
+  height: 280%;
+  border-radius: 40% 40% 0 0;
+  filter: blur(16px);
+  opacity: 0.55;
+  transform-origin: bottom center;
+}
+
+.aurora-beam:nth-child(1) {
+  left: 3%;
+  background: linear-gradient(to top, transparent 0%, rgba(139, 92, 246, 0.7) 40%, transparent 100%);
+  animation: aurora-sway1 8s ease-in-out infinite, aurora-pulse 6s ease-in-out infinite;
+}
+.aurora-beam:nth-child(2) {
+  left: 15%;
+  width: 9%;
+  background: linear-gradient(to top, transparent 0%, rgba(59, 130, 246, 0.6) 38%, transparent 100%);
+  animation: aurora-sway2 11s ease-in-out infinite, aurora-pulse 7s ease-in-out 0.5s infinite;
+}
+.aurora-beam:nth-child(3) {
+  left: 28%;
+  width: 7%;
+  background: linear-gradient(to top, transparent 0%, rgba(124, 58, 237, 0.65) 42%, transparent 100%);
+  animation: aurora-sway3 9s ease-in-out infinite, aurora-pulse 5s ease-in-out 1s infinite;
+}
+.aurora-beam:nth-child(4) {
+  left: 40%;
+  width: 10%;
+  background: linear-gradient(to top, transparent 0%, rgba(168, 85, 247, 0.6) 35%, transparent 100%);
+  animation: aurora-sway1 10s ease-in-out infinite, aurora-pulse 8s ease-in-out 1.5s infinite;
+}
+.aurora-beam:nth-child(5) {
+  left: 52%;
+  width: 11%;
+  background: linear-gradient(to top, transparent 0%, rgba(99, 102, 241, 0.65) 40%, transparent 100%);
+  animation: aurora-sway3 8s ease-in-out infinite, aurora-pulse 6s ease-in-out 2s infinite;
+}
+.aurora-beam:nth-child(6) {
+  left: 65%;
+  width: 8%;
+  background: linear-gradient(to top, transparent 0%, rgba(59, 130, 246, 0.55) 36%, transparent 100%);
+  animation: aurora-sway2 9s ease-in-out infinite, aurora-pulse 7s ease-in-out 0.8s infinite;
+}
+.aurora-beam:nth-child(7) {
+  left: 78%;
+  width: 9%;
+  background: linear-gradient(to top, transparent 0%, rgba(139, 92, 246, 0.6) 44%, transparent 100%);
+  animation: aurora-sway1 7s ease-in-out infinite, aurora-pulse 5s ease-in-out 1.2s infinite;
+}
+.aurora-beam:nth-child(8) {
+  left: 90%;
+  width: 7%;
+  background: linear-gradient(to top, transparent 0%, rgba(124, 58, 237, 0.55) 38%, transparent 100%);
+  animation: aurora-sway3 10s ease-in-out infinite, aurora-pulse 6s ease-in-out 0.3s infinite;
+}
+
+/* Gentle sway — like aurora curtains */
+@keyframes aurora-sway1 {
+  0%, 100% { transform: rotate(-1.5deg) translateX(0); }
+  25% { transform: rotate(1deg) translateX(6px); }
+  50% { transform: rotate(-0.5deg) translateX(-4px); }
+  75% { transform: rotate(1.5deg) translateX(5px); }
+}
+@keyframes aurora-sway2 {
+  0%, 100% { transform: rotate(1deg) translateX(0); }
+  33% { transform: rotate(-1.5deg) translateX(-8px); }
+  66% { transform: rotate(2deg) translateX(6px); }
+}
+@keyframes aurora-sway3 {
+  0%, 100% { transform: rotate(-0.5deg) translateX(0); }
+  20% { transform: rotate(1.5deg) translateX(5px); }
+  40% { transform: rotate(-2deg) translateX(-6px); }
+  60% { transform: rotate(0.5deg) translateX(8px); }
+  80% { transform: rotate(-1deg) translateX(-3px); }
+}
+
+/* Shimmer pulse */
+@keyframes aurora-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.75; }
+}
+
+/* Background glow drift */
+@keyframes aurora-glow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 /* Range slider styling */

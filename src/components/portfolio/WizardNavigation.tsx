@@ -49,10 +49,10 @@ export default function WizardNavigation({
           disabled={!canAdvance}
           aria-label={nextLabel}
           aria-disabled={!canAdvance}
-          className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white ${
+          className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium ${
             canAdvance
-              ? 'bg-accent-interactive hover:bg-accent-interactive/80 '
-              : 'bg-accent-primary opacity-50 cursor-not-allowed'
+              ? 'text-white bg-accent-interactive hover:bg-accent-interactive/80'
+              : 'text-white/60 bg-bg-hover cursor-not-allowed'
           }`}
         >
           {nextLabel}
