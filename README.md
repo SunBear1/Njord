@@ -89,6 +89,8 @@ All financial calculations (GBM, Bootstrap, Monte Carlo, Belka tax) run **client
 
 ```bash
 git clone https://github.com/SunBear1/Njord.git
+
+
 cd Njord
 npm install
 npm run dev          # frontend only → http://localhost:5173/
