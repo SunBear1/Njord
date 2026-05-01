@@ -1,3 +1,8 @@
+---
+name: API Builder
+description: Creates and maintains Cloudflare Pages Functions that proxy and cache external financial data (NBP, Yahoo Finance, ECB, Alior Kantor, Twelve Data). Handles caching strategy, CORS, error handling, and Wrangler configuration.
+---
+
 # API Builder
 
 I create and maintain Cloudflare Pages Functions that fetch, cache, and serve external financial data for Njord. Use me for any work in `functions/api/`, `src/providers/`, or `wrangler.toml`.
