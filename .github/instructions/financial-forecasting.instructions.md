@@ -88,6 +88,52 @@ The HMM module (`src/utils/models/hmmModel.ts`) is kept for regime detection dis
 - It is tagged as `[Informacyjny]` in the UI
 - It must **never** drive scenario numbers for investment decisions
 
+### HMM Parameters (Baum-Welch EM)
+- States: State 0 (Bear — low mean return, high volatility), State 1 (Bull — high mean return, low volatility).
+- Observations: daily log-returns (2 years).
+- Training: Baum-Welch EM, max 100 iterations, convergence threshold 1e-6.
+- Output: transition matrix, emission parameters (μ₀, σ₀, μ₁, σ₁), initial state probabilities.
+
+### Monte Carlo Simulation (Sell Analysis)
+1. Determine current regime via Viterbi decoding of recent returns.
+2. Simulate 10,000 paths — sample next state from transition matrix, sample return from state's Gaussian emission.
+3. Extract percentile bands (5th, 25th, 50th, 75th, 95th) at each future time step.
+4. Runs in `src/workers/sellAnalysis.worker.ts` — NEVER on main thread.
+5. Progress updates every 1000 paths via `postMessage`. Send only summary statistics, not raw paths.
+
+---
+
+## Block Bootstrap — Algorithm Details
+
+1. Source: 2 years of daily log-returns from historical price data.
+2. Block size: FIXED at 21 trading days (≈1 month) — preserves autocorrelation structure. Do not make configurable.
+3. Sampling: draw random blocks WITH replacement until horizon is filled. Discard excess days.
+4. Samples: 1000 (sufficient for percentile stability). P10 → Bear, P50 → Base, P90 → Bull.
+5. Minimum input data: 252 trading days. If less, fall back to GBM.
+
+---
+
+## Inflation Projection (Mean-Reversion)
+
+For inflation-linked bonds with multi-year horizons:
+```
+projected_inflation(t) = long_term_mean + (current − long_term_mean) × decay^t
+```
+- Long-term mean: 2.5% (ECB target)
+- Decay factor: 0.7 per year (half-life ≈2 years)
+- Floor: 0% (deflation not modeled for bond projections)
+
+---
+
+## Data Quality Requirements
+
+- Minimum 252 trading days of price history for any model.
+- If data has gaps >5 consecutive trading days: warn user, use available data.
+- Weekend/holiday prices: use last available trading day (no interpolation).
+- Split/dividend adjustments: use adjusted close prices from Yahoo Finance.
+
+---
+
 ## Testing
 
 All prediction outputs must satisfy the contract in `src/__tests__/scenarioSanity.test.ts`:

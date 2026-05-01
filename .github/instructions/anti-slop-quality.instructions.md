@@ -1,11 +1,14 @@
-# Anti-Slop & Code Quality
+---
+description: Code quality standards to detect and reject AI-generated slop. Structural, naming, UI, and logic anti-patterns. Apply to all code changes.
+applyTo: "**"
+---
 
-## What is "AI Slop"?
-Generated code that looks correct but is bloated, generic, over-engineered, or stylistically inconsistent with the codebase. This file defines what to REJECT.
+# Anti-Slop & Code Quality
 
 ## Code Smell Detection
 
 ### Structural Slop
+
 - ❌ Adding abstractions before they're needed (premature factories, strategy patterns, DI containers)
 - ❌ Creating `utils/helpers.ts` or `common/index.ts` catch-all files
 - ❌ Wrapping simple functions in classes for no reason
@@ -16,6 +19,7 @@ Generated code that looks correct but is bloated, generic, over-engineered, or s
 - ❌ Wrapping primitive values in objects ("value objects" without behavior)
 
 ### Comment Slop
+
 - ❌ Comments that restate the code: `// increment counter` above `counter++`
 - ❌ Tombstone comments: `// TODO: implement later` without issue reference
 - ❌ Banner comments: `// ========= SECTION NAME =========`
@@ -25,6 +29,7 @@ Generated code that looks correct but is bloated, generic, over-engineered, or s
 - ✅ Comments referencing Polish tax law articles or NBP documentation
 
 ### Naming Slop
+
 - ❌ Generic names: `data`, `info`, `item`, `result`, `value`, `temp`, `obj`
 - ❌ Hungarian notation: `strName`, `numCount`, `boolIsActive`
 - ❌ Redundant type info: `userList: User[]` (just call it `users`)
@@ -32,7 +37,8 @@ Generated code that looks correct but is bloated, generic, over-engineered, or s
 - ✅ Domain-specific names: `belkaTax`, `nbpRate`, `deltaStock`, `horizonMonths`
 - ✅ Action verbs for functions: `calcBondReturn`, `fetchNbpRate`, `formatPLN`
 
-### UI Slop (AI loves to generate these)
+### UI Slop
+
 - ❌ Wrapper divs that serve no layout purpose (`<div><div><Component /></div></div>`)
 - ❌ Inline handlers with complex logic: `onClick={() => { /* 10 lines */ }}`
 - ❌ Ternary nesting beyond 1 level: `a ? b ? c : d : e`
@@ -42,61 +48,47 @@ Generated code that looks correct but is bloated, generic, over-engineered, or s
 - ❌ Hardcoded strings that should be constants or come from data
 
 ### Logic Slop
+
 - ❌ `if (condition) { return true; } else { return false; }` → `return condition;`
-- ❌ `if (arr.length > 0)` → `if (arr.length)` (but NOT for nullable arrays)
 - ❌ Optional chaining chains >3 deep: `a?.b?.c?.d?.e` (restructure the data)
 - ❌ Nullish coalescing cascades: `a ?? b ?? c ?? d` (unclear precedence)
 - ❌ Type assertions (`as Type`) instead of proper type guards
 - ❌ `Object.keys(obj).forEach` when `for...of Object.entries()` is clearer
 - ❌ Spreading into new objects just to change one field when direct assignment works
 
-## Quality Signals — GOOD Code
+## Quality Signals — Good Code
 
-### Concise
 ```typescript
-// ✅ Good: direct, no ceremony
+// ✅ Direct, no ceremony
 const profit = sellValue - costBasis - commission;
 const tax = Math.max(0, profit * BELKA_RATE);
-```
 
-### Self-documenting
-```typescript
-// ✅ Good: name explains the business rule
+// ✅ Name explains the business rule
 function getLastBusinessDayBefore(date: Date): Date { ... }
-```
 
-### Predictable structure
-```typescript
-// ✅ Good: consistent hook return shape
+// ✅ Consistent hook return shape
 function useAssetData(ticker: string) {
   return { data, error, isLoading, refetch };
 }
 ```
 
-### Minimal props
-```typescript
-// ✅ Good: component takes only what it needs
-interface VerdictBannerProps {
-  scenarios: ScenarioResult[];
-  benchmarkType: BenchmarkType;
-}
-```
-
 ## File Size Limits
+
 - Components: <300 lines. If larger → split into sub-components.
 - Utility files: <200 lines. If larger → split by domain.
 - Hooks: <150 lines. If larger → extract helper functions to utils.
 - Test files: no limit (thorough testing is never slop).
 
 ## Dependency Rules
-- Before adding ANY npm package, answer:
-  1. Can I write this in <50 lines of TypeScript? → Write it.
-  2. Is it a polyfill for something already in Node 22 / modern browsers? → Don't add.
-  3. Does it pull in >100KB to the bundle? → Find a lighter alternative.
-  4. Is it maintained (updated in last 6 months, >1000 weekly downloads)? → Acceptable.
-- Current allowed dependencies are in `package.json`. Additions require justification.
+
+Before adding ANY npm package:
+1. Can I write this in <50 lines of TypeScript? → Write it.
+2. Is it a polyfill for something already in Node 22 / modern browsers? → Don't add.
+3. Does it pull in >100KB to the bundle? → Find a lighter alternative.
+4. Is it maintained (updated in last 6 months, >1000 weekly downloads)? → Acceptable.
 
 ## Git Hygiene
+
 - Commits: atomic (one logical change per commit).
 - Commit messages: `type(scope): description` — English, imperative mood, <72 chars.
   - `feat(tax): add DKK currency support`
@@ -105,7 +97,8 @@ interface VerdictBannerProps {
 - NEVER: `fix: stuff`, `update`, `wip`, `asdf`, `temp commit`
 - Branch names: `feat/description`, `fix/description`, `refactor/description`
 
-## Review Checklist (Self-Review Before PR)
+## Self-Review Before PR
+
 - [ ] No dead code or unused imports
 - [ ] No `console.log` (only `console.error` for genuine errors)
 - [ ] No magic numbers without named constants

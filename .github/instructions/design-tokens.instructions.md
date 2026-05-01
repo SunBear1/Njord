@@ -46,6 +46,62 @@ Tokens are defined in `src/index.css` via Tailwind v4 `@theme {}`:
 4. **Tailwind v4**: Uses `@theme` block (not `tailwind.config.js`) for custom properties
 5. **Chart colors**: Currently hardcoded hex in Recharts components — should be migrated to CSS variables when implementing dark theme
 
+## Financial Semantic Tokens
+
+These tokens carry domain meaning — always use them instead of raw color classes:
+
+```css
+@theme {
+  /* Financial outcomes */
+  --color-profit: /* green-700 */;
+  --color-profit-bg: /* green-50 */;
+  --color-loss: /* red-700 */;
+  --color-loss-bg: /* red-50 */;
+  --color-neutral: /* blue-700 */;
+  --color-neutral-bg: /* blue-50 */;
+  --color-warning: /* amber-700 */;
+  --color-warning-bg: /* amber-50 */;
+
+  /* Chart series */
+  --color-chart-stocks: /* blue-600 */;
+  --color-chart-savings: /* emerald-600 */;
+  --color-chart-bonds: /* amber-600 */;
+  --color-chart-inflation: /* orange-400 (dashed line) */;
+}
+```
+
+- ALWAYS use semantic tokens for financial indicators — never `text-green-600`, use `text-profit`.
+- Chart series assignment: stocks → `--color-chart-stocks` (blue), savings → `--color-chart-savings` (green), bonds → `--color-chart-bonds` (amber), inflation → `--color-chart-inflation` (orange, dashed).
+- Maximum 4 series per chart. NEVER use Recharts default colors — pass explicit colors from tokens.
+- When a new semantic need arises, add a token to `@theme` first, then use it.
+
+## Dark Mode
+
+- Defined via `@media (prefers-color-scheme: dark)` in `@theme` overrides.
+- Components do NOT add `dark:` prefixes — they use the same token names.
+- If a component looks wrong in dark mode, fix the token definition, not the component.
+
+## Contrast Requirements
+
+| Context | Minimum Ratio |
+|---------|--------------|
+| Body text on surface | 4.5:1 |
+| Large text (≥18px) | 3:1 |
+| UI components (borders, icons) | 3:1 |
+| Chart labels | 4.5:1 against chart background |
+| Disabled elements | exempt (but must be distinguishable) |
+
+## Forbidden Patterns
+
+- ❌ `bg-gradient-to-*` — no gradients anywhere
+- ❌ `from-*` / `to-*` / `via-*` — gradient stops
+- ❌ Opacity variants below 0.5 on text (`text-*/50`) — illegible
+- ❌ `ring-*` colors that differ from `--color-border-focus`
+- ❌ Custom hex in `style={{}}` attributes
+- ❌ Multiple shades of the same hue in one component (e.g., `blue-100` + `blue-200` + `blue-300`)
+- ❌ Raw color classes for profit/loss — use semantic tokens (`text-profit`, not `text-green-700`)
+
+
 ## Dark Theme Migration Path
 
 A commented-out `@media (prefers-color-scheme: dark)` block already exists in `index.css`.

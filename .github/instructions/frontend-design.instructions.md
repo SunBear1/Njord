@@ -44,3 +44,28 @@ This project uses a **refined financial dashboard** aesthetic:
 - Mix multiple unrelated color schemes
 - Add decorative elements that don't serve the financial data context
 - Use animations that distract from data readability
+
+## Design Philosophy (Njord)
+
+This is a financial tool. Prioritize **clarity, density, and trust** over flashiness.
+
+- Every pixel must serve a purpose — no decorative gradients, no gratuitous animations, no "hero sections."
+- Information hierarchy through typography weight and spacing, not color overload.
+
+## Anti-Slop UI Checklist
+
+Before writing any UI code, verify NONE of these are present:
+
+- ❌ Gradient backgrounds on cards or sections
+- ❌ Rounded-full buttons with emoji icons (the "AI startup" look)
+- ❌ Bouncing/pulsing loading indicators (use simple spinner or skeleton)
+- ❌ "Glass morphism" / backdrop-blur on containers
+- ❌ Drop shadows deeper than `shadow-sm` on cards
+- ❌ Excessive border-radius (max `rounded-lg` for cards, `rounded-md` for inputs)
+- ❌ Placeholder illustrations or decorative SVGs
+- ❌ "Empty state" illustrations with cartoon characters
+- ❌ Confetti, celebrations, or success animations
+- ❌ Tooltips on everything — use inline help text sparingly
+- ❌ Hover scale transforms on cards (`hover:scale-105` etc.)
+- ❌ Rainbow or multi-color icon sets — use monochrome Lucide icons
+- ❌ Purple, pink, cyan, or teal — they have no semantic meaning in this app

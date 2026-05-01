@@ -1,8 +1,11 @@
 # Copilot Instructions — Njord
 
-Polish-language financial comparison SPA: USD stock portfolio vs Polish savings accounts and government bonds. Hosted on Cloudflare Pages with a thin Pages Function backend.
+**Njord** — Polish-language investment calculator SPA comparing USD stock/ETF portfolios against Polish savings instruments (savings accounts, 8 types of government bonds, ETFs). All financial computation runs client-side. Hosted on Cloudflare Pages with thin Pages Functions backend.
 
-**Routes:** `/` (home), `/comparison`, `/forecast`, `/tax`, `/portfolio`, `/rates`
+- **Routes:** `/` (home), `/comparison`, `/forecast`, `/tax`, `/portfolio`, `/rates`
+- **Live:** https://njord.pages.dev
+- **UI language:** Polish | **Code/commits/docs:** English
+- **Base currency:** PLN (converted from USD via NBP)
 
 ## Commands
 
@@ -22,6 +25,21 @@ Local Pages Functions work without any configuration (Yahoo Finance requires no 
 To enable the Twelve Data fallback, create `.dev.vars` with `TWELVE_DATA_API_KEY=...`.
 
 ## Architecture
+
+```
+src/
+├── pages/              Route-level components (own their state)
+├── components/         UI components (props from pages)
+├── hooks/              Data fetching + state management
+├── utils/              Pure calculation functions (ZERO side effects)
+│   └── models/         GBM, Bootstrap, HMM prediction models
+├── providers/          API adapters (Yahoo Finance, NBP)
+├── workers/            Web Worker for HMM Monte Carlo (browser, NOT CF Worker)
+└── types/              TypeScript interfaces
+
+functions/api/          Cloudflare Pages Functions (thin proxy/cache)
+infrastructure/         Terraform (CF Pages + D1)
+```
 
 **Each page component owns its state** — `Layout.tsx` owns shared concerns (dark mode, auth). react-router-dom v7 with BrowserRouter.
 
@@ -46,3 +64,22 @@ To enable the Twelve Data fallback, create `.dev.vars` with `TWELVE_DATA_API_KEY
 - **React 19:** Use `use()` instead of `useContext()`. Pass `ref` as a regular prop (no `forwardRef`).
 - **Charts:** Recharts library with consistent color palette from CSS variables.
 - **Icons:** Lucide React.
+
+## Critical Invariants (never violate)
+
+1. **Belka tax = 19% on PROFIT only** — never on principal.
+2. **FX × stock deltas are multiplicative** — `(1+dS) × (1+dFX)`, never additive.
+3. **NBP rate = last business day BEFORE transaction** — never the transaction date.
+4. **No global state** — pages own state, pass via props.
+5. **Pure financial functions** — no `fetch`, no `localStorage`, no DOM in `src/utils/`.
+6. **UI in Polish, code in English** — no mixing.
+7. **Tailwind tokens only** — no hardcoded colors, no CSS modules.
+8. **All tests pass before commit** — `npm run lint && npm test && npm run build`.
+
+## Validation (every change)
+
+```bash
+npx tsc --noEmit && npm run lint && npm test && npm run build
+```
+
+No exceptions. No skipping. Fix failures before proceeding.

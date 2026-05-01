@@ -100,6 +100,29 @@ This dual-rate model means:
 - **Taxable gain** = computed at NBP mid rates
 - **Net end value** = cash received − capital gains tax (computed at NBP rates)
 
+### 3.2a NBP Rate Lookup Rule
+- Use **NBP Table A** mid rate.
+- Date: the **last business day STRICTLY BEFORE** the transaction date.
+- NOT the transaction date itself. NOT the settlement date.
+- If transaction is on Monday → use Friday's rate.
+- If Friday was a Polish public holiday → use Thursday's rate.
+- Implementation: walk backwards from `(transaction_date − 1 day)` until a valid NBP rate exists.
+
+### 3.2b PIT-38 Grouping
+- Group all transactions by **tax year** (calendar year of sell date).
+- Report: total revenue, total cost basis, total profit/loss, total tax.
+- Losses from year N can be deducted in years N+1 through N+5 (max 50% of loss per year).
+
+### 3.2c RSU / Grant Shares
+- Cost basis = 0 (or the taxed value at vest, if provided).
+- When `isRSU = true`: entire sell proceeds are profit (minus commissions).
+
+### 3.2d Multi-Currency Transactions
+- Supported currencies: USD, EUR, GBP, CHF, DKK, SEK, PLN.
+- For PLN transactions: no FX conversion needed, NBP rate = 1.
+- For foreign currency: convert BOTH sell price AND cost basis using the appropriate NBP rate.
+- Commission in foreign currency: convert using same NBP rate as the transaction.
+
 ### 3.3 Belka on Savings Accounts
 Tax is applied to **gross interest only**, not to principal:
 ```
@@ -300,3 +323,21 @@ When building any new feature that involves financial projections, ask:
 4. **Does this involve user-facing numbers?** → Frame as scenarios, add uncertainty language
 5. **Is this driven by historical data alone?** → Note that earnings/macro can override history;
    consider adding a caveat or contextual note in the UI
+
+---
+
+## 12. Numerical Precision
+
+### Rounding Rules
+- PLN amounts: 2 decimal places, rounded half-up (standard banking).
+- USD amounts: 2 decimal places.
+- Percentages: 2 decimal places for display, full precision in calculations.
+- NBP rates: 4 decimal places (as published by NBP).
+- NEVER round intermediate calculations — only round final display values.
+- NEVER use `.toFixed()` for financial math — it returns strings and has rounding edge cases.
+
+### Input Limits (Overflow Prevention)
+- Maximum shares: 10,000,000.
+- Maximum horizon: 144 months (12 years).
+- Maximum stock price: $100,000 USD per share.
+- Clamp all model outputs via `clampScenario()` to prevent unrealistic values.

@@ -78,3 +78,73 @@ Source: [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills/t
 - **Check array length before expensive comparison**: Early exit on empty arrays.
 - **Use `flatMap`** to map and filter in one pass.
 - **Hoist RegExp creation outside loops**.
+
+---
+
+## Njord-Specific React Rules
+
+### React 19 Conventions
+
+- `use()` for context consumption — NEVER `useContext()`.
+- `ref` as a regular prop — NEVER `forwardRef()`.
+- `useTransition` for non-urgent state updates (e.g., scenario recalculation).
+- `useDeferredValue` for expensive derived computations shown in UI.
+
+### Component Architecture
+
+- **Pages** (`src/pages/`): Own all state for their route. Fetch data via hooks. Pass data down as props.
+- **Components** (`src/components/`): Pure display + local interaction state only. Never fetch data.
+- **Hooks** (`src/hooks/`): Data fetching, subscriptions, complex state logic. Return typed objects.
+- **Utils** (`src/utils/`): Pure functions. Zero React imports. Zero side effects.
+
+### Props & Types
+
+- Every component has a named `interface` for props (e.g., `interface ComparisonChartProps`).
+- NEVER use inline prop types: `(props: { x: number })` — always extract to interface.
+- NEVER use `React.FC` — type the props parameter directly.
+- Export prop interfaces when components are used across pages.
+
+### State Management
+
+- NO global state libraries (Redux, Zustand, Jotai, Recoil, MobX).
+- State lives in page components, passed via props.
+- `localStorage` access ONLY in dedicated persistence utilities (`persistedState.ts`, `useWizardState.ts`).
+
+### Hooks Rules
+
+- Custom hooks MUST start with `use` and return a well-typed object (not arrays).
+- `useEffect` dependencies: ALWAYS explicit. NEVER disable the exhaustive-deps rule.
+- `useEffect` cleanup: ALWAYS return cleanup for subscriptions, timers, AbortControllers.
+- NEVER call `setState` inside `useEffect` without a condition guard (prevents infinite loops).
+
+### Error Handling
+
+- Wrap route-level components with `<ErrorBoundary>`.
+- API errors: Catch in hooks, expose via `{ error, isLoading, data }` pattern.
+- NEVER swallow errors with empty `catch {}` — at minimum `console.error`.
+- NEVER show raw error messages to users — translate to Polish user-friendly text.
+
+### File Organization
+
+- One component per file. File name = component name (PascalCase).
+- Hooks: one hook per file in `src/hooks/`.
+- Tests: mirror source structure in `src/__tests__/`.
+
+### Import Order
+
+1. React and react-dom
+2. Third-party libraries (recharts, lucide-react)
+3. Local components (relative `./` or `../`)
+4. Hooks → Utils → Types → Constants
+
+### Forbidden Patterns
+
+- ❌ `useEffect` as a state synchronization mechanism (derive state instead)
+- ❌ `any` type (use `unknown` + narrowing)
+- ❌ `// @ts-ignore` without linked issue
+- ❌ `dangerouslySetInnerHTML` without explicit sanitization
+- ❌ Direct DOM manipulation (`document.querySelector`, `getElementById`)
+- ❌ `window.location` for navigation — use react-router hooks
+- ❌ Barrel files (`index.ts` re-exporting everything) — import directly from source
+- ❌ Prop spreading (`{...props}`) on HTML elements — explicit props only
+- ❌ `setTimeout`/`setInterval` without cleanup in `useEffect`

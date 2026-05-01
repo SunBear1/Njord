@@ -109,3 +109,58 @@ Group by file. Use `file:line` format. Terse findings:
 src/Component.tsx:42 - icon button missing aria-label
 src/Component.tsx:55 - animation missing prefers-reduced-motion
 ```
+
+---
+
+## Njord UI Standards
+
+### Layout
+
+- **Desktop:** 2-column grid (inputs left, results right). Max content width 1400px.
+- **Mobile (≤768px):** Single column, inputs stacked above results.
+- **Spacing:** Consistent `gap-4` or `gap-6` between sections. Never mix.
+- **Cards:** `bg-white rounded-lg border border-gray-200 p-4` — nothing more.
+
+### Typography
+
+- Headings: `text-lg font-semibold` or `text-xl font-bold` — max 2 heading sizes per view.
+- Body: `text-sm` for data-dense areas, `text-base` for explanatory text.
+- Numbers/values: `font-mono` or `tabular-nums` for alignment in tables and results.
+- NEVER use `text-xs` for important data — only for secondary labels.
+
+### Interactive Elements
+
+- Buttons: Only 2 variants — primary (filled) and secondary (outline). No ghost, no link-style buttons.
+- Inputs: Consistent height (`h-10`), clear focus ring, label always above (never floating labels).
+- Sliders: Show current value prominently. Include min/max labels.
+- Tabs/toggles: Clear active state with underline or filled background — never just color change.
+
+### Data Display
+
+- Numbers: Always formatted with proper separators (`fmtPLN`, `fmtUSD`).
+- Tables: Zebra striping only if >5 rows. Right-align numeric columns.
+- Charts: Max 3-4 colors per chart. Legend outside chart area. Label axes in Polish.
+- Comparison results: Use green/red ONLY for profit/loss. Never for decorative purposes.
+
+### Color Semantics
+
+- Green (`text-profit`/`bg-profit-bg`): profit, positive outcome.
+- Red (`text-loss`/`bg-loss-bg`): loss, negative outcome, tax amount.
+- Blue (`text-neutral`/`bg-neutral-bg`): neutral information, links, primary actions.
+- Amber (`text-warning`/`bg-warning-bg`): warnings, inflation impact, caveats.
+- Gray: borders, disabled states, secondary text.
+- NEVER use purple, pink, cyan, or teal.
+
+### Loading States
+
+- Skeleton screens for initial data load (gray rectangles matching content shape).
+- Inline spinner (`animate-spin` on small circle) next to the element being loaded.
+- NEVER block the entire page with a full-screen loader.
+- Show stale data with a "refreshing..." indicator rather than blanking the screen.
+
+### Error States
+
+- Inline error messages below the relevant input (red text, `text-sm`).
+- API errors: Banner at top of results area, not a modal or toast.
+- Network errors: Show last cached data with amber "offline" indicator.
+- NEVER use `alert()` or browser-native dialogs.
