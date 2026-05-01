@@ -53,22 +53,21 @@ function extractTokens(block: string): Record<string, string> {
   return tokens;
 }
 
-// Token classification
+// Token classification — matches new WCAG AAA palette in src/index.css
 const SURFACE_TOKENS = [
-  'color-surface',
-  'color-surface-alt',
-  'color-surface-muted',
-  'color-surface-dark',
-  'color-surface-dark-alt',
+  'color-bg-primary',
+  'color-bg-card',
+  'color-bg-hover',
 ];
 
 const TEXT_TOKENS = [
-  'color-heading',
-  'color-body',
-  'color-muted',
-  'color-faint',
-  'color-on-dark',
-  'color-on-dark-muted',
+  'color-text-primary',
+  'color-text-secondary',
+  'color-text-muted',
+  'color-accent-primary',
+  'color-accent-secondary',
+  'color-success',
+  'color-danger',
 ];
 
 interface TokenPairing {
