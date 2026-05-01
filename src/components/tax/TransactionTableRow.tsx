@@ -373,7 +373,7 @@ export function TransactionTableRow({
                 {tx.ticker}
               </span>
             ) : (
-              <span className="text-on-dark-muted dark:text-body">—</span>
+              <span className="text-muted dark:text-muted">—</span>
             )}
             {tx.tickerName && (
               <span className="text-faint dark:text-muted text-xs truncate max-w-[120px] hidden lg:inline">

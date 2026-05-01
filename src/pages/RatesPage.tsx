@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { useMultiCurrencyRates, type CurrencyRateEntry } from '../hooks/useMultiCurrencyRates';
 
 const CURRENCY_META: Record<string, { flag: string; name: string }> = {
@@ -21,11 +21,7 @@ function RateCell({ value, direction }: { value: number; direction: 'buy' | 'sel
   const isSell = direction === 'sell';
   return (
     <td className="px-3 py-2 text-right font-mono tabular-nums">
-      <span className={`inline-flex items-center gap-1 ${isSell ? 'text-orange-700 dark:text-orange-400' : 'text-heading dark:text-on-dark'}`}>
-        {isSell
-          ? <ArrowDown size={12} aria-hidden="true" />
-          : <ArrowUp size={12} aria-hidden="true" />
-        }
+      <span className={`font-medium ${isSell ? 'text-orange-600 dark:text-orange-400' : 'text-green-700 dark:text-green-400'}`}>
         {value.toFixed(4)}
       </span>
     </td>
@@ -42,14 +38,14 @@ function SourceTable({ title, href, rates, getRate }: {
   if (!hasData) return null;
 
   return (
-    <div className="bg-bg-card border border-border rounded-xl overflow-hidden">
-      <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-        <h2 className="font-semibold text-text-primary">{title}</h2>
+    <div className="bg-bg-card dark:bg-surface-alt border border-border dark:border-edge rounded-xl overflow-hidden">
+      <div className="px-4 py-3 border-b border-border dark:border-edge flex items-center justify-between">
+        <h2 className="font-semibold text-heading dark:text-on-dark">{title}</h2>
         <a
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs text-accent-info hover:underline"
+          className="text-xs text-muted dark:text-muted hover:text-accent transition-colors"
         >
           Źródło ↗
         </a>
@@ -57,42 +53,32 @@ function SourceTable({ title, href, rates, getRate }: {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-text-muted text-xs uppercase tracking-wider">
+            <tr className="text-muted dark:text-muted text-xs uppercase tracking-wider bg-surface-muted dark:bg-surface-dark">
               <th className="px-4 py-2 text-left font-medium">Waluta</th>
-              <th className="px-3 py-2 text-right font-medium">
-                <span className="inline-flex items-center gap-1">
-                  <ArrowUp size={10} className="text-heading dark:text-on-dark" aria-hidden="true" />
-                  Kupno
-                </span>
-              </th>
-              <th className="px-3 py-2 text-right font-medium">
-                <span className="inline-flex items-center gap-1">
-                  <ArrowDown size={10} className="text-orange-600 dark:text-orange-400" aria-hidden="true" />
-                  Sprzedaż
-                </span>
-              </th>
+              <th className="px-3 py-2 text-right font-medium text-green-700 dark:text-green-400">Kupno ↓</th>
+              <th className="px-3 py-2 text-right font-medium text-orange-600 dark:text-orange-400">Sprzedaż ↑</th>
               <th className="px-3 py-2 text-right font-medium">Spread</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-y divide-border dark:divide-edge">
             {rates.map(entry => {
               const data = getRate(entry);
               if (!data) return null;
               const meta = CURRENCY_META[entry.currency];
               return (
-                <tr key={entry.currency} className="hover:bg-bg-muted transition-colors">
+                <tr key={entry.currency} className="hover:bg-surface-muted dark:hover:bg-surface-dark transition-colors">
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-2.5">
                       <span className="text-lg" aria-hidden="true">{meta?.flag}</span>
                       <div>
-                        <div className="font-semibold text-text-primary">{entry.currency}/PLN</div>
-                        <div className="text-xs text-text-muted">{meta?.name}</div>
+                        <div className="font-semibold text-heading dark:text-on-dark">{entry.currency}/PLN</div>
+                        <div className="text-xs text-muted dark:text-muted">{meta?.name}</div>
                       </div>
                     </div>
                   </td>
-                  <RateCell value={data.sell} direction="sell" />
                   <RateCell value={data.buy} direction="buy" />
-                  <td className="px-3 py-2 text-right font-mono tabular-nums text-text-muted text-xs">
+                  <RateCell value={data.sell} direction="sell" />
+                  <td className="px-3 py-2 text-right font-mono tabular-nums text-muted dark:text-muted text-xs">
                     {spreadPct(data.buy, data.sell)}%
                   </td>
                 </tr>
@@ -113,13 +99,13 @@ export function RatesPage() {
     <div className="max-w-3xl mx-auto space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-text-primary">Kursy walut</h1>
-          <p className="text-sm text-text-muted mt-0.5">Porównanie kursów kupna i sprzedaży z różnych źródeł</p>
+          <h1 className="text-xl font-bold text-heading dark:text-on-dark">Kursy walut</h1>
+          <p className="text-sm text-muted dark:text-muted mt-0.5">Porównanie kursów kupna i sprzedaży z różnych źródeł</p>
         </div>
         {lastUpdated && (
-          <div className="flex items-center gap-1.5 text-xs text-text-faint">
+          <div className="flex items-center gap-1.5 text-xs text-muted dark:text-muted">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-accent-success" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success" />
             </span>
             <span>{fmtTime(lastUpdated)}</span>
             <RefreshCw size={10} className="opacity-50" aria-hidden="true" />
@@ -129,13 +115,13 @@ export function RatesPage() {
       </div>
 
       {isLoading && !hasData && (
-        <div className="bg-bg-card border border-border rounded-xl p-8 text-center text-text-muted animate-pulse motion-reduce:animate-none">
+        <div className="bg-surface dark:bg-surface-alt border border-edge dark:border-edge rounded-xl p-8 text-center text-muted dark:text-muted animate-pulse motion-reduce:animate-none">
           Pobieram kursy walut…
         </div>
       )}
 
       {error && !hasData && (
-        <div className="bg-bg-card border border-accent-error/30 rounded-xl p-6 text-center text-accent-error">
+        <div className="bg-surface dark:bg-surface-alt border border-error/30 rounded-xl p-6 text-center text-error">
           {error}
         </div>
       )}
@@ -155,15 +141,16 @@ export function RatesPage() {
             getRate={r => r.nbp ? { buy: r.nbp.buy, sell: r.nbp.sell } : null}
           />
 
-          <div className="bg-bg-muted border border-border rounded-xl px-4 py-3 text-xs text-text-muted space-y-1">
+          <div className="bg-surface-muted dark:bg-surface-alt border border-edge dark:border-edge rounded-xl px-4 py-3 text-xs text-muted dark:text-muted space-y-1">
+            <p className="text-[11px] font-semibold text-muted dark:text-muted uppercase tracking-wider mb-1.5">Jak czytać tabelę — perspektywa banku/kantoru</p>
             <p>
-              <strong className="text-text-secondary">Kupno</strong> — kurs po jakim kantor/bank kupuje od Ciebie walutę (dostajesz mniej PLN).
+              <strong className="text-body dark:text-on-dark-muted text-green-700 dark:text-green-400">Kupno ↓</strong> — bank kupuje walutę od Ciebie (dostajesz mniej PLN, niższy kurs).
             </p>
             <p>
-              <strong className="text-text-secondary">Sprzedaż</strong> — kurs po jakim kantor/bank sprzedaje Ci walutę (płacisz więcej PLN).
+              <strong className="text-orange-600 dark:text-orange-400">Sprzedaż ↑</strong> — bank sprzedaje Ci walutę (płacisz więcej PLN, wyższy kurs).
             </p>
             <p>
-              <strong className="text-text-secondary">Spread</strong> — różnica procentowa między kursem sprzedaży a kupna. Im mniejszy, tym korzystniejszy dla klienta.
+              <strong className="text-body dark:text-on-dark-muted">Spread</strong> — różnica procentowa między sprzedażą a kupnem. Im mniejszy, tym korzystniejszy dla klienta.
             </p>
           </div>
         </>

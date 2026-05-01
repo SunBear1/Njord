@@ -237,7 +237,7 @@ export function ScenarioEditor({
             ))}
           </div>
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
-            <span className="text-xs font-medium text-body dark:text-faint">Akcje ({stockUnit})</span>
+            <span className="text-xs font-medium text-body dark:text-on-dark-muted">Akcje ({stockUnit})</span>
             {SCENARIO_CONFIG.map(({ key, label, inputBorder }) => (
               <input key={key} type="text" inputMode="decimal" value={localValues[key].stock}
                 onChange={(e) => handleStockChange(key, e.target.value)}
@@ -248,7 +248,7 @@ export function ScenarioEditor({
             ))}
           </div>
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
-            <span className="text-xs font-medium text-body dark:text-faint">USD/PLN ({fxUnit})</span>
+            <span className="text-xs font-medium text-body dark:text-on-dark-muted">USD/PLN ({fxUnit})</span>
             {SCENARIO_CONFIG.map(({ key, label, inputBorder }) => (
               <input key={key} type="text" inputMode="decimal" value={localValues[key].fx}
                 onChange={(e) => handleFxChange(key, e.target.value)}
@@ -277,7 +277,7 @@ export function ScenarioEditor({
               <strong>USD / PLN</strong> — docelowa cena lub kurs
             </span>
           }>
-            <HelpCircle size={16} aria-hidden="true" className="text-on-dark-muted dark:text-body cursor-help hover:text-muted dark:hover:text-faint transition-colors" />
+            <HelpCircle size={16} aria-hidden="true" className="text-muted dark:text-faint cursor-help hover:text-body dark:hover:text-muted transition-colors" />
           </Tooltip>
           {volatilityStats?.modelsLoading && (
             <span className="flex items-center gap-1 text-xs text-faint dark:text-muted">
@@ -348,7 +348,7 @@ export function ScenarioEditor({
                     className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border transition-colors ${
                       isActive
                         ? 'bg-indigo-600 text-on-dark border-indigo-600'
-                        : 'bg-surface dark:bg-surface-dark-alt text-body dark:text-faint border-edge dark:border-edge-strong hover:border-indigo-300 hover:text-indigo-700'
+                        : 'bg-surface dark:bg-surface-dark-alt text-body dark:text-on-dark-muted border-edge dark:border-edge-strong hover:border-indigo-300 hover:text-indigo-700'
                     }`}
                   >
                     {isRecommended && <Star size={12} className={isActive ? 'text-amber-300' : 'text-amber-400'} />}
@@ -375,7 +375,7 @@ export function ScenarioEditor({
                 </span>
               }
             >
-              <HelpCircle size={12} aria-hidden="true" className="text-on-dark-muted dark:text-body cursor-help hover:text-muted dark:hover:text-faint transition-colors" />
+              <HelpCircle size={12} aria-hidden="true" className="text-muted dark:text-faint cursor-help hover:text-body dark:hover:text-muted transition-colors" />
             </Tooltip>
           </div>
         );
@@ -398,7 +398,7 @@ export function ScenarioEditor({
           {/* Stock row */}
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-start">
             <div className="flex flex-col gap-1 pt-0.5">
-              <span className="text-xs font-medium text-body dark:text-faint">Akcje ({stockUnit})</span>
+              <span className="text-xs font-medium text-body dark:text-on-dark-muted">Akcje ({stockUnit})</span>
               <ModeToggle mode={stockMode} onToggle={toggleStockMode} labelA="%" labelB="USD" disabled={currentPriceUSD <= 0} />
             </div>
             {SCENARIO_CONFIG.map(({ key, inputBorder }) => {
@@ -430,7 +430,7 @@ export function ScenarioEditor({
           {/* FX row */}
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-start">
             <div className="flex flex-col gap-1 pt-0.5">
-              <span className="text-xs font-medium text-body dark:text-faint flex items-center gap-1">
+              <span className="text-xs font-medium text-body dark:text-on-dark-muted flex items-center gap-1">
                 USD/PLN ({fxUnit})
                 {volatilityStats && Math.abs(volatilityStats.correlation) > 0.05 && (
                   <Tooltip
@@ -502,21 +502,21 @@ export function ScenarioEditor({
           <div className="flex-1 overflow-y-auto px-3 py-3 bg-surface dark:bg-surface-dark border-t border-indigo-100 dark:border-indigo-900 space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-surface-alt dark:bg-surface-dark-alt rounded-lg p-3 space-y-1">
-                  <div className="text-xs font-semibold text-muted dark:text-faint uppercase tracking-wide">Zmienność akcji</div>
+                  <div className="text-xs font-semibold text-muted dark:text-muted uppercase tracking-wide">Zmienność akcji</div>
                   <div className="text-2xl font-bold text-heading dark:text-on-dark leading-none">{volatilityStats.stockSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-faint dark:text-muted ml-0.5">/rok</span></div>
-                  <div className="text-xs text-muted dark:text-faint leading-snug">Im wyższa, tym większy rozrzut scenariuszy.</div>
+                  <div className="text-xs text-muted dark:text-muted leading-snug">Im wyższa, tym większy rozrzut scenariuszy.</div>
                 </div>
                 <div className="bg-surface-alt dark:bg-surface-dark-alt rounded-lg p-3 space-y-1">
-                  <div className="text-xs font-semibold text-muted dark:text-faint uppercase tracking-wide">Zmienność USD/PLN</div>
+                  <div className="text-xs font-semibold text-muted dark:text-muted uppercase tracking-wide">Zmienność USD/PLN</div>
                   <div className="text-2xl font-bold text-heading dark:text-on-dark leading-none">{volatilityStats.fxSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-faint dark:text-muted ml-0.5">/rok</span></div>
-                  <div className="text-xs text-muted dark:text-faint leading-snug">Dodatkowe źródło ryzyka walutowego.</div>
+                  <div className="text-xs text-muted dark:text-muted leading-snug">Dodatkowe źródło ryzyka walutowego.</div>
                 </div>
                 <div className="bg-surface-alt dark:bg-surface-dark-alt rounded-lg p-3 space-y-1">
-                  <div className="text-xs font-semibold text-muted dark:text-faint uppercase tracking-wide">Korelacja z USD</div>
+                  <div className="text-xs font-semibold text-muted dark:text-muted uppercase tracking-wide">Korelacja z USD</div>
                   <div className={`text-2xl font-bold leading-none ${Math.abs(volatilityStats.correlation) > 0.1 ? (volatilityStats.correlation > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-accent dark:text-accent') : 'text-body dark:text-on-dark-muted'}`}>
                     {volatilityStats.correlation > 0 ? '+' : ''}{volatilityStats.correlation.toFixed(2)}
                   </div>
-                  <div className="text-xs text-muted dark:text-faint leading-snug">
+                  <div className="text-xs text-muted dark:text-muted leading-snug">
                     {volatilityStats.correlation < -0.1
                       ? 'Spadek akcji → mocniejszy dolar (amortyzacja).'
                       : volatilityStats.correlation > 0.1
@@ -525,11 +525,11 @@ export function ScenarioEditor({
                   </div>
                 </div>
                 <div className="bg-surface-alt dark:bg-surface-dark-alt rounded-lg p-3 space-y-1">
-                  <div className="text-xs font-semibold text-muted dark:text-faint uppercase tracking-wide">Trend historyczny</div>
+                  <div className="text-xs font-semibold text-muted dark:text-muted uppercase tracking-wide">Trend historyczny</div>
                   <div className={`text-2xl font-bold leading-none ${volatilityStats.stockMeanAnnual >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                     {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%<span className="text-xs font-normal text-faint dark:text-muted ml-0.5">/rok</span>
                   </div>
-                  <div className="text-xs text-muted dark:text-faint leading-snug">Informacyjnie — nie prognoza.</div>
+                  <div className="text-xs text-muted dark:text-muted leading-snug">Informacyjnie — nie prognoza.</div>
                 </div>
               </div>
 

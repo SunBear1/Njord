@@ -271,12 +271,12 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                     if (!d) return null;
                     return (
                       <div className="bg-surface dark:bg-surface-dark border border-edge dark:border-edge-strong rounded-lg shadow-sm p-2 text-xs">
-                        <div className="font-semibold mb-1">Dzień {label}</div>
-                        <div className="text-body dark:text-faint">p90: {fmtUSD(d.p90)}</div>
-                        <div className="text-body dark:text-faint">p75: {fmtUSD(d.p75)}</div>
+                        <div className="font-semibold text-heading dark:text-on-dark mb-1">Dzień {label}</div>
+                        <div className="text-body dark:text-on-dark-muted">p90: {fmtUSD(d.p90)}</div>
+                        <div className="text-body dark:text-on-dark-muted">p75: {fmtUSD(d.p75)}</div>
                         <div className="text-accent dark:text-accent font-medium">p50: {fmtUSD(d.p50)}</div>
-                        <div className="text-body dark:text-faint">p25: {fmtUSD(d.p25)}</div>
-                        <div className="text-body dark:text-faint">p10: {fmtUSD(d.p10)}</div>
+                        <div className="text-body dark:text-on-dark-muted">p25: {fmtUSD(d.p25)}</div>
+                        <div className="text-body dark:text-on-dark-muted">p10: {fmtUSD(d.p10)}</div>
                       </div>
                     );
                   }}
@@ -324,6 +324,12 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                 <Tooltip
                   formatter={(v: ValueType | undefined) => [`${Number(v ?? 0).toFixed(1)}%`, 'P(osiągnięcia)']}
                   labelFormatter={(v) => `Cel: ${fmtUSD(Number(v))}`}
+                  contentStyle={{
+                    backgroundColor: isDark ? '#1e2130' : '#ffffff',
+                    borderColor: isDark ? '#3b4055' : '#e2e3e5',
+                    borderRadius: '8px',
+                    color: isDark ? '#ffffff' : '#2d3142',
+                  }}
                 />
                 <Line type="monotone" dataKey="pTouch" stroke="#2563eb" strokeWidth={2.5} dot={{ r: 3 }} name="P(touch)" />
                 <ReferenceLine x={analysis.optimalTarget.target} stroke="#16a34a" strokeDasharray="6 3" label={{ value: 'Optymalny', position: 'top', fontSize: 10, fill: '#16a34a' }} />

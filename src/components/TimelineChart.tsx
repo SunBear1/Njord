@@ -56,6 +56,12 @@ function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate, i
           <Tooltip
             formatter={fmtTooltipPLN}
             labelFormatter={(v) => `Miesiąc ${v}`}
+            contentStyle={{
+              backgroundColor: isDark ? '#1e2130' : '#ffffff',
+              borderColor: isDark ? '#3b4055' : '#e2e3e5',
+              borderRadius: '8px',
+              color: isDark ? '#ffffff' : '#2d3142',
+            }}
           />
           <Legend />
           <ReferenceLine y={currentValuePLN} stroke="#94a3b8" strokeDasharray="4 4" />

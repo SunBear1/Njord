@@ -17,22 +17,28 @@ function fmtTime(d: Date): string {
 
 function RateBlock({ label, href, buy, sell }: { label: string; href: string; buy: number; sell: number }) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       <a
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-[11px] font-semibold text-muted dark:text-faint hover:text-accent dark:hover:text-accent uppercase tracking-wider"
+        className="text-[11px] font-semibold text-muted dark:text-muted hover:text-accent transition-colors uppercase tracking-wider"
       >
         {label}
       </a>
-      <div className="grid grid-cols-2 gap-x-2 text-xs">
-        <div className="text-faint dark:text-muted">Kupno USD</div>
-        <div className="text-right font-mono text-red-600 dark:text-red-400 font-medium">{sell.toFixed(4)}</div>
-        <div className="text-faint dark:text-muted">Sprzedaż USD</div>
-        <div className="text-right font-mono text-green-700 dark:text-green-400 font-medium">{buy.toFixed(4)}</div>
-        <div className="text-faint dark:text-muted">Spread</div>
-        <div className="text-right font-mono text-muted dark:text-faint">{spreadPct(buy, sell)}%</div>
+      <div className="space-y-0.5">
+        <div className="flex justify-between items-baseline gap-1.5 text-xs">
+          <span className="text-faint dark:text-muted">Kupno</span>
+          <span className="font-mono font-medium text-green-700 dark:text-green-400">{buy.toFixed(4)}</span>
+        </div>
+        <div className="flex justify-between items-baseline gap-1.5 text-xs">
+          <span className="text-faint dark:text-muted">Sprzedaż</span>
+          <span className="font-mono font-medium text-orange-600 dark:text-orange-400">{sell.toFixed(4)}</span>
+        </div>
+        <div className="flex justify-between items-baseline gap-1.5 text-xs">
+          <span className="text-faint dark:text-muted">Spread</span>
+          <span className="font-mono text-muted dark:text-muted">{spreadPct(buy, sell)}%</span>
+        </div>
       </div>
     </div>
   );
@@ -42,12 +48,25 @@ export function KantorSidebar({ rates }: KantorSidebarProps) {
   const { alior, nbp, isLoading, error, lastUpdated } = rates;
 
   return (
-    <div className="w-48 space-y-3">
+    <div className="w-52 space-y-3">
       {/* Header */}
-      <div className="flex items-center gap-1.5 text-xs font-semibold text-body dark:text-on-dark-muted">
-        <ArrowDownUp size={12} className="text-accent dark:text-accent" />
-        <span>USD / PLN</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-body dark:text-on-dark-muted">
+          <ArrowDownUp size={12} className="text-accent" />
+          <span>USD / PLN</span>
+        </div>
+        {!error && lastUpdated && (
+          <div className="flex items-center gap-1 text-[10px] text-muted dark:text-muted">
+            <span className="inline-flex rounded-full h-1.5 w-1.5 bg-success" />
+            <span>{fmtTime(lastUpdated)}</span>
+          </div>
+        )}
       </div>
+
+      {/* Bank perspective note */}
+      <p className="text-[10px] text-faint dark:text-muted leading-snug">
+        Kupno/Sprzedaż z perspektywy banku.
+      </p>
 
       {isLoading && !alior && !nbp ? (
         <div className="text-[11px] text-faint dark:text-muted animate-pulse motion-reduce:animate-none">Pobieram kursy…</div>
@@ -77,39 +96,20 @@ export function KantorSidebar({ rates }: KantorSidebarProps) {
         </>
       )}
 
-      {/* Live indicator + timestamp */}
-      <div className="flex items-center gap-1.5 text-[10px] text-faint dark:text-muted">
-        {!error && (alior || nbp) ? (
-          <>
-            <span className="relative flex h-2 w-2">
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
-            </span>
-            <span>
-              {lastUpdated ? fmtTime(lastUpdated) : 'live'}
-              <span className="text-on-dark-muted dark:text-body"> · 60s</span>
-            </span>
-          </>
-        ) : null}
-      </div>
-
-      <p className="text-[9px] text-on-dark-muted dark:text-body leading-tight">
-        Aktualnie wspierany jest tylko Alior Kantor.
-      </p>
-
       {/* Role explanation — which rate is used where */}
       {(alior || nbp) && !isLoading && (
-        <div className="bg-accent-light/60 dark:bg-surface-dark/20 border border-accent dark:border-accent rounded-md px-2.5 py-2 space-y-1">
-          <div className="text-[10px] font-semibold text-accent-hover dark:text-accent uppercase tracking-wider">Jak liczymy?</div>
+        <div className="bg-surface-muted dark:bg-surface-dark-alt rounded-md px-2.5 py-2 space-y-1">
+          <div className="text-[10px] font-semibold text-muted dark:text-muted uppercase tracking-wider">Jak liczymy?</div>
           {alior && (
-            <div className="flex items-start gap-1.5 text-[10px] text-body dark:text-faint">
-              <span className="text-green-600 mt-0.5">●</span>
-              <span><strong className="text-body dark:text-on-dark-muted">Kantor</strong> → wycena portfela w PLN</span>
+            <div className="flex items-start gap-1.5 text-[10px] text-body dark:text-on-dark-muted">
+              <span className="text-green-600 dark:text-green-400 mt-0.5">●</span>
+              <span><strong>Kantor</strong> → wycena portfela w PLN</span>
             </div>
           )}
           {nbp && (
-            <div className="flex items-start gap-1.5 text-[10px] text-body dark:text-faint">
+            <div className="flex items-start gap-1.5 text-[10px] text-body dark:text-on-dark-muted">
               <span className="text-accent mt-0.5">●</span>
-              <span><strong className="text-body dark:text-on-dark-muted">NBP</strong> → podstawa podatku Belki</span>
+              <span><strong>NBP</strong> → podstawa podatku Belki</span>
             </div>
           )}
         </div>

@@ -533,7 +533,7 @@ export function TransactionCard({
               {tx.ticker}
             </span>
           ) : (
-            <span className="text-on-dark-muted dark:text-body text-sm">—</span>
+            <span className="text-muted dark:text-muted text-sm">—</span>
           )}
           {tx.tickerName && (
             <span className="text-faint dark:text-muted text-xs truncate max-w-[120px] hidden lg:inline">

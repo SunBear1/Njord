@@ -52,7 +52,15 @@ function ComparisonChart({ results, isDark }: ComparisonChartProps) {
           <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
           <XAxis dataKey="name" tick={{ fontSize: 13, fill: tickColor }} />
           <YAxis tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 12, fill: tickColor }} />
-          <Tooltip formatter={fmtTooltipPLN} />
+          <Tooltip
+            formatter={fmtTooltipPLN}
+            contentStyle={{
+              backgroundColor: isDark ? '#1e2130' : '#ffffff',
+              borderColor: isDark ? '#3b4055' : '#e2e3e5',
+              borderRadius: '8px',
+              color: isDark ? '#ffffff' : '#2d3142',
+            }}
+          />
           <Legend />
           <ReferenceLine y={currentValue} stroke="#94a3b8" strokeDasharray="5 5" label={{ value: 'Wartość dziś', fontSize: 11, fill: '#94a3b8' }} />
           <Bar dataKey="Akcje (netto)" fill="#3b82f6" radius={[4, 4, 0, 0]} />
