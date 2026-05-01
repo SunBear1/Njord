@@ -97,7 +97,7 @@ export function BondBenchmarkSection({
                   <span className="text-text-secondary flex items-center gap-1">
                     Inflacja CPI
                     {inflationLoading && (
-                      <span className="text-border inline-flex items-center gap-1">
+                      <span className="text-text-muted inline-flex items-center gap-1">
                         · <Loader2 size={12} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />ładowanie…
                       </span>
                     )}
@@ -217,7 +217,7 @@ export function BondBenchmarkSection({
                 : `${preset.name} nie pozwala na wcześniejszy wykup. Wyniki obliczone dla pełnego okresu zapadalności (${preset.maturityMonths} mies.).`
               : `Horyzont pokrywa okres zapadalności obligacji — brak kary za wykup.`}
           </div>
-          <div className="text-[10px] text-border mt-1">
+          <div className="text-[10px] text-text-muted mt-1">
             Stawki z {BOND_PRESETS_LAST_UPDATED}.{' '}
             <a href={BOND_PRESETS_SOURCE_URL} target="_blank" rel="noopener noreferrer" className="underline hover:text-text-muted ">
               Aktualne stawki na obligacjeskarbowe.pl

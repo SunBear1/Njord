@@ -131,7 +131,7 @@ export function MethodologyPanel() {
               <div className="pl-4">Roczny zwrot: [−80%, +100%] | Całkowity: [−95%, +1000%]</div>
               <div className="pt-1">σ dzienne, ρ (korelacja Pearsona) — ~2 lata danych historycznych</div>
               <div>Δ FX Bear = −ρ × |FX p95|,  Δ FX Bull = +ρ × |FX p95|</div>
-              <div className="pt-1 text-border">HMM (Hidden Markov Model) — informacyjnie: detekcja reżimu rynkowego (wzrost/spadek). Nie wpływa na scenariusze.</div>
+              <div className="pt-1 text-text-muted">HMM (Hidden Markov Model) — informacyjnie: detekcja reżimu rynkowego (wzrost/spadek). Nie wpływa na scenariusze.</div>
             </div>
             <p className="text-xs text-text-secondary">
               Scenariusze to zakresy prawdopodobieństwa, nie prognozy. Żaden model nie jest w stanie

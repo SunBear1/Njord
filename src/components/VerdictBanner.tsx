@@ -67,7 +67,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
 
       {/* Current value — above cards */}
       <div className="flex items-center gap-2 px-1">
-        <Info size={16} className="text-border flex-shrink-0" aria-hidden="true" />
+        <Info size={16} className="text-text-muted flex-shrink-0" aria-hidden="true" />
         <p className="text-sm text-text-secondary">
           Aktualnie posiadasz akcje o wartości{' '}
           <strong className="text-text-primary tabular-nums">{fmtPLN(results[0]?.currentValuePLN ?? 0)}</strong>.{' '}

@@ -95,14 +95,14 @@ function BrokerCard({
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Landmark className="w-4 h-4 text-border shrink-0" />
+          <Landmark className="w-4 h-4 text-text-muted shrink-0" />
           <span className="font-medium text-sm text-text-primary">
             {broker.name}
           </span>
         </div>
         {selected && !sectionDisabled ? (
           <span className="w-5 h-5 rounded-full bg-accent-interactive flex items-center justify-center shrink-0">
-            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <svg className="w-3 h-3 text-text-on-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </span>

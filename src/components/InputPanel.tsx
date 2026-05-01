@@ -236,15 +236,15 @@ export function InputPanel({
           >
             <div className="flex items-center gap-2 flex-wrap min-w-0 text-sm text-text-secondary">
               <span className="font-semibold text-text-primary">{ticker || '—'}</span>
-              <span className="text-border">·</span>
+              <span className="text-text-muted">·</span>
               <span>{shares} akcji</span>
-              <span className="text-border">·</span>
+              <span className="text-text-muted">·</span>
               <span>${currentPriceUSD.toFixed(2)}</span>
-              <span className="text-border">·</span>
+              <span className="text-text-muted">·</span>
               <span>PLN/USD {currentFxRate.toFixed(2)}</span>
-              <span className="text-border">·</span>
+              <span className="text-text-muted">·</span>
               <span>{bmSummary}</span>
-              <span className="text-border">·</span>
+              <span className="text-text-muted">·</span>
               <span className="text-accent-primary font-medium">{horizonLabel}</span>
             </div>
             <span className="flex items-center gap-1 text-xs text-text-primary font-medium whitespace-nowrap shrink-0">
@@ -300,7 +300,7 @@ export function InputPanel({
           Ticker giełdowy <span className="text-danger">*</span>
           <Tooltip content="Wpisz symbol giełdowy (np. AAPL, NVDA, VOO). Cena i kurs USD/PLN pobiorą się automatycznie." />
         </label>
-        <p className="text-xs text-border">Zacznij pisać — dane pobiorą się automatycznie.</p>
+        <p className="text-xs text-text-muted">Zacznij pisać — dane pobiorą się automatycznie.</p>
         <div className="flex gap-2 items-center">
           <div className="relative flex-1">
             <input
@@ -397,7 +397,7 @@ export function InputPanel({
                     setTotalValueStr('');
                   }
                 }}
-                className="px-3 py-1.5 text-xs font-medium bg-accent-interactive text-white rounded-md hover:bg-accent-interactive/80 disabled:opacity-40 transition-colors"
+                className="px-3 py-1.5 text-xs font-medium bg-accent-interactive text-text-on-accent rounded-md hover:bg-accent-interactive/80 disabled:opacity-40 transition-colors"
               >
                 Przelicz
               </button>
@@ -467,7 +467,7 @@ export function InputPanel({
       <div className="space-y-1">
         <label htmlFor="avg-cost-usd" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
           Cena zakupu (USD)
-          <span className="text-xs font-normal text-border">(opcjonalnie)</span>
+          <span className="text-xs font-normal text-text-muted">(opcjonalnie)</span>
           <Tooltip content="Średnia cena zakupu za akcję. Używana do obliczenia rzeczywistego zysku/straty oraz prawidłowej podstawy podatku Belki — podatek nalicza się od zysku względem ceny zakupu, nie dzisiejszej ceny." />
         </label>
         <input
@@ -520,7 +520,7 @@ export function InputPanel({
       <div className="space-y-1">
         <label htmlFor="broker-fee" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
           Prowizja brokera (USD)
-          <span className="text-xs font-normal text-border">(opcjonalnie)</span>
+          <span className="text-xs font-normal text-text-muted">(opcjonalnie)</span>
           <Tooltip content="Łączna prowizja za transakcję sprzedaży w USD. Odejmowana od wartości sprzedaży i zaliczana jako koszt uzyskania przychodu — pomniejsza podstawę podatku Belki. Przykład: IBKR min $1, Exante ~0.02 USD/akcję." />
         </label>
         <input
@@ -541,7 +541,7 @@ export function InputPanel({
       <div className="space-y-1">
         <label htmlFor="dividend-yield" className="text-sm font-medium text-text-secondary flex items-center gap-1.5">
           Stopa dywidendy (% rocznie)
-          <span className="text-xs font-normal text-border">(opcjonalnie)</span>
+          <span className="text-xs font-normal text-text-muted">(opcjonalnie)</span>
           <Tooltip content="Roczna stopa dywidendy akcji (np. 1.5 dla 1.5%). Dywidendy akumulowane jako gotówka PLN w ciągu horyzontu. Podatek 19% od całości (pokrywa 15% WHT USA + 4% dopłata do polskiego PIT-38). Spółki wzrostowe zazwyczaj nie wypłacają dywidend (0)." />
         </label>
         <input
@@ -606,7 +606,7 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('savings')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'savings'
-                ? 'border-accent-interactive bg-accent-interactive text-white'
+                ? 'border-accent-interactive bg-accent-interactive text-text-on-accent'
                 : 'border-border bg-bg-card text-text-muted hover:border-accent-primary/50 hover:text-accent-primary'
             }`}
           >
@@ -617,7 +617,7 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('bonds')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'bonds'
-                ? 'border-accent-interactive bg-accent-interactive text-white'
+                ? 'border-accent-interactive bg-accent-interactive text-text-on-accent'
                 : 'border-border bg-bg-card text-text-muted hover:border-accent-primary/50 hover:text-accent-primary'
             }`}
           >
@@ -628,7 +628,7 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('etf')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'etf'
-                ? 'border-accent-interactive bg-accent-interactive text-white'
+                ? 'border-accent-interactive bg-accent-interactive text-text-on-accent'
                 : 'border-border bg-bg-card text-text-muted hover:border-accent-primary/50 hover:text-accent-primary'
             }`}
           >
@@ -673,7 +673,7 @@ export function InputPanel({
             className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
           />
           {!monthlyRate && (
-            <p className="text-xs text-border">
+            <p className="text-xs text-text-muted">
               Podaj oprocentowanie z regulaminu banku w skali roku.
             </p>
           )}
@@ -735,7 +735,7 @@ export function InputPanel({
           step={1}
           value={horizonMonths}
           onChange={(e) => onHorizonChange(Number(e.target.value))}
-          className="w-full accent-blue-600"
+          className="w-full"
         />
         {(() => {
           const sliderMin = 1;
@@ -767,7 +767,7 @@ export function InputPanel({
                 return (
                   <span
                     key={label}
-                    className="absolute text-xs text-border"
+                    className="absolute text-xs text-text-muted"
                     style={{
                       left: `${pct}%`,
                       transform: isFirst ? 'none' : isLast ? 'translateX(-100%)' : 'translateX(-50%)',

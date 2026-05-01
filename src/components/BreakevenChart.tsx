@@ -67,7 +67,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
           <table className="text-xs border-collapse mx-auto">
             <thead>
               <tr>
-                <th className="p-1 text-border font-normal text-right pr-2">
+                <th className="p-1 text-text-muted font-normal text-right pr-2">
                   Akcje ↓ / USD/PLN →
                 </th>
                 {deltaFxValues.map((df) => (
@@ -120,7 +120,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
             </p>
           ) : (
             <>
-              <p className="text-xs text-border">
+              <p className="text-xs text-text-muted">
                 {winnerCells.length} z {cells.length} kombinacji — akcje lepsze:
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
@@ -141,7 +141,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
                   );
                 })}
                 {winnerCells.length > 20 && (
-                  <p className="text-xs text-border col-span-full text-center pt-1">
+                  <p className="text-xs text-text-muted col-span-full text-center pt-1">
                     …i {winnerCells.length - 20} więcej
                   </p>
                 )}
@@ -161,7 +161,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
           {benchmarkLabel} lepsze (✗)
         </span>
         {view === 'grid' && (
-          <span className="text-border hidden sm:inline">Najedź kursorem na komórkę, by zobaczyć wartość</span>
+          <span className="text-text-muted hidden sm:inline">Najedź kursorem na komórkę, by zobaczyć wartość</span>
         )}
       </div>
     </div>

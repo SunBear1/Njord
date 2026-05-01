@@ -237,7 +237,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
             type="button"
             onClick={() => { setShowImportDropdown((v) => !v); setImportError(null); }}
             disabled={importLoading}
-            className="flex items-center gap-1.5 text-xs font-medium text-white bg-accent-interactive hover:bg-accent-interactive/80 disabled:opacity-50 rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
+            className="flex items-center gap-1.5 text-xs font-medium text-text-on-accent bg-accent-interactive hover:bg-accent-interactive/80 disabled:opacity-50 rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
             aria-expanded={showImportDropdown}
             aria-haspopup="true"
             aria-label="Automatyczny import z brokera"
@@ -279,7 +279,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
               <button
                 type="button"
                 onClick={() => { setConfirmClearAll((v) => !v); setShowImportDropdown(false); }}
-                className="flex items-center justify-center p-1.5 text-border hover:text-danger rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-danger"
+                className="flex items-center justify-center p-1.5 text-text-muted hover:text-danger rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-danger"
                 aria-label={`Usuń wszystkie transakcje (${transactions.length})`}
                 title={`Usuń wszystkie transakcje (${transactions.length})`}
               >
@@ -296,7 +296,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                 <button
                   type="button"
                   onClick={() => setShowImportDropdown(false)}
-                  className="text-border hover:text-text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
+                  className="text-text-muted hover:text-text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
                   aria-label="Zamknij"
                 >
                   <X size={14} aria-hidden="true" />
@@ -314,12 +314,12 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                       i > 0 ? 'border-l border-border' : ''
                     } ${
                       selectedBrokerId === broker.id
-                        ? 'bg-accent-interactive text-white'
+                        ? 'bg-accent-interactive text-text-on-accent'
                         : 'bg-bg-card text-text-secondary hover:bg-bg-card'
                     }`}
                   >
                     <span className="font-semibold">{broker.name}</span>
-                    <span className={`text-[10px] mt-0.5 ${selectedBrokerId === broker.id ? 'text-white' : 'text-border'}`}>
+                    <span className={`text-[10px] mt-0.5 ${selectedBrokerId === broker.id ? 'text-white' : 'text-text-muted'}`}>
                       {broker.fileLabel}
                     </span>
                   </button>
@@ -346,7 +346,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                         ))}
                       </ol>
                       {selectedBroker.formatNote && (
-                        <p className="mt-1.5 text-[10px] text-border">{selectedBroker.formatNote}</p>
+                        <p className="mt-1.5 text-[10px] text-text-muted">{selectedBroker.formatNote}</p>
                       )}
                     </div>
                   )}
@@ -364,7 +364,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={importLoading || !selectedBroker}
-                className="w-full flex items-center justify-center gap-2 text-xs font-medium text-white bg-accent-interactive hover:bg-accent-interactive/80 disabled:opacity-50 rounded-lg px-3 py-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
+                className="w-full flex items-center justify-center gap-2 text-xs font-medium text-text-on-accent bg-accent-interactive hover:bg-accent-interactive/80 disabled:opacity-50 rounded-lg px-3 py-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
               >
                 {importLoading ? (
                   <><Loader2 size={13} className="animate-spin" aria-hidden="true" /> Importowanie…</>
@@ -424,7 +424,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
 
       {/* Transaction cards — grouped by sale date */}
       {transactions.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border p-10 text-center text-border space-y-2">
+        <div className="rounded-xl border border-dashed border-border p-10 text-center text-text-muted space-y-2">
           <Receipt size={32} className="mx-auto opacity-30" aria-hidden="true" />
           <p className="text-sm">Nie masz jeszcze żadnych transakcji. Dodaj pierwszą transakcję sprzedaży.</p>
         </div>
@@ -443,7 +443,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                         {fmtDatePL(dateKey)}
                       </span>
                     </div>
-                    <span className="text-xs text-border">
+                    <span className="text-xs text-text-muted">
                       {group.length === 1
                         ? '1 transakcja'
                         : `${group.length} ${group.length < 5 ? 'transakcje' : 'transakcji'} · wspólny kurs NBP`}
@@ -484,7 +484,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
       {readyCount > 0 && <YearSummary transactions={transactions} />}
 
       {/* Disclaimer */}
-      <p className="text-xs text-border text-center pb-1">
+      <p className="text-xs text-text-muted text-center pb-1">
         Wyniki na podstawie kursów NBP Tabela A. Ostateczna kwota podatku wynika z pełnej dokumentacji i formularza PIT-38.
       </p>
     </div>

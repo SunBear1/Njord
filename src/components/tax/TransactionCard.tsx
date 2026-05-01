@@ -47,7 +47,7 @@ function RateStatusBadge({
 }) {
   if (currency.toUpperCase() === 'PLN') {
     return (
-      <p className="text-[11px] text-border">PLN — brak przeliczenia</p>
+      <p className="text-[11px] text-text-muted">PLN — brak przeliczenia</p>
     );
   }
 
@@ -89,7 +89,7 @@ function RateStatusBadge({
         <CheckCircle2 size={10} aria-hidden="true" className="flex-shrink-0" />
         <span>Kurs NBP: {rate.toFixed(4)}</span>
         {effectiveDate && (
-          <span className="text-border">z {fmtDatePL(effectiveDate)}</span>
+          <span className="text-text-muted">z {fmtDatePL(effectiveDate)}</span>
         )}
       </p>
     );
@@ -187,7 +187,7 @@ function CalculationBreakdown({ tx, result }: { tx: TaxTransaction; result: Tran
           <div className="flex items-center justify-between">
             <span className="text-danger font-medium">
               Podatek 19%
-              <span className="ml-1.5 text-border font-normal">
+              <span className="ml-1.5 text-text-muted font-normal">
                 {fmtPLNGrosze(result.gainPLN)} × 0,19
               </span>
             </span>
@@ -197,8 +197,8 @@ function CalculationBreakdown({ tx, result }: { tx: TaxTransaction; result: Tran
           </div>
         ) : (
           <div className="flex items-center justify-between">
-            <span className="text-border">Podatek</span>
-            <span className="text-border font-medium">brak (strata)</span>
+            <span className="text-text-muted">Podatek</span>
+            <span className="text-text-muted font-medium">brak (strata)</span>
           </div>
         )}
       </div>
@@ -232,7 +232,7 @@ function CalcLine({
           {subtract && <span className="text-danger  mr-0.5">−</span>}
           {label}
         </span>
-        <span className="text-border truncate">
+        <span className="text-text-muted truncate">
           {fmtAmt(amount)} {currency}
           {!isPLN && ` × ${rate.toFixed(4)}`}
         </span>
@@ -536,7 +536,7 @@ export function TransactionCard({
             <span className="text-text-muted text-sm">—</span>
           )}
           {tx.tickerName && (
-            <span className="text-border text-xs truncate max-w-[120px] hidden lg:inline">
+            <span className="text-text-muted text-xs truncate max-w-[120px] hidden lg:inline">
               {tx.tickerName}
             </span>
           )}
@@ -544,7 +544,7 @@ export function TransactionCard({
 
         {/* Sale date */}
         <span className="text-sm text-text-secondary whitespace-nowrap hidden sm:inline">
-          {tx.saleDate ? fmtDatePL(tx.saleDate) : <span className="text-border italic text-xs">Brak daty</span>}
+          {tx.saleDate ? fmtDatePL(tx.saleDate) : <span className="text-text-muted italic text-xs">Brak daty</span>}
         </span>
 
         {/* Amount */}
@@ -555,7 +555,7 @@ export function TransactionCard({
         </span>
 
         {/* Gain/loss */}
-        <span className={`text-sm tabular-nums font-semibold whitespace-nowrap ${gainInfo?.cls ?? 'text-border'} ${tx.saleGrossAmount > 0 ? '' : 'md:ml-auto'}`}>
+        <span className={`text-sm tabular-nums font-semibold whitespace-nowrap ${gainInfo?.cls ?? 'text-text-muted'} ${tx.saleGrossAmount > 0 ? '' : 'md:ml-auto'}`}>
           {gainInfo ? gainInfo.text : '—'}
         </span>
 
@@ -574,7 +574,7 @@ export function TransactionCard({
             </span>
           )}
           {tx.notes && (
-            <span className="inline-flex items-center text-border text-[10px] italic truncate max-w-[80px] hidden sm:inline-flex" title={tx.notes}>
+            <span className="inline-flex items-center text-text-muted text-[10px] italic truncate max-w-[80px] hidden sm:inline-flex" title={tx.notes}>
               {tx.notes}
             </span>
           )}
@@ -583,14 +583,14 @@ export function TransactionCard({
             tabIndex={0}
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); onDelete(); } }}
-            className="p-1.5 text-border hover:text-danger rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-danger transition-colors"
+            className="p-1.5 text-text-muted hover:text-danger rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-danger transition-colors"
             aria-label="Usuń transakcję"
           >
             <Trash2 size={14} aria-hidden="true" />
           </span>
           {isExpanded
-            ? <ChevronUp size={14} className="text-border" aria-hidden="true" />
-            : <ChevronDown size={14} className="text-border" aria-hidden="true" />
+            ? <ChevronUp size={14} className="text-text-muted" aria-hidden="true" />
+            : <ChevronDown size={14} className="text-text-muted" aria-hidden="true" />
           }
         </div>
       </button>
@@ -603,7 +603,7 @@ export function TransactionCard({
           <div className="space-y-1">
             <label htmlFor={`${tx.id}-ticker`} className={LABEL_CLS}>
               Ticker giełdowy
-              <span className="ml-1 text-border font-normal">(opcjonalne)</span>
+              <span className="ml-1 text-text-muted font-normal">(opcjonalne)</span>
             </label>
             <div className="relative">
               <input
@@ -721,7 +721,7 @@ export function TransactionCard({
             />
             <span className="text-text-secondary">
               Koszt nabycia = 0
-              <span className="ml-1.5 text-border text-xs font-normal">
+              <span className="ml-1.5 text-text-muted text-xs font-normal">
                 (grant, RSU, akcje przyznane nieodpłatnie)
               </span>
             </span>
@@ -738,7 +738,7 @@ export function TransactionCard({
                   onChange={(e) => handleDualCurrencyToggle(e.target.checked)}
                   className="rounded border-border text-accent-primary focus:ring-accent-primary"
                 />
-                <ArrowRightLeft size={12} className="text-border" aria-hidden="true" />
+                <ArrowRightLeft size={12} className="text-text-muted" aria-hidden="true" />
                 <span className="text-text-secondary">
                   Inna waluta nabycia niż sprzedaży
                 </span>
@@ -812,7 +812,7 @@ export function TransactionCard({
               <button
                 type="button"
                 onClick={() => onUpdate({ showCommissions: true })}
-                className="text-xs text-border hover:text-accent-primary underline underline-offset-2 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
+                className="text-xs text-text-muted hover:text-accent-primary underline underline-offset-2 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
               >
                 + Dodaj prowizję brokera
               </button>
@@ -824,7 +824,7 @@ export function TransactionCard({
                     <button
                       type="button"
                       onClick={() => onUpdate({ showCommissions: false })}
-                      className="text-[11px] text-border hover:text-text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
+                      className="text-[11px] text-text-muted hover:text-text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
                     >
                       Ukryj
                     </button>
@@ -868,7 +868,7 @@ export function TransactionCard({
           <div className="space-y-1 pt-1">
             <label htmlFor={`${tx.id}-notes`} className={LABEL_CLS}>
               Notatka
-              <span className="ml-1 text-border font-normal">(opcjonalne)</span>
+              <span className="ml-1 text-text-muted font-normal">(opcjonalne)</span>
             </label>
             <textarea
               id={`${tx.id}-notes`}
@@ -885,7 +885,7 @@ export function TransactionCard({
           {/* Result bar */}
           {result && <CalculationBreakdown tx={tx} result={result} />}
           {!result && tx.saleGrossAmount > 0 && tx.saleDate && (
-            <p className="text-xs text-border">
+            <p className="text-xs text-text-muted">
               {tx.isLoadingRateSale || tx.isLoadingRateAcquisition
                 ? 'Pobieranie kursu NBP…'
                 : !tx.exchangeRateSaleToPLN

@@ -121,12 +121,12 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                 onClick={() => { onHorizonChange(p.days); setIsCustomActive(false); setShowCustomPicker(false); }}
                 className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-colors ${
                   isActive
-                    ? 'bg-accent-interactive border-accent-interactive/40 text-white shadow-sm'
+                    ? 'bg-accent-interactive border-accent-interactive/40 text-text-on-accent shadow-sm'
                     : 'bg-bg-card border-border text-text-secondary hover:border-accent-primary/40 hover:bg-bg-hover/30'
                 }`}
               >
                 <span className="text-sm font-semibold leading-snug">{p.label}</span>
-                <span className={`text-[11px] leading-snug ${isActive ? 'text-text-secondary' : 'text-border'}`}>
+                <span className={`text-[11px] leading-snug ${isActive ? 'text-text-secondary' : 'text-text-muted'}`}>
                   {targetMonthLabel(p.days)}
                 </span>
               </button>
@@ -139,12 +139,12 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
             onClick={() => setShowCustomPicker((v) => !v)}
             className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-colors ${
               isCustomActive || showCustomPicker
-                ? 'bg-accent-interactive border-accent-interactive/40 text-white shadow-sm'
+                ? 'bg-accent-interactive border-accent-interactive/40 text-text-on-accent shadow-sm'
                 : 'bg-bg-card border-border text-text-secondary hover:border-accent-primary/40 hover:bg-bg-hover/30'
             }`}
           >
             <span className="text-sm font-semibold leading-snug">Własny</span>
-            <span className={`text-[11px] leading-snug ${isCustomActive || showCustomPicker ? 'text-text-secondary' : 'text-border'}`}>
+            <span className={`text-[11px] leading-snug ${isCustomActive || showCustomPicker ? 'text-text-secondary' : 'text-text-muted'}`}>
               {isCustomActive ? targetMonthLabel(horizonDays) : '↓ wybierz'}
             </span>
           </button>
@@ -165,7 +165,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                 className="flex flex-col items-center px-3 py-1.5 rounded-lg border border-border bg-bg-card hover:border-accent-primary/40 hover:bg-bg-hover transition-colors"
               >
                 <span className="text-xs font-medium text-text-primary">{mo.label}</span>
-                <span className="text-[10px] text-border">~{Math.round(mo.days / 21)} mies.</span>
+                <span className="text-[10px] text-text-muted">~{Math.round(mo.days / 21)} mies.</span>
               </button>
             ))}
           </div>
@@ -231,7 +231,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
             <div className="bg-bg-card rounded-xl border border-border shadow-sm p-4">
               <div className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Szczyt (dzień)</div>
               <div className="text-lg font-bold text-text-primary flex items-center gap-1.5">
-                <Calendar size={16} className="text-border" />
+                <Calendar size={16} className="text-text-muted" />
                 dzień {analysis.peakTimingDistribution.p50.toFixed(0)}
               </div>
               <div className="text-xs text-text-muted mt-1">
@@ -417,7 +417,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           </div>
         </>
       ) : !isLoading ? (
-        <div className="bg-bg-card rounded-xl border border-border shadow-sm p-8 text-center text-border">
+        <div className="bg-bg-card rounded-xl border border-border shadow-sm p-8 text-center text-text-muted">
           <Target size={32} className="mx-auto mb-3 opacity-50" />
           <p className="text-sm">Wczytaj dane akcji, aby uruchomić analizę optymalnej ceny sprzedaży.</p>
           <p className="text-xs mt-1">Wymaga minimum 30 sesji danych historycznych.</p>

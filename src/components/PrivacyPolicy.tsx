@@ -67,7 +67,7 @@ export function PrivacyPolicy({ onClose }: Props) {
             </p>
           </section>
 
-          <p className="text-xs text-border pt-2 border-t border-border">
+          <p className="text-xs text-text-muted pt-2 border-t border-border">
             Data: 2025-07-17 · Kontakt w sprawach prywatności: przez repozytorium GitHub (SunBear1/Njord)
           </p>
         </div>

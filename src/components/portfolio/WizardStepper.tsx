@@ -51,7 +51,7 @@ export default function WizardStepper({ currentStep, onStepClick }: WizardSteppe
                       transition-colors duration-200
                       ${
                         isActive
-                          ? 'bg-accent-interactive text-white ring-2 ring-accent-primary'
+                          ? 'bg-accent-interactive text-text-on-accent ring-2 ring-accent-primary'
                           : 'bg-bg-hover text-text-muted'
                       }`}
                   >

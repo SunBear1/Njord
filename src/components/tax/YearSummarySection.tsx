@@ -48,7 +48,7 @@ function SummaryRow({
     <div className={`flex items-center justify-between gap-2 py-1.5 ${bold ? 'border-t border-border mt-1 pt-2.5' : ''}`}>
       <span className={`text-xs ${bold ? 'font-semibold text-text-secondary' : 'text-text-muted'}`}>
         {label}
-        {note && <span className="ml-1 text-border font-normal">{note}</span>}
+        {note && <span className="ml-1 text-text-muted font-normal">{note}</span>}
       </span>
       <span className={`text-sm tabular-nums font-${bold ? 'bold' : 'semibold'} ${valueClass ?? 'text-text-primary'}`}>
         {value}
@@ -76,7 +76,7 @@ function PitZgSection({ entries }: { entries: PitZgCurrencyEntry[] }) {
 
       <div className="divide-y divide-danger/20">
         {/* Column headers */}
-        <div className="grid grid-cols-4 gap-2 px-3 py-1.5 text-[10px] font-semibold text-border uppercase tracking-wide">
+        <div className="grid grid-cols-4 gap-2 px-3 py-1.5 text-[10px] font-semibold text-text-muted uppercase tracking-wide">
           <span>Kraj (waluta)</span>
           <span className="text-right">Przychód</span>
           <span className="text-right">Koszty</span>
@@ -101,7 +101,7 @@ function PitZgSection({ entries }: { entries: PitZgCurrencyEntry[] }) {
                     <span className="truncate">określ kraj</span>
                   </span>
                 ) : (
-                  <span className="text-border truncate">określ kraj</span>
+                  <span className="text-text-muted truncate">określ kraj</span>
                 )}
               </div>
               <span className="text-right tabular-nums text-text-secondary font-medium">
@@ -166,7 +166,7 @@ export function YearSummarySection({
             const isForeign = tx.currency !== 'PLN';
             return (
               <div key={tx.id} className="flex items-center gap-2 text-xs py-1 border-b border-border last:border-0">
-                <span className="w-5 h-5 rounded-full bg-bg-hover text-border text-[10px] font-bold flex items-center justify-center flex-shrink-0">
+                <span className="w-5 h-5 rounded-full bg-bg-hover text-text-muted text-[10px] font-bold flex items-center justify-center flex-shrink-0">
                   {globalIdx}
                 </span>
                 {tx.ticker && (
@@ -180,11 +180,11 @@ export function YearSummarySection({
                   </span>
                 )}
                 {tx.tickerName && (
-                  <span className="truncate text-border hidden sm:block max-w-[120px]">
+                  <span className="truncate text-text-muted hidden sm:block max-w-[120px]">
                     {tx.tickerName}
                   </span>
                 )}
-                <span className="text-border flex-shrink-0 ml-auto">
+                <span className="text-text-muted flex-shrink-0 ml-auto">
                   {tx.saleDate ? fmtDatePL(tx.saleDate) : '—'}
                 </span>
                 <span className={`font-semibold tabular-nums flex-shrink-0 ${g.cls}`}>
@@ -350,14 +350,14 @@ export function YearSummarySection({
             <p className={`text-xs font-semibold mb-0.5 ${summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-danger' : 'text-text-muted'}`}>
               Podatek do zapłaty (Poz. 51)
             </p>
-            <p className={`text-[11px] ${summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-danger/70' : 'text-border'}`}>
+            <p className={`text-[11px] ${summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-danger/70' : 'text-text-muted'}`}>
               {summary.netIncomePLN > 0 || summary.totalDividendGrossPLN > 0
                 ? `Poz. 35 + Poz. 49 = ${fmtPLNGrosze(summary.pit38Fields.poz35_taxDue)} + ${fmtPLNGrosze(summary.pit38Fields.poz49_dividendTaxDue)}`
                 : 'brak podatku — dochód ≤ 0'}
             </p>
           </div>
           <p className={`text-2xl font-bold tabular-nums flex-shrink-0 ${
-            summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-danger' : 'text-border'
+            summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-danger' : 'text-text-muted'
           }`}>
             {fmtPLNGrosze(summary.pit38Fields.poz51_totalTaxDue)}
           </p>

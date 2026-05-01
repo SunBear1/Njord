@@ -11,8 +11,8 @@ const APPROVED_HEX = new Set([
   '#0369a1', '#115E59', '#065F46', '#991B1B', '#CBD5E1',
   // Dark mode
   '#1E293B', '#A9B5BF', '#7dd3fc', '#67E8F9', '#6EE7B7', '#FCA5A5',
-  // Dark interactive
-  '#0c4a6e',
+  // Interactive + text-on-accent
+  '#082f49',
   // Aurora (decorative gradient colors)
   '#0c1222', '#06b6d4', '#34d399', '#a855f7',
   // Also allow common neutrals that appear in borders/hover

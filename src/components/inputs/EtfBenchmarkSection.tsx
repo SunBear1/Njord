@@ -61,7 +61,7 @@ export function EtfBenchmarkSection({
           <button
             type="submit"
             disabled={etfLoading || !localEtfTicker.trim()}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm bg-accent-interactive text-white rounded-lg hover:bg-accent-interactive/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm bg-accent-interactive text-text-on-accent rounded-lg hover:bg-accent-interactive/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             aria-label="Pobierz dane ETF"
           >
             {etfLoading

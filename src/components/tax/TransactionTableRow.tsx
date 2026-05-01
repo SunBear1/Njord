@@ -46,7 +46,7 @@ function RateStatusBadge({
 }) {
   if (currency.toUpperCase() === 'PLN') {
     return (
-      <p className="text-[11px] text-border">PLN — brak przeliczenia</p>
+      <p className="text-[11px] text-text-muted">PLN — brak przeliczenia</p>
     );
   }
 
@@ -88,7 +88,7 @@ function RateStatusBadge({
         <CheckCircle2 size={10} aria-hidden="true" className="flex-shrink-0" />
         <span>Kurs NBP: {rate.toFixed(4)}</span>
         {effectiveDate && (
-          <span className="text-border">z {fmtDatePL(effectiveDate)}</span>
+          <span className="text-text-muted">z {fmtDatePL(effectiveDate)}</span>
         )}
       </p>
     );
@@ -116,7 +116,7 @@ function ResultCell({
     <div
       className={`flex-1 min-w-[90px] bg-bg-card px-3 py-2 text-center ${total ? 'ring-1 ring-inset ring-border rounded-sm' : ''}`}
     >
-      <p className="text-[10px] text-border uppercase tracking-wide mb-0.5">
+      <p className="text-[10px] text-text-muted uppercase tracking-wide mb-0.5">
         {subtract && '− '}
         {label}
       </p>
@@ -376,14 +376,14 @@ export function TransactionTableRow({
               <span className="text-text-muted">—</span>
             )}
             {tx.tickerName && (
-              <span className="text-border text-xs truncate max-w-[120px] hidden lg:inline">
+              <span className="text-text-muted text-xs truncate max-w-[120px] hidden lg:inline">
                 {tx.tickerName}
               </span>
             )}
           </div>
         </td>
         <td className="px-3 py-2.5 text-text-secondary whitespace-nowrap">
-          {tx.saleDate ? fmtDatePL(tx.saleDate) : <span className="text-border italic text-xs">Brak daty</span>}
+          {tx.saleDate ? fmtDatePL(tx.saleDate) : <span className="text-text-muted italic text-xs">Brak daty</span>}
         </td>
         <td className="px-3 py-2.5 text-right tabular-nums text-text-secondary whitespace-nowrap">
           {tx.saleGrossAmount > 0
@@ -405,7 +405,7 @@ export function TransactionTableRow({
           {result && !result.isLoss ? (
             <span className="text-danger font-medium">{fmtPLNGrosze(result.taxEstimatePLN)}</span>
           ) : result ? (
-            <span className="text-border">—</span>
+            <span className="text-text-muted">—</span>
           ) : '—'}
         </td>
         <td className="px-3 py-2.5">
@@ -418,14 +418,14 @@ export function TransactionTableRow({
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onDelete(); }}
-              className="p-1.5 text-border hover:text-danger rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-danger transition-colors"
+              className="p-1.5 text-text-muted hover:text-danger rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-danger transition-colors"
               aria-label="Usuń transakcję"
             >
               <Trash2 size={14} aria-hidden="true" />
             </button>
             {isExpanded
-              ? <ChevronUp size={14} className="text-border" aria-hidden="true" />
-              : <ChevronDown size={14} className="text-border" aria-hidden="true" />
+              ? <ChevronUp size={14} className="text-text-muted" aria-hidden="true" />
+              : <ChevronDown size={14} className="text-text-muted" aria-hidden="true" />
             }
           </div>
         </td>
@@ -441,7 +441,7 @@ export function TransactionTableRow({
           <div className="space-y-1">
             <label htmlFor={`${tx.id}-ticker`} className={LABEL_CLS}>
               Ticker giełdowy
-              <span className="ml-1 text-border font-normal">(opcjonalne)</span>
+              <span className="ml-1 text-text-muted font-normal">(opcjonalne)</span>
             </label>
             <div className="relative">
               <input
@@ -557,7 +557,7 @@ export function TransactionTableRow({
             />
             <span className="text-text-secondary">
               Koszt nabycia = 0
-              <span className="ml-1.5 text-border text-xs font-normal">
+              <span className="ml-1.5 text-text-muted text-xs font-normal">
                 (grant, RSU, akcje przyznane nieodpłatnie)
               </span>
             </span>
@@ -614,7 +614,7 @@ export function TransactionTableRow({
               <button
                 type="button"
                 onClick={() => onUpdate({ showCommissions: true })}
-                className="text-xs text-border hover:text-accent-primary underline underline-offset-2 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
+                className="text-xs text-text-muted hover:text-accent-primary underline underline-offset-2 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
               >
                 + Dodaj prowizję brokera
               </button>
@@ -626,7 +626,7 @@ export function TransactionTableRow({
                     <button
                       type="button"
                       onClick={() => onUpdate({ showCommissions: false })}
-                      className="text-[11px] text-border hover:text-text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
+                      className="text-[11px] text-text-muted hover:text-text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
                     >
                       Ukryj
                     </button>
@@ -689,7 +689,7 @@ export function TransactionTableRow({
 
           {/* Not-ready hint */}
           {!result && tx.saleGrossAmount > 0 && tx.saleDate && (
-            <p className="text-xs text-border">
+            <p className="text-xs text-text-muted">
               {tx.isLoadingRateSale || tx.isLoadingRateAcquisition
                 ? 'Pobieranie kursu NBP…'
                 : !tx.exchangeRateSaleToPLN

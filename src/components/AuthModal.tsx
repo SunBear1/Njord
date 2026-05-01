@@ -67,7 +67,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
           </h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-border hover:text-text-primary hover:bg-bg-hover transition-colors"
+            className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors"
             aria-label="Zamknij"
           >
             <X size={20} />
@@ -119,7 +119,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
         {/* Divider */}
         <div className="flex items-center gap-3 px-6 my-4">
           <div className="flex-1 h-px bg-bg-hover" />
-          <span className="text-xs text-border uppercase tracking-wider">lub</span>
+          <span className="text-xs text-text-muted uppercase tracking-wider">lub</span>
           <div className="flex-1 h-px bg-bg-hover" />
         </div>
 
@@ -127,7 +127,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
         <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-3">
           {tab === 'register' && (
             <div className="relative">
-              <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-border" aria-hidden="true" />
+              <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" aria-hidden="true" />
               <input
                 type="text"
                 placeholder="Imię (opcjonalnie)…"
@@ -140,7 +140,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
           )}
 
           <div className="relative">
-            <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-border" aria-hidden="true" />
+            <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" aria-hidden="true" />
             <input
               type="email"
               placeholder="Email…"
@@ -154,7 +154,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
           </div>
 
           <div className="relative">
-            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-border" aria-hidden="true" />
+            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" aria-hidden="true" />
             <input
               type="password"
               placeholder="Hasło…"
@@ -176,7 +176,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-2.5 px-4 bg-accent-interactive text-white rounded-lg font-medium text-sm hover:bg-accent-interactive/80 disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2"
+            className="w-full py-2.5 px-4 bg-accent-interactive text-text-on-accent rounded-lg font-medium text-sm hover:bg-accent-interactive/80 disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2"
           >
             {isSubmitting
               ? (tab === 'login' ? 'Logowanie…' : 'Tworzenie konta…')

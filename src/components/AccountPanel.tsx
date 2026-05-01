@@ -101,7 +101,7 @@ export function AccountPanel({
           <h2 className="text-xl font-bold text-text-primary">Ustawienia konta</h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-border hover:text-text-primary hover:bg-bg-hover transition-colors"
+            className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors"
             aria-label="Zamknij"
           >
             <X size={20} />
@@ -111,7 +111,7 @@ export function AccountPanel({
         {/* User info */}
         <div className="px-6 py-4 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-accent-interactive flex items-center justify-center text-lg font-bold text-white shrink-0">
+            <div className="w-12 h-12 rounded-full bg-accent-interactive flex items-center justify-center text-lg font-bold text-text-on-accent shrink-0">
               {getInitials(user.name, user.email)}
             </div>
             <div className="min-w-0">
@@ -169,7 +169,7 @@ export function AccountPanel({
 
           {hasPassword ? (
             <div className="relative mb-3">
-              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-border" aria-hidden="true" />
+              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" aria-hidden="true" />
               <input
                 type="password"
                 placeholder="Aktualne hasło…"
@@ -183,7 +183,7 @@ export function AccountPanel({
           ) : null}
 
           <div className="relative mb-3">
-            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-border" aria-hidden="true" />
+            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" aria-hidden="true" />
             <input
               type="password"
               placeholder="Nowe hasło…"
@@ -197,7 +197,7 @@ export function AccountPanel({
           </div>
 
           <div className="relative mb-3">
-            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-border" aria-hidden="true" />
+            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" aria-hidden="true" />
             <input
               type="password"
               placeholder="Powtórz nowe hasło…"
@@ -221,7 +221,7 @@ export function AccountPanel({
           <button
             type="submit"
             disabled={isChangingPassword || passwordMismatch || !newPassword}
-            className="w-full py-2.5 px-4 bg-accent-interactive text-white rounded-lg font-medium text-sm hover:bg-accent-interactive/80 disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2"
+            className="w-full py-2.5 px-4 bg-accent-interactive text-text-on-accent rounded-lg font-medium text-sm hover:bg-accent-interactive/80 disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2"
           >
             {isChangingPassword ? 'Zapisywanie…' : (hasPassword ? 'Zmień hasło' : 'Ustaw hasło')}
           </button>

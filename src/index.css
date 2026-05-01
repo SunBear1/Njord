@@ -10,7 +10,7 @@
 
   /* ===== WCAG AAA PALETTE — 5 Hue Families =====
    * Slate   — neutral backgrounds, text, borders
-   * Violet  — primary accent
+   * Sky     — primary accent
    * Teal    — secondary accent
    * Emerald — success/positive
    * Red     — danger/negative
@@ -32,6 +32,7 @@
   --color-accent-primary: #0369a1;
   --color-accent-secondary: #115E59;
   --color-accent-interactive: #0369a1;
+  --color-text-on-accent: #FFFFFF;
 
   /* --- Status --- */
   --color-success: #065F46;
@@ -55,7 +56,8 @@ html.dark {
 
   --color-accent-primary: #7dd3fc;
   --color-accent-secondary: #67E8F9;
-  --color-accent-interactive: #0c4a6e;
+  --color-accent-interactive: #7dd3fc;
+  --color-text-on-accent: #082f49;
 
   --color-success: #6EE7B7;
   --color-danger: #FCA5A5;
@@ -71,7 +73,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Aurora header — horizontal flowing gradient (cyan/green/purple) */
+/* Aurora header — slow-moving serpentine ribbons */
 .aurora-header {
   position: relative;
   overflow: hidden;
@@ -83,48 +85,48 @@ body {
   z-index: 1;
 }
 
-/* Primary aurora layer — wide horizontal gradient sweep */
+/* Base glow layer — wide, diffuse, slow sweep */
 .aurora-header::before {
   content: '';
   position: absolute;
-  inset: -50% -20%;
+  inset: -80% -50%;
   z-index: 0;
-  background: linear-gradient(
-    110deg,
-    rgba(6, 182, 212, 0.4) 0%,
-    rgba(52, 211, 153, 0.5) 15%,
-    rgba(34, 211, 238, 0.4) 30%,
-    rgba(168, 85, 247, 0.35) 50%,
-    rgba(6, 182, 212, 0.45) 65%,
-    rgba(74, 222, 128, 0.4) 80%,
-    rgba(139, 92, 246, 0.3) 100%
+  background: radial-gradient(
+    ellipse 120% 80% at 30% 50%,
+    rgba(52, 211, 153, 0.35) 0%,
+    rgba(6, 182, 212, 0.25) 25%,
+    transparent 55%
+  ), radial-gradient(
+    ellipse 100% 90% at 70% 40%,
+    rgba(168, 85, 247, 0.3) 0%,
+    rgba(34, 211, 238, 0.2) 30%,
+    transparent 60%
   );
-  background-size: 200% 200%;
-  filter: blur(20px);
-  animation: aurora-flow 12s ease-in-out infinite;
+  filter: blur(40px);
+  animation: aurora-serpentine 30s ease-in-out infinite;
 }
 
-/* Secondary shimmer layer */
+/* Secondary ribbon layer — offset timing for depth */
 .aurora-header::after {
   content: '';
   position: absolute;
-  inset: -30% -10%;
+  inset: -60% -40%;
   z-index: 0;
-  background: linear-gradient(
-    250deg,
-    rgba(139, 92, 246, 0.3) 0%,
-    transparent 20%,
-    rgba(34, 211, 238, 0.35) 40%,
-    transparent 60%,
-    rgba(52, 211, 153, 0.3) 80%,
-    transparent 100%
+  background: radial-gradient(
+    ellipse 80% 120% at 50% 60%,
+    rgba(34, 211, 238, 0.3) 0%,
+    rgba(52, 211, 153, 0.25) 30%,
+    transparent 55%
+  ), radial-gradient(
+    ellipse 90% 70% at 20% 30%,
+    rgba(139, 92, 246, 0.2) 0%,
+    transparent 50%
   );
-  background-size: 200% 200%;
-  filter: blur(30px);
-  animation: aurora-shimmer 16s ease-in-out infinite;
+  filter: blur(35px);
+  animation: aurora-serpentine-alt 40s ease-in-out infinite;
 }
 
-/* Beam container for subtle vertical accents */
+/* Individual ribbon beams — tall, narrow, curved serpentines */
 .aurora-beams {
   position: absolute;
   inset: 0;
@@ -135,59 +137,66 @@ body {
 
 .aurora-beam {
   position: absolute;
-  bottom: -20%;
-  width: 15%;
-  height: 200%;
-  border-radius: 50%;
-  filter: blur(25px);
-  opacity: 0.3;
+  top: -40%;
+  height: 250%;
+  border-radius: 40% 60% 50% 50%;
+  filter: blur(20px);
+  opacity: 0.35;
 }
 
 .aurora-beam:nth-child(1) {
-  left: 5%;
-  background: radial-gradient(ellipse, rgba(34, 211, 238, 0.6) 0%, transparent 70%);
-  animation: aurora-drift 10s ease-in-out infinite;
+  left: 8%;
+  width: 8%;
+  background: linear-gradient(180deg, transparent, rgba(52, 211, 153, 0.6) 30%, rgba(34, 211, 238, 0.4) 70%, transparent);
+  animation: aurora-ribbon 25s ease-in-out infinite;
 }
 .aurora-beam:nth-child(2) {
-  left: 25%;
-  width: 20%;
-  background: radial-gradient(ellipse, rgba(52, 211, 153, 0.5) 0%, transparent 70%);
-  animation: aurora-drift 14s ease-in-out 2s infinite;
+  left: 28%;
+  width: 6%;
+  background: linear-gradient(180deg, transparent, rgba(34, 211, 238, 0.5) 40%, rgba(168, 85, 247, 0.4) 70%, transparent);
+  animation: aurora-ribbon 32s ease-in-out 3s infinite;
 }
 .aurora-beam:nth-child(3) {
-  left: 45%;
-  background: radial-gradient(ellipse, rgba(168, 85, 247, 0.5) 0%, transparent 70%);
-  animation: aurora-drift 11s ease-in-out 4s infinite;
+  left: 48%;
+  width: 10%;
+  background: linear-gradient(180deg, transparent 10%, rgba(139, 92, 246, 0.5) 35%, rgba(52, 211, 153, 0.3) 65%, transparent);
+  animation: aurora-ribbon 28s ease-in-out 6s infinite;
 }
 .aurora-beam:nth-child(4) {
-  left: 65%;
-  width: 18%;
-  background: radial-gradient(ellipse, rgba(6, 182, 212, 0.5) 0%, transparent 70%);
-  animation: aurora-drift 13s ease-in-out 1s infinite;
+  left: 66%;
+  width: 7%;
+  background: linear-gradient(180deg, transparent, rgba(6, 182, 212, 0.5) 30%, rgba(52, 211, 153, 0.5) 60%, transparent);
+  animation: aurora-ribbon 35s ease-in-out 2s infinite;
 }
 .aurora-beam:nth-child(5) {
-  left: 82%;
-  background: radial-gradient(ellipse, rgba(74, 222, 128, 0.4) 0%, transparent 70%);
-  animation: aurora-drift 9s ease-in-out 3s infinite;
+  left: 84%;
+  width: 9%;
+  background: linear-gradient(180deg, transparent, rgba(52, 211, 153, 0.4) 40%, rgba(139, 92, 246, 0.3) 70%, transparent);
+  animation: aurora-ribbon 30s ease-in-out 5s infinite;
 }
 
-@keyframes aurora-flow {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+@keyframes aurora-serpentine {
+  0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
+  33% { transform: translateX(3%) translateY(-2%) rotate(0.5deg); }
+  66% { transform: translateX(-2%) translateY(1%) rotate(-0.3deg); }
 }
 
-@keyframes aurora-shimmer {
-  0%, 100% { background-position: 100% 0%; opacity: 0.7; }
-  50% { background-position: 0% 100%; opacity: 1; }
+@keyframes aurora-serpentine-alt {
+  0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); opacity: 0.7; }
+  50% { transform: translateX(-3%) translateY(2%) rotate(-0.5deg); opacity: 0.9; }
 }
 
-@keyframes aurora-drift {
-  0%, 100% { transform: translateX(0) translateY(0); opacity: 0.25; }
-  50% { transform: translateX(20px) translateY(-5px); opacity: 0.45; }
+@keyframes aurora-ribbon {
+  0%, 100% { transform: translateX(0) scaleX(1) skewX(0deg); opacity: 0.3; }
+  25% { transform: translateX(8px) scaleX(1.1) skewX(2deg); opacity: 0.4; }
+  50% { transform: translateX(-5px) scaleX(0.9) skewX(-1deg); opacity: 0.35; }
+  75% { transform: translateX(3px) scaleX(1.05) skewX(1deg); opacity: 0.45; }
 }
 
-/* Range slider styling */
-input[type="range"] {
+/* Form input accent styling */
+input[type="range"],
+input[type="radio"],
+input[type="checkbox"] {
   accent-color: var(--color-accent-interactive);
 }
 

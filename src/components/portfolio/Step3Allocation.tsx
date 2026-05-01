@@ -180,7 +180,7 @@ function AllocationBar({
                 <span className="text-text-secondary">
                   {INSTRUMENT_LABELS[a.instrumentType]} {Math.round(a.allocationPercent)}%
                 </span>
-                <span className="text-border">
+                <span className="text-text-muted">
                   ({fmtPLN(plnAmount)})
                 </span>
               </span>
@@ -263,7 +263,7 @@ function AllocationRow({
             type="button"
             onClick={() => onRemove(index)}
             aria-label="Usuń instrument"
-            className="shrink-0 rounded p-1 text-border hover:text-danger hover:bg-bg-hover hover:bg-danger/5 transition-colors"
+            className="shrink-0 rounded p-1 text-text-muted hover:text-danger hover:bg-bg-hover hover:bg-danger/5 transition-colors"
           >
             <span aria-hidden="true" className="text-xs font-bold">✕</span>
           </button>
@@ -281,7 +281,7 @@ function AllocationRow({
               step={1}
               value={Math.round(allocation.allocationPercent)}
               onChange={(e) => onSliderChange(index, Number(e.target.value))}
-              className="w-full accent-blue-600"
+              className="w-full"
               aria-label={`Alokacja ${instrumentLabel(allocation)}`}
             />
             <span className="w-12 text-right text-sm font-mono text-text-secondary">
@@ -373,7 +373,7 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
         className={`inline-block h-2.5 w-2.5 shrink-0 rounded-sm ${INSTRUMENT_COLORS[opt.instrumentType]}`}
       />
       <span className="min-w-0 truncate">{opt.label}</span>
-      <span className="ml-auto shrink-0 text-xs text-border">{opt.defaultReturn}%</span>
+      <span className="ml-auto shrink-0 text-xs text-text-muted">{opt.defaultReturn}%</span>
     </button>
   );
 
@@ -441,12 +441,12 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
                 value={customTicker}
                 onChange={(e) => setCustomTicker(e.target.value.toUpperCase())}
                 placeholder="np. IWDA.AS, VOO, AAPL…"
-                className="flex-1 rounded-md border border-border bg-bg-card px-2 py-1.5 text-xs text-text-primary placeholder:text-border focus:border-accent-primary/40 focus:outline-none focus:ring-1 focus:ring-accent-primary"
+                className="flex-1 rounded-md border border-border bg-bg-card px-2 py-1.5 text-xs text-text-primary placeholder:text-text-muted focus:border-accent-primary/40 focus:outline-none focus:ring-1 focus:ring-accent-primary"
               />
               <button
                 type="submit"
                 disabled={!customTicker.trim() || isSearching}
-                className="rounded-md bg-accent-interactive px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-interactive/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-md bg-accent-interactive px-3 py-1.5 text-xs font-medium text-text-on-accent hover:bg-accent-interactive/80 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSearching ? '...' : 'Szukaj'}
               </button>
@@ -574,9 +574,9 @@ function WrapperSection({
           <p className="mt-0.5 text-xs text-text-muted">{taxBenefit}</p>
         </div>
         {collapsed ? (
-          <ChevronDown className="h-5 w-5 shrink-0 text-border" aria-hidden="true" />
+          <ChevronDown className="h-5 w-5 shrink-0 text-text-muted" aria-hidden="true" />
         ) : (
-          <ChevronUp className="h-5 w-5 shrink-0 text-border" aria-hidden="true" />
+          <ChevronUp className="h-5 w-5 shrink-0 text-text-muted" aria-hidden="true" />
         )}
       </button>
 

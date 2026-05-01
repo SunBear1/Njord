@@ -79,7 +79,7 @@ export default function Step1PersonalData({
             onChange={(e) => updatePersonalData({ totalMonthlyPLN: Number(e.target.value) })}
             className="w-full rounded-lg border border-border bg-bg-card px-3 py-2 text-sm text-text-primary font-mono focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
           />
-          <p className="text-xs text-border mt-1">
+          <p className="text-xs text-text-muted mt-1">
             Roczny budżet: {fmtPLN(annualBudget)}
           </p>
         </div>
@@ -101,9 +101,9 @@ export default function Step1PersonalData({
             step={1}
             value={personalData.horizonYears}
             onChange={(e) => updatePersonalData({ horizonYears: Number(e.target.value) })}
-            className="w-full accent-blue-600"
+            className="w-full"
           />
-          <div className="flex justify-between text-xs text-border mt-1">
+          <div className="flex justify-between text-xs text-text-muted mt-1">
             <span>1 rok</span>
             <span>25 lat</span>
             <span>50 lat</span>
@@ -128,13 +128,13 @@ export default function Step1PersonalData({
                   value={opt.value}
                   checked={personalData.pitBracket === opt.value}
                   onChange={() => updatePersonalData({ pitBracket: opt.value })}
-                  className="accent-blue-600"
+                  
                 />
                 {opt.label}
               </label>
             ))}
           </div>
-          <p className="text-xs text-border mt-1">
+          <p className="text-xs text-text-muted mt-1">
             Wpływa na wartość odliczenia IKZE od podatku
           </p>
         </fieldset>
@@ -152,7 +152,7 @@ export default function Step1PersonalData({
             value={personalData.isSelfEmployed}
             onChange={(v) => updatePersonalData({ isSelfEmployed: v })}
           />
-          <p className="text-xs text-border mt-1">
+          <p className="text-xs text-text-muted mt-1">
             Wyższy limit IKZE dla osób prowadzących DG
           </p>
         </div>
@@ -179,7 +179,7 @@ export default function Step1PersonalData({
             onChange={(e) => updatePersonalData({ inflationRate: Number(e.target.value) })}
             className="w-full rounded-lg border border-border bg-bg-card px-3 py-2 text-sm text-text-primary font-mono focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
           />
-          <p className="text-xs text-border mt-1">
+          <p className="text-xs text-text-muted mt-1">
             Używana do dyskontowania wartości realnej portfela
           </p>
         </div>
@@ -197,7 +197,7 @@ export default function Step1PersonalData({
             value={personalData.isBeneficiary800Plus}
             onChange={(v) => updatePersonalData({ isBeneficiary800Plus: v })}
           />
-          <p className="text-xs text-border mt-1">
+          <p className="text-xs text-text-muted mt-1">
             Odblokuje obligacje rodzinne ROS i ROD
           </p>
         </div>

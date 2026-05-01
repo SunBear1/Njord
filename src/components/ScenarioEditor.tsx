@@ -32,16 +32,16 @@ const SCENARIO_CONFIG: {
   {
     key: 'bear', label: 'Bear',
     icon: <TrendingDown size={14} aria-hidden="true" />,
-    headerBg: 'bg-danger/10 bg-danger/10', headerText: 'text-danger',
-    cardBorder: 'border-danger/30', cardBg: 'bg-bg-hover/30 bg-danger/5',
+    headerBg: 'bg-danger/10', headerText: 'text-danger',
+    cardBorder: 'border-danger/30', cardBg: 'bg-danger/5',
     inputBorder: 'border-danger/30 focus:ring-danger/50',
   },
   {
     key: 'base', label: 'Base',
     icon: <Minus size={14} aria-hidden="true" />,
-    headerBg: 'bg-danger/10', headerText: 'text-danger',
-    cardBorder: 'border-danger/30', cardBg: 'bg-danger/5',
-    inputBorder: 'border-danger/40 focus:ring-danger/30',
+    headerBg: 'bg-bg-hover', headerText: 'text-text-secondary',
+    cardBorder: 'border-border', cardBg: 'bg-bg-hover/30',
+    inputBorder: 'border-border focus:ring-accent-primary/30',
   },
   {
     key: 'bull', label: 'Bull',
@@ -71,8 +71,8 @@ function ModeToggle({ mode, onToggle, labelA, labelB, disabled }: { mode: InputM
       title={disabled ? 'Wpisz ticker, aby przełączyć tryb' : 'Przełącz tryb wpisywania'}
       aria-label={disabled ? 'Przełącz tryb wpisywania (brak danych)' : `Tryb: ${mode === 'pct' ? labelA : labelB} — kliknij, aby zmienić`}
     >
-      <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'pct' ? 'bg-accent-interactive text-white' : 'bg-bg-card text-border hover:bg-bg-card'}`}>{labelA}</span>
-      <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'fixed' ? 'bg-accent-interactive text-white' : 'bg-bg-card text-border hover:bg-bg-card'}`}>{labelB}</span>
+      <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'pct' ? 'bg-accent-interactive text-text-on-accent' : 'bg-bg-card text-text-muted hover:bg-bg-card'}`}>{labelA}</span>
+      <span className={`flex-1 text-center py-0.5 transition-colors ${mode === 'fixed' ? 'bg-accent-interactive text-text-on-accent' : 'bg-bg-card text-text-muted hover:bg-bg-card'}`}>{labelB}</span>
     </button>
   );
 }
@@ -213,7 +213,7 @@ export function ScenarioEditor({
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold text-text-primary">Scenariusze</h2>
             {volatilityStats?.modelsLoading && (
-              <span className="flex items-center gap-1 text-xs text-border">
+              <span className="flex items-center gap-1 text-xs text-text-muted">
                 <Loader2 size={12} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
               </span>
             )}
@@ -227,7 +227,7 @@ export function ScenarioEditor({
         </div>
         {/* Compact table: same as before */}
         {currentPriceUSD <= 0 ? (
-          <p className="text-sm text-border italic text-center py-3">Pobierz dane akcji, aby zobaczyć scenariusze.</p>
+          <p className="text-sm text-text-muted italic text-center py-3">Pobierz dane akcji, aby zobaczyć scenariusze.</p>
         ) : (
         <div className="space-y-1.5">
           <div className="grid grid-cols-[7rem_1fr_1fr_1fr] gap-2 items-center px-1">
@@ -280,7 +280,7 @@ export function ScenarioEditor({
             <HelpCircle size={16} aria-hidden="true" className="text-text-muted cursor-help hover:text-text-primary transition-colors" />
           </Tooltip>
           {volatilityStats?.modelsLoading && (
-            <span className="flex items-center gap-1 text-xs text-border">
+            <span className="flex items-center gap-1 text-xs text-text-muted">
               <Loader2 size={12} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
               przeliczam…
             </span>
@@ -347,13 +347,13 @@ export function ScenarioEditor({
                     }}
                     className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border transition-colors ${
                       isActive
-                        ? 'bg-accent-interactive text-white border-accent-interactive'
+                        ? 'bg-accent-interactive text-text-on-accent border-accent-interactive'
                         : 'bg-bg-card text-text-secondary border-border hover:border-accent-primary/50 hover:text-accent-primary'
                     }`}
                   >
                     {isRecommended && <Star size={12} className={isActive ? 'text-white/80' : 'text-accent-primary'} />}
                     {m.name}
-                    {coverage && <span className={`text-[10px] ${isActive ? 'text-white/70' : 'text-border'}`}>{coverage}</span>}
+                    {coverage && <span className={`text-[10px] ${isActive ? 'text-white/70' : 'text-text-muted'}`}>{coverage}</span>}
                   </button>
                 </Tooltip>
               );
@@ -383,7 +383,7 @@ export function ScenarioEditor({
 
       {currentPriceUSD <= 0 ? (
         <div className="flex-1 flex items-center justify-center text-center py-8">
-          <p className="text-sm text-border italic">Pobierz dane akcji, aby zobaczyć scenariusze i prognozy modeli.</p>
+          <p className="text-sm text-text-muted italic">Pobierz dane akcji, aby zobaczyć scenariusze i prognozy modeli.</p>
         </div>
       ) : (
         <div className="space-y-1.5">
@@ -441,7 +441,7 @@ export function ScenarioEditor({
                         : 'Dodatnia korelacja akcje↔USD: wzrosty akcji idą w parze ze wzrostem dolara, spadki — ze spadkiem. Ryzyko walutowe wzmacnia ruchy portfela.'
                     }
                   >
-                    <HelpCircle size={10} className="text-border cursor-help" aria-hidden="true" />
+                    <HelpCircle size={10} className="text-text-muted cursor-help" aria-hidden="true" />
                   </Tooltip>
                 )}
               </span>
@@ -503,12 +503,12 @@ export function ScenarioEditor({
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-bg-card rounded-lg p-3 space-y-1">
                   <div className="text-xs font-semibold text-text-muted uppercase tracking-wide">Zmienność akcji</div>
-                  <div className="text-2xl font-bold text-text-primary leading-none">{volatilityStats.stockSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-border ml-0.5">/rok</span></div>
+                  <div className="text-2xl font-bold text-text-primary leading-none">{volatilityStats.stockSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-text-muted ml-0.5">/rok</span></div>
                   <div className="text-xs text-text-muted leading-snug">Im wyższa, tym większy rozrzut scenariuszy.</div>
                 </div>
                 <div className="bg-bg-card rounded-lg p-3 space-y-1">
                   <div className="text-xs font-semibold text-text-muted uppercase tracking-wide">Zmienność USD/PLN</div>
-                  <div className="text-2xl font-bold text-text-primary leading-none">{volatilityStats.fxSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-border ml-0.5">/rok</span></div>
+                  <div className="text-2xl font-bold text-text-primary leading-none">{volatilityStats.fxSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-text-muted ml-0.5">/rok</span></div>
                   <div className="text-xs text-text-muted leading-snug">Dodatkowe źródło ryzyka walutowego.</div>
                 </div>
                 <div className="bg-bg-card rounded-lg p-3 space-y-1">
@@ -527,7 +527,7 @@ export function ScenarioEditor({
                 <div className="bg-bg-card rounded-lg p-3 space-y-1">
                   <div className="text-xs font-semibold text-text-muted uppercase tracking-wide">Trend historyczny</div>
                   <div className={`text-2xl font-bold leading-none ${volatilityStats.stockMeanAnnual >= 0 ? 'text-success' : 'text-danger'}`}>
-                    {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%<span className="text-xs font-normal text-border ml-0.5">/rok</span>
+                    {volatilityStats.stockMeanAnnual >= 0 ? '+' : ''}{volatilityStats.stockMeanAnnual.toFixed(1)}%<span className="text-xs font-normal text-text-muted ml-0.5">/rok</span>
                   </div>
                   <div className="text-xs text-text-muted leading-snug">Informacyjnie — nie prognoza.</div>
                 </div>

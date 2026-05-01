@@ -100,7 +100,11 @@ export const DESIGN_TOKENS = {
   },
   interactive: {
     light: '#0369a1',    // sky-700 (same as accentPrimary)
-    dark: '#0c4a6e',     // sky-900 (dark enough for white text)
+    dark: '#7dd3fc',     // sky-300 (same as dark accentPrimary)
+  },
+  textOnAccent: {
+    light: '#FFFFFF',    // white text on sky-700 buttons
+    dark: '#082f49',     // sky-950 text on sky-300 buttons
   },
 } as const;
 
@@ -113,6 +117,7 @@ export const APPROVED_HEX_COLORS = new Set([
   ...Object.values(DESIGN_TOKENS.dark),
   ...Object.values(DESIGN_TOKENS.aurora),
   ...Object.values(DESIGN_TOKENS.interactive),
+  ...Object.values(DESIGN_TOKENS.textOnAccent),
 ]);
 
 // ============================================================
@@ -203,8 +208,8 @@ describe('WCAG AAA: UI component contrast (≥ 3:1)', () => {
     expect(contrastRatio('#FFFFFF', DESIGN_TOKENS.interactive.light))
       .toBeGreaterThanOrEqual(AAA_LARGE_TEXT);
   });
-  it('Dark: white text on accent-interactive', () => {
-    expect(contrastRatio('#FFFFFF', DESIGN_TOKENS.interactive.dark))
+  it('Dark: sky-950 text on accent-interactive', () => {
+    expect(contrastRatio(DESIGN_TOKENS.textOnAccent.dark, DESIGN_TOKENS.interactive.dark))
       .toBeGreaterThanOrEqual(AAA_LARGE_TEXT);
   });
 });

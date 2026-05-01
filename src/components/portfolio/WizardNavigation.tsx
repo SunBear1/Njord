@@ -38,7 +38,7 @@ export default function WizardNavigation({
         <span />
       )}
 
-      <span className="text-sm text-border order-last sm:order-none w-full sm:w-auto text-center">
+      <span className="text-sm text-text-muted order-last sm:order-none w-full sm:w-auto text-center">
         Krok {currentStep} z {TOTAL_STEPS}
       </span>
 
@@ -51,8 +51,8 @@ export default function WizardNavigation({
           aria-disabled={!canAdvance}
           className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium ${
             canAdvance
-              ? 'text-white bg-accent-interactive hover:bg-accent-interactive/80'
-              : 'text-white/60 bg-bg-hover cursor-not-allowed'
+              ? 'text-text-on-accent bg-accent-interactive hover:bg-accent-interactive/80'
+              : 'text-text-muted bg-bg-hover cursor-not-allowed'
           }`}
         >
           {nextLabel}

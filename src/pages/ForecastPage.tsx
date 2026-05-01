@@ -67,7 +67,7 @@ export function ForecastPage() {
           <button
             type="submit"
             disabled={assetLoading || !tickerInput.trim()}
-            className="flex items-center gap-2 px-5 py-2.5 bg-accent-interactive text-white rounded-lg font-medium text-sm hover:bg-accent-interactive/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
+            className="flex items-center gap-2 px-5 py-2.5 bg-accent-interactive text-text-on-accent rounded-lg font-medium text-sm hover:bg-accent-interactive/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
           >
             {assetLoading ? (
               <Loader2 size={16} className="animate-spin" aria-hidden="true" />
@@ -91,7 +91,7 @@ export function ForecastPage() {
             <span className="text-text-muted">({activeTicker})</span>
             {currentFxRate > 0 && (
               <>
-                <span className="text-border">·</span>
+                <span className="text-text-muted">·</span>
                 <span className="font-mono tabular-nums">{(assetData.asset.currentPrice * currentFxRate).toFixed(2)} PLN</span>
               </>
             )}

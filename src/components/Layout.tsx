@@ -58,10 +58,10 @@ export function Layout() {
                 key={to}
                 to={to}
                 className={({ isActive }) =>
-                  `flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  `flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors border-b-2 ${
                     isActive
-                      ? 'bg-white/20 text-white'
-                      : 'text-white/80 hover:text-white hover:bg-white/10'
+                      ? 'border-white text-white'
+                      : 'border-transparent text-white/70 hover:text-white hover:border-white/50'
                   }`
                 }
               >
@@ -109,10 +109,10 @@ export function Layout() {
                   to={to}
                   onClick={() => setMobileMenuOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    `flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-white/20 text-white'
-                        : 'text-white/80 hover:text-white hover:bg-white/10'
+                        ? 'text-white border-l-2 border-white'
+                        : 'text-white/70 hover:text-white border-l-2 border-transparent'
                     }`
                   }
                 >
