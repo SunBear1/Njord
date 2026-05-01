@@ -60,3 +60,11 @@ When reviewing a Dependabot PR:
 ## Validation
 
     actionlint .github/workflows/*.yaml
+
+## Finishing a task
+
+Every task ends with a PR. After committing:
+
+1. Push to a branch named `ci/<short-description>`.
+2. Open a PR with `gh pr create` targeting `main`.
+3. Present the PR URL to the user as the final step.
