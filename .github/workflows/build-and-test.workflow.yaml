@@ -13,13 +13,46 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@6852f92c20ea7fd3b0c25de3b5112db3a98da050 # v3
+        id: filter
+        with:
+          filters: |
+            code:
+              - 'src/**'
+              - 'functions/**'
+              - 'public/**'
+              - 'e2e/**'
+              - 'index.html'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'vite.config.ts'
+              - 'tsconfig*.json'
+              - 'eslint.config.js'
+              - 'playwright.config.ts'
+              - 'wrangler.toml'
+              - '.github/workflows/**'
+              - '.github/actions/**'
+
   lint:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/lint.job.yaml
 
   test:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/test.job.yaml
 
   build:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     uses: ./.github/workflows/build.job.yaml
 
   smoke-tests:
