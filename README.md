@@ -5,141 +5,141 @@
 [![Deploy](https://img.shields.io/badge/live-njord.pages.dev-blue)](https://njord.pages.dev)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-> **Wyłącznie do celów edukacyjnych. Nie stanowi doradztwa inwestycyjnego.**
+> **For educational purposes only. Not investment advice.**
 
 ---
 
-## Funkcje
+## Features
 
-Njord dostarcza pięć narzędzi dostępnych z poziomu jednego SPA:
+Njord provides five tools in a single SPA:
 
-| Widok | Co robi |
-|-------|---------|
-| **Porównanie** (`/comparison`) | Bear / Base / Bull dla portfela akcji USD vs konto oszczędnościowe, 8 typów obligacji skarbowych i ETF; heatmapa breakeven (Δakcje × ΔFX) |
-| **Prognoza** (`/forecast`) | Analiza optymalnej ceny sprzedaży — Monte Carlo + HMM (10 tys. ścieżek) |
-| **Podatek Belki** (`/tax`) | Kalkulator 19% podatku od zysków kapitałowych: wiele transakcji, auto-kurs NBP Tabela A, grupowanie PIT-38, import E*Trade XLSX |
-| **Kreator portfela** (`/portfolio`) | 4-krokowy kreator długoterminowej alokacji (IKE / IKZE / rachunek maklerski) z symulacją akumulacji |
-| **Kursy** (`/rates`) | Bieżące kursy walut i stopy procentowe |
+| View | Description |
+|------|-------------|
+| **Comparison** (`/comparison`) | Bear / Base / Bull scenarios for a USD stock portfolio vs savings account, 8 Polish bond types, and ETFs; breakeven heatmap (Δstocks × ΔFX) |
+| **Forecast** (`/forecast`) | Optimal sell-price analysis — Monte Carlo + HMM (10,000 paths) |
+| **Belka Tax** (`/tax`) | 19% capital gains tax calculator: multiple transactions, auto NBP Table A rate lookup, PIT-38 grouping, E*Trade XLSX import |
+| **Portfolio Builder** (`/portfolio`) | 4-step long-term allocation wizard (IKE / IKZE / brokerage account) with accumulation simulation |
+| **Rates** (`/rates`) | Live exchange rates and interest rates |
 
-**Dane live:**
-- 📈 Ceny akcji — [Yahoo Finance](https://finance.yahoo.com) (primary) + Twelve Data (fallback na 429)
-- 💱 Kurs USD/PLN — [NBP API](https://api.nbp.pl) + Alior Kantor
-- 📊 Inflacja HICP — [ECB API](https://data-api.ecb.europa.eu)
+**Live data sources:**
+- 📈 Stock prices — [Yahoo Finance](https://finance.yahoo.com) (primary) + Twelve Data (fallback on 429)
+- 💱 USD/PLN rate — [NBP API](https://api.nbp.pl) + Alior Kantor
+- 📊 HICP inflation — [ECB API](https://data-api.ecb.europa.eu)
 
-**Silnik predykcji (po stronie klienta):**
-- ≤ 6 miesięcy → Block Bootstrap (historyczna zmienność)
-- \> 6 miesięcy → kalibrowany GBM (drift skurczony do 8% prior equity)
-- Prognoza ceny → HMM (tylko widok `/forecast`)
+**Prediction engine (client-side):**
+- ≤ 6 months → Block Bootstrap (historical volatility)
+- \> 6 months → Calibrated GBM (drift shrunk to 8% equity prior)
+- Price forecast → HMM (only on `/forecast`)
 
-### Obsługiwane obligacje skarbowe
+### Supported Polish government bonds
 
-| Symbol | Zapadalność | Oprocentowanie |
-|--------|-------------|----------------|
-| OTS | 3 mies. | stałe |
-| ROR | 12 mies. | stopa ref. NBP |
-| DOR | 24 mies. | stopa ref. NBP + marża |
-| TOS | 36 mies. | stałe |
-| COI | 48 mies. | inflacja + 1,50% |
-| EDO | 120 mies. | inflacja + 2,00% |
-| ROS | 72 mies. (rodzinne) | inflacja + 2,00% |
-| ROD | 144 mies. (rodzinne) | inflacja + 2,50% |
+| Symbol | Maturity | Interest |
+|--------|----------|----------|
+| OTS | 3 mo. | fixed |
+| ROR | 12 mo. | NBP reference rate |
+| DOR | 24 mo. | NBP reference rate + margin |
+| TOS | 36 mo. | fixed |
+| COI | 48 mo. | inflation + 1.50% |
+| EDO | 120 mo. | inflation + 2.00% |
+| ROS | 72 mo. (family) | inflation + 2.00% |
+| ROD | 144 mo. (family) | inflation + 2.50% |
 
 ---
 
-## Architektura
+## Architecture
 
 ```
 Cloudflare Pages
 ├── / (SPA — React 19 + Vite)
-│   ├── /                ← strona główna
-│   ├── /comparison      ← porównanie inwestycji
-│   ├── /forecast        ← prognoza ceny sprzedaży
-│   ├── /tax             ← kalkulator podatku Belki
-│   ├── /portfolio       ← kreator portfela
-│   └── /rates           ← kursy walut i stopy
+│   ├── /                ← home
+│   ├── /comparison      ← investment comparison
+│   ├── /forecast        ← sell-price forecast
+│   ├── /tax             ← Belka tax calculator
+│   ├── /portfolio       ← portfolio builder
+│   └── /rates           ← exchange rates & interest rates
 │
 └── Pages Functions (backend)
-    ├── /api/market-data     ← Yahoo Finance (primary) + Twelve Data (fallback) + NBP FX; cache 1h
-    ├── /api/bonds           ← presety obligacji z CSV; cache 24h
-    ├── /api/currency-rates  ← Alior Kantor + NBP Tabela C
-    ├── /api/inflation       ← inflacja HICP z ECB; cache 24h
+    ├── /api/market-data     ← Yahoo Finance (primary) + Twelve Data (fallback) + NBP FX; 1h cache
+    ├── /api/bonds           ← bond presets from CSV; 24h cache
+    ├── /api/currency-rates  ← Alior Kantor + NBP Table C
+    ├── /api/inflation       ← HICP inflation from ECB; 24h cache
     └── /api/auth/*          ← JWT + OAuth (GitHub, Google); Cloudflare D1
 ```
 
-Wszystkie obliczenia finansowe (GBM, Bootstrap, Monte Carlo, podatek Belki) wykonywane są **po stronie klienta**.
+All financial calculations (GBM, Bootstrap, Monte Carlo, Belka tax) run **client-side**.
 
 ---
 
-## Stos technologiczny
+## Tech stack
 
-| Warstwa | Technologia |
-|---------|-------------|
+| Layer | Technology |
+|-------|------------|
 | Frontend | React 19, TypeScript 6, Vite 8 |
-| Stylowanie | Tailwind CSS v4 (semantic tokens w `src/index.css`) |
-| Wykresy | Recharts 3 |
-| Ikony | Lucide React |
+| Styling | Tailwind CSS v4 (semantic tokens in `src/index.css`) |
+| Charts | Recharts 3 |
+| Icons | Lucide React |
 | Backend | Cloudflare Pages Functions (edge) |
-| Baza danych | Cloudflare D1 (SQLite — tylko auth) |
-| Testy jednostkowe | Vitest (500+ testów) |
-| Testy E2E | Playwright |
+| Database | Cloudflare D1 (SQLite — auth only) |
+| Unit tests | Vitest (500+ tests) |
+| E2E tests | Playwright |
 
 ---
 
-## Uruchomienie lokalne
+## Local development
 
 ```bash
 git clone https://github.com/SunBear1/Njord.git
 cd Njord
 npm install
-npm run dev          # tylko frontend → http://localhost:5173/
+npm run dev          # frontend only → http://localhost:5173/
 ```
 
-Pełny stack z Pages Functions (wymagany dla danych giełdowych):
+Full stack with Pages Functions (required for market data):
 
 ```bash
 npm run dev:full     # Vite + Pages Functions → http://localhost:8788/
 ```
 
-### Zmienne środowiskowe
+### Environment variables
 
-Utwórz `.dev.vars` w katalogu głównym (dla Wrangler — nigdy nie commituj):
+Create `.dev.vars` in the project root (for Wrangler — never commit this file):
 
 ```ini
-TWELVE_DATA_API_KEY=twój_klucz          # opcjonalny fallback dla Yahoo Finance
-JWT_SECRET=losowy_ciąg_znaków           # wymagany dla auth
+TWELVE_DATA_API_KEY=your_key            # optional fallback for Yahoo Finance
+JWT_SECRET=random_string                # required for auth
 GITHUB_CLIENT_ID=...
 GITHUB_CLIENT_SECRET=...
 GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 ```
 
-### Wszystkie komendy
+### Commands
 
 ```bash
-npm run dev          # serwer deweloperski — tylko frontend (localhost:5173)
-npm run dev:full     # pełny stack: Vite + Pages Functions (localhost:8788)
-npm run build        # produkcyjny build: tsc -b && vite build → dist/
-npm run lint         # ESLint (zero błędów wymagane)
-npm test             # Vitest — testy jednostkowe
-npm run test:e2e     # Playwright — testy E2E (wymaga serwera preview)
-npm run preview      # podgląd lokalny buildu produkcyjnego
+npm run dev          # dev server — frontend only (localhost:5173)
+npm run dev:full     # full stack: Vite + Pages Functions (localhost:8788)
+npm run build        # production build: tsc -b && vite build → dist/
+npm run lint         # ESLint (zero errors enforced)
+npm test             # Vitest — unit tests
+npm run test:e2e     # Playwright — E2E tests (requires preview server)
+npm run preview      # local preview of production build
 ```
 
 ---
 
-## Wdrożenie
+## Deployment
 
-Push na `main` automatycznie buduje i deployuje przez integrację Cloudflare Pages ↔ GitHub.
+Push to `main` automatically builds and deploys via the Cloudflare Pages ↔ GitHub integration.
 
-**Pierwsze wdrożenie (jednorazowo w dashboardzie CF):**
+**First-time setup (once in the CF dashboard):**
 1. Workers & Pages → Create application → Pages → Connect to Git
-2. Wybierz repozytorium, branch `main`
+2. Select the repository and branch `main`
 3. Build command: `npm run build` | Output directory: `dist`
-4. Environment variables → dodaj wszystkie sekrety (Encrypted)
+4. Environment variables → add all secrets (Encrypted)
 
 ---
 
-## Licencja
+## License
 
 [MIT](LICENSE)
 
