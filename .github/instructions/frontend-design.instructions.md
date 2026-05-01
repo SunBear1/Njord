@@ -1,6 +1,6 @@
 ---
 description: Frontend design principles for distinctive, production-grade interfaces. Apply when building new UI components, pages, or redesigning existing interfaces.
-globs: "src/components/**/*.tsx"
+applyTo: "src/components/**/*.tsx"
 ---
 
 # Frontend Design

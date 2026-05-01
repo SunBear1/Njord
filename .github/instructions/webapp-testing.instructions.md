@@ -1,6 +1,6 @@
 ---
 description: Toolkit for testing web applications using Playwright. Use when verifying frontend functionality, debugging UI behavior, or capturing screenshots.
-globs: "src/__tests__/**/*.{ts,js,py}"
+applyTo: "src/__tests__/**/*.{ts,js,py}"
 ---
 
 # Web Application Testing

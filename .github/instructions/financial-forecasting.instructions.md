@@ -1,9 +1,6 @@
 ---
 description: Financial forecasting principles for stock/FX scenario generation. Use when modifying prediction models, scenario generation, or interpreting forecast outputs.
-globs:
-  - src/utils/models/**
-  - src/hooks/useHistoricalVolatility.ts
-  - src/__tests__/**
+applyTo: "src/utils/models/**,src/hooks/useHistoricalVolatility.ts,src/__tests__/**"
 ---
 # Financial Forecasting — Agent Instructions
 

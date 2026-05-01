@@ -3,11 +3,7 @@ description: >
   Architecture and safety rules for React hooks, page-level state management, and data providers.
   Apply when reading or modifying any hook, page component, Layout, or provider modules.
   Prevents race conditions, localStorage corruption, and state architecture violations.
-globs:
-  - src/hooks/**
-  - src/pages/**
-  - src/components/Layout.tsx
-  - src/providers/**
+applyTo: "src/hooks/**,src/pages/**,src/components/Layout.tsx,src/providers/**"
 ---
 
 # Hooks, State, and Providers

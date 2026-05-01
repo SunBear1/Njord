@@ -1,6 +1,6 @@
 ---
 description: Web interface guidelines for accessibility, UX, and design compliance. Use when reviewing UI code, checking accessibility, or auditing design quality.
-globs: "src/**/*.{tsx,css}"
+applyTo: "src/**/*.{tsx,css}"
 ---
 
 # Web Interface Guidelines
