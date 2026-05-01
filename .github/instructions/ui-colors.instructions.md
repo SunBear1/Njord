@@ -74,3 +74,18 @@ npm run lint              # ESLint dark:text-faint ban
 ```
 
 Both run automatically in CI on every PR.
+
+## Mandatory Visual Preview
+
+**After ANY color change — no exceptions — you MUST instruct the user to preview visually:**
+
+```
+Run `npm run dev` then open http://localhost:5173/ in a browser.
+
+Check at minimum:
+- Light mode: affected component at desktop (1280px) and mobile (375px)
+- Dark mode: toggle with the moon icon — verify text is readable, backgrounds are distinct
+```
+
+Do NOT consider a color change complete until the user confirms they have visually reviewed it.
+Present this as the final step of your response whenever you change any `className` containing a color token, background, or border class.
