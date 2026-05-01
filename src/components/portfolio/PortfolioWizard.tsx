@@ -58,13 +58,13 @@ export function PortfolioWizard({ bondPresets, isDark }: PortfolioWizardProps) {
     <div className="space-y-6">
       {/* Header with reset button */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-[var(--color-text-primary)]">
+        <h2 className="text-xl font-bold text-heading">
           Kreator portfela
         </h2>
         <button
           type="button"
           onClick={wizard.resetWizard}
-          className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-accent-error)] transition-colors"
+          className="text-xs text-muted hover:text-error transition-colors"
         >
           Resetuj kreator
         </button>

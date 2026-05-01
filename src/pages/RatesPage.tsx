@@ -38,7 +38,7 @@ function SourceTable({ title, href, rates, getRate }: {
   if (!hasData) return null;
 
   return (
-    <div className="bg-bg-card dark:bg-surface-alt border border-border dark:border-edge rounded-xl overflow-hidden">
+    <div className="bg-surface dark:bg-surface-alt border border-border dark:border-edge rounded-xl overflow-hidden">
       <div className="px-4 py-3 border-b border-border dark:border-edge flex items-center justify-between">
         <h2 className="font-semibold text-heading dark:text-on-dark">{title}</h2>
         <a
