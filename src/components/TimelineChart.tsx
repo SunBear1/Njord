@@ -39,7 +39,7 @@ function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate, i
     <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-3">
       <h3 className="text-base font-semibold text-text-primary">Wartość w czasie</h3>
       {inflationRate > 0 && (
-        <p className="text-xs text-text-text-muted">
+        <p className="text-xs text-text-muted">
           Szara linia przerywana „Siła nabywcza" — wartość wyjściowa skorygowana o inflację ({inflationRate.toFixed(1)}% śr./rok).
         </p>
       )}

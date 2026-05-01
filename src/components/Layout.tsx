@@ -121,19 +121,19 @@ export function Layout() {
         <Outlet />
       </main>
 
-      <footer className="mt-10 py-6 text-center text-sm border-t border-border text-text-text-muted">
+      <footer className="mt-10 py-6 text-center text-sm border-t border-border text-text-muted">
         <p>Dane informacyjne — nie stanowią doradztwa inwestycyjnego ani podatkowego.</p>
         <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
           <button
             onClick={() => setShowPrivacy(true)}
-            className="underline hover:no-underline focus-visible:ring-2 focus-visible:ring-accent-primary-primary rounded"
+            className="underline hover:no-underline focus-visible:ring-2 focus-visible:ring-accent-primary rounded"
           >
             Polityka prywatności
           </button>
           {!showClearConfirm ? (
             <button
               onClick={() => setShowClearConfirm(true)}
-              className="underline hover:no-underline focus-visible:ring-2 focus-visible:ring-accent-primary-primary rounded"
+              className="underline hover:no-underline focus-visible:ring-2 focus-visible:ring-accent-primary rounded"
             >
               Wyczyść wszystkie dane
             </button>

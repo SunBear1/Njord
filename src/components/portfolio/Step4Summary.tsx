@@ -252,7 +252,7 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
                 {result.annualTable.map((row, i) => (
                   <tr
                     key={row.year}
-                    className={`border-b border-border/50 ${i % 2 === 0 ? 'bg-bg-card/50/50' : ''}`}
+                    className={`border-b border-border/50 ${i % 2 === 0 ? 'bg-bg-card/50' : ''}`}
                   >
                     <td className="px-2 py-1.5 font-medium text-text-secondary">{row.year}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-text-secondary">{fmtPLN(row.ikeContributed)}</td>

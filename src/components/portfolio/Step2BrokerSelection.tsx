@@ -85,8 +85,8 @@ function BrokerCard({
     >
       {/* Disabled overlay */}
       {disabled && !sectionDisabled && disabledReason ? (
-        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-bg-card/5/40">
-          <span className="text-xs font-medium text-danger bg-bg-card/90/90 px-3 py-1 rounded-full">
+        <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-bg-card/40">
+          <span className="text-xs font-medium text-danger bg-bg-card/90 px-3 py-1 rounded-full">
             {disabledReason}
           </span>
         </div>

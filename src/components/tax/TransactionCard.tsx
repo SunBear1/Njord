@@ -597,7 +597,7 @@ export function TransactionCard({
 
       {/* Expanded edit form */}
       {isExpanded && (
-        <div className="border-t border-border bg-bg-card/50/50 px-4 py-4 space-y-4">
+        <div className="border-t border-border bg-bg-card/50 px-4 py-4 space-y-4">
 
           {/* Ticker (optional) */}
           <div className="space-y-1">

@@ -40,7 +40,7 @@ const SCENARIO_CONFIG: {
     key: 'base', label: 'Base',
     icon: <Minus size={14} aria-hidden="true" />,
     headerBg: 'bg-danger/10', headerText: 'text-danger',
-    cardBorder: 'border-danger/30', cardBg: 'bg-danger/5/30 bg-danger/5',
+    cardBorder: 'border-danger/30', cardBg: 'bg-danger/5',
     inputBorder: 'border-danger/40 focus:ring-danger/30',
   },
   {

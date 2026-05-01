@@ -353,7 +353,7 @@ export function TransactionTableRow({
     <>
       {/* Summary row */}
       <tr
-        className={`border-b border-border cursor-pointer hover:bg-bg-card select-none transition-colors ${isExpanded ? 'bg-bg-card/50/30' : ''}`}
+        className={`border-b border-border cursor-pointer hover:bg-bg-card select-none transition-colors ${isExpanded ? 'bg-bg-card/30' : ''}`}
         onClick={onToggle}
         tabIndex={0}
         onKeyDown={(e) => e.key === 'Enter' && onToggle()}
@@ -434,7 +434,7 @@ export function TransactionTableRow({
       {/* Expanded edit form */}
       {isExpanded && (
         <tr>
-          <td colSpan={COL_COUNT} className="border-b border-border bg-bg-card/50/50 px-4 py-4">
+          <td colSpan={COL_COUNT} className="border-b border-border bg-bg-card/50 px-4 py-4">
             <div className="space-y-4">
 
           {/* Row 0: Ticker (optional) */}

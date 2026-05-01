@@ -304,7 +304,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           {/* Touch Probability Curve */}
           <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-3">
             <h3 className="text-base font-semibold text-text-primary">Prawdopodobieństwo osiągnięcia ceny</h3>
-            <p className="text-xs text-text-text-muted">
+            <p className="text-xs text-text-muted">
               Stromy spadek krzywej = „granica chciwości" — powyżej tego progu szansa realizacji gwałtownie maleje.
             </p>
             <ResponsiveContainer width="100%" height={300} debounce={32}>
@@ -433,9 +433,9 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
 
 function SummaryCard({ label, value, subvalue, accent }: { label: string; value: string; subvalue: string; accent: 'blue' | 'green' | 'purple' | 'red' }) {
   const colors = {
-    blue: 'border-accent-primary/40 bg-bg-hover/50/30',
+    blue: 'border-accent-primary/40 bg-bg-hover/30',
     green: 'border-success/30 bg-success/5',
-    purple: 'border-accent-primary/40-primary/30 bg-accent-primary/5',
+    purple: 'border-accent-primary/30 bg-accent-primary/5',
     red: 'border-danger/30 bg-danger/5',
   };
   const textColors = {

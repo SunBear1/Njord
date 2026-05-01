@@ -96,7 +96,7 @@ function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps)
           <button
             type="button"
             onClick={() => setViewMode('stacked')}
-            className={`px-2.5 py-1 transition-colors ${viewMode === 'stacked' ? 'bg-bg-hover font-semibold text-text-primary' : 'text-text-text-muted hover:bg-bg-hover'}`}
+            className={`px-2.5 py-1 transition-colors ${viewMode === 'stacked' ? 'bg-bg-hover font-semibold text-text-primary' : 'text-text-muted hover:bg-bg-hover'}`}
             aria-pressed={viewMode === 'stacked'}
           >
             Skumulowany
@@ -104,7 +104,7 @@ function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps)
           <button
             type="button"
             onClick={() => setViewMode('lines')}
-            className={`px-2.5 py-1 transition-colors ${viewMode === 'lines' ? 'bg-bg-hover font-semibold text-text-primary' : 'text-text-text-muted hover:bg-bg-hover'}`}
+            className={`px-2.5 py-1 transition-colors ${viewMode === 'lines' ? 'bg-bg-hover font-semibold text-text-primary' : 'text-text-muted hover:bg-bg-hover'}`}
             aria-pressed={viewMode === 'lines'}
           >
             Linie

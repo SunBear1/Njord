@@ -124,7 +124,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
               {/* Two-column comparison */}
               <div className="grid grid-cols-2 gap-2">
                 {/* Akcje column */}
-                <div className={`rounded-xl p-3 text-center space-y-1 ${stockWins ? 'bg-bg-card shadow-sm ring-2 ring-accent-primary/50' : 'bg-bg-card/60/60'}`}>
+                <div className={`rounded-xl p-3 text-center space-y-1 ${stockWins ? 'bg-bg-card shadow-sm ring-2 ring-accent-primary/50' : 'bg-bg-card/60'}`}>
                   <div className="flex items-center justify-center gap-1 text-xs font-bold text-accent-primary/80 uppercase tracking-wide">
                     {stockWins && <Trophy size={12} className="text-accent-primary" aria-hidden="true" />}
                     Akcje
@@ -144,7 +144,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
                 </div>
 
                 {/* Benchmark column */}
-                <div className={`rounded-xl p-3 text-center space-y-1 ${!stockWins ? 'bg-bg-card shadow-sm ring-2 ring-accent-primary/50' : 'bg-bg-card/60/60'}`}>
+                <div className={`rounded-xl p-3 text-center space-y-1 ${!stockWins ? 'bg-bg-card shadow-sm ring-2 ring-accent-primary/50' : 'bg-bg-card/60'}`}>
                   <div className="flex items-center justify-center gap-1 text-xs font-bold text-accent-primary uppercase tracking-wide">
                     {!stockWins && <Trophy size={12} className="text-accent-primary" aria-hidden="true" />}
                     {bmLabel}
@@ -162,7 +162,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
               </div>
 
               {/* Difference callout */}
-              <div className="text-xs font-medium rounded-lg px-3 py-2 text-center bg-bg-card/70/70 border border-white text-text-secondary">
+              <div className="text-xs font-medium rounded-lg px-3 py-2 text-center bg-bg-card/70 border border-border text-text-secondary">
                 Różnica: <strong>{fmtDiff(r.differencePLN)}</strong> ({fmtDiffPct(r.differencePercent)})
               </div>
             </div>
