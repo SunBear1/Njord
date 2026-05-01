@@ -8,19 +8,19 @@ permissions: {}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   check-changes:
+    name: Check Changed Files
     runs-on: ubuntu-latest
     outputs:
       src: ${{ steps.filter.outputs.src }}
       ci: ${{ steps.filter.outputs.ci }}
       infra: ${{ steps.filter.outputs.infra }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           filters: |
@@ -66,9 +66,13 @@ jobs:
     uses: ./.github/workflows/actionlint.job.yaml
 
   terraform:
+    name: Terraform Plan
     needs: check-changes
     if: needs.check-changes.outputs.infra == 'true'
     uses: ./.github/workflows/terraform.job.yaml
+    permissions:
+      contents: read
+      pull-requests: write
     with:
       dry_run: true
     secrets:
@@ -78,6 +82,7 @@ jobs:
       CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
 
   gate:
+    name: PR Status Check Gate
     if: always()
     needs: [lint, test, build, smoke-tests, actionlint, terraform]
     runs-on: ubuntu-latest
