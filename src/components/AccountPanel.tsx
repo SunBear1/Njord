@@ -208,7 +208,7 @@ export function AccountPanel({
               autoComplete="new-password"
               className={`w-full pl-10 pr-4 py-2.5 rounded-lg border bg-bg-card text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:border-transparent ${
                 passwordMismatch
-                  ? 'border-red-400 focus:ring-danger/50'
+                  ? 'border-danger focus:ring-danger/50'
                   : 'border-border focus:ring-accent-primary'
               }`}
             />
@@ -274,7 +274,7 @@ export function AccountPanel({
                 <button
                   onClick={handleDeleteAccount}
                   disabled={isDeleting || (hasPassword && !deletePassword)}
-                  className="flex-1 py-2 px-3 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 py-2 px-3 text-sm font-medium text-white bg-danger rounded-lg hover:bg-danger/80 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                 >
                   {isDeleting ? 'Usuwanie…' : 'Usuń na stałe'}
                 </button>

@@ -74,7 +74,7 @@ export function PolishDateInput({
         maxLength={10}
         autoComplete="off"
         spellCheck={false}
-        className={`${className} ${hasError ? '!border-red-400 dark:!border-red-500 focus:!ring-red-500' : ''}`}
+        className={`${className} ${hasError ? '!border-danger focus:!ring-danger' : ''}`}
       />
       {hasError && (
         <p className="text-[11px] text-danger flex items-center gap-1">
