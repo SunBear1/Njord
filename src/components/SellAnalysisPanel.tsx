@@ -287,16 +287,16 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                 {/* p10–p25 band (lightest) */}
                 <Area type="monotone" dataKey="band_p10_p25" stackId="fan" stroke="none" fill={isDark ? '#334155' : '#F1F5F9'} fillOpacity={0.6} name="band_p10_p25" />
                 {/* p25–p50 band */}
-                <Area type="monotone" dataKey="band_p25_p50" stackId="fan" stroke="none" fill={isDark ? '#C4B5FD' : '#5B21B6'} fillOpacity={0.3} name="band_p25_p50" />
+                <Area type="monotone" dataKey="band_p25_p50" stackId="fan" stroke="none" fill={isDark ? '#7dd3fc' : '#0369a1'} fillOpacity={0.3} name="band_p25_p50" />
                 {/* p50–p75 band */}
-                <Area type="monotone" dataKey="band_p50_p75" stackId="fan" stroke="none" fill={isDark ? '#C4B5FD' : '#5B21B6'} fillOpacity={0.3} name="band_p50_p75" />
+                <Area type="monotone" dataKey="band_p50_p75" stackId="fan" stroke="none" fill={isDark ? '#7dd3fc' : '#0369a1'} fillOpacity={0.3} name="band_p50_p75" />
                 {/* p75–p90 band (lightest) */}
                 <Area type="monotone" dataKey="band_p75_p90" stackId="fan" stroke="none" fill={isDark ? '#334155' : '#F1F5F9'} fillOpacity={0.6} name="band_p75_p90" />
                 {/* Median line (non-stacked overlay) */}
-                <Area type="monotone" dataKey="p50" stroke={isDark ? '#C4B5FD' : '#5B21B6'} strokeWidth={2} fill="none" name="Mediana" />
+                <Area type="monotone" dataKey="p50" stroke={isDark ? '#7dd3fc' : '#0369a1'} strokeWidth={2} fill="none" name="Mediana" />
                 {/* Reference lines */}
                 <ReferenceLine y={analysis.currentPrice} stroke={isDark ? '#A9B5BF' : '#475569'} strokeDasharray="4 4" label={{ value: `Dziś: ${fmtUSD(analysis.currentPrice)}`, position: 'right', fontSize: 10, fill: isDark ? '#A9B5BF' : '#475569' }} />
-                <ReferenceLine y={analysis.optimalTarget.target} stroke={isDark ? '#C4B5FD' : '#5B21B6'} strokeDasharray="6 3" strokeWidth={2} label={{ value: `Cel: ${fmtUSD(analysis.optimalTarget.target)}`, position: 'right', fontSize: 10, fill: isDark ? '#C4B5FD' : '#5B21B6' }} />
+                <ReferenceLine y={analysis.optimalTarget.target} stroke={isDark ? '#7dd3fc' : '#0369a1'} strokeDasharray="6 3" strokeWidth={2} label={{ value: `Cel: ${fmtUSD(analysis.optimalTarget.target)}`, position: 'right', fontSize: 10, fill: isDark ? '#7dd3fc' : '#0369a1' }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -331,7 +331,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                     color: isDark ? '#F1F5F9' : '#0F172A',
                   }}
                 />
-                <Line type="monotone" dataKey="pTouch" stroke={isDark ? '#C4B5FD' : '#5B21B6'} strokeWidth={2.5} dot={{ r: 3 }} name="P(touch)" />
+                <Line type="monotone" dataKey="pTouch" stroke={isDark ? '#7dd3fc' : '#0369a1'} strokeWidth={2.5} dot={{ r: 3 }} name="P(touch)" />
                 <ReferenceLine x={analysis.optimalTarget.target} stroke={isDark ? '#6EE7B7' : '#065F46'} strokeDasharray="6 3" label={{ value: 'Optymalny', position: 'top', fontSize: 10, fill: isDark ? '#6EE7B7' : '#065F46' }} />
               </LineChart>
             </ResponsiveContainer>

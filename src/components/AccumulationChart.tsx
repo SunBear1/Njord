@@ -40,7 +40,7 @@ function CustomLegend({ payload }: { payload?: Array<{ value: string; color: str
 
 const WRAPPER_COLORS = {
   ike: '#065F46',      // emerald-800
-  ikze: '#5B21B6',     // violet-800
+  ikze: '#0369a1',     // sky-700
   regular: '#115E59',  // teal-800
   inflation: '#475569', // slate-600
   counterfactual: '#991B1B', // red-800
@@ -48,7 +48,7 @@ const WRAPPER_COLORS = {
 
 const WRAPPER_COLORS_DARK = {
   ike: '#6EE7B7',
-  ikze: '#C4B5FD',
+  ikze: '#7dd3fc',
   regular: '#67E8F9',
   inflation: '#A9B5BF',
   counterfactual: '#FCA5A5',

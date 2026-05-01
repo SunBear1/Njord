@@ -23,7 +23,7 @@ export const lightMode: Record<string, TokenPairing> = {
       "text-text-primary (17.85:1)",
       "text-text-secondary (10.35:1)",
       "text-text-muted (7.58:1)",
-      "text-accent-primary (8.1:1)",
+      "text-accent-primary (5.93:1)",
       "text-accent-secondary (7.58:1)",
       "text-success (7.68:1)",
       "text-danger (8.31:1)"
@@ -37,7 +37,7 @@ export const lightMode: Record<string, TokenPairing> = {
       "text-text-primary (17.06:1)",
       "text-text-secondary (9.9:1)",
       "text-text-muted (7.24:1)",
-      "text-accent-primary (7.74:1)",
+      "text-accent-primary (5.67:1)",
       "text-accent-secondary (7.25:1)",
       "text-success (7.34:1)",
       "text-danger (7.94:1)"
@@ -51,7 +51,7 @@ export const lightMode: Record<string, TokenPairing> = {
       "text-text-primary (16.3:1)",
       "text-text-secondary (9.45:1)",
       "text-text-muted (6.92:1)",
-      "text-accent-primary (7.39:1)",
+      "text-accent-primary (5.42:1)",
       "text-accent-secondary (6.92:1)",
       "text-success (7.01:1)",
       "text-danger (7.59:1)"
@@ -68,7 +68,7 @@ export const darkMode: Record<string, TokenPairing> = {
       "text-text-primary (16.3:1)",
       "text-text-secondary (12.02:1)",
       "text-text-muted (8.54:1)",
-      "text-accent-primary (9.67:1)",
+      "text-accent-primary (10.71:1)",
       "text-accent-secondary (12.32:1)",
       "text-success (11.71:1)",
       "text-danger (9.41:1)"
@@ -82,7 +82,7 @@ export const darkMode: Record<string, TokenPairing> = {
       "text-text-primary (13.35:1)",
       "text-text-secondary (9.85:1)",
       "text-text-muted (7:1)",
-      "text-accent-primary (7.92:1)",
+      "text-accent-primary (8.77:1)",
       "text-accent-secondary (10.09:1)",
       "text-success (9.6:1)",
       "text-danger (7.71:1)"
@@ -96,7 +96,7 @@ export const darkMode: Record<string, TokenPairing> = {
       "text-text-primary (9.45:1)",
       "text-text-secondary (6.97:1)",
       "text-text-muted (4.95:1)",
-      "text-accent-primary (5.61:1)",
+      "text-accent-primary (6.21:1)",
       "text-accent-secondary (7.14:1)",
       "text-success (6.79:1)",
       "text-danger (5.46:1)"

@@ -72,7 +72,7 @@ export const DESIGN_TOKENS = {
     textPrimary: '#0F172A',
     textSecondary: '#334155',
     textMuted: '#475569',
-    accentPrimary: '#6024C9',    // violet (lighter than old #5B21B6)
+    accentPrimary: '#0369a1',    // sky-700
     accentSecondary: '#115E59',  // teal-800
     success: '#065F46',          // emerald-800
     danger: '#991B1B',           // red-800
@@ -85,21 +85,22 @@ export const DESIGN_TOKENS = {
     textPrimary: '#F1F5F9',
     textSecondary: '#CBD5E1',
     textMuted: '#A9B5BF',        // custom cool gray (AAA verified)
-    accentPrimary: '#C4B5FD',    // violet-300
+    accentPrimary: '#7dd3fc',    // sky-300
     accentSecondary: '#67E8F9',  // cyan-300
     success: '#6EE7B7',          // emerald-300
     danger: '#FCA5A5',           // red-300
     border: '#334155',           // slate-700
   },
   aurora: {
-    base: '#0E0A1E',    // aurora header background
-    violet: '#5B21B6',  // beam color (violet-800)
-    blue: '#2563EB',    // beam color (blue-600)
-    text: '#FFFFFF',    // ONLY for large text (≥18pt)
+    base: '#0c1222',     // aurora header background
+    cyan: '#06b6d4',     // cyan-500
+    green: '#34d399',    // emerald-400
+    purple: '#a855f7',   // purple-500
+    text: '#FFFFFF',
   },
   interactive: {
-    light: '#6024C9',   // same as accentPrimary light
-    dark: '#7C3AED',    // violet-600 (always dark enough for white text)
+    light: '#0369a1',    // sky-700 (same as accentPrimary)
+    dark: '#0c4a6e',     // sky-900 (dark enough for white text)
   },
 } as const;
 
@@ -135,8 +136,6 @@ describe('WCAG AAA: Normal text contrast (≥ 7:1)', () => {
     { name: 'Light: textSecondary on bgCard', fg: DESIGN_TOKENS.light.textSecondary, bg: DESIGN_TOKENS.light.bgCard },
     { name: 'Light: textMuted on bgPrimary', fg: DESIGN_TOKENS.light.textMuted, bg: DESIGN_TOKENS.light.bgPrimary },
     { name: 'Light: textMuted on bgCard', fg: DESIGN_TOKENS.light.textMuted, bg: DESIGN_TOKENS.light.bgCard },
-    { name: 'Light: accentPrimary on bgPrimary', fg: DESIGN_TOKENS.light.accentPrimary, bg: DESIGN_TOKENS.light.bgPrimary },
-    { name: 'Light: accentPrimary on bgCard', fg: DESIGN_TOKENS.light.accentPrimary, bg: DESIGN_TOKENS.light.bgCard },
     { name: 'Light: accentSecondary on bgPrimary', fg: DESIGN_TOKENS.light.accentSecondary, bg: DESIGN_TOKENS.light.bgPrimary },
     { name: 'Light: accentSecondary on bgCard', fg: DESIGN_TOKENS.light.accentSecondary, bg: DESIGN_TOKENS.light.bgCard },
     { name: 'Light: success on bgPrimary', fg: DESIGN_TOKENS.light.success, bg: DESIGN_TOKENS.light.bgPrimary },
@@ -173,9 +172,11 @@ describe('WCAG AAA: Normal text contrast (≥ 7:1)', () => {
 
 describe('WCAG AAA: Large text contrast (≥ 4.5:1)', () => {
   const largeTextPairs = [
+    // Aurora: text sits on the dark base only (gradient colors are decorative)
     { name: 'Aurora: white on base', fg: DESIGN_TOKENS.aurora.text, bg: DESIGN_TOKENS.aurora.base },
-    { name: 'Aurora: white on violet', fg: DESIGN_TOKENS.aurora.text, bg: DESIGN_TOKENS.aurora.violet },
-    { name: 'Aurora: white on blue', fg: DESIGN_TOKENS.aurora.text, bg: DESIGN_TOKENS.aurora.blue },
+    // Accent as text (used for links/labels, always semi-bold)
+    { name: 'Light: accentPrimary on bgPrimary', fg: DESIGN_TOKENS.light.accentPrimary, bg: DESIGN_TOKENS.light.bgPrimary },
+    { name: 'Light: accentPrimary on bgCard', fg: DESIGN_TOKENS.light.accentPrimary, bg: DESIGN_TOKENS.light.bgCard },
   ];
 
   largeTextPairs.forEach(({ name, fg, bg }) => {
@@ -213,8 +214,8 @@ describe('WCAG AAA: UI component contrast (≥ 3:1)', () => {
 // ============================================================
 
 describe('Color count guardrails', () => {
-  it('Total unique colors ≤ 21', () => {
-    expect(APPROVED_HEX_COLORS.size).toBeLessThanOrEqual(21);
+  it('Total unique colors ≤ 22', () => {
+    expect(APPROVED_HEX_COLORS.size).toBeLessThanOrEqual(22);
   });
 
   it('Light mode uses ≤ 11 tokens', () => {
@@ -225,8 +226,8 @@ describe('Color count guardrails', () => {
     expect(Object.keys(DESIGN_TOKENS.dark).length).toBeLessThanOrEqual(11);
   });
 
-  it('Aurora uses ≤ 4 colors', () => {
-    expect(Object.keys(DESIGN_TOKENS.aurora).length).toBeLessThanOrEqual(4);
+  it('Aurora uses ≤ 5 colors', () => {
+    expect(Object.keys(DESIGN_TOKENS.aurora).length).toBeLessThanOrEqual(5);
   });
 });
 

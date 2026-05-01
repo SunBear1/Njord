@@ -9,7 +9,7 @@ import { APPROVED_HEX_COLORS } from './color-contract.test';
 
 export const CHART_PALETTE = {
   light: {
-    primary: '#5B21B6',     // violet
+    primary: '#0369a1',     // sky-700
     secondary: '#115E59',   // teal
     positive: '#065F46',    // emerald
     negative: '#991B1B',    // red
@@ -17,7 +17,7 @@ export const CHART_PALETTE = {
     band: '#F1F5F9',        // very light — confidence intervals
   },
   dark: {
-    primary: '#C4B5FD',     // violet
+    primary: '#7dd3fc',     // sky-300
     secondary: '#67E8F9',   // cyan
     positive: '#6EE7B7',    // emerald
     negative: '#FCA5A5',    // red
