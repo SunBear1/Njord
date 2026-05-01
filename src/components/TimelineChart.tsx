@@ -65,7 +65,7 @@ function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate, i
           />
           <Legend />
           <ReferenceLine y={currentValuePLN} stroke={isDark ? '#A9B5BF' : '#475569'} strokeDasharray="4 4" />
-          <Line type="monotone" dataKey="benchmark" name={benchmarkLabel}  stroke={isDark ? '#7dd3fc' : '#0369a1'} strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="benchmark" name={benchmarkLabel}  stroke={isDark ? '#38bdf8' : '#0369a1'} strokeWidth={2} dot={false} />
           <Line type="monotone" dataKey="bear"      name="Bear"  stroke={isDark ? '#FCA5A5' : '#991B1B'} strokeWidth={2} dot={false} strokeDasharray="5 3" />
           <Line type="monotone" dataKey="base"      name="Base"  stroke={isDark ? '#67E8F9' : '#115E59'} strokeWidth={2} dot={false} />
           <Line type="monotone" dataKey="bull"      name="Bull"  stroke={isDark ? '#6EE7B7' : '#065F46'} strokeWidth={2} dot={false} />

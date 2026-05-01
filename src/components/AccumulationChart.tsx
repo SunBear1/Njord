@@ -48,7 +48,7 @@ const WRAPPER_COLORS = {
 
 const WRAPPER_COLORS_DARK = {
   ike: '#6EE7B7',
-  ikze: '#7dd3fc',
+  ikze: '#38bdf8',
   regular: '#67E8F9',
   inflation: '#A9B5BF',
   counterfactual: '#FCA5A5',

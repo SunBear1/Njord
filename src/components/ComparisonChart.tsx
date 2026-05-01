@@ -64,7 +64,7 @@ function ComparisonChart({ results, isDark }: ComparisonChartProps) {
           <Legend />
           <ReferenceLine y={currentValue} stroke={isDark ? '#A9B5BF' : '#475569'} strokeDasharray="5 5" label={{ value: 'Wartość dziś', fontSize: 11, fill: isDark ? '#A9B5BF' : '#475569' }} />
           <Bar dataKey="Akcje (netto)" fill={isDark ? '#67E8F9' : '#115E59'} radius={[4, 4, 0, 0]} />
-          <Bar dataKey={bmKey} fill={isDark ? '#7dd3fc' : '#0369a1'} radius={[4, 4, 0, 0]} />
+          <Bar dataKey={bmKey} fill={isDark ? '#38bdf8' : '#0369a1'} radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
