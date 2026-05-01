@@ -39,11 +39,11 @@ interface Step3Props {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const INSTRUMENT_COLORS: Record<PortfolioInstrumentType, string> = {
-  etf: 'bg-accent-primary',
-  stocks_pl: 'bg-accent-primary',
-  stocks_foreign: 'bg-accent-primary/80',
-  bonds: 'bg-danger/50',
-  savings: 'bg-success',
+  etf: 'bg-accent-interactive',
+  stocks_pl: 'bg-accent-interactive',
+  stocks_foreign: 'bg-accent-interactive/80',
+  bonds: 'bg-accent-secondary dark:bg-accent-secondary/20',
+  savings: 'bg-success dark:bg-success/20',
 };
 
 const INSTRUMENT_LABELS: Record<PortfolioInstrumentType, string> = {
@@ -242,7 +242,7 @@ function AllocationRow({
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span
-              className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium text-white ${INSTRUMENT_COLORS[allocation.instrumentType]}`}
+              className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium text-white dark:text-text-primary ${INSTRUMENT_COLORS[allocation.instrumentType]}`}
             >
               {typeIcon(allocation.instrumentType)}
               {INSTRUMENT_LABELS[allocation.instrumentType]}
@@ -446,7 +446,7 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
               <button
                 type="submit"
                 disabled={!customTicker.trim() || isSearching}
-                className="rounded-md bg-accent-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-interactive/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-md bg-accent-interactive px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-interactive/80 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSearching ? '...' : 'Szukaj'}
               </button>

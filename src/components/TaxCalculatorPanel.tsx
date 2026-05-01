@@ -262,7 +262,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                     <button
                       type="button"
                       onClick={handleClearAll}
-                      className="flex-1 text-xs font-semibold text-white bg-danger hover:bg-danger/90 rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-danger"
+                      className="flex-1 text-xs font-semibold text-white dark:text-bg-primary bg-danger hover:bg-danger/90 rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-danger"
                     >
                       Tak, usuń
                     </button>

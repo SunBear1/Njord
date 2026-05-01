@@ -274,7 +274,7 @@ export function AccountPanel({
                 <button
                   onClick={handleDeleteAccount}
                   disabled={isDeleting || (hasPassword && !deletePassword)}
-                  className="flex-1 py-2 px-3 text-sm font-medium text-white bg-danger rounded-lg hover:bg-danger/80 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 py-2 px-3 text-sm font-medium text-white dark:text-bg-primary bg-danger rounded-lg hover:bg-danger/80 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                 >
                   {isDeleting ? 'Usuwanie…' : 'Usuń na stałe'}
                 </button>
