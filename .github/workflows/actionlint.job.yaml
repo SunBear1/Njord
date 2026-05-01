@@ -1,0 +1,13 @@
+name: Actionlint
+
+on:
+  workflow_call:
+
+jobs:
+  actionlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint workflow files
+        uses: raven-actions/actionlint@v2

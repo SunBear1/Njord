@@ -1,10 +1,6 @@
-name: Terraform
+name: Terraform Apply
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "infrastructure/**"
   push:
     branches: [main]
     paths:
@@ -14,53 +10,11 @@ permissions: {}
 
 jobs:
   terraform:
-    name: Terraform ${{ github.event_name == 'push' && 'Apply' || 'Plan' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-    defaults:
-      run:
-        working-directory: ./infrastructure
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
-        with:
-          terraform_version: 1.14
-
-      - name: Terraform Format Check
-        run: terraform fmt -check -recursive
-
-      - name: Terraform Init
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_KEY }}
-          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-        run: |
-          terraform init \
-            -backend-config="endpoints={s3=\"https://${CF_ACCOUNT_ID}.r2.cloudflarestorage.com\"}"
-
-      - name: Terraform Validate
-        run: terraform validate
-
-      - name: Terraform Plan
-        if: github.event_name == 'pull_request'
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_KEY }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.TF_CF_API_KEY }}
-          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-        run: terraform plan -var cf_account_id="${CF_ACCOUNT_ID}"
-
-      - name: Terraform Apply
-        if: github.event_name == 'push'
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_KEY }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.TF_CF_API_KEY }}
-          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-        run: terraform apply -auto-approve -var cf_account_id="${CF_ACCOUNT_ID}"
+    uses: ./.github/workflows/terraform.job.yaml
+    with:
+      dry_run: false
+    secrets:
+      CLOUDFLARE_R2_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY }}
+      CLOUDFLARE_R2_SECRET_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_KEY }}
+      TF_CF_API_KEY: ${{ secrets.TF_CF_API_KEY }}
+      CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
