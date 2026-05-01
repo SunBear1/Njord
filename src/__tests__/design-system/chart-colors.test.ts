@@ -17,7 +17,7 @@ export const CHART_PALETTE = {
     band: '#F1F5F9',        // very light — confidence intervals
   },
   dark: {
-    primary: '#7dd3fc',     // sky-300
+    primary: '#38bdf8',     // sky-400
     secondary: '#67E8F9',   // cyan
     positive: '#6EE7B7',    // emerald
     negative: '#FCA5A5',    // red

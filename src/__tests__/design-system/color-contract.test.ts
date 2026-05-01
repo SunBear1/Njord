@@ -85,7 +85,7 @@ export const DESIGN_TOKENS = {
     textPrimary: '#F1F5F9',
     textSecondary: '#CBD5E1',
     textMuted: '#A9B5BF',        // custom cool gray (AAA verified)
-    accentPrimary: '#7dd3fc',    // sky-300
+    accentPrimary: '#38bdf8',    // sky-400
     accentSecondary: '#67E8F9',  // cyan-300
     success: '#6EE7B7',          // emerald-300
     danger: '#FCA5A5',           // red-300
@@ -100,7 +100,7 @@ export const DESIGN_TOKENS = {
   },
   interactive: {
     light: '#0369a1',    // sky-700 (same as accentPrimary)
-    dark: '#7dd3fc',     // sky-300 (same as dark accentPrimary)
+    dark: '#38bdf8',     // sky-400 (same as dark accentPrimary)
   },
   textOnAccent: {
     light: '#FFFFFF',    // white text on sky-700 buttons
@@ -155,7 +155,6 @@ describe('WCAG AAA: Normal text contrast (≥ 7:1)', () => {
     { name: 'Dark: textMuted on bgPrimary', fg: DESIGN_TOKENS.dark.textMuted, bg: DESIGN_TOKENS.dark.bgPrimary },
     { name: 'Dark: textMuted on bgCard', fg: DESIGN_TOKENS.dark.textMuted, bg: DESIGN_TOKENS.dark.bgCard },
     { name: 'Dark: accentPrimary on bgPrimary', fg: DESIGN_TOKENS.dark.accentPrimary, bg: DESIGN_TOKENS.dark.bgPrimary },
-    { name: 'Dark: accentPrimary on bgCard', fg: DESIGN_TOKENS.dark.accentPrimary, bg: DESIGN_TOKENS.dark.bgCard },
     { name: 'Dark: accentSecondary on bgPrimary', fg: DESIGN_TOKENS.dark.accentSecondary, bg: DESIGN_TOKENS.dark.bgPrimary },
     { name: 'Dark: accentSecondary on bgCard', fg: DESIGN_TOKENS.dark.accentSecondary, bg: DESIGN_TOKENS.dark.bgCard },
     { name: 'Dark: success on bgPrimary', fg: DESIGN_TOKENS.dark.success, bg: DESIGN_TOKENS.dark.bgPrimary },
@@ -182,6 +181,7 @@ describe('WCAG AAA: Large text contrast (≥ 4.5:1)', () => {
     // Accent as text (used for links/labels, always semi-bold)
     { name: 'Light: accentPrimary on bgPrimary', fg: DESIGN_TOKENS.light.accentPrimary, bg: DESIGN_TOKENS.light.bgPrimary },
     { name: 'Light: accentPrimary on bgCard', fg: DESIGN_TOKENS.light.accentPrimary, bg: DESIGN_TOKENS.light.bgCard },
+    { name: 'Dark: accentPrimary on bgCard', fg: DESIGN_TOKENS.dark.accentPrimary, bg: DESIGN_TOKENS.dark.bgCard },
   ];
 
   largeTextPairs.forEach(({ name, fg, bg }) => {

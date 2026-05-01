@@ -10,7 +10,7 @@ const APPROVED_HEX = new Set([
   '#FFFFFF', '#F8FAFC', '#F1F5F9', '#0F172A', '#334155', '#475569',
   '#0369a1', '#115E59', '#065F46', '#991B1B', '#CBD5E1',
   // Dark mode
-  '#1E293B', '#A9B5BF', '#7dd3fc', '#67E8F9', '#6EE7B7', '#FCA5A5',
+  '#1E293B', '#A9B5BF', '#38bdf8', '#67E8F9', '#6EE7B7', '#FCA5A5',
   // Interactive + text-on-accent
   '#082f49',
   // Aurora (decorative gradient colors)
