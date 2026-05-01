@@ -26,7 +26,7 @@ I do NOT touch: `.github/agents/`, `.github/instructions/`, `.github/skills/`.
 2. **Composite actions only** -- `runs.using: composite`, `shell: bash` on every `run` step.
 3. **No inline `${{ }}` in `run:` blocks** -- inject via `env:` block.
 4. **Outputs via `>> "$GITHUB_OUTPUT"`** -- never deprecated `set-output`.
-5. **Pin third-party actions to SHA.** Exception: official `actions/*` can use `@v4`.
+5. **Use major version tags** for third-party actions (e.g. `@v2`, `@v4`). SHA-pinning is not required.
 6. **Cache aggressively** -- `actions/setup-node` with `cache: 'npm'`.
 7. **Lint with `actionlint`** before committing. Add actionlint CI step if missing.
 8. **`dry_run`**: auto-set `true` on PR, `false` on push. Pass as arg to scripts -- never re-derive. Deploy/upload/tag steps skip when `true`.
