@@ -55,8 +55,8 @@ function SourceTable({ title, href, rates, getRate }: {
           <thead>
             <tr className="text-muted dark:text-muted text-xs uppercase tracking-wider bg-surface-muted dark:bg-surface-dark">
               <th className="px-4 py-2 text-left font-medium">Waluta</th>
-              <th className="px-3 py-2 text-right font-medium text-green-700 dark:text-green-400">Kupno ↓</th>
-              <th className="px-3 py-2 text-right font-medium text-orange-600 dark:text-orange-400">Sprzedaż ↑</th>
+              <th className="px-3 py-2 text-right font-medium text-green-700 dark:text-green-400">Kupno</th>
+              <th className="px-3 py-2 text-right font-medium text-orange-600 dark:text-orange-400">Sprzedaż</th>
               <th className="px-3 py-2 text-right font-medium">Spread</th>
             </tr>
           </thead>
@@ -144,10 +144,10 @@ export function RatesPage() {
           <div className="bg-surface-muted dark:bg-surface-alt border border-edge dark:border-edge rounded-xl px-4 py-3 text-xs text-muted dark:text-muted space-y-1">
             <p className="text-[11px] font-semibold text-muted dark:text-muted uppercase tracking-wider mb-1.5">Jak czytać tabelę — perspektywa banku/kantoru</p>
             <p>
-              <strong className="text-body dark:text-on-dark-muted text-green-700 dark:text-green-400">Kupno ↓</strong> — bank kupuje walutę od Ciebie (dostajesz mniej PLN, niższy kurs).
+              <strong className="text-green-700 dark:text-green-400">Kupno</strong> — bank kupuje walutę od Ciebie (dostajesz mniej PLN, niższy kurs).
             </p>
             <p>
-              <strong className="text-orange-600 dark:text-orange-400">Sprzedaż ↑</strong> — bank sprzedaje Ci walutę (płacisz więcej PLN, wyższy kurs).
+              <strong className="text-orange-600 dark:text-orange-400">Sprzedaż</strong> — bank sprzedaje Ci walutę (płacisz więcej PLN, wyższy kurs).
             </p>
             <p>
               <strong className="text-body dark:text-on-dark-muted">Spread</strong> — różnica procentowa między sprzedażą a kupnem. Im mniejszy, tym korzystniejszy dla klienta.

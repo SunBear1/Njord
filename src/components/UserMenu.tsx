@@ -86,7 +86,7 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSet
             <p className="text-sm font-medium text-heading dark:text-on-dark break-words">
               {user.name ?? 'Użytkownik'}
             </p>
-            <p className="text-xs text-muted dark:text-faint break-all">{user.email}</p>
+            <p className="text-xs text-muted dark:text-muted break-all">{user.email}</p>
           </div>
 
           {/* Actions */}

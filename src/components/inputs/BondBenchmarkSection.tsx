@@ -83,18 +83,18 @@ export function BondBenchmarkSection({
 
           <div className="bg-surface-alt dark:bg-surface-dark-alt border border-edge dark:border-edge-strong rounded-lg p-3 space-y-2 text-xs">
             <div className="flex justify-between">
-              <span className="text-body dark:text-faint">Oprocentowanie 1. roku:</span>
+              <span className="text-body dark:text-on-dark-muted">Oprocentowanie 1. roku:</span>
               <span className="font-semibold text-heading dark:text-on-dark">{bondSettings.firstYearRate.toFixed(2)}%</span>
             </div>
 
             {preset.rateType === 'inflation' && (
               <>
                 <div className="flex justify-between">
-                  <span className="text-body dark:text-faint">Marża:</span>
+                  <span className="text-body dark:text-on-dark-muted">Marża:</span>
                   <span className="font-medium">{bondSettings.margin.toFixed(2)}%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-body dark:text-faint flex items-center gap-1">
+                  <span className="text-body dark:text-on-dark-muted flex items-center gap-1">
                     Inflacja CPI
                     {inflationLoading && (
                       <span className="text-faint dark:text-muted inline-flex items-center gap-1">
@@ -121,7 +121,7 @@ export function BondBenchmarkSection({
                   />
                 </div>
                 <div className="flex justify-between border-t border-edge dark:border-edge-strong pt-1.5">
-                  <span className="text-body dark:text-faint font-medium">Stopa efektywna (od 2. roku):</span>
+                  <span className="text-body dark:text-on-dark-muted font-medium">Stopa efektywna (od 2. roku):</span>
                   <span className="font-bold text-accent-hover dark:text-accent">{bondEffectiveRate.toFixed(2)}%</span>
                 </div>
               </>
@@ -130,11 +130,11 @@ export function BondBenchmarkSection({
             {preset.rateType === 'reference' && (
               <>
                 <div className="flex justify-between">
-                  <span className="text-body dark:text-faint">Marża:</span>
+                  <span className="text-body dark:text-on-dark-muted">Marża:</span>
                   <span className="font-medium">{bondSettings.margin.toFixed(2)}%</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-body dark:text-faint flex items-center gap-1">
+                  <span className="text-body dark:text-on-dark-muted flex items-center gap-1">
                     Stopa referencyjna NBP:
                     <a
                       href="https://www.nbp.pl/polityka-pieniezna/instrumenty/stopy-procentowe.aspx"
@@ -159,7 +159,7 @@ export function BondBenchmarkSection({
                   />
                 </div>
                 <div className="flex justify-between border-t border-edge dark:border-edge-strong pt-1.5">
-                  <span className="text-body dark:text-faint font-medium">Stopa efektywna (od 2. okresu):</span>
+                  <span className="text-body dark:text-on-dark-muted font-medium">Stopa efektywna (od 2. okresu):</span>
                   <span className="font-bold text-accent-hover dark:text-accent">{bondEffectiveRate.toFixed(2)}%</span>
                 </div>
               </>
@@ -167,7 +167,7 @@ export function BondBenchmarkSection({
 
             {preset.rateType === 'fixed' && (
               <div className="flex justify-between">
-                <span className="text-body dark:text-faint">Typ:</span>
+                <span className="text-body dark:text-on-dark-muted">Typ:</span>
                 <span className="font-medium">Stała stopa przez cały okres</span>
               </div>
             )}
@@ -177,7 +177,7 @@ export function BondBenchmarkSection({
             <div className="space-y-1">
               <label htmlFor="bond-penalty" className="text-sm font-medium text-body dark:text-on-dark-muted">
                 Kara za wcz. wykup
-                <span className="ml-1 text-xs font-normal text-muted dark:text-faint">(% kapitału)</span>
+                <span className="ml-1 text-xs font-normal text-muted dark:text-muted">(% kapitału)</span>
               </label>
               <input
                 id="bond-penalty"

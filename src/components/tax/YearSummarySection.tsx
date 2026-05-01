@@ -46,7 +46,7 @@ function SummaryRow({
 }) {
   return (
     <div className={`flex items-center justify-between gap-2 py-1.5 ${bold ? 'border-t border-edge dark:border-edge-strong mt-1 pt-2.5' : ''}`}>
-      <span className={`text-xs ${bold ? 'font-semibold text-body dark:text-on-dark-muted' : 'text-muted dark:text-faint'}`}>
+      <span className={`text-xs ${bold ? 'font-semibold text-body dark:text-on-dark-muted' : 'text-muted dark:text-muted'}`}>
         {label}
         {note && <span className="ml-1 text-faint dark:text-muted font-normal">{note}</span>}
       </span>
@@ -94,7 +94,7 @@ function PitZgSection({ entries }: { entries: PitZgCurrencyEntry[] }) {
                   {pitZgFields?.countryCode || currency}
                 </span>
                 {country ? (
-                  <span className="text-body dark:text-faint truncate">{country}</span>
+                  <span className="text-body dark:text-on-dark-muted truncate">{country}</span>
                 ) : isEurAmbiguous ? (
                   <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
                     <AlertTriangle size={11} aria-hidden="true" />
@@ -107,7 +107,7 @@ function PitZgSection({ entries }: { entries: PitZgCurrencyEntry[] }) {
               <span className="text-right tabular-nums text-body dark:text-on-dark-muted font-medium">
                 {fmtPLNGrosze(revenuePLN)}
               </span>
-              <span className="text-right tabular-nums text-body dark:text-faint">
+              <span className="text-right tabular-nums text-body dark:text-on-dark-muted">
                 {fmtPLNGrosze(costPLN)}
               </span>
               <span className={`text-right tabular-nums font-semibold ${g.cls}`}>
@@ -351,7 +351,7 @@ export function YearSummarySection({
             : 'bg-surface-alt dark:bg-surface-dark/50 border-edge dark:border-edge-strong'
         }`}>
           <div>
-            <p className={`text-xs font-semibold mb-0.5 ${summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-muted dark:text-faint'}`}>
+            <p className={`text-xs font-semibold mb-0.5 ${summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-muted dark:text-muted'}`}>
               Podatek do zapłaty (Poz. 51)
             </p>
             <p className={`text-[11px] ${summary.pit38Fields.poz51_totalTaxDue > 0 ? 'text-amber-600/70 dark:text-amber-500/70' : 'text-faint dark:text-muted'}`}>

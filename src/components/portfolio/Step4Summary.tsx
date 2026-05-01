@@ -43,7 +43,7 @@ function MetricCard({ icon, label, value, colorClass = 'text-body dark:text-on-d
     <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-5 flex items-start gap-3">
       <div className={`mt-0.5 ${colorClass}`}>{icon}</div>
       <div className="min-w-0">
-        <p className="text-xs text-muted dark:text-faint leading-tight">{label}</p>
+        <p className="text-xs text-muted dark:text-muted leading-tight">{label}</p>
         <p className={`font-semibold tabular-nums truncate ${emphasized ? 'text-lg' : 'text-base'} ${colorClass}`}>
           {value}
         </p>
@@ -182,13 +182,13 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
       <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
           <div>
-            <p className="text-xs text-muted dark:text-faint mb-1">Z IKE/IKZE</p>
+            <p className="text-xs text-muted dark:text-muted mb-1">Z IKE/IKZE</p>
             <p className="text-xl font-bold text-green-700 dark:text-green-300 tabular-nums">
               {fmtPLN(result.totalTerminalNet)}
             </p>
           </div>
           <div>
-            <p className="text-xs text-muted dark:text-faint mb-1">Bez (zwykły rachunek)</p>
+            <p className="text-xs text-muted dark:text-muted mb-1">Bez (zwykły rachunek)</p>
             <p className="text-xl font-bold text-body dark:text-on-dark-muted tabular-nums">
               {fmtPLN(result.counterfactualNet)}
             </p>
@@ -234,7 +234,7 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
           <div className="overflow-x-auto px-2 pb-4">
             <table className="w-full text-xs text-left">
               <thead>
-                <tr className="border-b border-edge dark:border-edge-strong text-muted dark:text-faint sticky top-0 bg-surface dark:bg-surface-dark">
+                <tr className="border-b border-edge dark:border-edge-strong text-muted dark:text-muted sticky top-0 bg-surface dark:bg-surface-dark">
                   <th className="px-2 py-2 font-medium">Rok</th>
                   <th className="px-2 py-2 font-medium text-right">Wpłaty IKE</th>
                   <th className="px-2 py-2 font-medium text-right">Wartość IKE</th>

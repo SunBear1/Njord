@@ -26,7 +26,7 @@ function CustomLegend({ payload }: { payload?: Array<{ value: string; color: str
   return (
     <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-2 px-2">
       {payload.map((entry) => (
-        <span key={entry.value} className="inline-flex items-center gap-1.5 text-xs text-body dark:text-faint whitespace-nowrap">
+        <span key={entry.value} className="inline-flex items-center gap-1.5 text-xs text-body dark:text-on-dark-muted whitespace-nowrap">
           <span
             className="inline-block w-2.5 h-2.5 rounded-sm shrink-0"
             style={{ backgroundColor: entry.color }}
@@ -96,7 +96,7 @@ function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps)
           <button
             type="button"
             onClick={() => setViewMode('stacked')}
-            className={`px-2.5 py-1 transition-colors ${viewMode === 'stacked' ? 'bg-surface-muted dark:bg-surface-dark-alt font-semibold text-heading dark:text-on-dark' : 'text-muted dark:text-faint hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50'}`}
+            className={`px-2.5 py-1 transition-colors ${viewMode === 'stacked' ? 'bg-surface-muted dark:bg-surface-dark-alt font-semibold text-heading dark:text-on-dark' : 'text-muted dark:text-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50'}`}
             aria-pressed={viewMode === 'stacked'}
           >
             Skumulowany
@@ -104,7 +104,7 @@ function AccumulationChart({ data, milestones, isDark }: AccumulationChartProps)
           <button
             type="button"
             onClick={() => setViewMode('lines')}
-            className={`px-2.5 py-1 transition-colors ${viewMode === 'lines' ? 'bg-surface-muted dark:bg-surface-dark-alt font-semibold text-heading dark:text-on-dark' : 'text-muted dark:text-faint hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50'}`}
+            className={`px-2.5 py-1 transition-colors ${viewMode === 'lines' ? 'bg-surface-muted dark:bg-surface-dark-alt font-semibold text-heading dark:text-on-dark' : 'text-muted dark:text-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50'}`}
             aria-pressed={viewMode === 'lines'}
           >
             Linie

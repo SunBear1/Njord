@@ -232,7 +232,7 @@ export function ComparisonPage() {
             </div>
 
             {!canCalc && (
-              <div className="bg-bg-card rounded-xl border border-dashed border-border-strong p-10 text-center text-text-faint space-y-2">
+              <div className="bg-bg-card rounded-xl border border-dashed border-border-strong p-10 text-center text-muted dark:text-muted space-y-2">
                 <p className="text-lg">Wprowadź ticker i dane portfela, aby zobaczyć wyniki</p>
                 <p className="text-sm">Podaj ticker spółki lub ETF, liczbę akcji i parametry benchmarku.</p>
               </div>

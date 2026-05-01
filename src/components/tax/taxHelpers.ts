@@ -5,7 +5,7 @@ export const INPUT_CLS =
   'w-full border border-edge-strong dark:border-edge-strong rounded-lg px-3 py-2 text-sm ' +
   'focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:bg-surface-dark-alt dark:text-on-dark ' +
   'dark:placeholder-faint';
-export const LABEL_CLS = 'text-xs font-medium text-body dark:text-faint';
+export const LABEL_CLS = 'text-xs font-medium text-body dark:text-on-dark-muted';
 export const COL_COUNT = 9;
 
 export const CURRENCIES = ['USD', 'EUR', 'GBP', 'CHF', 'DKK', 'SEK', 'PLN'] as const;

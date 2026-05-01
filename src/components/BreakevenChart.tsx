@@ -42,7 +42,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
           <button
             type="button"
             onClick={() => setView('grid')}
-            className={`px-2.5 py-1 ${view === 'grid' ? 'bg-surface-muted dark:bg-surface-dark-alt font-semibold text-heading dark:text-on-dark' : 'text-muted dark:text-faint hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50'}`}
+            className={`px-2.5 py-1 ${view === 'grid' ? 'bg-surface-muted dark:bg-surface-dark-alt font-semibold text-heading dark:text-on-dark' : 'text-muted dark:text-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50'}`}
             aria-pressed={view === 'grid'}
           >
             Siatka
@@ -50,14 +50,14 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
           <button
             type="button"
             onClick={() => setView('list')}
-            className={`px-2.5 py-1 border-l border-edge dark:border-edge-strong ${view === 'list' ? 'bg-surface-muted dark:bg-surface-dark-alt font-semibold text-heading dark:text-on-dark' : 'text-muted dark:text-faint hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50'}`}
+            className={`px-2.5 py-1 border-l border-edge dark:border-edge-strong ${view === 'list' ? 'bg-surface-muted dark:bg-surface-dark-alt font-semibold text-heading dark:text-on-dark' : 'text-muted dark:text-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50'}`}
             aria-pressed={view === 'list'}
           >
             Lista
           </button>
         </div>
       </div>
-      <p className="text-xs text-muted dark:text-faint">
+      <p className="text-xs text-muted dark:text-muted">
         Komórki oznaczają, w których kombinacjach zmian akcje biją {benchmarkLabel.toLowerCase()} (netto). {benchmarkLabel} docelowe:{' '}
         <strong>{fmtPLN(benchmarkEndValuePLN)}</strong>.
       </p>
@@ -71,7 +71,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
                   Akcje ↓ / USD/PLN →
                 </th>
                 {deltaFxValues.map((df) => (
-                  <th key={df} className="p-1 font-medium text-body dark:text-faint text-center min-w-[48px] tabular-nums">
+                  <th key={df} className="p-1 font-medium text-body dark:text-on-dark-muted text-center min-w-[48px] tabular-nums">
                     {df > 0 ? '+' : ''}{df}%
                   </th>
                 ))}
@@ -80,7 +80,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
             <tbody>
               {deltaStockValues.map((ds) => (
                 <tr key={ds}>
-                  <td className="p-1 font-medium text-body dark:text-faint text-right pr-2 tabular-nums">
+                  <td className="p-1 font-medium text-body dark:text-on-dark-muted text-right pr-2 tabular-nums">
                     {ds > 0 ? '+' : ''}{ds}%
                   </td>
                   {deltaFxValues.map((df) => {
@@ -94,7 +94,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
                         className={`p-1 text-center rounded cursor-default transition-colors relative group/cell ${
                           beatsBenchmark
                             ? 'bg-accent-muted dark:bg-surface-dark/40 text-accent-hover dark:text-on-dark-muted font-medium'
-                            : 'bg-surface-muted dark:bg-surface-dark-alt text-muted dark:text-faint'
+                            : 'bg-surface-muted dark:bg-surface-dark-alt text-muted dark:text-muted'
                         }`}
                       >
                         {beatsBenchmark ? '✓' : '✗'}
@@ -115,7 +115,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
         /* List view — mobile-friendly, shows winning combinations */
         <div className="space-y-1.5">
           {winnerCells.length === 0 ? (
-            <p className="text-xs text-muted dark:text-faint text-center py-4">
+            <p className="text-xs text-muted dark:text-muted text-center py-4">
               W żadnym scenariuszu akcje nie biją benchmarku.
             </p>
           ) : (
@@ -151,7 +151,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
         </div>
       )}
 
-      <div className="flex items-center gap-4 text-xs text-muted dark:text-faint pt-1 flex-wrap">
+      <div className="flex items-center gap-4 text-xs text-muted dark:text-muted pt-1 flex-wrap">
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-4 h-4 rounded bg-accent-muted dark:bg-surface-dark/40 border border-accent dark:border-accent" />
           Akcje lepsze (✓)

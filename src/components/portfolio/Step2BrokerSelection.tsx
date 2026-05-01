@@ -117,7 +117,7 @@ function BrokerCard({
       </div>
 
       {/* Commission & spread */}
-      <div className="space-y-1 text-xs text-body dark:text-faint mb-2">
+      <div className="space-y-1 text-xs text-body dark:text-on-dark-muted mb-2">
         <p>
           <span className="font-medium text-body dark:text-on-dark-muted">Prowizja:</span>{' '}
           {broker.commissionEtf}
@@ -130,7 +130,7 @@ function BrokerCard({
 
       {/* Notes */}
       {broker.notes ? (
-        <div className="flex items-start gap-1.5 text-xs text-muted dark:text-faint">
+        <div className="flex items-start gap-1.5 text-xs text-muted dark:text-muted">
           <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
           <span>{broker.notes}</span>
         </div>
@@ -178,7 +178,7 @@ export default function Step2BrokerSelection({
           </span>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-body dark:text-faint mb-4 cursor-pointer select-none">
+        <label className="flex items-center gap-2 text-sm text-body dark:text-on-dark-muted mb-4 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={!ikeEnabled}
@@ -214,7 +214,7 @@ export default function Step2BrokerSelection({
           </span>
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-body dark:text-faint mb-4 cursor-pointer select-none">
+        <label className="flex items-center gap-2 text-sm text-body dark:text-on-dark-muted mb-4 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={!ikzeEnabled}

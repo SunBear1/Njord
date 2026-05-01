@@ -53,7 +53,7 @@ export function ForecastPage() {
               value={tickerInput}
               onChange={e => setTickerInput(e.target.value.toUpperCase())}
               placeholder="np. AAPL, MSFT, SPY…"
-              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-white dark:bg-bg-muted text-text-primary placeholder:text-text-faint focus:outline-none focus:ring-2 focus:ring-surface-dark/30 text-sm"
+              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-white dark:bg-surface-dark text-text-primary dark:text-on-dark placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-surface-dark/30 text-sm"
               autoComplete="off"
               spellCheck={false}
             />
@@ -83,11 +83,10 @@ export function ForecastPage() {
           <div className="flex items-center gap-3 text-sm text-text-secondary">
             <span className="font-medium text-text-primary">{assetData.asset.name}</span>
             <span>({activeTicker})</span>
-            <span className="text-text-faint">·</span>
-            <span>{assetData.asset.currentPrice.toFixed(2)} USD</span>
+            <span className="text-faint">·</span>
             {currentFxRate > 0 && (
               <>
-                <span className="text-text-faint">·</span>
+                <span className="text-faint">·</span>
                 <span>{(assetData.asset.currentPrice * currentFxRate).toFixed(2)} PLN</span>
               </>
             )}
@@ -97,7 +96,7 @@ export function ForecastPage() {
 
       {assetData && (
         <ErrorBoundary>
-          <Suspense fallback={<div className="text-center py-8 text-text-faint">Ładowanie modułu…</div>}>
+          <Suspense fallback={<div className="text-center py-8 text-muted dark:text-muted">Ładowanie modułu…</div>}>
             <SellAnalysisPanel
               analysis={sellAnalysis}
               isLoading={sellLoading}
@@ -111,7 +110,7 @@ export function ForecastPage() {
       )}
 
       {!assetData && !assetLoading && !assetError && (
-        <div className="bg-bg-card rounded-xl border border-dashed border-border-strong p-10 text-center text-text-faint space-y-2">
+        <div className="bg-bg-card rounded-xl border border-dashed border-border-strong p-10 text-center text-muted dark:text-muted space-y-2">
           <p className="text-lg">Wprowadź ticker, aby zobaczyć prognozę cenową</p>
           <p className="text-sm">Wpisz symbol spółki lub ETF (np. AAPL, MSFT, SPY) i kliknij „Analizuj".</p>
         </div>

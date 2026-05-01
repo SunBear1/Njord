@@ -27,7 +27,7 @@ function Toggle({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs text-muted dark:text-faint">{value ? '' : 'NIE'}</span>
+      <span className="text-xs text-muted dark:text-muted">{value ? '' : 'NIE'}</span>
       <button
         type="button"
         id={id}
@@ -44,7 +44,7 @@ function Toggle({
           }`}
         />
       </button>
-      <span className="text-xs text-muted dark:text-faint">{value ? 'TAK' : ''}</span>
+      <span className="text-xs text-muted dark:text-muted">{value ? 'TAK' : ''}</span>
     </div>
   );
 }

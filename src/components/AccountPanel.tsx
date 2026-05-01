@@ -118,7 +118,7 @@ export function AccountPanel({
               <p className="text-sm font-semibold text-heading dark:text-on-dark break-words">
                 {user.name ?? 'Użytkownik'}
               </p>
-              <p className="text-sm text-muted dark:text-faint break-all">{user.email}</p>
+              <p className="text-sm text-muted dark:text-muted break-all">{user.email}</p>
             </div>
           </div>
         </div>
@@ -233,7 +233,7 @@ export function AccountPanel({
             <Trash2 size={16} aria-hidden="true" />
             Usuń konto
           </h3>
-          <p className="text-xs text-muted dark:text-faint mb-3">
+          <p className="text-xs text-muted dark:text-muted mb-3">
             Ta operacja jest nieodwracalna. Wszystkie Twoje dane zostaną trwale usunięte.
           </p>
 

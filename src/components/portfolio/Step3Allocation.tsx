@@ -177,7 +177,7 @@ function AllocationBar({
                 <span
                   className={`inline-block h-2.5 w-2.5 rounded-sm ${INSTRUMENT_COLORS[a.instrumentType]}`}
                 />
-                <span className="text-body dark:text-faint">
+                <span className="text-body dark:text-on-dark-muted">
                   {INSTRUMENT_LABELS[a.instrumentType]} {Math.round(a.allocationPercent)}%
                 </span>
                 <span className="text-faint dark:text-muted">
@@ -252,7 +252,7 @@ function AllocationRow({
             </span>
           </div>
           {subtitle ? (
-            <p className="mt-0.5 text-xs text-muted dark:text-faint">{subtitle}</p>
+            <p className="mt-0.5 text-xs text-muted dark:text-muted">{subtitle}</p>
           ) : null}
           <p className="mt-0.5 text-xs font-medium text-accent dark:text-accent">
             {fmtPLN(plnAmount)}/mies.
@@ -272,7 +272,7 @@ function AllocationRow({
 
       <div className="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 items-center">
         <div>
-          <label className="text-xs text-muted dark:text-faint">Alokacja</label>
+          <label className="text-xs text-muted dark:text-muted">Alokacja</label>
           <div className="flex items-center gap-2">
             <input
               type="range"
@@ -291,7 +291,7 @@ function AllocationRow({
         </div>
 
         <div>
-          <label className="text-xs text-muted dark:text-faint">Oczekiwana stopa</label>
+          <label className="text-xs text-muted dark:text-muted">Oczekiwana stopa</label>
           <div className="flex items-center gap-1">
             <input
               type="number"
@@ -303,7 +303,7 @@ function AllocationRow({
               className="w-20 rounded-md border border-edge-strong dark:border-edge-strong bg-surface dark:bg-surface-dark-alt px-2 py-1 text-xs font-mono text-right text-heading dark:text-on-dark focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               aria-label={`Oczekiwana stopa zwrotu ${instrumentLabel(allocation)}`}
             />
-            <span className="text-xs text-muted dark:text-faint">%</span>
+            <span className="text-xs text-muted dark:text-muted">%</span>
           </div>
         </div>
       </div>
@@ -394,7 +394,7 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
             {/* ETF / Stocks section */}
             {etfOptions.length > 0 ? (
               <div>
-                <div className="sticky top-0 bg-surface-alt dark:bg-surface-dark-alt px-3 py-1.5 text-xs font-semibold text-muted dark:text-faint uppercase tracking-wider flex items-center gap-1.5">
+                <div className="sticky top-0 bg-surface-alt dark:bg-surface-dark-alt px-3 py-1.5 text-xs font-semibold text-muted dark:text-muted uppercase tracking-wider flex items-center gap-1.5">
                   <TrendingUp className="h-3 w-3" aria-hidden="true" />
                   ETF / Akcje
                 </div>
@@ -405,7 +405,7 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
             {/* Bonds section */}
             {bondOptions.length > 0 ? (
               <div>
-                <div className="sticky top-0 bg-surface-alt dark:bg-surface-dark-alt px-3 py-1.5 text-xs font-semibold text-muted dark:text-faint uppercase tracking-wider flex items-center gap-1.5">
+                <div className="sticky top-0 bg-surface-alt dark:bg-surface-dark-alt px-3 py-1.5 text-xs font-semibold text-muted dark:text-muted uppercase tracking-wider flex items-center gap-1.5">
                   <Landmark className="h-3 w-3" aria-hidden="true" />
                   Obligacje skarbowe
                 </div>
@@ -416,7 +416,7 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
             {/* Savings section */}
             {savingsOptions.length > 0 ? (
               <div>
-                <div className="sticky top-0 bg-surface-alt dark:bg-surface-dark-alt px-3 py-1.5 text-xs font-semibold text-muted dark:text-faint uppercase tracking-wider flex items-center gap-1.5">
+                <div className="sticky top-0 bg-surface-alt dark:bg-surface-dark-alt px-3 py-1.5 text-xs font-semibold text-muted dark:text-muted uppercase tracking-wider flex items-center gap-1.5">
                   <Banknote className="h-3 w-3" aria-hidden="true" />
                   Lokata
                 </div>
@@ -425,14 +425,14 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
             ) : null}
 
             {available.length === 0 ? (
-              <div className="px-3 py-4 text-center text-sm text-muted dark:text-faint">
+              <div className="px-3 py-4 text-center text-sm text-muted dark:text-muted">
                 Wszystkie dostępne instrumenty zostały już dodane
               </div>
             ) : null}
           </div>
           {/* Custom ETF search */}
           <div className="border-t border-edge dark:border-edge-strong p-3">
-            <p className="text-xs text-muted dark:text-faint mb-2">
+            <p className="text-xs text-muted dark:text-muted mb-2">
               Wyszukaj dowolny ETF lub akcję po tickerze (Yahoo Finance)
             </p>
             <form onSubmit={handleCustomEtfSubmit} className="flex gap-2">
@@ -571,7 +571,7 @@ function WrapperSection({
               {amount}
             </span>
           </div>
-          <p className="mt-0.5 text-xs text-muted dark:text-faint">{taxBenefit}</p>
+          <p className="mt-0.5 text-xs text-muted dark:text-muted">{taxBenefit}</p>
         </div>
         {collapsed ? (
           <ChevronDown className="h-5 w-5 shrink-0 text-faint" aria-hidden="true" />
@@ -698,12 +698,12 @@ export default function Step3Allocation({
                   Reinwestuj ulgę podatkową z IKZE?
                 </p>
                 {state.reinvestIkzeDeduction ? (
-                  <p className="mt-0.5 text-xs text-muted dark:text-faint">
+                  <p className="mt-0.5 text-xs text-muted dark:text-muted">
                     Ulga {fmtPLN(ikzePitDeductionAnnual)}/rok jest reinwestowana na koncie
                     oszczędnościowym
                   </p>
                 ) : (
-                  <p className="mt-0.5 text-xs text-muted dark:text-faint">
+                  <p className="mt-0.5 text-xs text-muted dark:text-muted">
                     Ulga podatkowa nie jest wliczana do symulacji
                   </p>
                 )}

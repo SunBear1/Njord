@@ -277,7 +277,7 @@ export function ScenarioEditor({
               <strong>USD / PLN</strong> — docelowa cena lub kurs
             </span>
           }>
-            <HelpCircle size={16} aria-hidden="true" className="text-muted dark:text-faint cursor-help hover:text-body dark:hover:text-muted transition-colors" />
+            <HelpCircle size={16} aria-hidden="true" className="text-muted dark:text-muted cursor-help hover:text-body dark:hover:text-on-dark-muted transition-colors" />
           </Tooltip>
           {volatilityStats?.modelsLoading && (
             <span className="flex items-center gap-1 text-xs text-faint dark:text-muted">
@@ -375,7 +375,7 @@ export function ScenarioEditor({
                 </span>
               }
             >
-              <HelpCircle size={12} aria-hidden="true" className="text-muted dark:text-faint cursor-help hover:text-body dark:hover:text-muted transition-colors" />
+              <HelpCircle size={12} aria-hidden="true" className="text-muted dark:text-muted cursor-help hover:text-body dark:hover:text-on-dark-muted transition-colors" />
             </Tooltip>
           </div>
         );

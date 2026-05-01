@@ -226,7 +226,7 @@ function CalcLine({
   minor?: boolean;
 }) {
   return (
-    <div className={`flex items-baseline justify-between gap-2 ${minor ? 'text-[11px] text-muted dark:text-faint' : ''}`}>
+    <div className={`flex items-baseline justify-between gap-2 ${minor ? 'text-[11px] text-muted dark:text-muted' : ''}`}>
       <div className="flex items-baseline gap-1 min-w-0">
         <span className={`flex-shrink-0 ${minor ? '' : 'font-medium text-body dark:text-on-dark-muted'}`}>
           {subtract && <span className="text-red-500 dark:text-red-400 mr-0.5">−</span>}
@@ -548,7 +548,7 @@ export function TransactionCard({
         </span>
 
         {/* Amount */}
-        <span className="text-sm tabular-nums text-muted dark:text-faint whitespace-nowrap hidden md:inline ml-auto">
+        <span className="text-sm tabular-nums text-muted dark:text-muted whitespace-nowrap hidden md:inline ml-auto">
           {tx.saleGrossAmount > 0
             ? `${tx.saleGrossAmount.toLocaleString('pl-PL', { maximumFractionDigits: 2 })} ${tx.currency}`
             : ''}
@@ -569,7 +569,7 @@ export function TransactionCard({
         {/* Actions */}
         <div className="flex items-center gap-1 flex-shrink-0 ml-1">
           {tx.importSource && (
-            <span className="inline-flex items-center bg-surface-muted dark:bg-surface-dark-alt/60 text-muted dark:text-faint px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide">
+            <span className="inline-flex items-center bg-surface-muted dark:bg-surface-dark-alt/60 text-muted dark:text-muted px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide">
               {tx.importSource}
             </span>
           )}
@@ -739,7 +739,7 @@ export function TransactionCard({
                   className="rounded border-edge-strong dark:border-edge-strong text-accent focus:ring-accent"
                 />
                 <ArrowRightLeft size={12} className="text-faint" aria-hidden="true" />
-                <span className="text-body dark:text-faint">
+                <span className="text-body dark:text-on-dark-muted">
                   Inna waluta nabycia niż sprzedaży
                 </span>
               </label>
@@ -819,7 +819,7 @@ export function TransactionCard({
             ) : (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-body dark:text-faint">Prowizje brokera</span>
+                  <span className="text-xs font-medium text-body dark:text-on-dark-muted">Prowizje brokera</span>
                   {!hasCommissions && (
                     <button
                       type="button"

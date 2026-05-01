@@ -411,7 +411,7 @@ export function TransactionTableRow({
         <td className="px-3 py-2.5">
           <div className="flex items-center justify-end gap-1">
             {tx.importSource && (
-              <span className="inline-flex items-center bg-surface-muted dark:bg-surface-dark-alt/60 text-muted dark:text-faint px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide">
+              <span className="inline-flex items-center bg-surface-muted dark:bg-surface-dark-alt/60 text-muted dark:text-muted px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide">
                 {tx.importSource}
               </span>
             )}
@@ -621,7 +621,7 @@ export function TransactionTableRow({
             ) : (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-body dark:text-faint">Prowizje brokera</span>
+                  <span className="text-xs font-medium text-body dark:text-on-dark-muted">Prowizje brokera</span>
                   {!hasCommissions && (
                     <button
                       type="button"
