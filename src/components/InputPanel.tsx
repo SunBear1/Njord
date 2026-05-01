@@ -322,7 +322,7 @@ export function InputPanel({
             onClick={handleManualRefetch}
             disabled={assetLoading || !localTicker.trim()}
             aria-label="Odśwież dane giełdowe"
-            className="p-2 rounded-lg border border-edge-strong dark:border-edge-strong text-muted dark:text-faint hover:bg-surface-alt dark:hover:bg-surface-dark-alt disabled:opacity-40 transition-colors"
+            className="p-2 rounded-lg border border-edge-strong dark:border-edge-strong text-muted dark:text-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt disabled:opacity-40 transition-colors"
           >
             <RefreshCw size={16} aria-hidden="true" />
           </button>

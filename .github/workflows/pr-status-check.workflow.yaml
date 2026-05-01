@@ -50,6 +50,11 @@ jobs:
     if: needs.check-changes.outputs.src == 'true'
     uses: ./.github/workflows/test.job.yaml
 
+  contrast:
+    needs: check-changes
+    if: needs.check-changes.outputs.src == 'true'
+    uses: ./.github/workflows/contrast.job.yaml
+
   build:
     needs: check-changes
     if: needs.check-changes.outputs.src == 'true'
@@ -84,7 +89,7 @@ jobs:
   gate:
     name: PR Status Check Gate
     if: always()
-    needs: [lint, test, build, smoke-tests, actionlint, terraform]
+    needs: [lint, test, contrast, build, smoke-tests, actionlint, terraform]
     runs-on: ubuntu-latest
     steps:
       - name: All checks passed or skipped

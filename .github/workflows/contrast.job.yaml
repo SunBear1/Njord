@@ -1,0 +1,29 @@
+name: Color Contrast
+
+on:
+  workflow_call:
+
+jobs:
+  contrast:
+    name: WCAG Contrast Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup
+
+      - name: Generate color pairings
+        run: npm run generate:pairings
+
+      - name: Verify colorPairings.ts is up-to-date
+        run: |
+          if ! git diff --exit-code src/tokens/colorPairings.ts; then
+            echo ""
+            echo "❌ src/tokens/colorPairings.ts is stale."
+            echo "   Run: npm run generate:pairings"
+            echo "   Then commit the updated file."
+            exit 1
+          fi
+
+      - name: Run contrast tests
+        run: npm run test:contrast

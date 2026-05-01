@@ -80,7 +80,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
             className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
               tab === 'login'
                 ? 'bg-surface dark:bg-surface-dark-alt text-heading dark:text-on-dark shadow-sm'
-                : 'text-muted dark:text-faint hover:text-body dark:hover:text-on-dark-muted'
+                : 'text-muted dark:text-muted hover:text-body dark:hover:text-on-dark-muted'
             }`}
             onClick={() => switchTab('login')}
           >
@@ -90,7 +90,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
             className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
               tab === 'register'
                 ? 'bg-surface dark:bg-surface-dark-alt text-heading dark:text-on-dark shadow-sm'
-                : 'text-muted dark:text-faint hover:text-body dark:hover:text-on-dark-muted'
+                : 'text-muted dark:text-muted hover:text-body dark:hover:text-on-dark-muted'
             }`}
             onClick={() => switchTab('register')}
           >
