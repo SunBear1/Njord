@@ -208,8 +208,8 @@ export function BondBenchmarkSection({
             earlyExit
               ? preset.earlyRedemptionAllowed
                 ? 'bg-danger/5 text-danger'
-                : 'bg-bg-hover bg-danger/5 text-danger '
-              : 'bg-bg-hover bg-success/5 text-success'
+                : 'bg-danger/5 text-danger '
+              : 'bg-success/5 text-success'
           }`}>
             {earlyExit
               ? preset.earlyRedemptionAllowed

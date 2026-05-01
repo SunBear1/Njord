@@ -102,7 +102,7 @@ export function KantorSidebar({ rates }: KantorSidebarProps) {
           <div className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">Jak liczymy?</div>
           {alior && (
             <div className="flex items-start gap-1.5 text-[10px] text-text-secondary">
-              <span className="text-success text-success mt-0.5">●</span>
+              <span className="text-success mt-0.5">●</span>
               <span><strong>Kantor</strong> → wycena portfela w PLN</span>
             </div>
           )}

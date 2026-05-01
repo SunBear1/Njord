@@ -504,7 +504,7 @@ export function InputPanel({
           </div>
         )}
         {!isRSU && avgCostUSD > 0 && currentPriceUSD > 0 && (
-          <div className={`flex items-center gap-2 text-xs px-2 py-1 rounded-md ${currentPriceUSD >= avgCostUSD ? 'bg-bg-hover bg-success/5 text-success' : 'bg-bg-hover bg-danger/5 text-danger '}`}>
+          <div className={`flex items-center gap-2 text-xs px-2 py-1 rounded-md ${currentPriceUSD >= avgCostUSD ? 'bg-success/5 text-success' : 'bg-danger/5 text-danger '}`}>
             {currentPriceUSD >= avgCostUSD ? '▲' : '▼'}
             <span>
               {fmtUSD(currentPriceUSD)} vs. zakup {fmtUSD(avgCostUSD)}

@@ -134,7 +134,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoComplete="name"
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-bg-card text-text-primary text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-bg-card text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-transparent"
               />
             </div>
           )}
@@ -149,7 +149,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
               required
               autoComplete="email"
               spellCheck={false}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-bg-card text-text-primary text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-bg-card text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-transparent"
             />
           </div>
 
@@ -163,12 +163,12 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
               required
               minLength={8}
               autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-bg-card text-text-primary text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-bg-card text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-transparent"
             />
           </div>
 
           {error && (
-            <div className="p-3 rounded-lg bg-bg-hover dark:bg-red-900/30 border border-danger/30 text-danger text-danger text-sm">
+            <div className="p-3 rounded-lg bg-danger/5 border border-danger/30 text-danger text-sm">
               {error}
             </div>
           )}

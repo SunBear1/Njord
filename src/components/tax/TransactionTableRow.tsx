@@ -76,7 +76,7 @@ function RateStatusBadge({
             if (v > 0) onManualChange(v);
           }}
           placeholder="Kurs ręcznie (np. 3.9785)"
-          className="w-full border border-danger/30 border-danger/30 rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-danger/50"
+          className="w-full border border-danger/30 rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-danger/50"
         />
       </div>
     );
@@ -84,7 +84,7 @@ function RateStatusBadge({
 
   if (rate !== null && rate > 0) {
     return (
-      <p className="text-[11px] text-success text-success flex items-center gap-1 flex-wrap">
+      <p className="text-[11px] text-success flex items-center gap-1 flex-wrap">
         <CheckCircle2 size={10} aria-hidden="true" className="flex-shrink-0" />
         <span>Kurs NBP: {rate.toFixed(4)}</span>
         {effectiveDate && (

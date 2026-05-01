@@ -383,7 +383,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                             <div className="flex items-center gap-2">
                               <div className="w-16 h-1.5 bg-bg-hover rounded-full overflow-hidden">
                                 <div
-                                  className={`h-full rounded-full ${isDownside ? 'bg-bg-hover0' : sp.pTouch > 0.5 ? 'bg-bg-hover0' : sp.pTouch > 0.2 ? 'bg-danger/50' : 'bg-bg-hover0'}`}
+                                  className={`h-full rounded-full ${isDownside ? 'bg-bg-hover' : sp.pTouch > 0.5 ? 'bg-bg-hover' : sp.pTouch > 0.2 ? 'bg-danger/50' : 'bg-bg-hover'}`}
                                   style={{ width: `${sp.pTouch * 100}%` }}
                                 />
                               </div>
@@ -434,9 +434,9 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
 function SummaryCard({ label, value, subvalue, accent }: { label: string; value: string; subvalue: string; accent: 'blue' | 'green' | 'purple' | 'red' }) {
   const colors = {
     blue: 'border-accent-primary/40 bg-bg-hover/50/30',
-    green: 'border-success/30 border-success/30 bg-bg-hover/50 bg-success/5',
+    green: 'border-success/30 bg-success/5',
     purple: 'border-accent-primary/40-primary/30 bg-accent-primary/5',
-    red: 'border-danger/30 bg-bg-hover/50 bg-danger/5',
+    red: 'border-danger/30 bg-danger/5',
   };
   const textColors = {
     blue: 'text-accent-primary/80',

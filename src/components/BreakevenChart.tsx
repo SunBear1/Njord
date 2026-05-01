@@ -129,7 +129,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
                   return (
                     <div
                       key={`${cell.deltaStock},${cell.deltaFx}`}
-                      className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-bg-hover/20 border border-accent-primary/40/40 text-xs"
+                      className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-bg-hover/20 border border-accent-primary/40 text-xs"
                     >
                       <span className="text-accent-primary/80 font-medium tabular-nums">
                         Akcje {cell.deltaStock > 0 ? '+' : ''}{cell.deltaStock}% / USD {cell.deltaFx > 0 ? '+' : ''}{cell.deltaFx}%

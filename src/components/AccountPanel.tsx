@@ -125,14 +125,14 @@ export function AccountPanel({
 
         {/* Error */}
         {error ? (
-          <div className="mx-6 mt-4 p-3 rounded-lg bg-bg-hover dark:bg-red-900/30 border border-danger/30 text-danger text-danger text-sm">
+          <div className="mx-6 mt-4 p-3 rounded-lg bg-danger/5 border border-danger/30 text-danger text-sm">
             {error}
           </div>
         ) : null}
 
         {/* Success */}
         {passwordSuccess ? (
-          <div className="mx-6 mt-4 p-3 rounded-lg bg-bg-hover bg-success/10 border border-success/30 border-success/30 text-success text-sm flex items-center gap-2">
+          <div className="mx-6 mt-4 p-3 rounded-lg bg-success/10 border border-success/30 text-success text-sm flex items-center gap-2">
             <Check size={16} aria-hidden="true" />
             Hasło zostało zmienione.
           </div>
@@ -177,7 +177,7 @@ export function AccountPanel({
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-bg-card text-text-primary text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-bg-card text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-transparent"
               />
             </div>
           ) : null}
@@ -192,7 +192,7 @@ export function AccountPanel({
               required
               minLength={8}
               autoComplete="new-password"
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-bg-card text-text-primary text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-bg-card text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-transparent"
             />
           </div>
 
@@ -206,7 +206,7 @@ export function AccountPanel({
               required
               minLength={8}
               autoComplete="new-password"
-              className={`w-full pl-10 pr-4 py-2.5 rounded-lg border bg-bg-card text-text-primary text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent ${
+              className={`w-full pl-10 pr-4 py-2.5 rounded-lg border bg-bg-card text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:border-transparent ${
                 passwordMismatch
                   ? 'border-red-400 focus:ring-danger/50'
                   : 'border-border focus:ring-accent-primary'
@@ -240,15 +240,15 @@ export function AccountPanel({
           {!showDeleteConfirm ? (
             <button
               onClick={() => { setShowDeleteConfirm(true); onClearError(); }}
-              className="w-full py-2.5 px-4 bg-bg-hover bg-danger/5 text-danger rounded-lg font-medium text-sm border border-danger/30 hover:bg-danger/10 dark:hover:bg-red-900/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2"
+              className="w-full py-2.5 px-4 bg-danger/5 text-danger rounded-lg font-medium text-sm border border-danger/30 hover:bg-danger/10 hover:bg-danger/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger focus-visible:ring-offset-2"
             >
               Usuń konto
             </button>
           ) : (
-            <div className="p-4 rounded-lg bg-bg-hover bg-danger/5 border border-danger/30 space-y-3">
+            <div className="p-4 rounded-lg bg-danger/5 border border-danger/30 space-y-3">
               <div className="flex items-start gap-2">
                 <AlertTriangle size={18} className="text-danger mt-0.5 shrink-0" aria-hidden="true" />
-                <p className="text-sm text-danger text-danger">
+                <p className="text-sm text-danger">
                   Czy na pewno chcesz usunąć konto? Tej operacji nie można cofnąć.
                 </p>
               </div>
@@ -260,7 +260,7 @@ export function AccountPanel({
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
                   autoComplete="current-password"
-                  className="w-full px-3 py-2 rounded-lg border border-danger/30 border-danger/30 bg-bg-card text-text-primary text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-danger/50 focus:border-transparent"
+                  className="w-full px-3 py-2 rounded-lg border border-danger/30 bg-bg-card text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-danger/50 focus:border-transparent"
                 />
               ) : null}
 
@@ -300,7 +300,7 @@ function LinkedAccountRow({ provider, label, isLinked, icon }: {
         <span className="text-sm font-medium text-text-primary">{label}</span>
       </div>
       {isLinked ? (
-        <span className="flex items-center gap-1 text-xs font-medium text-success text-success">
+        <span className="flex items-center gap-1 text-xs font-medium text-success">
           <Check size={14} aria-hidden="true" />
           Połączono
         </span>

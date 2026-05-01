@@ -25,9 +25,9 @@ const SCENARIO_ICON = {
 
 const SCENARIO_STYLE = {
   bear: {
-    bg: 'bg-bg-hover bg-danger/5',
-    border: 'border-danger/30 border-danger/30',
-    badge: 'bg-danger/10 bg-danger/10 text-danger text-danger border border-danger/30',
+    bg: 'bg-danger/5',
+    border: 'border-danger/30',
+    badge: 'bg-danger/10 bg-danger/10 text-danger border border-danger/30',
   },
   base: {
     bg: 'bg-danger/5',
@@ -35,9 +35,9 @@ const SCENARIO_STYLE = {
     badge: 'bg-danger/10 text-danger border border-danger/30',
   },
   bull: {
-    bg: 'bg-bg-hover bg-success/5',
-    border: 'border-success/30 border-success/20',
-    badge: 'bg-success/10 text-success border border-success/30 border-success/30',
+    bg: 'bg-success/5',
+    border: 'border-success/30',
+    badge: 'bg-success/10 text-success border border-success/30',
   },
 };
 

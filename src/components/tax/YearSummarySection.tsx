@@ -196,7 +196,7 @@ export function YearSummarySection({
         </div>
 
         {/* ── PIT-38 summary table ── */}
-        <div className="rounded-xl border border-accent-primary/40/60 overflow-hidden">
+        <div className="rounded-xl border border-accent-primary/30 overflow-hidden">
           <div className="bg-bg-hover/10 px-3 py-2 flex items-center gap-1.5">
           </div>
           <div className="px-4 py-3 space-y-0.5">
@@ -270,7 +270,7 @@ export function YearSummarySection({
 
         {/* ── PIT-38 Section D — Tax calculation ── */}
         {summary.netIncomePLN > 0 && (
-          <div className="rounded-xl border border-accent-primary/40/60 overflow-hidden">
+          <div className="rounded-xl border border-accent-primary/30 overflow-hidden">
           <div className="bg-bg-hover/10 px-3 py-2 flex items-center gap-1.5">
               <FileText size={12} className="text-accent-primary" aria-hidden="true" />
               <span className="text-[11px] font-semibold text-accent-primary/80 uppercase tracking-wide">
@@ -365,7 +365,7 @@ export function YearSummarySection({
 
         {/* ── Solidarity levy (danina solidarnościowa) ── */}
         {summary.solidarityLevyPLN > 0 && (
-          <div className="rounded-xl border border-danger/30 bg-bg-hover bg-danger/5 px-5 py-4 flex items-center justify-between gap-4">
+          <div className="rounded-xl border border-danger/30 bg-danger/5 px-5 py-4 flex items-center justify-between gap-4">
             <div>
               <p className="text-xs font-semibold mb-0.5 text-danger ">
                 Danina solidarnościowa (DSF-1)

@@ -130,7 +130,7 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
           icon={<Shield size={18} />}
           label="Oszczędność IKE (brak Belki)"
           value={fmtPLN(derived.ikeSavings)}
-          colorClass="text-success text-success"
+          colorClass="text-success"
         />
         <MetricCard
           icon={<PiggyBank size={18} />}
@@ -195,10 +195,10 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
           </div>
         </div>
         <div className="mt-4 pt-3 border-t border-border flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-sm">
-          <span className={result.taxSavings >= 0 ? 'text-success text-success font-semibold' : 'text-danger font-semibold'}>
+          <span className={result.taxSavings >= 0 ? 'text-success font-semibold' : 'text-danger font-semibold'}>
             {result.taxSavings >= 0 ? '+' : ''}{fmtPLN(result.taxSavings)}
           </span>
-          <span className={result.taxSavingsPercent >= 0 ? 'text-success text-success' : 'text-danger'}>
+          <span className={result.taxSavingsPercent >= 0 ? 'text-success' : 'text-danger'}>
             ({result.taxSavingsPercent >= 0 ? '+' : ''}{result.taxSavingsPercent.toFixed(2)}%)
           </span>
         </div>
@@ -264,7 +264,7 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
                     <td className="px-2 py-1.5 text-right tabular-nums text-text-secondary">{fmtPLN(row.regularValue)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums font-medium text-text-secondary">{fmtPLN(row.totalContributed)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums font-medium text-text-secondary">{fmtPLN(row.totalValue)}</td>
-                    <td className={`px-2 py-1.5 text-right tabular-nums font-medium ${row.cumulativeGain >= 0 ? 'text-success text-success' : 'text-danger'}`}>
+                    <td className={`px-2 py-1.5 text-right tabular-nums font-medium ${row.cumulativeGain >= 0 ? 'text-success' : 'text-danger'}`}>
                       {fmtPLN(row.cumulativeGain)}
                     </td>
                   </tr>

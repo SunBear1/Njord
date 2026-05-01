@@ -374,7 +374,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
               </button>
 
               {importError && (
-                <div className="flex items-start gap-1.5 bg-bg-hover bg-danger/5 border border-danger/30 rounded-lg px-3 py-2 text-[11px] text-danger">
+                <div className="flex items-start gap-1.5 bg-danger/5 border border-danger/30 rounded-lg px-3 py-2 text-[11px] text-danger">
                   <AlertTriangle size={12} className="mt-0.5 flex-shrink-0 text-danger" aria-hidden="true" />
                   <span>{importError}</span>
                 </div>

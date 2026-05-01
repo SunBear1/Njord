@@ -24,7 +24,7 @@ export class ErrorBoundary extends Component<Props, State> {
   override render() {
     if (this.state.hasError) {
       return this.props.fallback ?? (
-        <div className="rounded-lg border border-danger/30/50 bg-bg-hover bg-danger/5 p-4 text-sm text-danger text-danger">
+        <div className="rounded-lg border border-danger/30 bg-danger/5 p-4 text-sm text-danger">
           Wystąpił błąd podczas renderowania tego komponentu.
           <button
             type="button"

@@ -76,7 +76,7 @@ export function EtfBenchmarkSection({
           </p>
         )}
         {etfName && !etfError && !etfLoading && (
-          <p className="text-xs text-success text-success flex items-center gap-1">
+          <p className="text-xs text-success flex items-center gap-1">
             <CheckCircle2 size={12} aria-hidden="true" /> {etfName}
           </p>
         )}

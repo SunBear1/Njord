@@ -32,9 +32,9 @@ const SCENARIO_CONFIG: {
   {
     key: 'bear', label: 'Bear',
     icon: <TrendingDown size={14} aria-hidden="true" />,
-    headerBg: 'bg-danger/10 bg-danger/10', headerText: 'text-danger text-danger',
+    headerBg: 'bg-danger/10 bg-danger/10', headerText: 'text-danger',
     cardBorder: 'border-danger/30', cardBg: 'bg-bg-hover/30 bg-danger/5',
-    inputBorder: 'border-danger/30 border-danger/30 focus:ring-danger/50',
+    inputBorder: 'border-danger/30 focus:ring-danger/50',
   },
   {
     key: 'base', label: 'Base',
@@ -47,7 +47,7 @@ const SCENARIO_CONFIG: {
     key: 'bull', label: 'Bull',
     icon: <TrendingUp size={14} aria-hidden="true" />,
     headerBg: 'bg-success/10', headerText: 'text-success',
-    cardBorder: 'border-success/30 border-success/30', cardBg: 'bg-bg-hover/30 bg-success/5',
+    cardBorder: 'border-success/30', cardBg: 'bg-success/5',
     inputBorder: 'border-success/40 focus:ring-success/30',
   },
 ];
@@ -417,7 +417,7 @@ export function ScenarioEditor({
                   />
                   {stockMode === 'fixed' && currentPriceUSD > 0 && (
                     <span className={`text-[10px] rounded-full px-1.5 py-0.5 ${
-                      delta >= 0 ? 'bg-bg-hover bg-success/5 text-success text-success' : 'bg-bg-hover bg-danger/5 text-danger '
+                      delta >= 0 ? 'bg-success/5 text-success' : 'bg-danger/5 text-danger '
                     }`}>
                       {delta >= 0 ? '+' : ''}{delta.toFixed(1)}%
                     </span>
@@ -463,7 +463,7 @@ export function ScenarioEditor({
                   />
                   {fxMode === 'fixed' && currentFxRate > 0 && (
                     <span className={`text-[10px] rounded-full px-1.5 py-0.5 ${
-                      delta >= 0 ? 'bg-bg-hover bg-success/5 text-success text-success' : 'bg-bg-hover bg-danger/5 text-danger '
+                      delta >= 0 ? 'bg-success/5 text-success' : 'bg-danger/5 text-danger '
                     }`}>
                       {delta >= 0 ? '+' : ''}{delta.toFixed(1)}%
                     </span>
@@ -488,8 +488,8 @@ export function ScenarioEditor({
                 }>
                   <span className={`rounded px-1.5 py-0.5 border text-[11px] font-semibold cursor-help ${
                     volatilityStats.regime.currentRegimeLabel === 'bull'
-                      ? 'bg-bg-hover bg-success/5 text-success border-success/30 border-success/30'
-                      : 'bg-bg-hover bg-danger/5 text-danger  border-danger/30'
+                      ? 'bg-success/5 text-success border-success/30'
+                      : 'bg-danger/5 text-danger  border-danger/30'
                   }`}>
                     {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Trend wzrostowy' : 'Trend spadkowy'}
                   </span>
@@ -536,8 +536,8 @@ export function ScenarioEditor({
               {volatilityStats.regime && (
                 <div className={`rounded-lg px-3 py-2.5 border text-sm ${
                   volatilityStats.regime.currentRegimeLabel === 'bull'
-                    ? 'bg-bg-hover bg-success/5 border-success/30 border-success/30 text-success'
-                    : 'bg-bg-hover bg-danger/5 border-danger/30 text-danger'
+                    ? 'bg-success/5 border-success/30 text-success'
+                    : 'bg-danger/5 border-danger/30 text-danger'
                 }`}>
                   <span className="font-semibold">
                     {volatilityStats.regime.currentRegimeLabel === 'bull' ? 'Trend wzrostowy' : 'Trend spadkowy'}
