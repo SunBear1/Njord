@@ -17,7 +17,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "generate:pairings": "tsx scripts/generate-pairings.ts",
-    "test:contrast": "vitest run src/__tests__/colorContrast.test.ts"
+    "test:contrast": "vitest run src/__tests__/colorContrast.test.ts",
+    "test:colors": "vitest run src/__tests__/design-system/"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.4",
