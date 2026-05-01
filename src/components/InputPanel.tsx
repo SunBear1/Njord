@@ -362,7 +362,7 @@ export function InputPanel({
         <button
           type="button"
           onClick={() => setShowValueCalc((v) => !v)}
-          className="flex items-center gap-1 text-xs text-accent-primary hover:text-accent-primary-hover transition-colors"
+          className="flex items-center gap-1 text-xs text-accent-primary hover:text-accent-primary/80 transition-colors"
         >
           <Calculator size={12} />
           {showValueCalc ? 'Ukryj kalkulator' : 'Nie wiesz ile masz akcji, ale znasz wartość?'}
@@ -397,7 +397,7 @@ export function InputPanel({
                     setTotalValueStr('');
                   }
                 }}
-                className="px-3 py-1.5 text-xs font-medium bg-accent-primary text-white rounded-md hover:bg-accent-primary-hover disabled:opacity-40 transition-colors"
+                className="px-3 py-1.5 text-xs font-medium bg-accent-primary text-white rounded-md hover:bg-accent-primary/80 disabled:opacity-40 transition-colors"
               >
                 Przelicz
               </button>
@@ -606,7 +606,7 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('savings')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'savings'
-                ? 'border-accent-primary bg-bg-card text-white'
+                ? 'border-accent-primary/40-primary bg-bg-card text-white'
                 : 'border-border bg-bg-card text-text-muted hover:bg-bg-card'
             }`}
           >
@@ -617,7 +617,7 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('bonds')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'bonds'
-                ? 'border-accent-primary bg-bg-card text-white'
+                ? 'border-accent-primary/40-primary bg-bg-card text-white'
                 : 'border-border bg-bg-card text-text-muted hover:bg-bg-card'
             }`}
           >
@@ -628,7 +628,7 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('etf')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'etf'
-                ? 'border-accent-primary bg-bg-card text-white'
+                ? 'border-accent-primary/40-primary bg-bg-card text-white'
                 : 'border-border bg-bg-card text-text-muted hover:bg-bg-card'
             }`}
           >

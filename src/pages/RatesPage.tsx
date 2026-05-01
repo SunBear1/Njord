@@ -1,10 +1,10 @@
 import { RefreshCw } from 'lucide-react';
 import { useMultiCurrencyRates, type CurrencyRateEntry } from '../hooks/useMultiCurrencyRates';
 
-const CURRENCY_META: Record<string, { flag: string; name: string }> = {
-  USD: { flag: '🇺🇸', name: 'Dolar amerykański' },
-  EUR: { flag: '🇪🇺', name: 'Euro' },
-  GBP: { flag: '🇬🇧', name: 'Funt szterling' },
+const CURRENCY_META: Record<string, { flag: string; name: string; symbol: string }> = {
+  USD: { flag: '🇺🇸', name: 'Dolar amerykański', symbol: '$' },
+  EUR: { flag: '🇪🇺', name: 'Euro', symbol: '€' },
+  GBP: { flag: '🇬🇧', name: 'Funt szterling', symbol: '£' },
 };
 
 function spreadPct(buy: number, sell: number): string {
@@ -20,7 +20,7 @@ function fmtTime(d: Date): string {
 function RateCell({ value, direction }: { value: number; direction: 'buy' | 'sell' }) {
   const isSell = direction === 'sell';
   return (
-    <td className="px-3 py-2 text-right font-mono tabular-nums">
+    <td className="px-3 py-2 text-right font-mono tabular-nums transition-colors duration-500">
       <span className={`font-medium ${isSell ? 'text-danger' : 'text-success'}`}>
         {value.toFixed(4)}
       </span>
@@ -71,7 +71,7 @@ function SourceTable({ title, href, rates, getRate }: {
                     <div className="flex items-center gap-2.5">
                       <span className="text-lg" aria-hidden="true">{meta?.flag}</span>
                       <div>
-                        <div className="font-semibold text-text-primary">{entry.currency}/PLN</div>
+                        <div className="font-semibold text-text-primary">{meta?.symbol} {entry.currency}/PLN</div>
                         <div className="text-xs text-text-muted">{meta?.name}</div>
                       </div>
                     </div>
@@ -104,12 +104,13 @@ export function RatesPage() {
         </div>
         {lastUpdated && (
           <div className="flex items-center gap-1.5 text-xs text-text-muted">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-success" />
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
             </span>
             <span>{fmtTime(lastUpdated)}</span>
-            <RefreshCw size={10} className="opacity-50" aria-hidden="true" />
-            <span className="opacity-50">60s</span>
+            <RefreshCw size={10} className={`opacity-50 ${isLoading ? 'animate-spin' : ''}`} aria-hidden="true" />
+            <span className="opacity-50">auto</span>
           </div>
         )}
       </div>

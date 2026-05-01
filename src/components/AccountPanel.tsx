@@ -221,7 +221,7 @@ export function AccountPanel({
           <button
             type="submit"
             disabled={isChangingPassword || passwordMismatch || !newPassword}
-            className="w-full py-2.5 px-4 bg-accent-primary text-white rounded-lg font-medium text-sm hover:bg-accent-primary-hover disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2"
+            className="w-full py-2.5 px-4 bg-accent-primary text-white rounded-lg font-medium text-sm hover:bg-accent-primary/80 disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2"
           >
             {isChangingPassword ? 'Zapisywanie…' : (hasPassword ? 'Zmień hasło' : 'Ustaw hasło')}
           </button>
@@ -307,7 +307,7 @@ function LinkedAccountRow({ provider, label, isLinked, icon }: {
       ) : (
         <a
           href={`/api/auth/${provider}?action=link`}
-          className="flex items-center gap-1 text-xs font-medium text-accent-primary hover:text-accent-primary-hover transition-colors"
+          className="flex items-center gap-1 text-xs font-medium text-accent-primary hover:text-accent-primary/80 transition-colors"
         >
           <Unlink size={14} aria-hidden="true" />
           Połącz

@@ -204,15 +204,15 @@ export default function Step1PersonalData({
       </div>
 
       {/* Summary bar */}
-      <div className="rounded-lg border bg-bg-hover/30 border-accent px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-accent-primary-hover">
+      <div className="rounded-lg border bg-bg-hover/30 border-accent-primary/40 px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-accent-primary/80">
         <span>
           Twój roczny budżet: <strong>{fmtPLN(annualBudget)}</strong>
         </span>
-        <span className="text-accent-primary-hover hidden md:inline" aria-hidden="true">|</span>
+        <span className="text-accent-primary/80 hidden md:inline" aria-hidden="true">|</span>
         <span>
           Limit IKE: <strong>{fmtPLN(ikeAnnualLimit)}</strong>
         </span>
-        <span className="text-accent-primary-hover hidden md:inline" aria-hidden="true">|</span>
+        <span className="text-accent-primary/80 hidden md:inline" aria-hidden="true">|</span>
         <span>
           Limit IKZE: <strong>{fmtPLN(ikzeAnnualLimit)}</strong>
         </span>

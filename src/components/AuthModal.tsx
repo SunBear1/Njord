@@ -176,7 +176,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-2.5 px-4 bg-accent-primary text-white rounded-lg font-medium text-sm hover:bg-accent-primary-hover disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2"
+            className="w-full py-2.5 px-4 bg-accent-primary text-white rounded-lg font-medium text-sm hover:bg-accent-primary/80 disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2"
           >
             {isSubmitting
               ? (tab === 'login' ? 'Logowanie…' : 'Tworzenie konta…')

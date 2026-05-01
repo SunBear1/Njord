@@ -50,7 +50,7 @@ export default function WizardStepper({ currentStep, onStepClick }: WizardSteppe
                     transition-colors duration-200
                     ${
                       isActive
-                        ? 'bg-accent-primary-info text-white ring-2 ring-accent-primary'
+                        ? 'bg-accent-primary text-white ring-2 ring-accent-primary'
                         : 'bg-bg-hover text-text-muted'
                     }`}
                 >
@@ -86,7 +86,7 @@ export default function WizardStepper({ currentStep, onStepClick }: WizardSteppe
               key={label}
               className={`flex-1 text-center text-xs md:text-sm truncate
                 hidden sm:block
-                ${isActive ? 'font-semibold text-accent-primary-info' : ''}
+                ${isActive ? 'font-semibold text-accent-primary' : ''}
                 ${isCompleted ? 'text-accent-primary-success' : ''}
                 ${!isActive && !isCompleted ? 'text-text-muted' : ''}`}
             >

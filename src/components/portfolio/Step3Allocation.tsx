@@ -300,7 +300,7 @@ function AllocationRow({
               step={0.1}
               value={allocation.expectedReturnPercent}
               onChange={(e) => onReturnChange(index, Number(e.target.value))}
-              className="w-20 rounded-md border border-border bg-bg-card px-2 py-1 text-xs font-mono text-right text-text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent-primary"
+              className="w-20 rounded-md border border-border bg-bg-card px-2 py-1 text-xs font-mono text-right text-text-primary focus:border-accent-primary/40 focus:outline-none focus:ring-1 focus:ring-accent-primary"
               aria-label={`Oczekiwana stopa zwrotu ${instrumentLabel(allocation)}`}
             />
             <span className="text-xs text-text-muted">%</span>
@@ -382,7 +382,7 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 text-sm text-accent-primary hover:text-accent-primary-hover font-medium"
+        className="flex items-center gap-1.5 text-sm text-accent-primary hover:text-accent-primary/80 font-medium"
         aria-label="Dodaj instrument"
       >
         <Plus className="h-4 w-4" aria-hidden="true" />
@@ -441,12 +441,12 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
                 value={customTicker}
                 onChange={(e) => setCustomTicker(e.target.value.toUpperCase())}
                 placeholder="np. IWDA.AS, VOO, AAPL…"
-                className="flex-1 rounded-md border border-border bg-bg-card px-2 py-1.5 text-xs text-text-primary placeholder:text-border focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent-primary"
+                className="flex-1 rounded-md border border-border bg-bg-card px-2 py-1.5 text-xs text-text-primary placeholder:text-border focus:border-accent-primary/40 focus:outline-none focus:ring-1 focus:ring-accent-primary"
               />
               <button
                 type="submit"
                 disabled={!customTicker.trim() || isSearching}
-                className="rounded-md bg-accent-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-md bg-accent-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSearching ? '...' : 'Szukaj'}
               </button>
@@ -567,7 +567,7 @@ function WrapperSection({
             <span className="text-base font-semibold text-text-primary">
               {title}
             </span>
-            <span className="rounded-full bg-bg-hover/30 px-2.5 py-0.5 text-xs font-medium text-accent-primary-hover">
+            <span className="rounded-full bg-bg-hover/30 px-2.5 py-0.5 text-xs font-medium text-accent-primary/80">
               {amount}
             </span>
           </div>

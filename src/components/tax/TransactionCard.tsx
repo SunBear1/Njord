@@ -521,7 +521,7 @@ export function TransactionCard({
         aria-label={`Transakcja ${index}`}
       >
         {/* Index badge */}
-        <span className="w-7 h-7 rounded-full bg-bg-hover/40 text-accent-primary-hover text-xs font-bold inline-flex items-center justify-center flex-shrink-0">
+        <span className="w-7 h-7 rounded-full bg-bg-hover/40 text-accent-primary/80 text-xs font-bold inline-flex items-center justify-center flex-shrink-0">
           {index}
         </span>
 

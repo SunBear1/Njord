@@ -361,7 +361,7 @@ export function TransactionTableRow({
         aria-label={`Transakcja ${index}`}
       >
         <td className="px-3 py-2.5 text-center">
-          <span className="w-6 h-6 rounded-full bg-bg-hover/40 text-accent-primary-hover text-xs font-bold inline-flex items-center justify-center">
+          <span className="w-6 h-6 rounded-full bg-bg-hover/40 text-accent-primary/80 text-xs font-bold inline-flex items-center justify-center">
             {index}
           </span>
         </td>

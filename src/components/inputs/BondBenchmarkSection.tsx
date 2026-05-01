@@ -75,7 +75,7 @@ export function BondBenchmarkSection({
       {preset && (
         <div className="space-y-3">
           {preset.isFamily && (
-            <div className="flex items-start gap-1.5 bg-accent-primary/5 border border-accent-primary/30 text-accent-primary text-xs rounded-lg p-2.5">
+            <div className="flex items-start gap-1.5 bg-accent-primary/5 border border-accent-primary/40-primary/30 text-accent-primary text-xs rounded-lg p-2.5">
               <Info size={12} className="mt-0.5 flex-shrink-0" aria-hidden="true" />
               Obligacje rodzinne — dostępne tylko dla beneficjentów programu 800+.
             </div>
@@ -122,7 +122,7 @@ export function BondBenchmarkSection({
                 </div>
                 <div className="flex justify-between border-t border-border pt-1.5">
                   <span className="text-text-secondary font-medium">Stopa efektywna (od 2. roku):</span>
-                  <span className="font-bold text-accent-primary-hover">{bondEffectiveRate.toFixed(2)}%</span>
+                  <span className="font-bold text-accent-primary/80">{bondEffectiveRate.toFixed(2)}%</span>
                 </div>
               </>
             )}
@@ -141,7 +141,7 @@ export function BondBenchmarkSection({
                       target="_blank"
                       rel="noopener noreferrer"
                       title="Sprawdź aktualną stopę NBP"
-                      className="text-accent-primary hover:text-accent-primary-hover"
+                      className="text-accent-primary hover:text-accent-primary/80"
                     >
                       <ExternalLink size={12} aria-hidden="true" />
                     </a>
@@ -160,7 +160,7 @@ export function BondBenchmarkSection({
                 </div>
                 <div className="flex justify-between border-t border-border pt-1.5">
                   <span className="text-text-secondary font-medium">Stopa efektywna (od 2. okresu):</span>
-                  <span className="font-bold text-accent-primary-hover">{bondEffectiveRate.toFixed(2)}%</span>
+                  <span className="font-bold text-accent-primary/80">{bondEffectiveRate.toFixed(2)}%</span>
                 </div>
               </>
             )}

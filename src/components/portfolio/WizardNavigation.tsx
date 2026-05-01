@@ -51,7 +51,7 @@ export default function WizardNavigation({
           aria-disabled={!canAdvance}
           className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white ${
             canAdvance
-              ? 'bg-accent-primary hover:bg-accent-primary-hover '
+              ? 'bg-accent-primary hover:bg-accent-primary/80 '
               : 'bg-accent-primary opacity-50 cursor-not-allowed'
           }`}
         >

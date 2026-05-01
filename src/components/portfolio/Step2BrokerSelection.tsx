@@ -66,7 +66,7 @@ function BrokerCard({
   const isInteractive = !disabled && !sectionDisabled;
 
   const borderClasses = selected && !sectionDisabled
-    ? 'border-accent bg-bg-hover/30 ring-2 ring-accent-primary'
+    ? 'border-accent-primary/40 bg-bg-hover/30 ring-2 ring-accent-primary'
     : 'border-border hover:border-border ';
 
   return (

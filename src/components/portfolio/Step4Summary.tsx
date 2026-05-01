@@ -59,7 +59,7 @@ function EditButton({ step, goToStep }: { step: WizardStep; goToStep: (s: Wizard
     <button
       type="button"
       onClick={() => goToStep(step)}
-      className="inline-flex items-center gap-1 text-xs text-accent-primary hover:text-accent-primary-hover transition-colors"
+      className="inline-flex items-center gap-1 text-xs text-accent-primary hover:text-accent-primary/80 transition-colors"
       aria-label={`Edytuj krok ${step}`}
     >
       <Edit3 size={12} />

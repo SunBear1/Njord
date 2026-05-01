@@ -83,7 +83,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
           const gain = r.unrealizedGainPLN ?? 0;
           const gainPct = r.unrealizedGainPercent ?? 0;
           return (
-            <div className={`flex items-start gap-2 px-3 py-2.5 rounded-xl border text-sm ${isProfit ? 'bg-bg-hover/20 border-accent text-accent-primary-hover' : 'bg-danger/5 border-danger/30 text-danger'}`}>
+            <div className={`flex items-start gap-2 px-3 py-2.5 rounded-xl border text-sm ${isProfit ? 'bg-bg-hover/20 border-accent-primary/40 text-accent-primary/80' : 'bg-danger/5 border-danger/30 text-danger'}`}>
               <span className="text-lg leading-tight flex-shrink-0" aria-hidden="true">{isProfit ? '▲' : '▼'}</span>
               <div className="flex-1">
                 <span className="font-semibold">
@@ -125,7 +125,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
               <div className="grid grid-cols-2 gap-2">
                 {/* Akcje column */}
                 <div className={`rounded-xl p-3 text-center space-y-1 ${stockWins ? 'bg-bg-card shadow-sm ring-2 ring-accent-primary/50' : 'bg-bg-card/60/60'}`}>
-                  <div className="flex items-center justify-center gap-1 text-xs font-bold text-accent-primary-hover uppercase tracking-wide">
+                  <div className="flex items-center justify-center gap-1 text-xs font-bold text-accent-primary/80 uppercase tracking-wide">
                     {stockWins && <Trophy size={12} className="text-accent-primary" aria-hidden="true" />}
                     Akcje
                   </div>

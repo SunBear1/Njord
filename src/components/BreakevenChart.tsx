@@ -93,7 +93,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
                         key={df}
                         className={`p-1 text-center rounded cursor-default transition-colors relative group/cell ${
                           beatsBenchmark
-                            ? 'bg-bg-hover/40 text-accent-primary-hover font-medium'
+                            ? 'bg-bg-hover/40 text-accent-primary/80 font-medium'
                             : 'bg-bg-hover text-text-muted'
                         }`}
                       >
@@ -129,9 +129,9 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
                   return (
                     <div
                       key={`${cell.deltaStock},${cell.deltaFx}`}
-                      className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-bg-hover/20 border border-accent/40 text-xs"
+                      className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-bg-hover/20 border border-accent-primary/40/40 text-xs"
                     >
-                      <span className="text-accent-primary-hover font-medium tabular-nums">
+                      <span className="text-accent-primary/80 font-medium tabular-nums">
                         Akcje {cell.deltaStock > 0 ? '+' : ''}{cell.deltaStock}% / USD {cell.deltaFx > 0 ? '+' : ''}{cell.deltaFx}%
                       </span>
                       <span className="text-accent-primary tabular-nums font-semibold">
@@ -153,7 +153,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
 
       <div className="flex items-center gap-4 text-xs text-text-muted pt-1 flex-wrap">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-4 h-4 rounded bg-bg-hover/40 border border-accent" />
+          <span className="inline-block w-4 h-4 rounded bg-bg-hover/40 border border-accent-primary/40" />
           Akcje lepsze (✓)
         </span>
         <span className="flex items-center gap-1.5">

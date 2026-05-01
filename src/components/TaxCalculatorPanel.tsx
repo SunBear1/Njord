@@ -237,7 +237,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
             type="button"
             onClick={() => { setShowImportDropdown((v) => !v); setImportError(null); }}
             disabled={importLoading}
-            className="flex items-center gap-1.5 text-xs font-medium text-white bg-accent-primary hover:bg-accent-primary-hover disabled:opacity-50 rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
+            className="flex items-center gap-1.5 text-xs font-medium text-white bg-accent-primary hover:bg-accent-primary/80 disabled:opacity-50 rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
             aria-expanded={showImportDropdown}
             aria-haspopup="true"
             aria-label="Automatyczny import z brokera"
@@ -269,7 +269,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                     <button
                       type="button"
                       onClick={() => setConfirmClearAll(false)}
-                      className="flex-1 text-xs text-text-muted hover:text-text-primary border border-border rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-edge-strong"
+                      className="flex-1 text-xs text-text-muted hover:text-text-primary border border-border rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-border"
                     >
                       Anuluj
                     </button>
@@ -364,7 +364,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={importLoading || !selectedBroker}
-                className="w-full flex items-center justify-center gap-2 text-xs font-medium text-white bg-accent-primary hover:bg-accent-primary-hover disabled:opacity-50 rounded-lg px-3 py-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
+                className="w-full flex items-center justify-center gap-2 text-xs font-medium text-white bg-accent-primary hover:bg-accent-primary/80 disabled:opacity-50 rounded-lg px-3 py-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
               >
                 {importLoading ? (
                   <><Loader2 size={13} className="animate-spin" aria-hidden="true" /> Importowanie…</>
@@ -439,7 +439,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                   <div className="flex items-center gap-2 px-1 pt-2">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-accent-primary flex-shrink-0" />
-                      <span className="text-sm font-semibold text-accent-primary-hover">
+                      <span className="text-sm font-semibold text-accent-primary/80">
                         {fmtDatePL(dateKey)}
                       </span>
                     </div>
@@ -448,7 +448,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                         ? '1 transakcja'
                         : `${group.length} ${group.length < 5 ? 'transakcje' : 'transakcji'} · wspólny kurs NBP`}
                     </span>
-                    <div className="flex-1 border-t border-accent ml-2" />
+                    <div className="flex-1 border-t border-accent-primary/40 ml-2" />
                   </div>
                 )}
                 {group.map(({ tx, globalIndex }) => (
@@ -473,7 +473,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
         <button
           type="button"
           onClick={addTransaction}
-          className="w-full flex items-center gap-2 text-sm font-medium text-accent-primary hover:text-accent-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary rounded-lg px-3 py-2 border border-dashed border-accent hover:border-accent justify-center transition-colors"
+          className="w-full flex items-center gap-2 text-sm font-medium text-accent-primary hover:text-accent-primary/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary rounded-lg px-3 py-2 border border-dashed border-accent-primary/40 hover:border-accent-primary/40 justify-center transition-colors"
         >
           <Plus size={16} aria-hidden="true" />
           Dodaj transakcję

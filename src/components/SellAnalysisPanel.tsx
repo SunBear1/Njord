@@ -121,8 +121,8 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                 onClick={() => { onHorizonChange(p.days); setIsCustomActive(false); setShowCustomPicker(false); }}
                 className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-colors ${
                   isActive
-                    ? 'bg-accent-primary border-accent text-white shadow-sm'
-                    : 'bg-bg-card border-border text-text-secondary hover:border-accent hover:bg-bg-hover/30'
+                    ? 'bg-accent-primary border-accent-primary/40 text-white shadow-sm'
+                    : 'bg-bg-card border-border text-text-secondary hover:border-accent-primary/40 hover:bg-bg-hover/30'
                 }`}
               >
                 <span className="text-sm font-semibold leading-snug">{p.label}</span>
@@ -139,8 +139,8 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
             onClick={() => setShowCustomPicker((v) => !v)}
             className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-colors ${
               isCustomActive || showCustomPicker
-                ? 'bg-accent-primary border-accent text-white shadow-sm'
-                : 'bg-bg-card border-border text-text-secondary hover:border-accent hover:bg-bg-hover/30'
+                ? 'bg-accent-primary border-accent-primary/40 text-white shadow-sm'
+                : 'bg-bg-card border-border text-text-secondary hover:border-accent-primary/40 hover:bg-bg-hover/30'
             }`}
           >
             <span className="text-sm font-semibold leading-snug">Własny</span>
@@ -162,7 +162,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                   setIsCustomActive(true);
                   setShowCustomPicker(false);
                 }}
-                className="flex flex-col items-center px-3 py-1.5 rounded-lg border border-border bg-bg-card hover:border-accent hover:bg-bg-hover transition-colors"
+                className="flex flex-col items-center px-3 py-1.5 rounded-lg border border-border bg-bg-card hover:border-accent-primary/40 hover:bg-bg-hover transition-colors"
               >
                 <span className="text-xs font-medium text-text-primary">{mo.label}</span>
                 <span className="text-[10px] text-border">~{Math.round(mo.days / 21)} mies.</span>
@@ -344,7 +344,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
               <button
                 type="button"
                 onClick={() => setShowTable((v) => !v)}
-                className="text-xs text-accent-primary hover:text-accent-primary-hover"
+                className="text-xs text-accent-primary hover:text-accent-primary/80"
               >
                 {showTable ? 'Zwiń' : 'Rozwiń'}
               </button>
@@ -433,13 +433,13 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
 
 function SummaryCard({ label, value, subvalue, accent }: { label: string; value: string; subvalue: string; accent: 'blue' | 'green' | 'purple' | 'red' }) {
   const colors = {
-    blue: 'border-accent bg-bg-hover/50/30',
+    blue: 'border-accent-primary/40 bg-bg-hover/50/30',
     green: 'border-success/30 border-success/30 bg-bg-hover/50 bg-success/5',
-    purple: 'border-accent-primary/30 bg-accent-primary/5',
+    purple: 'border-accent-primary/40-primary/30 bg-accent-primary/5',
     red: 'border-danger/30 bg-bg-hover/50 bg-danger/5',
   };
   const textColors = {
-    blue: 'text-accent-primary-hover',
+    blue: 'text-accent-primary/80',
     green: 'text-success',
     purple: 'text-accent-primary',
     red: 'text-danger ',
