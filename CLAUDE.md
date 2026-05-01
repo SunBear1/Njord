@@ -4,6 +4,8 @@
 
 **Njord** — Polish-language investment calculator SPA comparing USD stock/ETF portfolios against Polish savings instruments (savings accounts, 8 types of government bonds, ETFs). All financial computation runs client-side. Hosted on Cloudflare Pages with thin Pages Functions backend.
 
+- **Routes:** `/` (home), `/comparison`, `/forecast`, `/tax`, `/portfolio`, `/rates`
+
 - **Live:** https://njord.pages.dev
 - **UI language:** Polish | **Code/commits/docs:** English
 - **Base currency:** PLN (converted from USD via NBP)
@@ -15,7 +17,7 @@ npm run dev          # Frontend only (Vite) → localhost:5173
 npm run dev:full     # Full stack: Vite + Pages Functions → localhost:8788
 npm run build        # tsc -b && vite build → dist/
 npm run lint         # ESLint (zero-error enforced)
-npm test             # Vitest unit tests (446+ tests)
+npm test             # Vitest unit tests (500+ tests)
 npm run test:watch   # Vitest watch mode
 npm run test:e2e     # Playwright (requires preview server)
 npx tsc --noEmit     # Type-check only (fast)

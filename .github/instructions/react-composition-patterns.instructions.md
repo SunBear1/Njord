@@ -1,6 +1,6 @@
 ---
 description: React composition patterns for scalable components. Apply when refactoring components with boolean props, building reusable component APIs, or designing flexible architecture.
-globs: "src/components/**/*.tsx"
+applyTo: "src/components/**/*.tsx"
 ---
 
 # React Composition Patterns

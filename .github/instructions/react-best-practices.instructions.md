@@ -1,6 +1,6 @@
 ---
 description: React performance optimization guidelines from Vercel Engineering. Apply when writing, reviewing, or refactoring React components.
-globs: "src/**/*.{ts,tsx}"
+applyTo: "src/**/*.{ts,tsx}"
 ---
 
 # React Best Practices

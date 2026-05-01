@@ -1,6 +1,6 @@
 ---
 description: Design token architecture for theming and dark mode preparation. Apply when working with colors, theming, or CSS custom properties.
-globs: "src/index.css"
+applyTo: "src/index.css"
 ---
 
 # Design Token Architecture

@@ -2,6 +2,8 @@
 
 Polish-language financial comparison SPA: USD stock portfolio vs Polish savings accounts and government bonds. Hosted on Cloudflare Pages with a thin Pages Function backend.
 
+**Routes:** `/` (home), `/comparison`, `/forecast`, `/tax`, `/portfolio`, `/rates`
+
 ## Commands
 
 ```bash
@@ -11,6 +13,8 @@ npm run build        # tsc -b && vite build
 npm run lint         # ESLint (zero-error enforced)
 npm test             # Vitest — all tests
 npm run test:watch   # Vitest — watch mode
+npm run test:e2e     # Playwright E2E (requires preview server)
+npx tsc --noEmit     # Type-check only (fast)
 npx vitest run src/__tests__/gbmModel.test.ts  # Single test file
 ```
 

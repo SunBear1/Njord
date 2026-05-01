@@ -4,14 +4,7 @@ description: >
   bonds, FX, dividends, compound interest, or scenario framing. Ensures correctness of Polish tax
   law application, mathematical soundness of all financial formulas, and realistic probabilistic
   framing of stock predictions.
-globs:
-  - src/utils/calculations.ts
-  - src/utils/sellAnalysis.ts
-  - src/utils/inflationProjection.ts
-  - src/utils/models/**
-  - src/__tests__/**
-  - src/components/**/*.tsx
-  - functions/api/**
+applyTo: "src/utils/calculations.ts,src/utils/sellAnalysis.ts,src/utils/inflationProjection.ts,src/utils/models/**,src/__tests__/**,src/components/**/*.tsx,functions/api/**"
 ---
 
 # Financial Mathematics Guardian

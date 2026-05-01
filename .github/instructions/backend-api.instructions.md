@@ -3,8 +3,7 @@ description: >
   Rules for Cloudflare Pages Functions (backend API routes). Apply when reading or modifying
   any file in the functions/ directory. Covers API key secrecy, CF runtime constraints,
   caching strategy, CORS, and local development setup.
-globs:
-  - functions/**
+applyTo: "functions/**"
 ---
 
 # Backend — Cloudflare Pages Functions
