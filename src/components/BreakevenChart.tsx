@@ -42,7 +42,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
           <button
             type="button"
             onClick={() => setView('grid')}
-            className={`px-2.5 py-1 ${view === 'grid' ? 'bg-bg-hover font-semibold text-text-primary' : 'text-text-muted hover:bg-bg-card dark:hover:bg-bg-hover/50'}`}
+            className={`px-2.5 py-1 ${view === 'grid' ? 'bg-bg-hover font-semibold text-text-primary' : 'text-text-muted hover:bg-bg-card'}`}
             aria-pressed={view === 'grid'}
           >
             Siatka
@@ -50,7 +50,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
           <button
             type="button"
             onClick={() => setView('list')}
-            className={`px-2.5 py-1 border-l border-border ${view === 'list' ? 'bg-bg-hover font-semibold text-text-primary' : 'text-text-muted hover:bg-bg-card dark:hover:bg-bg-hover/50'}`}
+            className={`px-2.5 py-1 border-l border-border ${view === 'list' ? 'bg-bg-hover font-semibold text-text-primary' : 'text-text-muted hover:bg-bg-card'}`}
             aria-pressed={view === 'list'}
           >
             Lista
@@ -129,12 +129,12 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
                   return (
                     <div
                       key={`${cell.deltaStock},${cell.deltaFx}`}
-                      className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-bg-hover/20 border border-accent dark:border-accent/40 text-xs"
+                      className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-bg-hover/20 border border-accent/40 text-xs"
                     >
-                      <span className="text-accent-primary-hover dark:text-accent-primary font-medium tabular-nums">
+                      <span className="text-accent-primary-hover font-medium tabular-nums">
                         Akcje {cell.deltaStock > 0 ? '+' : ''}{cell.deltaStock}% / USD {cell.deltaFx > 0 ? '+' : ''}{cell.deltaFx}%
                       </span>
-                      <span className="text-accent-primary dark:text-accent-primary tabular-nums font-semibold">
+                      <span className="text-accent-primary tabular-nums font-semibold">
                         +{fmtPLN(diff)}
                       </span>
                     </div>
@@ -153,7 +153,7 @@ function BreakevenChart({ cells, benchmarkEndValuePLN, benchmarkLabel }: Breakev
 
       <div className="flex items-center gap-4 text-xs text-text-muted pt-1 flex-wrap">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-4 h-4 rounded bg-bg-hover/40 border border-accent dark:border-accent" />
+          <span className="inline-block w-4 h-4 rounded bg-bg-hover/40 border border-accent" />
           Akcje lepsze (✓)
         </span>
         <span className="flex items-center gap-1.5">

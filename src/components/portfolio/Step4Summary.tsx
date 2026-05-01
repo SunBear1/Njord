@@ -59,7 +59,7 @@ function EditButton({ step, goToStep }: { step: WizardStep; goToStep: (s: Wizard
     <button
       type="button"
       onClick={() => goToStep(step)}
-      className="inline-flex items-center gap-1 text-xs text-accent-primary dark:text-accent-primary hover:text-accent-primary-hover dark:hover:text-accent-primary transition-colors"
+      className="inline-flex items-center gap-1 text-xs text-accent-primary hover:text-accent-primary-hover transition-colors"
       aria-label={`Edytuj krok ${step}`}
     >
       <Edit3 size={12} />
@@ -124,25 +124,25 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
           icon={<TrendingUp size={18} />}
           label="Wartość portfela (brutto)"
           value={fmtPLN(derived.grossValue)}
-          colorClass="text-accent-primary dark:text-accent-primary"
+          colorClass="text-accent-primary"
         />
         <MetricCard
           icon={<Shield size={18} />}
           label="Oszczędność IKE (brak Belki)"
           value={fmtPLN(derived.ikeSavings)}
-          colorClass="text-success dark:text-green-400"
+          colorClass="text-success text-success"
         />
         <MetricCard
           icon={<PiggyBank size={18} />}
           label="Łączna ulga IKZE (PIT)"
           value={fmtPLN(result.ikzePitDeductionValue)}
-          colorClass="text-violet-600 dark:text-violet-400"
+          colorClass="text-accent-primary"
         />
         <MetricCard
           icon={<AlertCircle size={18} />}
           label="Podatek IKZE (ryczałt 10%)"
           value={fmtPLN(derived.ikzeExitTax)}
-          colorClass="text-orange-600 dark:text-orange-400"
+          colorClass="text-danger"
         />
         <MetricCard
           icon={<Calculator size={18} />}
@@ -154,20 +154,20 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
           icon={<Award size={18} />}
           label="Wartość NETTO"
           value={fmtPLN(result.totalTerminalNet)}
-          colorClass="text-green-700 dark:text-green-300"
+          colorClass="text-success"
           emphasized
         />
         <MetricCard
           icon={<Target size={18} />}
           label="Wartość realna (po inflacji)"
           value={fmtPLN(derived.realValue)}
-          colorClass="text-amber-600 dark:text-amber-400"
+          colorClass="text-danger"
         />
         <MetricCard
           icon={<Percent size={18} />}
           label="Efektywna CAGR netto"
           value={`${derived.cagr.toFixed(2)}%`}
-          colorClass="text-accent-primary dark:text-accent-primary"
+          colorClass="text-accent-primary"
         />
       </div>
 
@@ -183,7 +183,7 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center">
           <div>
             <p className="text-xs text-text-muted mb-1">Z IKE/IKZE</p>
-            <p className="text-xl font-bold text-green-700 dark:text-green-300 tabular-nums">
+            <p className="text-xl font-bold text-success tabular-nums">
               {fmtPLN(result.totalTerminalNet)}
             </p>
           </div>
@@ -195,10 +195,10 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
           </div>
         </div>
         <div className="mt-4 pt-3 border-t border-border flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-sm">
-          <span className={result.taxSavings >= 0 ? 'text-success dark:text-green-400 font-semibold' : 'text-danger font-semibold'}>
+          <span className={result.taxSavings >= 0 ? 'text-success text-success font-semibold' : 'text-danger font-semibold'}>
             {result.taxSavings >= 0 ? '+' : ''}{fmtPLN(result.taxSavings)}
           </span>
-          <span className={result.taxSavingsPercent >= 0 ? 'text-success dark:text-green-400' : 'text-danger'}>
+          <span className={result.taxSavingsPercent >= 0 ? 'text-success text-success' : 'text-danger'}>
             ({result.taxSavingsPercent >= 0 ? '+' : ''}{result.taxSavingsPercent.toFixed(2)}%)
           </span>
         </div>
@@ -223,7 +223,7 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
         <button
           type="button"
           onClick={() => setTableOpen(prev => !prev)}
-          className="w-full flex items-center justify-between px-5 py-3 text-sm font-semibold text-text-primary hover:bg-bg-card dark:hover:bg-bg-hover/50 transition-colors rounded-xl"
+          className="w-full flex items-center justify-between px-5 py-3 text-sm font-semibold text-text-primary hover:bg-bg-card transition-colors rounded-xl"
           aria-expanded={tableOpen}
         >
           <span>Szczegóły roczne</span>
@@ -259,12 +259,12 @@ function Step4Summary({ result, wizardState, goToStep, isDark }: Step4Props) {
                     <td className="px-2 py-1.5 text-right tabular-nums text-text-secondary">{fmtPLN(row.ikeValue)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-text-secondary">{fmtPLN(row.ikzeContributed)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-text-secondary">{fmtPLN(row.ikzeValue)}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums text-violet-600 dark:text-violet-400">{fmtPLN(row.ikzePitDeduction)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-accent-primary">{fmtPLN(row.ikzePitDeduction)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-text-secondary">{fmtPLN(row.regularContributed)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-text-secondary">{fmtPLN(row.regularValue)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums font-medium text-text-secondary">{fmtPLN(row.totalContributed)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums font-medium text-text-secondary">{fmtPLN(row.totalValue)}</td>
-                    <td className={`px-2 py-1.5 text-right tabular-nums font-medium ${row.cumulativeGain >= 0 ? 'text-success dark:text-green-400' : 'text-danger'}`}>
+                    <td className={`px-2 py-1.5 text-right tabular-nums font-medium ${row.cumulativeGain >= 0 ? 'text-success text-success' : 'text-danger'}`}>
                       {fmtPLN(row.cumulativeGain)}
                     </td>
                   </tr>

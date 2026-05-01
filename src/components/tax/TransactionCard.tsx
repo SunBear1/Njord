@@ -53,7 +53,7 @@ function RateStatusBadge({
 
   if (isLoading) {
     return (
-      <p className="text-[11px] text-accent-primary dark:text-accent-primary flex items-center gap-1">
+      <p className="text-[11px] text-accent-primary flex items-center gap-1">
         <Loader2 size={10} className="animate-spin" aria-hidden="true" />
         Pobieranie kursu NBP…
       </p>
@@ -77,7 +77,7 @@ function RateStatusBadge({
             if (v > 0) onManualChange(v);
           }}
           placeholder="Kurs ręcznie (np. 3.9785)"
-          className="w-full border border-red-300 dark:border-red-700 rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-red-500"
+          className="w-full border border-danger/30 border-danger/30 rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-danger/50"
         />
       </div>
     );
@@ -85,7 +85,7 @@ function RateStatusBadge({
 
   if (rate !== null && rate > 0) {
     return (
-      <p className="text-[11px] text-success dark:text-green-400 flex items-center gap-1 flex-wrap">
+      <p className="text-[11px] text-success text-success flex items-center gap-1 flex-wrap">
         <CheckCircle2 size={10} aria-hidden="true" className="flex-shrink-0" />
         <span>Kurs NBP: {rate.toFixed(4)}</span>
         {effectiveDate && (
@@ -185,13 +185,13 @@ function CalculationBreakdown({ tx, result }: { tx: TaxTransaction; result: Tran
         {/* Tax */}
         {!result.isLoss ? (
           <div className="flex items-center justify-between">
-            <span className="text-amber-700 dark:text-amber-400 font-medium">
+            <span className="text-danger font-medium">
               Podatek 19%
               <span className="ml-1.5 text-border font-normal">
                 {fmtPLNGrosze(result.gainPLN)} × 0,19
               </span>
             </span>
-            <span className="font-bold text-amber-700 dark:text-amber-400">
+            <span className="font-bold text-danger">
               {fmtPLNGrosze(result.taxEstimatePLN)}
             </span>
           </div>
@@ -515,20 +515,20 @@ export function TransactionCard({
       {/* Collapsed summary bar */}
       <button
         type="button"
-        className="w-full flex items-center gap-3 px-4 py-3 text-left select-none transition-colors hover:bg-bg-card dark:hover:bg-bg-hover/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-primary"
+        className="w-full flex items-center gap-3 px-4 py-3 text-left select-none transition-colors hover:bg-bg-card/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-primary"
         onClick={onToggle}
         aria-expanded={isExpanded}
         aria-label={`Transakcja ${index}`}
       >
         {/* Index badge */}
-        <span className="w-7 h-7 rounded-full bg-bg-hover/40 text-accent-primary-hover dark:text-accent-primary text-xs font-bold inline-flex items-center justify-center flex-shrink-0">
+        <span className="w-7 h-7 rounded-full bg-bg-hover/40 text-accent-primary-hover text-xs font-bold inline-flex items-center justify-center flex-shrink-0">
           {index}
         </span>
 
         {/* Ticker + name */}
         <div className="flex items-center gap-1.5 min-w-0 flex-shrink-0">
           {tx.ticker ? (
-            <span className="inline-flex items-center gap-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded font-semibold text-xs tracking-wide">
+            <span className="inline-flex items-center gap-1 bg-accent-primary/10 text-accent-primary px-2 py-0.5 rounded font-semibold text-xs tracking-wide">
               <TrendingUp size={10} aria-hidden="true" />
               {tx.ticker}
             </span>
@@ -561,7 +561,7 @@ export function TransactionCard({
 
         {/* Tax */}
         {result && !result.isLoss ? (
-          <span className="text-xs tabular-nums text-amber-700 dark:text-amber-400 font-medium whitespace-nowrap hidden sm:inline">
+          <span className="text-xs tabular-nums text-danger font-medium whitespace-nowrap hidden sm:inline">
             {fmtPLNGrosze(result.taxEstimatePLN)}
           </span>
         ) : null}
@@ -583,7 +583,7 @@ export function TransactionCard({
             tabIndex={0}
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); onDelete(); } }}
-            className="p-1.5 text-border hover:text-danger dark:hover:text-red-400 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
+            className="p-1.5 text-border hover:text-danger rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-danger transition-colors"
             aria-label="Usuń transakcję"
           >
             <Trash2 size={14} aria-hidden="true" />
@@ -627,13 +627,13 @@ export function TransactionCard({
               )}
             </div>
             {tx.tickerName && !tx.isLoadingTicker && (
-              <p className="text-[11px] text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+              <p className="text-[11px] text-accent-primary flex items-center gap-1">
                 <CheckCircle2 size={10} aria-hidden="true" />
                 {tx.tickerName}
               </p>
             )}
             {tx.tickerError && !tx.isLoadingTicker && (
-              <p className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1">
+              <p className="text-[11px] text-danger flex items-center gap-1">
                 <AlertTriangle size={10} aria-hidden="true" />
                 {tx.tickerError}
               </p>
@@ -812,7 +812,7 @@ export function TransactionCard({
               <button
                 type="button"
                 onClick={() => onUpdate({ showCommissions: true })}
-                className="text-xs text-border hover:text-accent-primary dark:hover:text-accent-primary underline underline-offset-2 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
+                className="text-xs text-border hover:text-accent-primary underline underline-offset-2 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
               >
                 + Dodaj prowizję brokera
               </button>
@@ -824,7 +824,7 @@ export function TransactionCard({
                     <button
                       type="button"
                       onClick={() => onUpdate({ showCommissions: false })}
-                      className="text-[11px] text-border hover:text-text-primary dark:hover:text-text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
+                      className="text-[11px] text-border hover:text-text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
                     >
                       Ukryj
                     </button>

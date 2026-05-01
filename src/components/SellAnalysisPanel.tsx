@@ -106,7 +106,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
       {/* Header with unified horizon selector */}
       <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5">
         <div className="flex items-center gap-2 mb-3">
-          <Target size={20} className="text-accent-primary dark:text-accent-primary" />
+          <Target size={20} className="text-accent-primary" />
           <h2 className="text-lg font-semibold text-text-primary">Optymalna cena sprzedaży</h2>
         </div>
 
@@ -122,7 +122,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                 className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-colors ${
                   isActive
                     ? 'bg-accent-primary border-accent text-white shadow-sm'
-                    : 'bg-bg-card border-border text-text-secondary hover:border-accent hover:bg-bg-hover dark:hover:bg-bg-card/30'
+                    : 'bg-bg-card border-border text-text-secondary hover:border-accent hover:bg-bg-hover/30'
                 }`}
               >
                 <span className="text-sm font-semibold leading-snug">{p.label}</span>
@@ -140,7 +140,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
             className={`flex flex-col items-center px-4 py-2 rounded-xl border transition-colors ${
               isCustomActive || showCustomPicker
                 ? 'bg-accent-primary border-accent text-white shadow-sm'
-                : 'bg-bg-card border-border text-text-secondary hover:border-accent hover:bg-bg-hover dark:hover:bg-bg-card/30'
+                : 'bg-bg-card border-border text-text-secondary hover:border-accent hover:bg-bg-hover/30'
             }`}
           >
             <span className="text-sm font-semibold leading-snug">Własny</span>
@@ -213,7 +213,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="bg-bg-card rounded-xl border border-border shadow-sm p-4">
               <div className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Reżim rynkowy</div>
-              <div className={`text-lg font-bold ${analysis.regimeInfo.currentRegimeLabel === 'bull' ? 'text-green-700 dark:text-green-400' : 'text-red-700 '}`}>
+              <div className={`text-lg font-bold ${analysis.regimeInfo.currentRegimeLabel === 'bull' ? 'text-success' : 'text-danger '}`}>
                 {analysis.regimeInfo.currentRegimeLabel === 'bull' ? '📈 Faza wzrostowa' : '📉 Faza spadkowa'}
               </div>
               <div className="text-xs text-text-muted mt-1">
@@ -274,7 +274,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                         <div className="font-semibold text-text-primary mb-1">Dzień {label}</div>
                         <div className="text-text-secondary">p90: {fmtUSD(d.p90)}</div>
                         <div className="text-text-secondary">p75: {fmtUSD(d.p75)}</div>
-                        <div className="text-accent-primary dark:text-accent-primary font-medium">p50: {fmtUSD(d.p50)}</div>
+                        <div className="text-accent-primary font-medium">p50: {fmtUSD(d.p50)}</div>
                         <div className="text-text-secondary">p25: {fmtUSD(d.p25)}</div>
                         <div className="text-text-secondary">p10: {fmtUSD(d.p10)}</div>
                       </div>
@@ -344,7 +344,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
               <button
                 type="button"
                 onClick={() => setShowTable((v) => !v)}
-                className="text-xs text-accent-primary dark:text-accent-primary hover:text-accent-primary-hover"
+                className="text-xs text-accent-primary hover:text-accent-primary-hover"
               >
                 {showTable ? 'Zwiń' : 'Rozwiń'}
               </button>
@@ -369,21 +369,21 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
                       return (
                         <tr
                           key={sp.target}
-                          className={`border-b border-border ${isOptimal ? 'bg-bg-hover/30 font-semibold' : isDownside ? 'bg-bg-hover/40 dark:bg-red-950/10' : ''}`}
+                          className={`border-b border-border ${isOptimal ? 'bg-bg-hover/30 font-semibold' : isDownside ? 'bg-bg-hover/40 bg-danger/5' : ''}`}
                         >
                           <td className="py-2 pr-4">
                             {fmtUSD(sp.target)}
-                            {isOptimal && <span className="ml-1.5 text-[10px] text-accent-primary dark:text-accent-primary font-bold">★ OPTYMALNY</span>}
+                            {isOptimal && <span className="ml-1.5 text-[10px] text-accent-primary font-bold">★ OPTYMALNY</span>}
                             {isDownside && <span className="ml-1.5 text-[10px] text-danger font-medium">↓ drawdown</span>}
                           </td>
-                          <td className={`py-2 pr-4 ${changePct >= 0 ? 'text-green-700 dark:text-green-400' : 'text-danger'}`}>
+                          <td className={`py-2 pr-4 ${changePct >= 0 ? 'text-success' : 'text-danger'}`}>
                             {changePct >= 0 ? '+' : ''}{changePct.toFixed(1)}%
                           </td>
                           <td className="py-2 pr-4">
                             <div className="flex items-center gap-2">
                               <div className="w-16 h-1.5 bg-bg-hover rounded-full overflow-hidden">
                                 <div
-                                  className={`h-full rounded-full ${isDownside ? 'bg-bg-hover0' : sp.pTouch > 0.5 ? 'bg-bg-hover0' : sp.pTouch > 0.2 ? 'bg-amber-500' : 'bg-bg-hover0'}`}
+                                  className={`h-full rounded-full ${isDownside ? 'bg-bg-hover0' : sp.pTouch > 0.5 ? 'bg-bg-hover0' : sp.pTouch > 0.2 ? 'bg-danger/50' : 'bg-bg-hover0'}`}
                                   style={{ width: `${sp.pTouch * 100}%` }}
                                 />
                               </div>
@@ -402,9 +402,9 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           </div>
 
           {/* Disclaimer */}
-          <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 flex items-start gap-3">
-            <AlertTriangle size={16} className="text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
-            <div className="text-xs text-amber-800 dark:text-amber-300 space-y-1">
+          <div className="bg-danger/5 border border-danger/30 rounded-xl p-4 flex items-start gap-3">
+            <AlertTriangle size={16} className="text-danger shrink-0 mt-0.5" />
+            <div className="text-xs text-danger space-y-1">
               <p className="font-semibold">Ograniczenia modelu</p>
               <ul className="list-disc list-inside space-y-0.5">
                 <li>Model nie przewiduje wydarzeń jednorazowych (wyniki kwartalne, przejęcia, regulacje)</li>
@@ -433,16 +433,16 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
 
 function SummaryCard({ label, value, subvalue, accent }: { label: string; value: string; subvalue: string; accent: 'blue' | 'green' | 'purple' | 'red' }) {
   const colors = {
-    blue: 'border-accent dark:border-accent bg-bg-hover/50/30',
-    green: 'border-green-200 dark:border-green-800 bg-bg-hover/50 dark:bg-green-950/30',
-    purple: 'border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/30',
-    red: 'border-red-200 dark:border-red-800 bg-bg-hover/50 dark:bg-red-950/30',
+    blue: 'border-accent bg-bg-hover/50/30',
+    green: 'border-success/30 border-success/30 bg-bg-hover/50 bg-success/5',
+    purple: 'border-accent-primary/30 bg-accent-primary/5',
+    red: 'border-danger/30 bg-bg-hover/50 bg-danger/5',
   };
   const textColors = {
-    blue: 'text-accent-primary-hover dark:text-accent-primary',
-    green: 'text-green-700 dark:text-green-400',
-    purple: 'text-purple-700',
-    red: 'text-red-700 ',
+    blue: 'text-accent-primary-hover',
+    green: 'text-success',
+    purple: 'text-accent-primary',
+    red: 'text-danger ',
   };
   return (
     <div className={`rounded-xl border shadow-sm p-4 ${colors[accent]}`}>

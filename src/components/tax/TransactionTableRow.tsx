@@ -52,7 +52,7 @@ function RateStatusBadge({
 
   if (isLoading) {
     return (
-      <p className="text-[11px] text-accent-primary dark:text-accent-primary flex items-center gap-1">
+      <p className="text-[11px] text-accent-primary flex items-center gap-1">
         <Loader2 size={10} className="animate-spin" aria-hidden="true" />
         Pobieranie kursu NBP…
       </p>
@@ -76,7 +76,7 @@ function RateStatusBadge({
             if (v > 0) onManualChange(v);
           }}
           placeholder="Kurs ręcznie (np. 3.9785)"
-          className="w-full border border-red-300 dark:border-red-700 rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-red-500"
+          className="w-full border border-danger/30 border-danger/30 rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-danger/50"
         />
       </div>
     );
@@ -84,7 +84,7 @@ function RateStatusBadge({
 
   if (rate !== null && rate > 0) {
     return (
-      <p className="text-[11px] text-success dark:text-green-400 flex items-center gap-1 flex-wrap">
+      <p className="text-[11px] text-success text-success flex items-center gap-1 flex-wrap">
         <CheckCircle2 size={10} aria-hidden="true" className="flex-shrink-0" />
         <span>Kurs NBP: {rate.toFixed(4)}</span>
         {effectiveDate && (
@@ -114,7 +114,7 @@ function ResultCell({
 }) {
   return (
     <div
-      className={`flex-1 min-w-[90px] bg-bg-card px-3 py-2 text-center ${total ? 'ring-1 ring-inset ring-edge-strong dark:ring-edge-strong rounded-sm' : ''}`}
+      className={`flex-1 min-w-[90px] bg-bg-card px-3 py-2 text-center ${total ? 'ring-1 ring-inset ring-border rounded-sm' : ''}`}
     >
       <p className="text-[10px] text-border uppercase tracking-wide mb-0.5">
         {subtract && '− '}
@@ -353,7 +353,7 @@ export function TransactionTableRow({
     <>
       {/* Summary row */}
       <tr
-        className={`border-b border-border cursor-pointer hover:bg-bg-card dark:hover:bg-bg-hover/50 select-none transition-colors ${isExpanded ? 'bg-bg-card/50/30' : ''}`}
+        className={`border-b border-border cursor-pointer hover:bg-bg-card select-none transition-colors ${isExpanded ? 'bg-bg-card/50/30' : ''}`}
         onClick={onToggle}
         tabIndex={0}
         onKeyDown={(e) => e.key === 'Enter' && onToggle()}
@@ -361,14 +361,14 @@ export function TransactionTableRow({
         aria-label={`Transakcja ${index}`}
       >
         <td className="px-3 py-2.5 text-center">
-          <span className="w-6 h-6 rounded-full bg-bg-hover/40 text-accent-primary-hover dark:text-accent-primary text-xs font-bold inline-flex items-center justify-center">
+          <span className="w-6 h-6 rounded-full bg-bg-hover/40 text-accent-primary-hover text-xs font-bold inline-flex items-center justify-center">
             {index}
           </span>
         </td>
         <td className="px-3 py-2.5">
           <div className="flex items-center gap-1.5">
             {tx.ticker ? (
-              <span className="inline-flex items-center gap-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded font-semibold text-xs tracking-wide">
+              <span className="inline-flex items-center gap-1 bg-accent-primary/10 text-accent-primary px-2 py-0.5 rounded font-semibold text-xs tracking-wide">
                 <TrendingUp size={10} aria-hidden="true" />
                 {tx.ticker}
               </span>
@@ -403,7 +403,7 @@ export function TransactionTableRow({
         </td>
         <td className="px-3 py-2.5 text-right tabular-nums whitespace-nowrap">
           {result && !result.isLoss ? (
-            <span className="text-amber-700 dark:text-amber-400 font-medium">{fmtPLNGrosze(result.taxEstimatePLN)}</span>
+            <span className="text-danger font-medium">{fmtPLNGrosze(result.taxEstimatePLN)}</span>
           ) : result ? (
             <span className="text-border">—</span>
           ) : '—'}
@@ -418,7 +418,7 @@ export function TransactionTableRow({
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onDelete(); }}
-              className="p-1.5 text-border hover:text-danger dark:hover:text-red-400 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
+              className="p-1.5 text-border hover:text-danger rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-danger transition-colors"
               aria-label="Usuń transakcję"
             >
               <Trash2 size={14} aria-hidden="true" />
@@ -465,13 +465,13 @@ export function TransactionTableRow({
               )}
             </div>
             {tx.tickerName && !tx.isLoadingTicker && (
-              <p className="text-[11px] text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+              <p className="text-[11px] text-accent-primary flex items-center gap-1">
                 <CheckCircle2 size={10} aria-hidden="true" />
                 {tx.tickerName}
               </p>
             )}
             {tx.tickerError && !tx.isLoadingTicker && (
-              <p className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1">
+              <p className="text-[11px] text-danger flex items-center gap-1">
                 <AlertTriangle size={10} aria-hidden="true" />
                 {tx.tickerError}
               </p>
@@ -614,7 +614,7 @@ export function TransactionTableRow({
               <button
                 type="button"
                 onClick={() => onUpdate({ showCommissions: true })}
-                className="text-xs text-border hover:text-accent-primary dark:hover:text-accent-primary underline underline-offset-2 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
+                className="text-xs text-border hover:text-accent-primary underline underline-offset-2 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
               >
                 + Dodaj prowizję brokera
               </button>
@@ -626,7 +626,7 @@ export function TransactionTableRow({
                     <button
                       type="button"
                       onClick={() => onUpdate({ showCommissions: false })}
-                      className="text-[11px] text-border hover:text-text-primary dark:hover:text-text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
+                      className="text-[11px] text-border hover:text-text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
                     >
                       Ukryj
                     </button>
@@ -681,7 +681,7 @@ export function TransactionTableRow({
                 <ResultCell
                   label="Podatek"
                   value={fmtPLNGrosze(result.taxEstimatePLN)}
-                  valueClass="text-amber-700 dark:text-amber-400"
+                  valueClass="text-danger"
                 />
               )}
             </div>

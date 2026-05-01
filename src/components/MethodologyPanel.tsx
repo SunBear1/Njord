@@ -9,7 +9,7 @@ export function MethodologyPanel() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-5 py-3 text-text-primary font-medium hover:bg-bg-hover dark:hover:bg-bg-hover transition-colors"
+        className="w-full flex items-center justify-between px-5 py-3 text-text-primary font-medium hover:bg-bg-hover transition-colors"
       >
         <span className="flex items-center gap-2">
           <BookOpen size={16} aria-hidden="true" />
@@ -79,7 +79,7 @@ export function MethodologyPanel() {
               Inflacja pobierana automatycznie z Eurostat HICP.
               Stawki odpowiadają aktualnej ofercie z obligacjeskarbowe.pl — mogą się zmieniać co miesiąc.
             </p>
-            <p className="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900 rounded px-2 py-1">
+            <p className="text-xs text-danger bg-danger/5 border border-danger/20 rounded px-2 py-1">
               ⚠️ Model nie uwzględnia rolowania (ponownego zakupu) obligacji po zapadalności.
               Jeśli horyzont &gt; zapadalność (np. OTS 3-mies. przy 9-mies. horyzoncie),
               wynik odzwierciedla prostą ekstrapolację stopy, nie trzykrotny zakup obligacji.
@@ -182,9 +182,9 @@ export function MethodologyPanel() {
             </p>
           </section>
 
-          <section className="bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900 rounded-lg p-3 space-y-1">
-            <h3 className="font-semibold text-amber-900 dark:text-amber-200">Założenia i ograniczenia</h3>
-            <ul className="list-disc list-inside text-xs text-amber-800 dark:text-amber-300 space-y-1">
+          <section className="bg-danger/5 border border-danger/20 rounded-lg p-3 space-y-1">
+            <h3 className="font-semibold text-danger">Założenia i ograniczenia</h3>
+            <ul className="list-disc list-inside text-xs text-danger space-y-1">
               <li>
                 <strong>Podatek Belki (19%)</strong> od zysku zarówno z akcji, jak i z odsetek
               </li>

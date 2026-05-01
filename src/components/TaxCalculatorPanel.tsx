@@ -200,7 +200,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
     <div className="space-y-5">
       {/* Storage corruption warning */}
       {storageCorrupted && (
-        <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-200" role="alert">
+        <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-danger/5 border border-danger/30 text-xs text-danger" role="alert">
           <AlertTriangle size={14} className="flex-shrink-0 mt-0.5" aria-hidden="true" />
           <span>
             Dane transakcji w pamięci lokalnej mają nieoczekiwany format. Niektóre pola mogły zostać zresetowane.
@@ -211,7 +211,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5 min-w-0">
-          <Receipt size={22} className="text-accent-primary dark:text-accent-primary flex-shrink-0" aria-hidden="true" />
+          <Receipt size={22} className="text-accent-primary flex-shrink-0" aria-hidden="true" />
           <div className="min-w-0">
             <h2 className="text-lg font-semibold text-text-primary">
               Kalkulator podatku Belki
@@ -226,7 +226,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
         <div className="flex items-center gap-1.5 flex-shrink-0 relative">
           <span
             title="Plik przetwarzany lokalnie — nigdy nie opuszcza urządzenia. Jedyne zapytania sieciowe to publiczne kursy walut z NBP."
-            className="flex items-center gap-1 text-[11px] text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-md px-1.5 py-0.5 cursor-default select-none"
+            className="flex items-center gap-1 text-[11px] text-success bg-success/5 border border-success/30 rounded-md px-1.5 py-0.5 cursor-default select-none"
             aria-label="Prywatność: plik przetwarzany lokalnie"
           >
             <Shield size={11} aria-hidden="true" />
@@ -262,14 +262,14 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                     <button
                       type="button"
                       onClick={handleClearAll}
-                      className="flex-1 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                      className="flex-1 text-xs font-semibold text-white bg-danger hover:bg-danger/90 rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-danger"
                     >
                       Tak, usuń
                     </button>
                     <button
                       type="button"
                       onClick={() => setConfirmClearAll(false)}
-                      className="flex-1 text-xs text-text-muted hover:text-text-primary dark:hover:text-text-primary border border-border rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-edge-strong"
+                      className="flex-1 text-xs text-text-muted hover:text-text-primary border border-border rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-edge-strong"
                     >
                       Anuluj
                     </button>
@@ -279,7 +279,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
               <button
                 type="button"
                 onClick={() => { setConfirmClearAll((v) => !v); setShowImportDropdown(false); }}
-                className="flex items-center justify-center p-1.5 text-border hover:text-danger dark:hover:text-red-400 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                className="flex items-center justify-center p-1.5 text-border hover:text-danger rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-danger"
                 aria-label={`Usuń wszystkie transakcje (${transactions.length})`}
                 title={`Usuń wszystkie transakcje (${transactions.length})`}
               >
@@ -296,7 +296,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                 <button
                   type="button"
                   onClick={() => setShowImportDropdown(false)}
-                  className="text-border hover:text-text-primary dark:hover:text-text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
+                  className="text-border hover:text-text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
                   aria-label="Zamknij"
                 >
                   <X size={14} aria-hidden="true" />
@@ -315,7 +315,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                     } ${
                       selectedBrokerId === broker.id
                         ? 'bg-accent-primary text-white'
-                        : 'bg-bg-card text-text-secondary hover:bg-bg-card dark:hover:bg-bg-hover/50'
+                        : 'bg-bg-card text-text-secondary hover:bg-bg-card'
                     }`}
                   >
                     <span className="font-semibold">{broker.name}</span>
@@ -332,7 +332,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                   <button
                     type="button"
                     onClick={() => setShowBrokerHelp((v) => !v)}
-                    className="flex items-center gap-1 text-[11px] text-text-muted hover:text-text-primary dark:hover:text-text-primary transition-colors"
+                    className="flex items-center gap-1 text-[11px] text-text-muted hover:text-text-primary transition-colors"
                   >
                     <HelpCircle size={12} aria-hidden="true" />
                     Jak pobrać plik?
@@ -355,7 +355,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
 
               {/* Privacy note inside dropdown */}
               <div className="flex items-start gap-1.5 text-[11px] text-text-muted">
-                <Shield size={11} className="mt-0.5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                <Shield size={11} className="mt-0.5 flex-shrink-0 text-success" aria-hidden="true" />
                 <span>Plik przetwarzany lokalnie — nigdy nie opuszcza urządzenia. Jedyne zapytania sieciowe to publiczne kursy walut z NBP.</span>
               </div>
 
@@ -374,7 +374,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
               </button>
 
               {importError && (
-                <div className="flex items-start gap-1.5 bg-bg-hover dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2 text-[11px] text-red-800 dark:text-red-300">
+                <div className="flex items-start gap-1.5 bg-bg-hover bg-danger/5 border border-danger/30 rounded-lg px-3 py-2 text-[11px] text-danger">
                   <AlertTriangle size={12} className="mt-0.5 flex-shrink-0 text-danger" aria-hidden="true" />
                   <span>{importError}</span>
                 </div>
@@ -396,16 +396,16 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
 
       {/* Undo last import banner */}
       {lastImportIds && !undoInvalidated && (
-        <div className="flex items-center justify-between gap-2 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2 text-xs text-emerald-800 dark:text-emerald-300">
+        <div className="flex items-center justify-between gap-2 bg-success/5 border border-success/30 rounded-lg px-3 py-2 text-xs text-success">
           <div className="flex items-center gap-1.5">
-            <CheckCircle2 size={13} className="flex-shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+            <CheckCircle2 size={13} className="flex-shrink-0 text-success" aria-hidden="true" />
             <span>Zaimportowano <strong>{lastImportCount}</strong> {lastImportCount === 1 ? 'transakcję' : lastImportCount < 5 ? 'transakcje' : 'transakcji'} z {selectedBroker?.name ?? 'brokera'}.</span>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
               type="button"
               onClick={handleUndoImport}
-              className="flex items-center gap-1 text-xs font-medium text-emerald-700 dark:text-emerald-300 hover:text-danger dark:hover:text-red-400 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 rounded"
+              className="flex items-center gap-1 text-xs font-medium text-success hover:text-danger transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-success rounded"
             >
               <Undo2 size={12} aria-hidden="true" />
               Cofnij import
@@ -414,7 +414,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
               type="button"
               onClick={() => setLastImportIds(null)}
               aria-label="Zamknij"
-              className="text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 rounded"
+              className="text-success hover:text-success hover:text-success focus:outline-none focus-visible:ring-1 focus-visible:ring-success rounded"
             >
               <X size={13} aria-hidden="true" />
             </button>
@@ -438,8 +438,8 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                 {showHeader && (
                   <div className="flex items-center gap-2 px-1 pt-2">
                     <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-accent-primary dark:bg-accent-primary flex-shrink-0" />
-                      <span className="text-sm font-semibold text-accent-primary-hover dark:text-accent-primary">
+                      <span className="w-2 h-2 rounded-full bg-accent-primary flex-shrink-0" />
+                      <span className="text-sm font-semibold text-accent-primary-hover">
                         {fmtDatePL(dateKey)}
                       </span>
                     </div>
@@ -448,7 +448,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                         ? '1 transakcja'
                         : `${group.length} ${group.length < 5 ? 'transakcje' : 'transakcji'} · wspólny kurs NBP`}
                     </span>
-                    <div className="flex-1 border-t border-accent dark:border-accent ml-2" />
+                    <div className="flex-1 border-t border-accent ml-2" />
                   </div>
                 )}
                 {group.map(({ tx, globalIndex }) => (
@@ -473,7 +473,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
         <button
           type="button"
           onClick={addTransaction}
-          className="w-full flex items-center gap-2 text-sm font-medium text-accent-primary dark:text-accent-primary hover:text-accent-primary-hover dark:hover:text-accent-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary rounded-lg px-3 py-2 border border-dashed border-accent dark:border-accent hover:border-accent dark:hover:border-accent justify-center transition-colors"
+          className="w-full flex items-center gap-2 text-sm font-medium text-accent-primary hover:text-accent-primary-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary rounded-lg px-3 py-2 border border-dashed border-accent hover:border-accent justify-center transition-colors"
         >
           <Plus size={16} aria-hidden="true" />
           Dodaj transakcję

@@ -58,7 +58,7 @@ export function BondBenchmarkSection({
             const p = bondPresets.find((b) => b.id === e.target.value);
             if (p) onSelectPreset(e.target.value, p);
           }}
-          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
         >
           {bondPresetsLoading ? (
             <option disabled>Ładowanie…</option>
@@ -75,7 +75,7 @@ export function BondBenchmarkSection({
       {preset && (
         <div className="space-y-3">
           {preset.isFamily && (
-            <div className="flex items-start gap-1.5 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 text-purple-800 dark:text-purple-200 text-xs rounded-lg p-2.5">
+            <div className="flex items-start gap-1.5 bg-accent-primary/5 border border-accent-primary/30 text-accent-primary text-xs rounded-lg p-2.5">
               <Info size={12} className="mt-0.5 flex-shrink-0" aria-hidden="true" />
               Obligacje rodzinne — dostępne tylko dla beneficjentów programu 800+.
             </div>
@@ -122,7 +122,7 @@ export function BondBenchmarkSection({
                 </div>
                 <div className="flex justify-between border-t border-border pt-1.5">
                   <span className="text-text-secondary font-medium">Stopa efektywna (od 2. roku):</span>
-                  <span className="font-bold text-accent-primary-hover dark:text-accent-primary">{bondEffectiveRate.toFixed(2)}%</span>
+                  <span className="font-bold text-accent-primary-hover">{bondEffectiveRate.toFixed(2)}%</span>
                 </div>
               </>
             )}
@@ -160,7 +160,7 @@ export function BondBenchmarkSection({
                 </div>
                 <div className="flex justify-between border-t border-border pt-1.5">
                   <span className="text-text-secondary font-medium">Stopa efektywna (od 2. okresu):</span>
-                  <span className="font-bold text-accent-primary-hover dark:text-accent-primary">{bondEffectiveRate.toFixed(2)}%</span>
+                  <span className="font-bold text-accent-primary-hover">{bondEffectiveRate.toFixed(2)}%</span>
                 </div>
               </>
             )}
@@ -191,7 +191,7 @@ export function BondBenchmarkSection({
                 onChange={(e) => {
                   onBondSettingsChange({ ...bondSettings, penalty: parseFloat(e.target.value) || 0 });
                 }}
-                className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
+                className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
               />
             </div>
             <div className="space-y-1">
@@ -207,9 +207,9 @@ export function BondBenchmarkSection({
           <div className={`text-xs rounded-lg p-2.5 ${
             earlyExit
               ? preset.earlyRedemptionAllowed
-                ? 'bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400'
-                : 'bg-bg-hover dark:bg-red-950/20 text-red-700 '
-              : 'bg-bg-hover dark:bg-green-950/20 text-green-700 dark:text-green-400'
+                ? 'bg-danger/5 text-danger'
+                : 'bg-bg-hover bg-danger/5 text-danger '
+              : 'bg-bg-hover bg-success/5 text-success'
           }`}>
             {earlyExit
               ? preset.earlyRedemptionAllowed
@@ -219,7 +219,7 @@ export function BondBenchmarkSection({
           </div>
           <div className="text-[10px] text-border mt-1">
             Stawki z {BOND_PRESETS_LAST_UPDATED}.{' '}
-            <a href={BOND_PRESETS_SOURCE_URL} target="_blank" rel="noopener noreferrer" className="underline hover:text-text-muted dark:hover:text-border">
+            <a href={BOND_PRESETS_SOURCE_URL} target="_blank" rel="noopener noreferrer" className="underline hover:text-text-muted ">
               Aktualne stawki na obligacjeskarbowe.pl
             </a>
           </div>

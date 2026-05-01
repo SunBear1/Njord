@@ -15,7 +15,7 @@ export function PrivacyPolicy({ onClose }: Props) {
           <h2 className="text-lg font-semibold text-text-primary">Polityka prywatności</h2>
           <button
             onClick={onClose}
-            className="text-text-muted hover:text-text-primary dark:hover:text-text-primary text-2xl leading-none"
+            className="text-text-muted hover:text-text-primary text-2xl leading-none"
             aria-label="Zamknij"
           >
             ×

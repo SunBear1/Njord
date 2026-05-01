@@ -53,7 +53,7 @@ export function ForecastPage() {
               value={tickerInput}
               onChange={e => setTickerInput(e.target.value.toUpperCase())}
               placeholder="np. AAPL, MSFT, SPY…"
-              className="w-full px-3 py-2 border border-border rounded-lg bg-white text-text-secondary placeholder:text-border focus:outline-none focus:ring-2 focus:ring-surface-dark/30 text-sm"
+              className="w-full px-3 py-2 border border-border rounded-lg bg-white text-text-secondary placeholder:text-border focus:outline-none focus:ring-2 focus:ring-accent-primary/30 text-sm"
               autoComplete="off"
               spellCheck={false}
             />

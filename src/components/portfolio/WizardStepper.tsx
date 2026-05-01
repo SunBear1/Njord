@@ -32,10 +32,10 @@ export default function WizardStepper({ currentStep, onStepClick }: WizardSteppe
                     w-8 h-8 md:w-10 md:h-10 shrink-0
                     rounded-full bg-accent-primary-success text-white
                     cursor-pointer transition-colors duration-200
-                    hover:bg-green-600 dark:hover:bg-bg-hover0
+                    hover:bg-success/90
                     focus-visible:outline-none focus-visible:ring-2
                     focus-visible:ring-accent-primary-success focus-visible:ring-offset-2
-                    dark:focus-visible:ring-offset-bg-primary"
+                    focus-visible:ring-offset-bg-primary"
                 >
                   <Check className="w-4 h-4 md:w-5 md:h-5" strokeWidth={3} aria-hidden="true" />
                 </button>
@@ -50,7 +50,7 @@ export default function WizardStepper({ currentStep, onStepClick }: WizardSteppe
                     transition-colors duration-200
                     ${
                       isActive
-                        ? 'bg-accent-primary-info text-white ring-2 ring-accent-primary dark:ring-accent-primary/50'
+                        ? 'bg-accent-primary-info text-white ring-2 ring-accent-primary'
                         : 'bg-bg-hover text-text-muted'
                     }`}
                 >

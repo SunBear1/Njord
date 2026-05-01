@@ -9,7 +9,7 @@ export function HowItWorks() {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-5 py-3 text-text-primary font-medium hover:bg-bg-hover dark:hover:bg-bg-hover transition-colors"
+        className="w-full flex items-center justify-between px-5 py-3 text-text-primary font-medium hover:bg-bg-hover transition-colors"
       >
         <span className="flex items-center gap-2">
           <HelpCircle size={16} aria-hidden="true" />

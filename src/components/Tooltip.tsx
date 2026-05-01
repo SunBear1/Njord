@@ -51,7 +51,7 @@ export function Tooltip({ content, children, side = 'top', width = 'w-60' }: Too
       {children ?? (
         <Info
           size={12}
-          className="text-border cursor-help hover:text-text-primary dark:hover:text-text-primary transition-colors"
+          className="text-border cursor-help hover:text-text-primary transition-colors"
           aria-hidden="true"
         />
       )}
@@ -72,7 +72,7 @@ export function Tooltip({ content, children, side = 'top', width = 'w-60' }: Too
           <span
             className={[
               'absolute left-1/2 -translate-x-1/2 border-4 border-transparent',
-              side === 'top' ? 'top-full border-t-gray-800' : 'bottom-full border-b-gray-800',
+              side === 'top' ? 'top-full border-t-bg-hover' : 'bottom-full border-b-bg-hover',
             ].join(' ')}
           />
         </span>,

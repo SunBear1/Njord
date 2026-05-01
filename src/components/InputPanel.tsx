@@ -245,7 +245,7 @@ export function InputPanel({
               <span className="text-border">·</span>
               <span>{bmSummary}</span>
               <span className="text-border">·</span>
-              <span className="text-accent-primary dark:text-accent-primary font-medium">{horizonLabel}</span>
+              <span className="text-accent-primary font-medium">{horizonLabel}</span>
             </div>
             <span className="flex items-center gap-1 text-xs text-text-primary font-medium whitespace-nowrap shrink-0">
               Rozwiń <ChevronDown size={16} />
@@ -275,7 +275,7 @@ export function InputPanel({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="flex items-center gap-1 text-xs text-text-primary hover:text-text-primary dark:hover:text-text-primary font-medium transition-colors"
+            className="flex items-center gap-1 text-xs text-text-primary hover:text-text-primary font-medium transition-colors"
           >
             Zwiń <ChevronUp size={16} />
           </button>
@@ -284,11 +284,11 @@ export function InputPanel({
 
       {/* Rate limit banner */}
       {rateLimited && (
-        <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-          <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+        <div className="bg-danger/5 border border-danger/30 rounded-lg p-3">
+          <p className="text-sm font-medium text-danger">
             Limit zapytań API wyczerpany (maks. 8 na minutę).
           </p>
-          <p className="text-xs text-amber-700 dark:text-amber-400 mt-1">
+          <p className="text-xs text-danger mt-1">
             Poczekaj minutę i spróbuj ponownie.
           </p>
         </div>
@@ -311,7 +311,7 @@ export function InputPanel({
               value={localTicker}
               onChange={(e) => setLocalTicker(e.target.value.toUpperCase())}
               placeholder="np. AAPL, NVDA, VOO"
-              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400 pr-9"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/30 pr-9"
             />
             {assetLoading && (
               <Loader2 size={16} className="absolute right-2.5 top-1/2 -translate-y-1/2 animate-spin motion-reduce:animate-none text-accent-primary" aria-hidden="true" />
@@ -322,7 +322,7 @@ export function InputPanel({
             onClick={handleManualRefetch}
             disabled={assetLoading || !localTicker.trim()}
             aria-label="Odśwież dane giełdowe"
-            className="p-2 rounded-lg border border-border text-text-muted hover:bg-bg-card dark:hover:bg-bg-hover disabled:opacity-40 transition-colors"
+            className="p-2 rounded-lg border border-border text-text-muted hover:bg-bg-card disabled:opacity-40 transition-colors"
           >
             <RefreshCw size={16} aria-hidden="true" />
           </button>
@@ -357,12 +357,12 @@ export function InputPanel({
           value={shares || ''}
           onChange={(e) => onSharesChange(Number(e.target.value))}
           placeholder="np. 50"
-          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
         />
         <button
           type="button"
           onClick={() => setShowValueCalc((v) => !v)}
-          className="flex items-center gap-1 text-xs text-accent-primary dark:text-accent-primary hover:text-accent-primary-hover dark:hover:text-accent-primary transition-colors"
+          className="flex items-center gap-1 text-xs text-accent-primary hover:text-accent-primary-hover transition-colors"
         >
           <Calculator size={12} />
           {showValueCalc ? 'Ukryj kalkulator' : 'Nie wiesz ile masz akcji, ale znasz wartość?'}
@@ -382,7 +382,7 @@ export function InputPanel({
                   value={totalValueStr}
                   onChange={(e) => setTotalValueStr(e.target.value)}
                   placeholder="np. 5000.00"
-                  className="w-full border border-border rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400 bg-bg-card"
+                  className="w-full border border-border rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/30 bg-bg-card"
                 />
               </div>
               <button
@@ -410,7 +410,7 @@ export function InputPanel({
               </p>
             )}
             {!currentPriceUSD && (
-              <p className="text-xs text-amber-600 dark:text-amber-400">
+              <p className="text-xs text-danger">
                 Najpierw wpisz ticker, aby pobrać cenę akcji.
               </p>
             )}
@@ -436,7 +436,7 @@ export function InputPanel({
           value={currentPriceUSD || ''}
           onChange={(e) => onPriceChange(Number(e.target.value))}
           placeholder="np. 185.00"
-          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
         />
       </div>
 
@@ -445,7 +445,7 @@ export function InputPanel({
         <button
           type="button"
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-text-secondary hover:bg-bg-card dark:hover:bg-bg-hover/50 transition-colors"
+          className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-text-secondary hover:bg-bg-card transition-colors"
           aria-expanded={showAdvanced}
         >
           <span className="flex items-center gap-1.5">
@@ -481,7 +481,7 @@ export function InputPanel({
           onChange={(e) => onAvgCostUSDChange(Number(e.target.value))}
           placeholder={isRSU ? 'RSU: $0' : 'np. 50.00'}
           disabled={isRSU}
-          className={`w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400 ${isRSU ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/30 ${isRSU ? 'opacity-50 cursor-not-allowed' : ''}`}
         />
         {/* RSU toggle */}
         <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer mt-1">
@@ -499,12 +499,12 @@ export function InputPanel({
         </label>
         {/* Inline P&L indicator */}
         {isRSU && currentPriceUSD > 0 && (
-          <div className="flex items-center gap-2 text-xs px-2 py-1 rounded-md bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400">
+          <div className="flex items-center gap-2 text-xs px-2 py-1 rounded-md bg-danger/5 text-danger">
             <span>RSU — cały przychód ({fmtUSD(currentPriceUSD * (shares || 0))}) podlega Belce 19%</span>
           </div>
         )}
         {!isRSU && avgCostUSD > 0 && currentPriceUSD > 0 && (
-          <div className={`flex items-center gap-2 text-xs px-2 py-1 rounded-md ${currentPriceUSD >= avgCostUSD ? 'bg-bg-hover dark:bg-green-950/20 text-green-700 dark:text-green-400' : 'bg-bg-hover dark:bg-red-950/20 text-red-700 '}`}>
+          <div className={`flex items-center gap-2 text-xs px-2 py-1 rounded-md ${currentPriceUSD >= avgCostUSD ? 'bg-bg-hover bg-success/5 text-success' : 'bg-bg-hover bg-danger/5 text-danger '}`}>
             {currentPriceUSD >= avgCostUSD ? '▲' : '▼'}
             <span>
               {fmtUSD(currentPriceUSD)} vs. zakup {fmtUSD(avgCostUSD)}
@@ -533,7 +533,7 @@ export function InputPanel({
           value={brokerFeeUSD || ''}
           onChange={(e) => onBrokerFeeUSDChange(Number(e.target.value))}
           placeholder="np. 1.00"
-          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
         />
       </div>
 
@@ -555,7 +555,7 @@ export function InputPanel({
           value={dividendYieldPercent || ''}
           onChange={(e) => onDividendYieldChange(Number(e.target.value))}
           placeholder="np. 1.5"
-          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
         />
         {dividendYieldPercent > 0 && (
           <p className="text-xs text-text-muted">
@@ -593,7 +593,7 @@ export function InputPanel({
           value={currentFxRate || ''}
           onChange={(e) => onFxRateChange(Number(e.target.value))}
           placeholder="np. 4.1500"
-          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
         />
       </div>
 
@@ -606,8 +606,8 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('savings')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'savings'
-                ? 'border-surface-dark dark:border-on-dark bg-bg-card text-white'
-                : 'border-border bg-bg-card text-text-muted hover:bg-bg-card dark:hover:bg-bg-hover'
+                ? 'border-accent-primary bg-bg-card text-white'
+                : 'border-border bg-bg-card text-text-muted hover:bg-bg-card'
             }`}
           >
             Konto oszczędnościowe
@@ -617,8 +617,8 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('bonds')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'bonds'
-                ? 'border-surface-dark dark:border-on-dark bg-bg-card text-white'
-                : 'border-border bg-bg-card text-text-muted hover:bg-bg-card dark:hover:bg-bg-hover'
+                ? 'border-accent-primary bg-bg-card text-white'
+                : 'border-border bg-bg-card text-text-muted hover:bg-bg-card'
             }`}
           >
             Obligacje skarbowe
@@ -628,8 +628,8 @@ export function InputPanel({
             onClick={() => onBenchmarkTypeChange('etf')}
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'etf'
-                ? 'border-surface-dark dark:border-on-dark bg-bg-card text-white'
-                : 'border-border bg-bg-card text-text-muted hover:bg-bg-card dark:hover:bg-bg-hover'
+                ? 'border-accent-primary bg-bg-card text-white'
+                : 'border-border bg-bg-card text-text-muted hover:bg-bg-card'
             }`}
           >
             ETF
@@ -670,7 +670,7 @@ export function InputPanel({
             value={wiborStr}
             onChange={(e) => handleWiborChange(e.target.value)}
             placeholder="np. 5.82"
-            className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
           />
           {!monthlyRate && (
             <p className="text-xs text-border">
@@ -678,7 +678,7 @@ export function InputPanel({
             </p>
           )}
           {inflationRate > 0 && wibor3m > 0 && inflationRate >= wibor3m && (
-            <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+            <p className="text-xs text-danger font-medium">
               ⚠ Oprocentowanie ({wibor3m.toFixed(2)}%) niższe od inflacji — realna stopa ujemna.
             </p>
           )}
@@ -720,7 +720,7 @@ export function InputPanel({
       <div className="space-y-2">
         <label className="text-sm font-medium text-text-secondary">
           Horyzont czasowy:{' '}
-          <span className="text-accent-primary dark:text-accent-primary font-semibold">
+          <span className="text-accent-primary font-semibold">
             {horizonMonths <= 11
               ? `${horizonMonths} ${horizonMonths === 1 ? 'miesiąc' : horizonMonths < 5 ? 'miesiące' : 'miesięcy'}`
               : horizonMonths % 12 === 0

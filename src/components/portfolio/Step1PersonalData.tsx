@@ -77,7 +77,7 @@ export default function Step1PersonalData({
             step={100}
             value={personalData.totalMonthlyPLN}
             onChange={(e) => updatePersonalData({ totalMonthlyPLN: Number(e.target.value) })}
-            className="w-full rounded-lg border border-border bg-bg-card px-3 py-2 text-sm text-text-primary font-mono focus:outline-none focus:ring-2 focus:ring-surface-dark/30"
+            className="w-full rounded-lg border border-border bg-bg-card px-3 py-2 text-sm text-text-primary font-mono focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
           />
           <p className="text-xs text-border mt-1">
             Roczny budżet: {fmtPLN(annualBudget)}
@@ -177,7 +177,7 @@ export default function Step1PersonalData({
             step={0.1}
             value={personalData.inflationRate}
             onChange={(e) => updatePersonalData({ inflationRate: Number(e.target.value) })}
-            className="w-full rounded-lg border border-border bg-bg-card px-3 py-2 text-sm text-text-primary font-mono focus:outline-none focus:ring-2 focus:ring-surface-dark/30"
+            className="w-full rounded-lg border border-border bg-bg-card px-3 py-2 text-sm text-text-primary font-mono focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
           />
           <p className="text-xs text-border mt-1">
             Używana do dyskontowania wartości realnej portfela
@@ -204,15 +204,15 @@ export default function Step1PersonalData({
       </div>
 
       {/* Summary bar */}
-      <div className="rounded-lg border bg-bg-hover/30 border-accent dark:border-accent px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-accent-primary-hover">
+      <div className="rounded-lg border bg-bg-hover/30 border-accent px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-accent-primary-hover">
         <span>
           Twój roczny budżet: <strong>{fmtPLN(annualBudget)}</strong>
         </span>
-        <span className="text-accent-primary dark:text-accent-primary-hover hidden md:inline" aria-hidden="true">|</span>
+        <span className="text-accent-primary-hover hidden md:inline" aria-hidden="true">|</span>
         <span>
           Limit IKE: <strong>{fmtPLN(ikeAnnualLimit)}</strong>
         </span>
-        <span className="text-accent-primary dark:text-accent-primary-hover hidden md:inline" aria-hidden="true">|</span>
+        <span className="text-accent-primary-hover hidden md:inline" aria-hidden="true">|</span>
         <span>
           Limit IKZE: <strong>{fmtPLN(ikzeAnnualLimit)}</strong>
         </span>

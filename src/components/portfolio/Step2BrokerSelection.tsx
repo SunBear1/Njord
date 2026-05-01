@@ -17,14 +17,14 @@ const INSTRUMENT_LABELS: Record<string, { label: string; color: string }> = {
   etf: { label: 'ETF', color: 'blue' },
   stocks_pl: { label: 'Akcje PL', color: 'green' },
   stocks_foreign: { label: 'Akcje zagr.', color: 'purple' },
-  bonds: { label: 'Obligacje', color: 'amber' },
+  bonds: { label: 'Obligacje', color: 'violet' },
 };
 
 const TAG_CLASSES: Record<string, string> = {
-  blue: 'bg-bg-hover text-accent-primary-hover/30 dark:text-accent-primary',
-  green: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-  purple: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-  amber: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+  blue: 'bg-bg-hover text-accent-primary',
+  green: 'bg-success/10 text-success',
+  purple: 'bg-accent-primary/10 text-accent-primary',
+  violet: 'bg-accent-primary/10 text-accent-primary',
 };
 
 function InstrumentTags({ instruments }: { instruments: readonly string[] }) {
@@ -66,8 +66,8 @@ function BrokerCard({
   const isInteractive = !disabled && !sectionDisabled;
 
   const borderClasses = selected && !sectionDisabled
-    ? 'border-accent bg-bg-hover dark:border-accent/30 ring-2 ring-accent-primary'
-    : 'border-border hover:border-border dark:hover:border-border';
+    ? 'border-accent bg-bg-hover/30 ring-2 ring-accent-primary'
+    : 'border-border hover:border-border ';
 
   return (
     <button
@@ -101,7 +101,7 @@ function BrokerCard({
           </span>
         </div>
         {selected && !sectionDisabled ? (
-          <span className="w-5 h-5 rounded-full bg-accent-primary dark:bg-accent-primary flex items-center justify-center shrink-0">
+          <span className="w-5 h-5 rounded-full bg-accent-primary flex items-center justify-center shrink-0">
             <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
@@ -141,7 +141,7 @@ function BrokerCard({
 
 function PkoBpWarning() {
   return (
-    <div className="flex items-start gap-2 bg-amber-50 text-amber-800 dark:bg-amber-950/30 dark:text-amber-200 text-xs p-2 rounded-lg mt-3">
+    <div className="flex items-start gap-2 bg-danger/5 text-danger text-xs p-2 rounded-lg mt-3">
       <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
       <span>Na koncie w PKO BP dostępne są wyłącznie obligacje detaliczne skarbowe.</span>
     </div>
@@ -171,9 +171,9 @@ export default function Step2BrokerSelection({
       {/* ── IKE Section ── */}
       <section className="bg-bg-card rounded-xl border border-border shadow-sm p-5">
         <div className="flex items-center gap-2 text-base font-semibold text-text-primary mb-4">
-          <Shield className="w-5 h-5 text-accent-primary dark:text-accent-primary" />
+          <Shield className="w-5 h-5 text-accent-primary" />
           <span>Broker IKE</span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 font-normal">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success font-normal">
             0% podatku po 60. r.ż.
           </span>
         </div>
@@ -207,9 +207,9 @@ export default function Step2BrokerSelection({
       {/* ── IKZE Section ── */}
       <section className="bg-bg-card rounded-xl border border-border shadow-sm p-5">
         <div className="flex items-center gap-2 text-base font-semibold text-text-primary mb-4">
-          <PiggyBank className="w-5 h-5 text-purple-500 dark:text-purple-400" />
+          <PiggyBank className="w-5 h-5 text-accent-primary" />
           <span>Broker IKZE</span>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 font-normal">
+          <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success font-normal">
             Odliczenie od PIT · 10% ryczałt
           </span>
         </div>

@@ -29,11 +29,11 @@ function RateBlock({ label, href, buy, sell }: { label: string; href: string; bu
       <div className="space-y-0.5">
         <div className="flex justify-between items-baseline gap-1.5 text-xs">
           <span className="text-border">Kupno</span>
-          <span className="font-mono font-medium text-green-700 dark:text-green-400">{buy.toFixed(4)}</span>
+          <span className="font-mono font-medium text-success">{buy.toFixed(4)}</span>
         </div>
         <div className="flex justify-between items-baseline gap-1.5 text-xs">
           <span className="text-border">Sprzedaż</span>
-          <span className="font-mono font-medium text-orange-600 dark:text-orange-400">{sell.toFixed(4)}</span>
+          <span className="font-mono font-medium text-danger">{sell.toFixed(4)}</span>
         </div>
         <div className="flex justify-between items-baseline gap-1.5 text-xs">
           <span className="text-border">Spread</span>
@@ -71,7 +71,7 @@ export function KantorSidebar({ rates }: KantorSidebarProps) {
       {isLoading && !alior && !nbp ? (
         <div className="text-[11px] text-border animate-pulse motion-reduce:animate-none">Pobieram kursy…</div>
       ) : error && !alior && !nbp ? (
-        <div className="text-[11px] text-red-400">{error}</div>
+        <div className="text-[11px] text-danger">{error}</div>
       ) : (
         <>
           {alior && (
@@ -102,7 +102,7 @@ export function KantorSidebar({ rates }: KantorSidebarProps) {
           <div className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">Jak liczymy?</div>
           {alior && (
             <div className="flex items-start gap-1.5 text-[10px] text-text-secondary">
-              <span className="text-success dark:text-green-400 mt-0.5">●</span>
+              <span className="text-success text-success mt-0.5">●</span>
               <span><strong>Kantor</strong> → wycena portfela w PLN</span>
             </div>
           )}

@@ -56,7 +56,7 @@ export function EtfBenchmarkSection({
             value={localEtfTicker}
             onChange={(e) => onLocalEtfTickerChange(e.target.value.toUpperCase())}
             placeholder="np. IWDA.L"
-            className="flex-1 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
+            className="flex-1 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
           />
           <button
             type="submit"
@@ -76,7 +76,7 @@ export function EtfBenchmarkSection({
           </p>
         )}
         {etfName && !etfError && !etfLoading && (
-          <p className="text-xs text-success dark:text-green-400 flex items-center gap-1">
+          <p className="text-xs text-success text-success flex items-center gap-1">
             <CheckCircle2 size={12} aria-hidden="true" /> {etfName}
           </p>
         )}
@@ -98,7 +98,7 @@ export function EtfBenchmarkSection({
           value={etfAnnualReturnPercent || ''}
           onChange={(e) => onEtfAnnualReturnChange(Number(e.target.value))}
           placeholder="np. 8.0"
-          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
         />
       </div>
 
@@ -118,7 +118,7 @@ export function EtfBenchmarkSection({
           value={etfTerPercent || ''}
           onChange={(e) => onEtfTerChange(Number(e.target.value))}
           placeholder="np. 0.07"
-          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:placeholder-gray-400"
+          className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
         />
       </div>
 

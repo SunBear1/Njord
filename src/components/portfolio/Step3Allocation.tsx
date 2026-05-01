@@ -40,10 +40,10 @@ interface Step3Props {
 
 const INSTRUMENT_COLORS: Record<PortfolioInstrumentType, string> = {
   etf: 'bg-accent-primary',
-  stocks_pl: 'bg-indigo-500',
-  stocks_foreign: 'bg-violet-500',
-  bonds: 'bg-amber-500',
-  savings: 'bg-emerald-500',
+  stocks_pl: 'bg-accent-primary',
+  stocks_foreign: 'bg-accent-primary/80',
+  bonds: 'bg-danger/50',
+  savings: 'bg-success',
 };
 
 const INSTRUMENT_LABELS: Record<PortfolioInstrumentType, string> = {
@@ -166,7 +166,7 @@ function AllocationBar({
         ) : null}
       </div>
       <div className="mt-1 flex items-center gap-3 text-xs">
-        <span className={valid ? 'text-success dark:text-green-400' : 'text-danger'}>
+        <span className={valid ? 'text-success text-success' : 'text-danger'}>
           {valid ? '✓' : '⚠'} {Math.round(sum)}%
         </span>
         <div className="flex flex-wrap gap-x-3 gap-y-1">
@@ -254,7 +254,7 @@ function AllocationRow({
           {subtitle ? (
             <p className="mt-0.5 text-xs text-text-muted">{subtitle}</p>
           ) : null}
-          <p className="mt-0.5 text-xs font-medium text-accent-primary dark:text-accent-primary">
+          <p className="mt-0.5 text-xs font-medium text-accent-primary">
             {fmtPLN(plnAmount)}/mies.
           </p>
         </div>
@@ -263,7 +263,7 @@ function AllocationRow({
             type="button"
             onClick={() => onRemove(index)}
             aria-label="Usuń instrument"
-            className="shrink-0 rounded p-1 text-border hover:text-danger hover:bg-bg-hover dark:hover:bg-red-900/20 transition-colors"
+            className="shrink-0 rounded p-1 text-border hover:text-danger hover:bg-bg-hover hover:bg-danger/5 transition-colors"
           >
             <span aria-hidden="true" className="text-xs font-bold">✕</span>
           </button>
@@ -367,7 +367,7 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
         onAdd(opt);
         setOpen(false);
       }}
-      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-text-secondary hover:bg-bg-card dark:hover:bg-bg-hover"
+      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-text-secondary hover:bg-bg-card"
     >
       <span
         className={`inline-block h-2.5 w-2.5 shrink-0 rounded-sm ${INSTRUMENT_COLORS[opt.instrumentType]}`}
@@ -382,7 +382,7 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 text-sm text-accent-primary dark:text-accent-primary hover:text-accent-primary-hover dark:hover:text-accent-primary font-medium"
+        className="flex items-center gap-1.5 text-sm text-accent-primary hover:text-accent-primary-hover font-medium"
         aria-label="Dodaj instrument"
       >
         <Plus className="h-4 w-4" aria-hidden="true" />
@@ -390,7 +390,7 @@ function AddInstrumentMenu({ options, existingIds, onAdd }: AddInstrumentMenuPro
       </button>
       {open ? (
         <div className="absolute left-3 z-10 mt-1 w-96 rounded-lg border border-border bg-bg-card shadow-lg">
-          <div className="max-h-80 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700">
+          <div className="max-h-80 overflow-y-auto divide-y divide-border">
             {/* ETF / Stocks section */}
             {etfOptions.length > 0 ? (
               <div>
@@ -558,16 +558,16 @@ function WrapperSection({
       <button
         type="button"
         onClick={() => setCollapsed((v) => !v)}
-        className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-bg-card dark:hover:bg-bg-hover/50 transition-colors rounded-t-xl"
+        className="flex w-full items-center gap-3 px-5 py-4 text-left hover:bg-bg-card transition-colors rounded-t-xl"
         aria-expanded={!collapsed}
       >
-        <span className="shrink-0 text-accent-primary dark:text-accent-primary">{icon}</span>
+        <span className="shrink-0 text-accent-primary">{icon}</span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="text-base font-semibold text-text-primary">
               {title}
             </span>
-            <span className="rounded-full bg-bg-hover/30 px-2.5 py-0.5 text-xs font-medium text-accent-primary-hover dark:text-accent-primary">
+            <span className="rounded-full bg-bg-hover/30 px-2.5 py-0.5 text-xs font-medium text-accent-primary-hover">
               {amount}
             </span>
           </div>
@@ -716,7 +716,7 @@ export default function Step3Allocation({
                 onClick={() => setReinvestIkzeDeduction(!state.reinvestIkzeDeduction)}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
                   state.reinvestIkzeDeduction
-                    ? 'bg-accent-primary dark:bg-accent-primary'
+                    ? 'bg-accent-primary'
                     : 'bg-bg-hover'
                 }`}
               >

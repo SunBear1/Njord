@@ -95,7 +95,7 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSet
               setIsOpen(false);
               onAccountSettings();
             }}
-            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-text-secondary hover:bg-bg-card dark:hover:bg-bg-hover transition-colors"
+            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-text-secondary hover:bg-bg-card transition-colors"
           >
             <Settings size={16} aria-hidden="true" />
             Ustawienia konta
@@ -105,7 +105,7 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSet
               setIsOpen(false);
               onLogout();
             }}
-            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-text-secondary hover:bg-bg-card dark:hover:bg-bg-hover transition-colors"
+            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-text-secondary hover:bg-bg-card transition-colors"
           >
             <LogOut size={16} aria-hidden="true" />
             Wyloguj się

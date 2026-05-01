@@ -21,7 +21,7 @@ function RateCell({ value, direction }: { value: number; direction: 'buy' | 'sel
   const isSell = direction === 'sell';
   return (
     <td className="px-3 py-2 text-right font-mono tabular-nums">
-      <span className={`font-medium ${isSell ? 'text-orange-600 dark:text-orange-400' : 'text-green-700 dark:text-green-400'}`}>
+      <span className={`font-medium ${isSell ? 'text-danger' : 'text-success'}`}>
         {value.toFixed(4)}
       </span>
     </td>
@@ -55,18 +55,18 @@ function SourceTable({ title, href, rates, getRate }: {
           <thead>
             <tr className="text-text-muted text-xs uppercase tracking-wider bg-bg-hover">
               <th className="px-4 py-2 text-left font-medium">Waluta</th>
-              <th className="px-3 py-2 text-right font-medium text-green-700 dark:text-green-400">Kupno</th>
-              <th className="px-3 py-2 text-right font-medium text-orange-600 dark:text-orange-400">Sprzedaż</th>
+              <th className="px-3 py-2 text-right font-medium text-success">Kupno</th>
+              <th className="px-3 py-2 text-right font-medium text-danger">Sprzedaż</th>
               <th className="px-3 py-2 text-right font-medium">Spread</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border dark:divide-edge">
+          <tbody className="divide-y divide-border">
             {rates.map(entry => {
               const data = getRate(entry);
               if (!data) return null;
               const meta = CURRENCY_META[entry.currency];
               return (
-                <tr key={entry.currency} className="hover:bg-bg-hover dark:hover:bg-bg-card transition-colors">
+                <tr key={entry.currency} className="hover:bg-bg-hover transition-colors">
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-2.5">
                       <span className="text-lg" aria-hidden="true">{meta?.flag}</span>
@@ -144,10 +144,10 @@ export function RatesPage() {
           <div className="bg-bg-hover border border-border rounded-xl px-4 py-3 text-xs text-text-muted space-y-1">
             <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5">Jak czytać tabelę — perspektywa banku/kantoru</p>
             <p>
-              <strong className="text-green-700 dark:text-green-400">Kupno</strong> — bank kupuje walutę od Ciebie (dostajesz mniej PLN, niższy kurs).
+              <strong className="text-success">Kupno</strong> — bank kupuje walutę od Ciebie (dostajesz mniej PLN, niższy kurs).
             </p>
             <p>
-              <strong className="text-orange-600 dark:text-orange-400">Sprzedaż</strong> — bank sprzedaje Ci walutę (płacisz więcej PLN, wyższy kurs).
+              <strong className="text-danger">Sprzedaż</strong> — bank sprzedaje Ci walutę (płacisz więcej PLN, wyższy kurs).
             </p>
             <p>
               <strong className="text-text-secondary">Spread</strong> — różnica procentowa między sprzedażą a kupnem. Im mniejszy, tym korzystniejszy dla klienta.

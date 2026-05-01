@@ -44,3 +44,5 @@ screenshots/
 .env
 .env.*
 !.env.example
+Njord_UI_Redesign_Plan.md
+Njord_WCAG_AAA_Guardrails_Addendum.md
