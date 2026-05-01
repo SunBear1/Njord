@@ -322,7 +322,7 @@ export function InputPanel({
             onClick={handleManualRefetch}
             disabled={assetLoading || !localTicker.trim()}
             aria-label="Odśwież dane giełdowe"
-            className="p-2 rounded-lg border border-edge-strong dark:border-edge-strong text-muted dark:text-faint hover:bg-surface-alt dark:hover:bg-surface-dark-alt disabled:opacity-40 transition-colors"
+            className="p-2 rounded-lg border border-edge-strong dark:border-edge-strong text-muted dark:text-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt disabled:opacity-40 transition-colors"
           >
             <RefreshCw size={16} aria-hidden="true" />
           </button>
@@ -445,7 +445,7 @@ export function InputPanel({
         <button
           type="button"
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-body dark:text-faint hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50 transition-colors"
+          className="w-full flex items-center justify-between px-3 py-2 text-sm font-medium text-body dark:text-on-dark-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50 transition-colors"
           aria-expanded={showAdvanced}
         >
           <span className="flex items-center gap-1.5">
@@ -484,7 +484,7 @@ export function InputPanel({
           className={`w-full border border-edge-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:bg-surface-dark-alt dark:border-edge-strong dark:text-on-dark dark:placeholder-gray-400 ${isRSU ? 'opacity-50 cursor-not-allowed' : ''}`}
         />
         {/* RSU toggle */}
-        <label className="flex items-center gap-2 text-sm text-body dark:text-faint cursor-pointer mt-1">
+        <label className="flex items-center gap-2 text-sm text-body dark:text-on-dark-muted cursor-pointer mt-1">
           <input
             type="checkbox"
             checked={isRSU}
@@ -558,7 +558,7 @@ export function InputPanel({
           className="w-full border border-edge-strong rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-surface-dark/30 dark:bg-surface-dark-alt dark:border-edge-strong dark:text-on-dark dark:placeholder-gray-400"
         />
         {dividendYieldPercent > 0 && (
-          <p className="text-xs text-muted dark:text-faint">
+          <p className="text-xs text-muted dark:text-muted">
             Szacowane dywidendy netto (base): ok.{' '}
             <strong>
               {new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(
@@ -607,7 +607,7 @@ export function InputPanel({
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'savings'
                 ? 'border-surface-dark dark:border-on-dark bg-surface-dark dark:bg-surface-alt text-on-dark dark:text-heading'
-                : 'border-edge dark:border-edge-strong bg-surface dark:bg-surface-dark-alt text-muted dark:text-faint hover:bg-surface-alt dark:hover:bg-surface-dark-alt'
+                : 'border-edge dark:border-edge-strong bg-surface dark:bg-surface-dark-alt text-muted dark:text-on-dark-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt'
             }`}
           >
             Konto oszczędnościowe
@@ -618,7 +618,7 @@ export function InputPanel({
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'bonds'
                 ? 'border-surface-dark dark:border-on-dark bg-surface-dark dark:bg-surface-alt text-on-dark dark:text-heading'
-                : 'border-edge dark:border-edge-strong bg-surface dark:bg-surface-dark-alt text-muted dark:text-faint hover:bg-surface-alt dark:hover:bg-surface-dark-alt'
+                : 'border-edge dark:border-edge-strong bg-surface dark:bg-surface-dark-alt text-muted dark:text-on-dark-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt'
             }`}
           >
             Obligacje skarbowe
@@ -629,7 +629,7 @@ export function InputPanel({
             className={`flex-1 px-3 py-2 text-sm rounded-lg border-2 font-medium transition-colors ${
               benchmarkType === 'etf'
                 ? 'border-surface-dark dark:border-on-dark bg-surface-dark dark:bg-surface-alt text-on-dark dark:text-heading'
-                : 'border-edge dark:border-edge-strong bg-surface dark:bg-surface-dark-alt text-muted dark:text-faint hover:bg-surface-alt dark:hover:bg-surface-dark-alt'
+                : 'border-edge dark:border-edge-strong bg-surface dark:bg-surface-dark-alt text-muted dark:text-on-dark-muted hover:bg-surface-alt dark:hover:bg-surface-dark-alt'
             }`}
           >
             ETF
@@ -642,7 +642,7 @@ export function InputPanel({
         <div className="space-y-1">
           <label htmlFor="savings-rate" className="text-sm font-medium text-body dark:text-on-dark-muted flex items-center gap-1.5">
             Oprocentowanie konta oszczędnościowego <span className="text-red-500">*</span>
-            <span className="text-xs font-normal text-muted dark:text-faint">(% rocznie)</span>
+            <span className="text-xs font-normal text-muted dark:text-muted">(% rocznie)</span>
             <Tooltip
               content={
                 <span className="space-y-1 block">

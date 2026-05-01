@@ -56,7 +56,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
       {/* Header row: title + single disclaimer badge */}
       <div className="flex items-center gap-3 flex-wrap">
         <h2 className="text-lg font-semibold text-heading dark:text-on-dark">Wyniki — co się bardziej opłaca?</h2>
-        <span className="inline-flex items-center gap-1.5 text-xs text-muted dark:text-faint bg-surface-muted dark:bg-surface-dark-alt border border-edge dark:border-edge-strong px-2 py-0.5 rounded-full">
+        <span className="inline-flex items-center gap-1.5 text-xs text-muted dark:text-muted bg-surface-muted dark:bg-surface-dark-alt border border-edge dark:border-edge-strong px-2 py-0.5 rounded-full">
           Podatek Belki 19% od zysku{hasInflation ? ` · inflacja ${inflationRate.toFixed(1)}%` : ''}
           <Tooltip
             content={disclaimerTooltip}
@@ -68,7 +68,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
       {/* Current value — above cards */}
       <div className="flex items-center gap-2 px-1">
         <Info size={16} className="text-faint dark:text-muted flex-shrink-0" aria-hidden="true" />
-        <p className="text-sm text-body dark:text-faint">
+        <p className="text-sm text-body dark:text-on-dark-muted">
           Aktualnie posiadasz akcje o wartości{' '}
           <strong className="text-heading dark:text-on-dark tabular-nums">{fmtPLN(results[0]?.currentValuePLN ?? 0)}</strong>.{' '}
           Wyniki pokazują wartość po wybranym horyzoncie czasowym.

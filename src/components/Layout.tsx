@@ -20,7 +20,6 @@ const NAV_ITEMS = [
 ] as const;
 
 const ROOT_STYLE = { backgroundColor: 'var(--color-bg-primary)' } as const;
-const FOOTER_STYLE = { borderTop: '1px solid var(--color-border)', color: 'var(--color-text-faint)' } as const;
 
 export function Layout() {
   const [isDark, toggleDarkMode] = useDarkMode();
@@ -60,7 +59,7 @@ export function Layout() {
             </svg>
             <div className="min-w-0">
               <h1 className="text-2xl font-bold tracking-tight">Njord</h1>
-              <p className="text-sm text-faint truncate">Akcje · Obligacje · Konto oszczędnościowe · Podatek Belki</p>
+              <p className="text-sm text-on-dark-muted truncate">Akcje · Obligacje · Konto oszczędnościowe · Podatek Belki</p>
             </div>
           </Link>
           <button
@@ -81,7 +80,7 @@ export function Layout() {
         </div>
       </header>
 
-      <nav className="bg-bg-secondary border-b border-border shadow-sm">
+      <nav className="bg-surface-alt border-b border-border shadow-sm">
         <div className="max-w-7xl mx-auto px-4 flex items-center gap-1 py-1.5 overflow-x-auto">
           {NAV_ITEMS.map(({ to, icon: Icon, label, ...rest }) => (
             <NavLink
@@ -92,7 +91,7 @@ export function Layout() {
                 `flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
                   isActive
                     ? 'bg-accent text-on-dark shadow-sm'
-                    : 'text-text-muted hover:text-text-primary hover:bg-bg-muted'
+                    : 'text-muted hover:text-body hover:bg-surface-muted'
                 }`
               }
             >
@@ -107,7 +106,7 @@ export function Layout() {
         <Outlet />
       </main>
 
-      <footer className="mt-10 py-5 text-center text-xs" style={FOOTER_STYLE}>
+      <footer className="mt-10 py-5 text-center text-xs border-t border-border text-muted">
         <p>Dane informacyjne — nie stanowią doradztwa inwestycyjnego ani podatkowego.</p>
         <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
           <button

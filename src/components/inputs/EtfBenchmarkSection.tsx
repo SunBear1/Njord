@@ -123,7 +123,7 @@ export function EtfBenchmarkSection({
       </div>
 
       {etfAnnualReturnPercent > 0 && (
-        <p className="text-xs text-muted dark:text-faint px-1">
+        <p className="text-xs text-muted dark:text-muted px-1">
           Efektywny zwrot netto: <strong>{(etfAnnualReturnPercent - etfTerPercent).toFixed(2)}%</strong>/rok (przed Belką).
           Podwójna Belka 19%: przy sprzedaży akcji i przy wyjściu z ETF.
         </p>

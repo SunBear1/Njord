@@ -51,7 +51,7 @@ export default function WizardStepper({ currentStep, onStepClick }: WizardSteppe
                     ${
                       isActive
                         ? 'bg-accent-info text-on-dark ring-2 ring-accent dark:ring-accent/50'
-                        : 'bg-surface-muted dark:bg-surface-dark-alt text-text-muted'
+                        : 'bg-surface-muted dark:bg-surface-dark-alt text-muted'
                     }`}
                 >
                   {step}
@@ -88,7 +88,7 @@ export default function WizardStepper({ currentStep, onStepClick }: WizardSteppe
                 hidden sm:block
                 ${isActive ? 'font-semibold text-accent-info' : ''}
                 ${isCompleted ? 'text-accent-success' : ''}
-                ${!isActive && !isCompleted ? 'text-text-muted' : ''}`}
+                ${!isActive && !isCompleted ? 'text-muted' : ''}`}
             >
               {label}
             </span>

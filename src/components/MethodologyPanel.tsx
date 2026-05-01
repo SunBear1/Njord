@@ -27,7 +27,7 @@ export function MethodologyPanel() {
             <div className="bg-surface dark:bg-surface-dark border border-edge dark:border-edge-strong rounded-lg p-3 font-mono text-xs">
               Wartość<sub>PLN</sub> = Liczba akcji × Cena akcji<sub>USD</sub> × Kurs kantor<sub>kupno</sub>
             </div>
-            <p className="text-xs text-body dark:text-faint">
+            <p className="text-xs text-body dark:text-on-dark-muted">
               Punkt startowy obu scenariuszy — kwota, którą masz dziś w akcjach,
               wyrażona w PLN po przeliczeniu po <strong>kursie kantorowym (kupno)</strong>, czyli
               ile faktycznie dostaniesz, sprzedając dolary.
@@ -44,7 +44,7 @@ export function MethodologyPanel() {
               <div>Odsetki netto = Odsetki brutto × (1 − 0,19)</div>
               <div className="font-semibold">Wartość końcowa = Kapitał + Odsetki netto</div>
             </div>
-            <p className="text-xs text-body dark:text-faint">
+            <p className="text-xs text-body dark:text-on-dark-muted">
               Kapitalizacja miesięczna. Podatek Belki (19%) naliczany od wypracowanych odsetek.
               Oprocentowanie jest prognozowane modelem <strong>mean-reversion</strong> — bieżąca stopa stopniowo
               zbliża się do długoterminowej równowagi (~3,0%), co odzwierciedla cykliczność stóp procentowych NBP.
@@ -73,7 +73,7 @@ export function MethodologyPanel() {
               <div className="pl-4">Odejmowana PRZED naliczeniem podatku</div>
               <div className="pl-4">Niektóre obligacje nie pozwalają na wcześniejszy wykup (OTS, TOS)</div>
             </div>
-            <p className="text-xs text-body dark:text-faint">
+            <p className="text-xs text-body dark:text-on-dark-muted">
               Kapitalizacja roczna. Obligacje indeksowane inflacją (COI, EDO, ROS, ROD) mają stałą stopę
               w 1. roku, potem inflacja CPI + marża (prognozowana modelem mean-reversion).
               Inflacja pobierana automatycznie z Eurostat HICP.
@@ -133,7 +133,7 @@ export function MethodologyPanel() {
               <div>Δ FX Bear = −ρ × |FX p95|,  Δ FX Bull = +ρ × |FX p95|</div>
               <div className="pt-1 text-faint dark:text-muted">HMM (Hidden Markov Model) — informacyjnie: detekcja reżimu rynkowego (wzrost/spadek). Nie wpływa na scenariusze.</div>
             </div>
-            <p className="text-xs text-body dark:text-faint">
+            <p className="text-xs text-body dark:text-on-dark-muted">
               Scenariusze to zakresy prawdopodobieństwa, nie prognozy. Żaden model nie jest w stanie
               przewidzieć przyszłych cen akcji. Drift shrinkage zapobiega ekstrapolacji krótkoterminowych
               trendów — nawet jeśli akcje wzrosły +200% w ostatnim roku, model ogranicza oczekiwany zwrot.
@@ -148,7 +148,7 @@ export function MethodologyPanel() {
               <div>Ułamek czasu: f = m / H (miesiąc m z horyzontu H)</div>
               <div>Δ<sub>m</sub> = (1 + Δ)<sup>f</sup> − 1  (interpolacja geometryczna)</div>
             </div>
-            <p className="text-xs text-body dark:text-faint">
+            <p className="text-xs text-body dark:text-on-dark-muted">
               Scenariuszowe zmiany cen (Δ akcji, Δ FX) są skalowane <strong>geometrycznie</strong> do każdego
               miesiąca — odzwierciedla to multiplikatywną naturę stóp zwrotu. Np. jeśli w scenariuszu
               Bull Δ akcji = +15% na 6 miesięcy, to po 3 miesiącach przyjmujemy
@@ -159,7 +159,7 @@ export function MethodologyPanel() {
           {/* 6. Heatmapa */}
           <section className="space-y-1">
             <h3 className="font-semibold text-heading dark:text-on-dark">6. Mapa break-even</h3>
-            <p className="text-xs text-body dark:text-faint">
+            <p className="text-xs text-body dark:text-on-dark-muted">
               Siatka 11×11 kombinacji (Δ ceny akcji × Δ kursu USD/PLN) od −20% do +20%.
               Dla każdej kombinacji obliczamy wartość końcową akcji (po podatku) i porównujemy
               z wartością benchmarku (konto lub obligacje). Zielone komórki = akcje biją benchmark.
@@ -173,7 +173,7 @@ export function MethodologyPanel() {
               Inflacja<sub>skumulowana</sub> = (1 + r<sub>CPI</sub>)<sup>T</sup> − 1<br />
               Zwrot<sub>realny</sub> = (1 + Zwrot<sub>nominalny</sub>) / (1 + Inflacja<sub>skumulowana</sub>) − 1
             </div>
-            <p className="text-xs text-body dark:text-faint">
+            <p className="text-xs text-body dark:text-on-dark-muted">
               Stosujemy dokładny wzór Fishera. Stopa inflacji pochodzi z danych Eurostat (HICP, miesięczne).
               Zamiast stałej stawki na cały horyzont, używamy modelu <strong>mean-reversion</strong>:{' '}
               <code className="bg-surface-muted dark:bg-surface-dark-alt px-1 rounded text-[11px]">rate(t) = 2,5% + (r₀ − 2,5%) × e<sup>−t/18</sup></code>{' '}

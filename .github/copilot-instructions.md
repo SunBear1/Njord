@@ -93,3 +93,25 @@ Every task — regardless of which agent performs it — is delivered as a pull 
 2. Commit with a Conventional Commits message (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, etc.).
 3. Push the branch and open a PR targeting **`main`** with `gh pr create --base main`. Always target `main` — never another feature branch.
 4. Present the PR URL to the user as the final step of every task.
+
+## Color Tokens & Accessibility
+
+**Critical:** `dark:text-faint` is an **ESLint error** — it fails WCAG AA on all dark surfaces.
+
+Before applying any text color token in dark mode, consult `src/tokens/colorPairings.ts`:
+
+| Intent | Light token | Dark token | Dark contrast on bg-surface |
+|--------|------------|------------|------------------------------|
+| Headings, primary | `text-heading` | `dark:text-heading` | 16:1 ✅ |
+| Body copy | `text-body` | `dark:text-body` or `dark:text-on-dark-muted` | 10.4:1 ✅ |
+| Secondary / helper | `text-muted` | `dark:text-muted` | 5.3:1 ✅ |
+| Text on dark card | — | `dark:text-on-dark` | 16:1 ✅ |
+| Decorative only | `text-faint` | ❌ never `dark:text-faint` | 2.4:1 ❌ |
+
+**Post-generation validation (after any UI change):**
+```bash
+npm run test:contrast  # 36 WCAG contrast tests — runs as part of npm test
+npm run lint           # ESLint bans dark:text-faint
+```
+
+If you change color tokens in `src/index.css`, re-run `npm run generate:pairings` and commit the updated `src/tokens/colorPairings.ts`.

@@ -216,7 +216,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
             <h2 className="text-lg font-semibold text-heading dark:text-on-dark">
               Kalkulator podatku Belki
             </h2>
-            <p className="text-xs text-muted dark:text-faint">
+            <p className="text-xs text-muted dark:text-muted">
               Podatek 19% (Belka) od sprzedaży papierów wartościowych · kurs NBP Tabela A
             </p>
           </div>
@@ -269,7 +269,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                     <button
                       type="button"
                       onClick={() => setConfirmClearAll(false)}
-                      className="flex-1 text-xs text-muted dark:text-faint hover:text-body dark:hover:text-on-dark-muted border border-edge dark:border-edge-strong rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-edge-strong"
+                      className="flex-1 text-xs text-muted dark:text-muted hover:text-body dark:hover:text-on-dark-muted border border-edge dark:border-edge-strong rounded-lg px-2.5 py-1.5 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-edge-strong"
                     >
                       Anuluj
                     </button>
@@ -332,14 +332,14 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
                   <button
                     type="button"
                     onClick={() => setShowBrokerHelp((v) => !v)}
-                    className="flex items-center gap-1 text-[11px] text-muted dark:text-faint hover:text-body dark:hover:text-on-dark-muted transition-colors"
+                    className="flex items-center gap-1 text-[11px] text-muted dark:text-muted hover:text-body dark:hover:text-on-dark-muted transition-colors"
                   >
                     <HelpCircle size={12} aria-hidden="true" />
                     Jak pobrać plik?
                     {showBrokerHelp ? <ChevronUp size={12} aria-hidden="true" /> : <ChevronDown size={12} aria-hidden="true" />}
                   </button>
                   {showBrokerHelp && (
-                    <div className="mt-1.5 bg-surface-alt dark:bg-surface-dark-alt/50 rounded-lg px-3 py-2.5 text-[11px] text-body dark:text-faint space-y-1">
+                    <div className="mt-1.5 bg-surface-alt dark:bg-surface-dark-alt/50 rounded-lg px-3 py-2.5 text-[11px] text-body dark:text-on-dark-muted space-y-1">
                       <ol className="list-decimal list-inside space-y-0.5">
                         {selectedBroker.downloadInstructions.map((step, i) => (
                           <li key={i}>{step}</li>
@@ -354,7 +354,7 @@ export function TaxCalculatorPanel(_props: TaxCalculatorPanelProps) {
               )}
 
               {/* Privacy note inside dropdown */}
-              <div className="flex items-start gap-1.5 text-[11px] text-muted dark:text-faint">
+              <div className="flex items-start gap-1.5 text-[11px] text-muted dark:text-muted">
                 <Shield size={11} className="mt-0.5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
                 <span>Plik przetwarzany lokalnie — nigdy nie opuszcza urządzenia. Jedyne zapytania sieciowe to publiczne kursy walut z NBP.</span>
               </div>
