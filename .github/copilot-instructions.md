@@ -83,3 +83,13 @@ npx tsc --noEmit && npm run lint && npm test && npm run build
 ```
 
 No exceptions. No skipping. Fix failures before proceeding.
+
+## Delivering work
+
+Every task — regardless of which agent performs it — is delivered as a pull request:
+
+1. Do all work on a dedicated feature branch (never commit directly to `main`).
+   - Branch name: `<type>/<short-description>` following Conventional Commits types (e.g. `feat/bond-calculator`, `fix/nbp-rate-lookup`, `ci/path-filters`).
+2. Commit with a Conventional Commits message (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, etc.).
+3. Push the branch and open a PR targeting `main` with `gh pr create`.
+4. Present the PR URL to the user as the final step of every task.
