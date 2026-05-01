@@ -1,71 +1,48 @@
-# ⚓ Njord — Kalkulator inwestycyjny
+# ⚓ Njord
 
-**Akcje (USD) vs polskie obligacje skarbowe / konto oszczędnościowe**
+> Polish-language investment calculator — USD stock/ETF portfolio vs Polish savings instruments.
 
-> Wyłącznie do celów edukacyjnych. Nie stanowi doradztwa inwestycyjnego.
+[![Deploy](https://img.shields.io/badge/live-njord.pages.dev-blue)](https://njord.pages.dev)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-🔗 **[Demo → njord.pages.dev](https://njord.pages.dev)**
-
----
-
-## Co robi aplikacja?
-
-Njord zawiera trzy główne narzędzia:
-
-### 📊 Porównanie inwestycji
-
-Porównuje potencjalny zysk z portfela akcji notowanych w USD z zyskiem z:
-- **konta oszczędnościowego** (oprocentowanie w skali roku, kapitalizacja miesięczna),
-- **polskich obligacji skarbowych** (8 typów, stałe/zmiennoprocentowe/inflacyjne),
-- **ETF** (benchmarking po stopie zwrotu i TER).
-
-### 🧾 Kalkulator podatku Belki
-
-Oblicza szacunkowy podatek Belki (19%) dla wielu transakcji sprzedaży akcji:
-- Automatyczne pobieranie kursu NBP Tabela A z ostatniego dnia roboczego przed transakcją
-- Wielowalutowe wsparcie (USD, EUR, GBP, CHF, DKK, SEK, PLN)
-- Grupowanie wyników według roku podatkowego (PIT-38)
-- Import transakcji z pliku Etrade (Gains & Losses .xlsx)
-
-### 🏗️ Kreator portfela
-
-4-krokowy kreator długoterminowego portfela inwestycyjnego:
-- Podział środków na IKE, IKZE i rachunek maklerski
-- Wybór brokera i alokacja instrumentów (ETF, obligacje)
-- Symulacja akumulacji z uwzględnieniem ulg podatkowych
-
-Wszystkie obliczenia uwzględniają **podatek Belki (19%)** oraz kurs USD/PLN.
+> **Wyłącznie do celów edukacyjnych. Nie stanowi doradztwa inwestycyjnego.**
 
 ---
 
 ## Funkcje
 
-| Funkcja | Opis |
-|---------|------|
-| 📈 Dane giełdowe live | Cena akcji i historia z [Yahoo Finance](https://finance.yahoo.com) (primary) + Twelve Data (fallback) |
-| 💱 Kurs walutowy live | PLN/USD/EUR/GBP i inne z [NBP API](https://api.nbp.pl) oraz Alior Kantor |
-| 📊 Inflacja live | HICP dla Polski z [ECB API](https://data-api.ecb.europa.eu) |
-| 🎯 3 scenariusze | Bear / Base / Bull z edytowalnym % zmiany akcji i kursu |
-| 📉 Analiza zmienności | Block Bootstrap (≤6 mies.) + kalibrowany GBM (>6 mies.) — scenariusze liczone po stronie klienta |
-| 🔍 Analiza optymalnej ceny sprzedaży | Monte Carlo z HMM (10 tys. ścieżek) — osobna zakładka |
-| 🧾 Kalkulator podatku Belki | Wiele transakcji, auto-pobieranie kursu NBP Tabela A, grupowanie po roku podatkowym (PIT-38) |
-| 🏦 8 typów obligacji | OTS, ROR, DOR, TOS, COI, EDO, ROS, ROD |
-| ⏱ Horyzont 1m–12r | Suwak horyzontu czasowego (do 5 lat dla oszczędności, do 12 lat dla obligacji) |
-| 📊 Wykresy | Porównanie słupkowe, timeline, mapa breakeven (heatmapa Δakcje × ΔFX) |
-| 🔒 Klucz API po stronie serwera | Klucz Twelve Data (opcjonalny) przechowywany jako sekret Cloudflare — nigdy nie trafia do przeglądarki |
+Njord dostarcza pięć narzędzi dostępnych z poziomu jednego SPA:
+
+| Widok | Co robi |
+|-------|---------|
+| **Porównanie** (`/comparison`) | Bear / Base / Bull dla portfela akcji USD vs konto oszczędnościowe, 8 typów obligacji skarbowych i ETF; heatmapa breakeven (Δakcje × ΔFX) |
+| **Prognoza** (`/forecast`) | Analiza optymalnej ceny sprzedaży — Monte Carlo + HMM (10 tys. ścieżek) |
+| **Podatek Belki** (`/tax`) | Kalkulator 19% podatku od zysków kapitałowych: wiele transakcji, auto-kurs NBP Tabela A, grupowanie PIT-38, import E*Trade XLSX |
+| **Kreator portfela** (`/portfolio`) | 4-krokowy kreator długoterminowej alokacji (IKE / IKZE / rachunek maklerski) z symulacją akumulacji |
+| **Kursy** (`/rates`) | Bieżące kursy walut i stopy procentowe |
+
+**Dane live:**
+- 📈 Ceny akcji — [Yahoo Finance](https://finance.yahoo.com) (primary) + Twelve Data (fallback na 429)
+- 💱 Kurs USD/PLN — [NBP API](https://api.nbp.pl) + Alior Kantor
+- 📊 Inflacja HICP — [ECB API](https://data-api.ecb.europa.eu)
+
+**Silnik predykcji (po stronie klienta):**
+- ≤ 6 miesięcy → Block Bootstrap (historyczna zmienność)
+- \> 6 miesięcy → kalibrowany GBM (drift skurczony do 8% prior equity)
+- Prognoza ceny → HMM (tylko widok `/forecast`)
 
 ### Obsługiwane obligacje skarbowe
 
-| Symbol | Nazwa | Zapadalność | Oprocentowanie |
-|--------|-------|-------------|----------------|
-| OTS | 3-miesięczne | 3 mies. | stałe |
-| ROR | Roczne | 12 mies. | stopa ref. NBP |
-| DOR | 2-letnie | 24 mies. | stopa ref. NBP + marża |
-| TOS | 3-letnie | 36 mies. | stałe |
-| COI | 4-letnie | 48 mies. | inflacja + 1,50% |
-| EDO | 10-letnie | 120 mies. | inflacja + 2,00% |
-| ROS | 6-letnie (rodzinne) | 72 mies. | inflacja + 2,00% |
-| ROD | 12-letnie (rodzinne) | 144 mies. | inflacja + 2,50% |
+| Symbol | Zapadalność | Oprocentowanie |
+|--------|-------------|----------------|
+| OTS | 3 mies. | stałe |
+| ROR | 12 mies. | stopa ref. NBP |
+| DOR | 24 mies. | stopa ref. NBP + marża |
+| TOS | 36 mies. | stałe |
+| COI | 48 mies. | inflacja + 1,50% |
+| EDO | 120 mies. | inflacja + 2,00% |
+| ROS | 72 mies. (rodzinne) | inflacja + 2,00% |
+| ROD | 144 mies. (rodzinne) | inflacja + 2,50% |
 
 ---
 
@@ -73,32 +50,38 @@ Wszystkie obliczenia uwzględniają **podatek Belki (19%)** oraz kurs USD/PLN.
 
 ```
 Cloudflare Pages
-├── / (SPA)              ← React + Vite, pięć widoków: strona główna + porównanie + prognoza + kalkulator Belki + kreator portfela
-├── /api/market-data     ← Pages Function — dane giełdowe (Yahoo Finance primary, Twelve Data fallback) + NBP FX
-├── /api/bonds           ← Pages Function — presety obligacji z CSV (cache 24h)
-├── /api/currency-rates  ← Pages Function — kursy walut (Alior Kantor + NBP Tabela C)
-├── /api/inflation       ← Pages Function — inflacja HICP z ECB (cache 24h)
-└── /api/auth/*          ← Pages Functions — autoryzacja (JWT + OAuth)
+├── / (SPA — React 19 + Vite)
+│   ├── /                ← strona główna
+│   ├── /comparison      ← porównanie inwestycji
+│   ├── /forecast        ← prognoza ceny sprzedaży
+│   ├── /tax             ← kalkulator podatku Belki
+│   ├── /portfolio       ← kreator portfela
+│   └── /rates           ← kursy walut i stopy
+│
+└── Pages Functions (backend)
+    ├── /api/market-data     ← Yahoo Finance (primary) + Twelve Data (fallback) + NBP FX; cache 1h
+    ├── /api/bonds           ← presety obligacji z CSV; cache 24h
+    ├── /api/currency-rates  ← Alior Kantor + NBP Tabela C
+    ├── /api/inflation       ← inflacja HICP z ECB; cache 24h
+    └── /api/auth/*          ← JWT + OAuth (GitHub, Google); Cloudflare D1
 ```
 
-Wszystkie obliczenia finansowe (GBM, Bootstrap, Monte Carlo) wykonywane są **po stronie klienta** (przeglądarka).
-
----
-
-## Autoryzacja
-
-Aplikacja obsługuje logowanie przez e-mail/hasło oraz OAuth (GitHub, Google). Sesja oparta na tokenach JWT przechowywanych w ciasteczkach HttpOnly. Backend korzysta z bazy **Cloudflare D1** (SQLite). Wymagane zmienne środowiskowe: `JWT_SECRET`, `GITHUB_CLIENT_ID/SECRET`, `GOOGLE_CLIENT_ID/SECRET`.
+Wszystkie obliczenia finansowe (GBM, Bootstrap, Monte Carlo, podatek Belki) wykonywane są **po stronie klienta**.
 
 ---
 
 ## Stos technologiczny
 
-- **React 19** + **TypeScript 6**
-- **Vite 8** (build + dev server)
-- **Tailwind CSS v4**
-- **Recharts** (wykresy)
-- **Lucide React** (ikony)
-- **Cloudflare Pages** + **Pages Functions** (backend + hosting)
+| Warstwa | Technologia |
+|---------|-------------|
+| Frontend | React 19, TypeScript 6, Vite 8 |
+| Stylowanie | Tailwind CSS v4 (semantic tokens w `src/index.css`) |
+| Wykresy | Recharts 3 |
+| Ikony | Lucide React |
+| Backend | Cloudflare Pages Functions (edge) |
+| Baza danych | Cloudflare D1 (SQLite — tylko auth) |
+| Testy jednostkowe | Vitest (500+ testów) |
+| Testy E2E | Playwright |
 
 ---
 
@@ -108,48 +91,55 @@ Aplikacja obsługuje logowanie przez e-mail/hasło oraz OAuth (GitHub, Google). 
 git clone https://github.com/SunBear1/Njord.git
 cd Njord
 npm install
-npm run dev
+npm run dev          # tylko frontend → http://localhost:5173/
 ```
 
-> Bez Pages Functions `/api/market-data` nie jest dostępne lokalnie. Żeby uruchomić pełny stack:
-> ```bash
-> npm run dev:full   # Vite + Pages Functions na localhost:8788
-> ```
-> Wymaga pliku `.dev.vars` z kluczem API (patrz niżej).
-
-### Zmienne środowiskowe (lokalnie)
-
-Utwórz plik `.dev.vars` w katalogu głównym (dla Wrangler):
-
-```ini
-TWELVE_DATA_API_KEY=twój_klucz
-```
-
-> `.dev.vars` jest automatycznie w `.gitignore` Wranglera. Nigdy nie commituj kluczy.
-
-### Komendy
+Pełny stack z Pages Functions (wymagany dla danych giełdowych):
 
 ```bash
-npm run dev        # serwer deweloperski — tylko frontend (http://localhost:5173/)
-npm run dev:full   # pełny stack: Vite + Pages Functions (http://localhost:8788/)
-npm run build      # produkcyjny build (tsc + vite)
-npm run lint       # ESLint
-npm run preview    # podgląd buildu
+npm run dev:full     # Vite + Pages Functions → http://localhost:8788/
+```
+
+### Zmienne środowiskowe
+
+Utwórz `.dev.vars` w katalogu głównym (dla Wrangler — nigdy nie commituj):
+
+```ini
+TWELVE_DATA_API_KEY=twój_klucz          # opcjonalny fallback dla Yahoo Finance
+JWT_SECRET=losowy_ciąg_znaków           # wymagany dla auth
+GITHUB_CLIENT_ID=...
+GITHUB_CLIENT_SECRET=...
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+```
+
+### Wszystkie komendy
+
+```bash
+npm run dev          # serwer deweloperski — tylko frontend (localhost:5173)
+npm run dev:full     # pełny stack: Vite + Pages Functions (localhost:8788)
+npm run build        # produkcyjny build: tsc -b && vite build → dist/
+npm run lint         # ESLint (zero błędów wymagane)
+npm test             # Vitest — testy jednostkowe
+npm run test:e2e     # Playwright — testy E2E (wymaga serwera preview)
+npm run preview      # podgląd lokalny buildu produkcyjnego
 ```
 
 ---
 
 ## Wdrożenie
 
-### GitOps — Cloudflare Pages
-
-Push na `main` automatycznie buduje i deployuje aplikację przez natywną integrację Cloudflare Pages z GitHub.
+Push na `main` automatycznie buduje i deployuje przez integrację Cloudflare Pages ↔ GitHub.
 
 **Pierwsze wdrożenie (jednorazowo w dashboardzie CF):**
 1. Workers & Pages → Create application → Pages → Connect to Git
-2. Wybierz repozytorium i branch `main`
-3. Build command: `npm run build`, Output directory: `dist`
-4. Environment variables → dodaj `TWELVE_DATA_API_KEY` (Encrypted)
+2. Wybierz repozytorium, branch `main`
+3. Build command: `npm run build` | Output directory: `dist`
+4. Environment variables → dodaj wszystkie sekrety (Encrypted)
 
-Po tym kroku każdy push na `main` wyzwala automatyczny deploy.
+---
+
+## Licencja
+
+[MIT](LICENSE)
 
