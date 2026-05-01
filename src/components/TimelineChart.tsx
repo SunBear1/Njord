@@ -22,9 +22,9 @@ interface TimelineChartProps {
 }
 
 function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate, isDark }: TimelineChartProps) {
-  const gridColor = isDark ? '#374151' : '#f0f0f0';
-  const tickColor = isDark ? '#9ca3af' : '#666666';
-  const labelColor = isDark ? '#9ca3af' : '#9ca3af';
+  const gridColor = isDark ? '#334155' : '#F1F5F9';
+  const tickColor = isDark ? '#A9B5BF' : '#475569';
+  const labelColor = isDark ? '#A9B5BF' : '#475569';
   const chartData = useMemo(() =>
     inflationRate > 0
       ? data.map((point) => ({
@@ -36,10 +36,10 @@ function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate, i
   );
 
   return (
-    <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-5 space-y-3">
-      <h3 className="text-base font-semibold text-heading dark:text-on-dark">Wartość w czasie</h3>
+    <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-3">
+      <h3 className="text-base font-semibold text-text-primary">Wartość w czasie</h3>
       {inflationRate > 0 && (
-        <p className="text-xs text-muted dark:text-muted">
+        <p className="text-xs text-text-muted">
           Szara linia przerywana „Siła nabywcza" — wartość wyjściowa skorygowana o inflację ({inflationRate.toFixed(1)}% śr./rok).
         </p>
       )}
@@ -57,20 +57,20 @@ function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate, i
             formatter={fmtTooltipPLN}
             labelFormatter={(v) => `Miesiąc ${v}`}
             contentStyle={{
-              backgroundColor: isDark ? '#1e2130' : '#ffffff',
-              borderColor: isDark ? '#3b4055' : '#e2e3e5',
+              backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+              borderColor: isDark ? '#334155' : '#CBD5E1',
               borderRadius: '8px',
-              color: isDark ? '#ffffff' : '#2d3142',
+              color: isDark ? '#F1F5F9' : '#0F172A',
             }}
           />
           <Legend />
-          <ReferenceLine y={currentValuePLN} stroke="#94a3b8" strokeDasharray="4 4" />
-          <Line type="monotone" dataKey="benchmark" name={benchmarkLabel}  stroke="#8b5cf6" strokeWidth={2} dot={false} />
-          <Line type="monotone" dataKey="bear"      name="Bear"  stroke="#ef4444" strokeWidth={2} dot={false} strokeDasharray="5 3" />
-          <Line type="monotone" dataKey="base"      name="Base"  stroke="#2563eb" strokeWidth={2} dot={false} />
-          <Line type="monotone" dataKey="bull"      name="Bull"  stroke="#16a34a" strokeWidth={2} dot={false} />
+          <ReferenceLine y={currentValuePLN} stroke={isDark ? '#A9B5BF' : '#475569'} strokeDasharray="4 4" />
+          <Line type="monotone" dataKey="benchmark" name={benchmarkLabel}  stroke={isDark ? '#7dd3fc' : '#0369a1'} strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="bear"      name="Bear"  stroke={isDark ? '#FCA5A5' : '#991B1B'} strokeWidth={2} dot={false} strokeDasharray="5 3" />
+          <Line type="monotone" dataKey="base"      name="Base"  stroke={isDark ? '#67E8F9' : '#115E59'} strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="bull"      name="Bull"  stroke={isDark ? '#6EE7B7' : '#065F46'} strokeWidth={2} dot={false} />
           {inflationRate > 0 && (
-            <Line type="monotone" dataKey="purchasingPower" name="Siła nabywcza" stroke="#94a3b8" strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
+            <Line type="monotone" dataKey="purchasingPower" name="Siła nabywcza" stroke={isDark ? '#A9B5BF' : '#475569'} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
           )}
         </LineChart>
       </ResponsiveContainer>

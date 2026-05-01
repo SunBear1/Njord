@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 
 export interface RateData {
@@ -13,13 +13,25 @@ export interface CurrencyRateEntry {
   nbp: (RateData & { date: string }) | null;
 }
 
+/** Direction a rate moved since last refresh */
+export type RateDirection = 'up' | 'down' | null;
+
+export interface RateChangeInfo {
+  aliorBuy: RateDirection;
+  aliorSell: RateDirection;
+  nbpBuy: RateDirection;
+  nbpSell: RateDirection;
+}
+
 export interface MultiCurrencyRates {
   rates: CurrencyRateEntry[];
+  changes: Record<string, RateChangeInfo>;
   isLoading: boolean;
   error: string | null;
   lastUpdated: Date | null;
 }
 
+const REFRESH_INTERVAL_MS = 15_000;
 const CURRENCIES = 'USD,EUR,GBP';
 const ALIOR_BASE = 'https://klient.internetowykantor.pl/api/public/marketBrief';
 const NBP_BASE = 'https://api.nbp.pl/api/exchangerates/rates/C';
@@ -68,11 +80,35 @@ async function fetchDirectAll(): Promise<CurrencyRateEntry[]> {
   return Promise.all(CURRENCIES.split(',').map(fetchDirectForCurrency));
 }
 
+function direction(prev: number | undefined, curr: number): RateDirection {
+  if (prev === undefined || prev === curr) return null;
+  return curr > prev ? 'up' : 'down';
+}
+
+function computeChanges(
+  prev: CurrencyRateEntry[],
+  curr: CurrencyRateEntry[],
+): Record<string, RateChangeInfo> {
+  const result: Record<string, RateChangeInfo> = {};
+  for (const entry of curr) {
+    const old = prev.find(p => p.currency === entry.currency);
+    result[entry.currency] = {
+      aliorBuy: direction(old?.alior?.buy, entry.alior?.buy ?? 0),
+      aliorSell: direction(old?.alior?.sell, entry.alior?.sell ?? 0),
+      nbpBuy: direction(old?.nbp?.buy, entry.nbp?.buy ?? 0),
+      nbpSell: direction(old?.nbp?.sell, entry.nbp?.sell ?? 0),
+    };
+  }
+  return result;
+}
+
 export function useMultiCurrencyRates(): MultiCurrencyRates {
   const [rates, setRates] = useState<CurrencyRateEntry[]>([]);
+  const [changes, setChanges] = useState<Record<string, RateChangeInfo>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const prevRatesRef = useRef<CurrencyRateEntry[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,6 +120,8 @@ export function useMultiCurrencyRates(): MultiCurrencyRates {
       try {
         const data = await fetchViaProxy();
         if (cancelled) return;
+        setChanges(computeChanges(prevRatesRef.current, data));
+        prevRatesRef.current = data;
         setRates(data);
         setLastUpdated(new Date());
       } catch {
@@ -94,6 +132,8 @@ export function useMultiCurrencyRates(): MultiCurrencyRates {
           if (!hasAny) {
             setError('Nie udało się pobrać kursów walut.');
           } else {
+            setChanges(computeChanges(prevRatesRef.current, data));
+            prevRatesRef.current = data;
             setRates(data);
             setLastUpdated(new Date());
           }
@@ -106,9 +146,9 @@ export function useMultiCurrencyRates(): MultiCurrencyRates {
     }
 
     load();
-    const interval = setInterval(load, 60_000);
+    const interval = setInterval(load, REFRESH_INTERVAL_MS);
     return () => { cancelled = true; clearInterval(interval); };
   }, []);
 
-  return { rates, isLoading, error, lastUpdated };
+  return { rates, changes, isLoading, error, lastUpdated };
 }

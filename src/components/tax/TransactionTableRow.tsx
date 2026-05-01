@@ -46,13 +46,13 @@ function RateStatusBadge({
 }) {
   if (currency.toUpperCase() === 'PLN') {
     return (
-      <p className="text-[11px] text-faint dark:text-muted">PLN — brak przeliczenia</p>
+      <p className="text-[11px] text-text-muted">PLN — brak przeliczenia</p>
     );
   }
 
   if (isLoading) {
     return (
-      <p className="text-[11px] text-accent dark:text-accent flex items-center gap-1">
+      <p className="text-[11px] text-accent-primary flex items-center gap-1">
         <Loader2 size={10} className="animate-spin" aria-hidden="true" />
         Pobieranie kursu NBP…
       </p>
@@ -62,7 +62,7 @@ function RateStatusBadge({
   if (error) {
     return (
       <div className="space-y-1">
-        <p className="text-[11px] text-red-600 dark:text-red-400 flex items-start gap-1">
+        <p className="text-[11px] text-danger flex items-start gap-1">
           <AlertTriangle size={10} className="mt-0.5 flex-shrink-0" aria-hidden="true" />
           <span>{error}</span>
         </p>
@@ -76,7 +76,7 @@ function RateStatusBadge({
             if (v > 0) onManualChange(v);
           }}
           placeholder="Kurs ręcznie (np. 3.9785)"
-          className="w-full border border-red-300 dark:border-red-700 rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-red-500 dark:bg-surface-dark-alt dark:text-on-dark"
+          className="w-full border border-danger/30 rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-danger/50"
         />
       </div>
     );
@@ -84,11 +84,11 @@ function RateStatusBadge({
 
   if (rate !== null && rate > 0) {
     return (
-      <p className="text-[11px] text-green-600 dark:text-green-400 flex items-center gap-1 flex-wrap">
+      <p className="text-[11px] text-success flex items-center gap-1 flex-wrap">
         <CheckCircle2 size={10} aria-hidden="true" className="flex-shrink-0" />
         <span>Kurs NBP: {rate.toFixed(4)}</span>
         {effectiveDate && (
-          <span className="text-faint dark:text-muted">z {fmtDatePL(effectiveDate)}</span>
+          <span className="text-text-muted">z {fmtDatePL(effectiveDate)}</span>
         )}
       </p>
     );
@@ -114,14 +114,14 @@ function ResultCell({
 }) {
   return (
     <div
-      className={`flex-1 min-w-[90px] bg-surface dark:bg-surface-dark px-3 py-2 text-center ${total ? 'ring-1 ring-inset ring-edge-strong dark:ring-edge-strong rounded-sm' : ''}`}
+      className={`flex-1 min-w-[90px] bg-bg-card px-3 py-2 text-center ${total ? 'ring-1 ring-inset ring-border rounded-sm' : ''}`}
     >
-      <p className="text-[10px] text-faint dark:text-muted uppercase tracking-wide mb-0.5">
+      <p className="text-[10px] text-text-muted uppercase tracking-wide mb-0.5">
         {subtract && '− '}
         {label}
       </p>
       <p
-        className={`text-sm font-semibold tabular-nums ${valueClass ?? 'text-heading dark:text-on-dark'}`}
+        className={`text-sm font-semibold tabular-nums ${valueClass ?? 'text-text-primary'}`}
       >
         {value}
       </p>
@@ -353,7 +353,7 @@ export function TransactionTableRow({
     <>
       {/* Summary row */}
       <tr
-        className={`border-b border-edge dark:border-edge-strong cursor-pointer hover:bg-surface-alt dark:hover:bg-surface-dark-alt/50 select-none transition-colors ${isExpanded ? 'bg-surface-alt/50 dark:bg-surface-dark-alt/30' : ''}`}
+        className={`border-b border-border cursor-pointer hover:bg-bg-card select-none transition-colors ${isExpanded ? 'bg-bg-card/30' : ''}`}
         onClick={onToggle}
         tabIndex={0}
         onKeyDown={(e) => e.key === 'Enter' && onToggle()}
@@ -361,39 +361,39 @@ export function TransactionTableRow({
         aria-label={`Transakcja ${index}`}
       >
         <td className="px-3 py-2.5 text-center">
-          <span className="w-6 h-6 rounded-full bg-accent-muted dark:bg-surface-dark/40 text-accent-hover dark:text-accent text-xs font-bold inline-flex items-center justify-center">
+          <span className="w-6 h-6 rounded-full bg-bg-hover/40 text-accent-primary/80 text-xs font-bold inline-flex items-center justify-center">
             {index}
           </span>
         </td>
         <td className="px-3 py-2.5">
           <div className="flex items-center gap-1.5">
             {tx.ticker ? (
-              <span className="inline-flex items-center gap-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded font-semibold text-xs tracking-wide">
+              <span className="inline-flex items-center gap-1 bg-accent-primary/10 text-accent-primary px-2 py-0.5 rounded font-semibold text-xs tracking-wide">
                 <TrendingUp size={10} aria-hidden="true" />
                 {tx.ticker}
               </span>
             ) : (
-              <span className="text-muted dark:text-muted">—</span>
+              <span className="text-text-muted">—</span>
             )}
             {tx.tickerName && (
-              <span className="text-faint dark:text-muted text-xs truncate max-w-[120px] hidden lg:inline">
+              <span className="text-text-muted text-xs truncate max-w-[120px] hidden lg:inline">
                 {tx.tickerName}
               </span>
             )}
           </div>
         </td>
-        <td className="px-3 py-2.5 text-body dark:text-on-dark-muted whitespace-nowrap">
-          {tx.saleDate ? fmtDatePL(tx.saleDate) : <span className="text-faint italic text-xs">Brak daty</span>}
+        <td className="px-3 py-2.5 text-text-secondary whitespace-nowrap">
+          {tx.saleDate ? fmtDatePL(tx.saleDate) : <span className="text-text-muted italic text-xs">Brak daty</span>}
         </td>
-        <td className="px-3 py-2.5 text-right tabular-nums text-body dark:text-on-dark-muted whitespace-nowrap">
+        <td className="px-3 py-2.5 text-right tabular-nums text-text-secondary whitespace-nowrap">
           {tx.saleGrossAmount > 0
             ? `${tx.saleGrossAmount.toLocaleString('pl-PL', { maximumFractionDigits: 2 })} ${tx.currency}`
             : '—'}
         </td>
-        <td className="hidden sm:table-cell px-3 py-2.5 text-right tabular-nums text-body dark:text-on-dark-muted whitespace-nowrap">
+        <td className="hidden sm:table-cell px-3 py-2.5 text-right tabular-nums text-text-secondary whitespace-nowrap">
           {result ? fmtPLNGrosze(result.revenuePLN) : '—'}
         </td>
-        <td className="hidden sm:table-cell px-3 py-2.5 text-right tabular-nums text-body dark:text-on-dark-muted whitespace-nowrap">
+        <td className="hidden sm:table-cell px-3 py-2.5 text-right tabular-nums text-text-secondary whitespace-nowrap">
           {result ? fmtPLNGrosze(result.costPLN) : '—'}
         </td>
         <td className="px-3 py-2.5 text-right tabular-nums whitespace-nowrap">
@@ -403,29 +403,29 @@ export function TransactionTableRow({
         </td>
         <td className="px-3 py-2.5 text-right tabular-nums whitespace-nowrap">
           {result && !result.isLoss ? (
-            <span className="text-amber-700 dark:text-amber-400 font-medium">{fmtPLNGrosze(result.taxEstimatePLN)}</span>
+            <span className="text-danger font-medium">{fmtPLNGrosze(result.taxEstimatePLN)}</span>
           ) : result ? (
-            <span className="text-faint dark:text-muted">—</span>
+            <span className="text-text-muted">—</span>
           ) : '—'}
         </td>
         <td className="px-3 py-2.5">
           <div className="flex items-center justify-end gap-1">
             {tx.importSource && (
-              <span className="inline-flex items-center bg-surface-muted dark:bg-surface-dark-alt/60 text-muted dark:text-muted px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide">
+              <span className="inline-flex items-center bg-bg-hover/60 text-text-muted px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide">
                 {tx.importSource}
               </span>
             )}
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onDelete(); }}
-              className="p-1.5 text-faint hover:text-red-500 dark:hover:text-red-400 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 transition-colors"
+              className="p-1.5 text-text-muted hover:text-danger rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-danger transition-colors"
               aria-label="Usuń transakcję"
             >
               <Trash2 size={14} aria-hidden="true" />
             </button>
             {isExpanded
-              ? <ChevronUp size={14} className="text-faint" aria-hidden="true" />
-              : <ChevronDown size={14} className="text-faint" aria-hidden="true" />
+              ? <ChevronUp size={14} className="text-text-muted" aria-hidden="true" />
+              : <ChevronDown size={14} className="text-text-muted" aria-hidden="true" />
             }
           </div>
         </td>
@@ -434,14 +434,14 @@ export function TransactionTableRow({
       {/* Expanded edit form */}
       {isExpanded && (
         <tr>
-          <td colSpan={COL_COUNT} className="border-b border-edge dark:border-edge-strong bg-surface-alt/50 dark:bg-surface-dark/50 px-4 py-4">
+          <td colSpan={COL_COUNT} className="border-b border-border bg-bg-card/50 px-4 py-4">
             <div className="space-y-4">
 
           {/* Row 0: Ticker (optional) */}
           <div className="space-y-1">
             <label htmlFor={`${tx.id}-ticker`} className={LABEL_CLS}>
               Ticker giełdowy
-              <span className="ml-1 text-faint dark:text-muted font-normal">(opcjonalne)</span>
+              <span className="ml-1 text-text-muted font-normal">(opcjonalne)</span>
             </label>
             <div className="relative">
               <input
@@ -459,19 +459,19 @@ export function TransactionTableRow({
               {tx.isLoadingTicker && (
                 <Loader2
                   size={14}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-accent"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-accent-primary"
                   aria-hidden="true"
                 />
               )}
             </div>
             {tx.tickerName && !tx.isLoadingTicker && (
-              <p className="text-[11px] text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+              <p className="text-[11px] text-accent-primary flex items-center gap-1">
                 <CheckCircle2 size={10} aria-hidden="true" />
                 {tx.tickerName}
               </p>
             )}
             {tx.tickerError && !tx.isLoadingTicker && (
-              <p className="text-[11px] text-amber-600 dark:text-amber-400 flex items-center gap-1">
+              <p className="text-[11px] text-danger flex items-center gap-1">
                 <AlertTriangle size={10} aria-hidden="true" />
                 {tx.tickerError}
               </p>
@@ -482,7 +482,7 @@ export function TransactionTableRow({
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             <div className="space-y-1">
               <label htmlFor={`${tx.id}-sale-date`} className={LABEL_CLS}>
-                Data sprzedaży <span className="text-red-500">*</span>
+                Data sprzedaży <span className="text-danger">*</span>
               </label>
               <PolishDateInput
                 id={`${tx.id}-sale-date`}
@@ -506,7 +506,7 @@ export function TransactionTableRow({
 
             <div className="space-y-1">
               <label htmlFor={`${tx.id}-sale-amount`} className={LABEL_CLS}>
-                Kwota sprzedaży brutto <span className="text-red-500">*</span>
+                Kwota sprzedaży brutto <span className="text-danger">*</span>
               </label>
               <input
                 id={`${tx.id}-sale-amount`}
@@ -522,7 +522,7 @@ export function TransactionTableRow({
 
             <div className="space-y-1 col-span-2 sm:col-span-1">
               <label htmlFor={`${tx.id}-currency`} className={LABEL_CLS}>
-                Waluta <span className="text-red-500">*</span>
+                Waluta <span className="text-danger">*</span>
               </label>
               <select
                 id={`${tx.id}-currency`}
@@ -553,11 +553,11 @@ export function TransactionTableRow({
                   exchangeRateAcquisitionToPLN: zeroCostFlag ? null : tx.exchangeRateAcquisitionToPLN,
                 });
               }}
-              className="rounded border-edge-strong dark:border-edge-strong text-accent focus:ring-accent"
+              className="rounded border-border text-accent-primary focus:ring-accent-primary"
             />
-            <span className="text-body dark:text-on-dark-muted">
+            <span className="text-text-secondary">
               Koszt nabycia = 0
-              <span className="ml-1.5 text-faint dark:text-muted text-xs font-normal">
+              <span className="ml-1.5 text-text-muted text-xs font-normal">
                 (grant, RSU, akcje przyznane nieodpłatnie)
               </span>
             </span>
@@ -565,10 +565,10 @@ export function TransactionTableRow({
 
           {/* Acquisition fields (conditional) */}
           {!tx.zeroCostFlag && (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 pt-2 border-t border-dashed border-edge dark:border-edge-strong">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 pt-2 border-t border-dashed border-border">
               <div className="space-y-1">
                 <label htmlFor={`${tx.id}-acq-date`} className={LABEL_CLS}>
-                  Data nabycia <span className="text-red-500">*</span>
+                  Data nabycia <span className="text-danger">*</span>
                 </label>
                 <PolishDateInput
                   id={`${tx.id}-acq-date`}
@@ -592,7 +592,7 @@ export function TransactionTableRow({
 
               <div className="space-y-1">
                 <label htmlFor={`${tx.id}-acq-cost`} className={LABEL_CLS}>
-                  Koszt nabycia <span className="text-red-500">*</span>
+                  Koszt nabycia <span className="text-danger">*</span>
                 </label>
                 <input
                   id={`${tx.id}-acq-cost`}
@@ -614,19 +614,19 @@ export function TransactionTableRow({
               <button
                 type="button"
                 onClick={() => onUpdate({ showCommissions: true })}
-                className="text-xs text-faint dark:text-muted hover:text-accent dark:hover:text-accent underline underline-offset-2 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded"
+                className="text-xs text-text-muted hover:text-accent-primary underline underline-offset-2 focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
               >
                 + Dodaj prowizję brokera
               </button>
             ) : (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-body dark:text-on-dark-muted">Prowizje brokera</span>
+                  <span className="text-xs font-medium text-text-secondary">Prowizje brokera</span>
                   {!hasCommissions && (
                     <button
                       type="button"
                       onClick={() => onUpdate({ showCommissions: false })}
-                      className="text-[11px] text-faint hover:text-body dark:hover:text-on-dark-muted focus:outline-none focus-visible:ring-1 focus-visible:ring-accent rounded"
+                      className="text-[11px] text-text-muted hover:text-text-primary focus:outline-none focus-visible:ring-1 focus-visible:ring-accent-primary rounded"
                     >
                       Ukryj
                     </button>
@@ -668,7 +668,7 @@ export function TransactionTableRow({
 
           {/* Result row */}
           {result && (
-            <div className="flex flex-wrap items-stretch gap-px bg-surface-muted dark:bg-surface-dark-alt rounded-lg overflow-hidden border border-edge dark:border-edge-strong mt-1">
+            <div className="flex flex-wrap items-stretch gap-px bg-bg-hover rounded-lg overflow-hidden border border-border mt-1">
               <ResultCell label="Przychód" value={fmtPLNGrosze(result.revenuePLN)} />
               <ResultCell label="Koszt" value={fmtPLNGrosze(result.costPLN)} subtract />
               <ResultCell
@@ -681,7 +681,7 @@ export function TransactionTableRow({
                 <ResultCell
                   label="Podatek"
                   value={fmtPLNGrosze(result.taxEstimatePLN)}
-                  valueClass="text-amber-700 dark:text-amber-400"
+                  valueClass="text-danger"
                 />
               )}
             </div>
@@ -689,7 +689,7 @@ export function TransactionTableRow({
 
           {/* Not-ready hint */}
           {!result && tx.saleGrossAmount > 0 && tx.saleDate && (
-            <p className="text-xs text-faint dark:text-muted">
+            <p className="text-xs text-text-muted">
               {tx.isLoadingRateSale || tx.isLoadingRateAcquisition
                 ? 'Pobieranie kursu NBP…'
                 : !tx.exchangeRateSaleToPLN

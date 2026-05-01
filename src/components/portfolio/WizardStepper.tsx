@@ -12,7 +12,7 @@ interface WizardStepperProps {
 export default function WizardStepper({ currentStep, onStepClick }: WizardStepperProps) {
   return (
     <nav aria-label="Postęp kreatora portfela" className="w-full px-2 sm:px-4">
-      <ol className="flex items-center w-full">
+      <ol className="flex items-start w-full">
         {([1, 2, 3, 4] as const).map((step, i) => {
           const isCompleted = step < currentStep;
           const isActive = step === currentStep;
@@ -20,81 +20,67 @@ export default function WizardStepper({ currentStep, onStepClick }: WizardSteppe
           return (
             <li
               key={step}
-              className={`flex items-center ${i < 3 ? 'flex-1' : ''}`}
+              className={`flex items-start ${i < 3 ? 'flex-1' : ''}`}
             >
-              {/* Step circle */}
-              {isCompleted ? (
-                <button
-                  type="button"
-                  onClick={() => onStepClick(step)}
-                  aria-label={`Przejdź do kroku ${step}: ${STEP_LABELS[i]}`}
-                  className="relative flex items-center justify-center
-                    w-8 h-8 md:w-10 md:h-10 shrink-0
-                    rounded-full bg-accent-success text-on-dark
-                    cursor-pointer transition-colors duration-200
-                    hover:bg-green-600 dark:hover:bg-green-500
-                    focus-visible:outline-none focus-visible:ring-2
-                    focus-visible:ring-accent-success focus-visible:ring-offset-2
-                    dark:focus-visible:ring-offset-bg-primary"
-                >
-                  <Check className="w-4 h-4 md:w-5 md:h-5" strokeWidth={3} aria-hidden="true" />
-                </button>
-              ) : (
+              {/* Circle + label column */}
+              <div className="flex flex-col items-center shrink-0">
+                {isCompleted ? (
+                  <button
+                    type="button"
+                    onClick={() => onStepClick(step)}
+                    aria-label={`Przejdź do kroku ${step}: ${STEP_LABELS[i]}`}
+                    className="flex items-center justify-center
+                      w-8 h-8 md:w-10 md:h-10
+                      rounded-full bg-success text-white dark:text-bg-primary
+                      cursor-pointer transition-colors duration-200
+                      hover:bg-success/90
+                      focus-visible:outline-none focus-visible:ring-2
+                      focus-visible:ring-success focus-visible:ring-offset-2
+                      focus-visible:ring-offset-bg-primary"
+                  >
+                    <Check className="w-4 h-4 md:w-5 md:h-5" strokeWidth={3} aria-hidden="true" />
+                  </button>
+                ) : (
+                  <span
+                    role="listitem"
+                    aria-current={isActive ? 'step' : undefined}
+                    aria-disabled={!isActive}
+                    className={`flex items-center justify-center
+                      w-8 h-8 md:w-10 md:h-10
+                      rounded-full text-sm md:text-base font-semibold
+                      transition-colors duration-200
+                      ${
+                        isActive
+                          ? 'bg-accent-interactive text-text-on-accent ring-2 ring-accent-primary'
+                          : 'bg-bg-hover text-text-muted'
+                      }`}
+                  >
+                    {step}
+                  </span>
+                )}
                 <span
-                  role="listitem"
-                  aria-current={isActive ? 'step' : undefined}
-                  aria-disabled={!isActive}
-                  className={`relative flex items-center justify-center
-                    w-8 h-8 md:w-10 md:h-10 shrink-0
-                    rounded-full text-sm md:text-base font-semibold
-                    transition-colors duration-200
-                    ${
-                      isActive
-                        ? 'bg-accent-info text-on-dark ring-2 ring-accent dark:ring-accent/50'
-                        : 'bg-surface-muted dark:bg-surface-dark-alt text-muted'
-                    }`}
+                  className={`mt-1.5 text-[11px] md:text-xs text-center leading-tight hidden sm:block
+                    ${isActive ? 'font-semibold text-accent-primary' : ''}
+                    ${isCompleted ? 'text-success' : ''}
+                    ${!isActive && !isCompleted ? 'text-text-muted' : ''}`}
                 >
-                  {step}
+                  {STEP_LABELS[i]}
                 </span>
-              )}
+              </div>
 
               {/* Connector line */}
-              {i < 3 ? (
+              {i < 3 && (
                 <div
                   aria-hidden="true"
-                  className={`flex-1 h-0.5 mx-1.5 sm:mx-2 md:mx-3 rounded-full transition-colors duration-200 ${
-                    step < currentStep
-                      ? 'bg-accent-success'
-                      : 'bg-surface-muted dark:bg-surface-dark-alt'
+                  className={`flex-1 h-0.5 mt-4 md:mt-5 mx-1.5 sm:mx-2 md:mx-3 rounded-full transition-colors duration-200 ${
+                    step < currentStep ? 'bg-success' : 'bg-bg-hover'
                   }`}
                 />
-              ) : null}
+              )}
             </li>
           );
         })}
       </ol>
-
-      {/* Labels */}
-      <div className="flex w-full mt-2">
-        {STEP_LABELS.map((label, i) => {
-          const step = (i + 1) as StepNumber;
-          const isActive = step === currentStep;
-          const isCompleted = step < currentStep;
-
-          return (
-            <span
-              key={label}
-              className={`flex-1 text-center text-xs md:text-sm truncate
-                hidden sm:block
-                ${isActive ? 'font-semibold text-accent-info' : ''}
-                ${isCompleted ? 'text-accent-success' : ''}
-                ${!isActive && !isCompleted ? 'text-muted' : ''}`}
-            >
-              {label}
-            </span>
-          );
-        })}
-      </div>
     </nav>
   );
 }

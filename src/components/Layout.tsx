@@ -1,6 +1,6 @@
 import { useState, Suspense, lazy, useEffect } from 'react';
 import { Outlet, NavLink, Link, useLocation } from 'react-router-dom';
-import { Moon, Sun, Home, BarChart3, Receipt, Sprout, TrendingUp, ArrowDownUp } from 'lucide-react';
+import { Moon, Sun, BarChart3, Receipt, Sprout, TrendingUp, ArrowDownUp, Menu, X, Anchor } from 'lucide-react';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useAuth } from '../hooks/useAuth';
 import { UserMenu } from '../components/UserMenu';
@@ -11,18 +11,16 @@ const AccountPanelLazy = lazy(() => import('../components/AccountPanel').then(m 
 const PrivacyPolicyLazy = lazy(() => import('../components/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
 
 const NAV_ITEMS = [
-  { to: '/', icon: Home, label: 'Strona główna', end: true },
-  { to: '/comparison', icon: BarChart3, label: 'Porównanie inwestycji' },
-  { to: '/forecast', icon: TrendingUp, label: 'Prognoza cenowa' },
-  { to: '/tax', icon: Receipt, label: 'Podatek Belki' },
-  { to: '/portfolio', icon: Sprout, label: 'Kreator portfela' },
-  { to: '/rates', icon: ArrowDownUp, label: 'Kursy walut' },
+  { to: '/forecast', icon: TrendingUp, label: 'Prognoza' },
+  { to: '/comparison', icon: BarChart3, label: 'Porównanie' },
+  { to: '/tax', icon: Receipt, label: 'Podatek' },
+  { to: '/portfolio', icon: Sprout, label: 'Portfel' },
+  { to: '/rates', icon: ArrowDownUp, label: 'Kursy' },
 ] as const;
-
-const ROOT_STYLE = { backgroundColor: 'var(--color-bg-primary)' } as const;
 
 export function Layout() {
   const [isDark, toggleDarkMode] = useDarkMode();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -32,93 +30,118 @@ export function Layout() {
 
   const location = useLocation();
 
-  // Persist current route on navigation
   useEffect(() => {
     saveLastRoute(location.pathname);
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen" style={ROOT_STYLE}>
-      <header className="bg-header-bg text-white shadow-lg border-b border-header-border">
-        <div className="max-w-7xl mx-auto px-4 py-5 flex items-center gap-3">
-          <Link to="/" className="flex items-center gap-3 min-w-0 flex-1" aria-label="Strona główna">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="36" height="36" className="shrink-0" aria-hidden="true">
-              <rect x="30.5" y="10" width="2.5" height="22" rx="1" fill="#e2e8f0"/>
-              <path d="M33 11 L46 20 L33 30 Z" fill="#3b82f6"/>
-              <path d="M33 11 L39.5 15.5 L39.5 25.5 L33 30 Z" fill="#60a5fa"/>
-              <path d="M10 34 Q18 30 33 30 Q48 30 52 34 Q48 43 33 45 Q18 43 10 34 Z" fill="#1d4ed8"/>
-              <path d="M10 34 Q18 32 33 32 Q48 32 52 34" fill="none" stroke="#60a5fa" strokeWidth="1.2"/>
-              <path d="M52 34 L60 28 L58 33 L62 31 L58 37 L54 38 Z" fill="#3b82f6"/>
-              <circle cx="60" cy="28" r="1.2" fill="#fbbf24"/>
-              <path d="M10 34 C8 32 6 34 8 37 C9 39 11 38 10 36" fill="#3b82f6"/>
-              <line x1="18" y1="39" x2="16" y2="48" stroke="#93c5fd" strokeWidth="1.5" strokeLinecap="round"/>
-              <line x1="26" y1="41" x2="24" y2="50" stroke="#93c5fd" strokeWidth="1.5" strokeLinecap="round"/>
-              <line x1="38" y1="41" x2="40" y2="50" stroke="#93c5fd" strokeWidth="1.5" strokeLinecap="round"/>
-              <line x1="46" y1="39" x2="48" y2="48" stroke="#93c5fd" strokeWidth="1.5" strokeLinecap="round"/>
-              <path d="M8 52 Q18 49 28 52 Q38 55 48 52 Q54 50 58 52" stroke="#60a5fa" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.7"/>
-            </svg>
-            <div className="min-w-0">
-              <h1 className="text-2xl font-bold tracking-tight">Njord</h1>
-              <p className="text-sm text-on-dark-muted truncate">Akcje · Obligacje · Konto oszczędnościowe · Podatek Belki</p>
-            </div>
-          </Link>
-          <button
-            type="button"
-            onClick={toggleDarkMode}
-            aria-label={isDark ? 'Włącz tryb jasny' : 'Włącz tryb ciemny'}
-            className="p-2 rounded-lg text-on-dark-muted hover:text-on-dark hover:bg-surface-dark-alt transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          >
-            {isDark ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-          <UserMenu
-            user={user}
-            isLoading={authLoading}
-            onLoginClick={() => setShowAuthModal(true)}
-            onLogout={logout}
-            onAccountSettings={() => setShowAccountPanel(true)}
-          />
+    <div className="min-h-screen bg-bg-primary">
+      {/* Aurora Header */}
+      <header className="aurora-header text-white shadow-lg">
+        <div className="aurora-beams" aria-hidden="true">
+          <div className="aurora-beam" />
+          <div className="aurora-beam" />
+          <div className="aurora-beam" />
+          <div className="aurora-beam" />
+          <div className="aurora-beam" />
         </div>
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <Link to="/forecast" className="flex items-center gap-2" aria-label="Njord — Strona główna">
+            <Anchor size={24} className="text-white/90" aria-hidden="true" />
+            <span className="text-2xl font-bold tracking-tight">Njord</span>
+          </Link>
+
+          {/* Desktop navigation */}
+          <nav className="hidden md:flex items-center gap-1" aria-label="Nawigacja główna">
+            {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  `flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors border-b-2 ${
+                    isActive
+                      ? 'border-white text-white'
+                      : 'border-transparent text-white/70 hover:text-white hover:border-white/50'
+                  }`
+                }
+              >
+                <Icon size={16} aria-hidden="true" />
+                {label}
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleDarkMode}
+              aria-label={isDark ? 'Włącz tryb jasny' : 'Włącz tryb ciemny'}
+              className="p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+            >
+              {isDark ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+            <UserMenu
+              user={user}
+              isLoading={authLoading}
+              onLoginClick={() => setShowAuthModal(true)}
+              onLogout={logout}
+              onAccountSettings={() => setShowAccountPanel(true)}
+            />
+            {/* Mobile menu button */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? 'Zamknij menu' : 'Otwórz menu'}
+              className="md:hidden p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile navigation drawer */}
+        {mobileMenuOpen && (
+          <nav className="md:hidden border-t border-white/20 px-4 py-3" aria-label="Nawigacja mobilna">
+            <div className="flex flex-col gap-1">
+              {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'text-white border-l-2 border-white'
+                        : 'text-white/70 hover:text-white border-l-2 border-transparent'
+                    }`
+                  }
+                >
+                  <Icon size={16} aria-hidden="true" />
+                  {label}
+                </NavLink>
+              ))}
+            </div>
+          </nav>
+        )}
       </header>
 
-      <nav className="bg-surface-alt border-b border-border shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 flex items-center gap-1 py-1.5 overflow-x-auto">
-          {NAV_ITEMS.map(({ to, icon: Icon, label, ...rest }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={'end' in rest}
-              className={({ isActive }) =>
-                `flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
-                  isActive
-                    ? 'bg-accent text-on-dark shadow-sm'
-                    : 'text-muted hover:text-body hover:bg-surface-muted'
-                }`
-              }
-            >
-              <Icon size={16} aria-hidden="true" />
-              {label}
-            </NavLink>
-          ))}
-        </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto px-4 py-4">
+      <main className="max-w-7xl mx-auto px-4 py-6">
         <Outlet />
       </main>
 
-      <footer className="mt-10 py-5 text-center text-xs border-t border-border text-muted">
+      <footer className="mt-10 py-6 text-center text-sm border-t border-border text-text-muted">
         <p>Dane informacyjne — nie stanowią doradztwa inwestycyjnego ani podatkowego.</p>
-        <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+        <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
           <button
             onClick={() => setShowPrivacy(true)}
-            className="underline hover:no-underline focus-visible:ring-2 focus-visible:ring-accent rounded"
+            className="underline hover:no-underline focus-visible:ring-2 focus-visible:ring-accent-primary rounded"
           >
             Polityka prywatności
           </button>
           {!showClearConfirm ? (
             <button
               onClick={() => setShowClearConfirm(true)}
-              className="underline hover:no-underline focus-visible:ring-2 focus-visible:ring-accent rounded"
+              className="underline hover:no-underline focus-visible:ring-2 focus-visible:ring-accent-primary rounded"
             >
               Wyczyść wszystkie dane
             </button>
@@ -130,7 +153,7 @@ export function Layout() {
                   try { localStorage.clear(); } catch { /* ignore */ }
                   window.location.reload();
                 }}
-                className="font-semibold text-red-600 dark:text-red-400 underline"
+                className="font-semibold text-danger underline"
               >
                 Tak, usuń
               </button>

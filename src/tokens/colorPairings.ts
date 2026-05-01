@@ -17,151 +17,91 @@ export interface TokenPairing {
 }
 
 export const lightMode: Record<string, TokenPairing> = {
-  "bg-surface": {
+  "bg-bg-primary": {
     "hex": "#FFFFFF",
     "validText": [
-      "text-heading (12.89:1)",
-      "text-body (6.66:1)",
-      "text-muted (4.7:1)"
+      "text-text-primary (17.85:1)",
+      "text-text-secondary (10.35:1)",
+      "text-text-muted (7.58:1)",
+      "text-accent-primary (5.93:1)",
+      "text-accent-secondary (7.58:1)",
+      "text-success (7.68:1)",
+      "text-danger (8.31:1)"
     ],
     "validLargeText": [],
-    "forbidden": [
-      "text-faint (1.82:1)",
-      "text-on-dark (1:1)",
-      "text-on-dark-muted (1.53:1)"
-    ]
+    "forbidden": []
   },
-  "bg-surface-alt": {
-    "hex": "#F8F9FA",
+  "bg-bg-card": {
+    "hex": "#F8FAFC",
     "validText": [
-      "text-heading (12.23:1)",
-      "text-body (6.31:1)"
-    ],
-    "validLargeText": [
-      "text-muted (4.46:1)"
-    ],
-    "forbidden": [
-      "text-faint (1.73:1)",
-      "text-on-dark (1.05:1)",
-      "text-on-dark-muted (1.45:1)"
-    ]
-  },
-  "bg-surface-muted": {
-    "hex": "#F1F2F4",
-    "validText": [
-      "text-heading (11.5:1)",
-      "text-body (5.94:1)"
-    ],
-    "validLargeText": [
-      "text-muted (4.2:1)"
-    ],
-    "forbidden": [
-      "text-faint (1.63:1)",
-      "text-on-dark (1.12:1)",
-      "text-on-dark-muted (1.37:1)"
-    ]
-  },
-  "bg-surface-dark": {
-    "hex": "#2D3142",
-    "validText": [
-      "text-faint (7.07:1)",
-      "text-on-dark (12.89:1)",
-      "text-on-dark-muted (8.43:1)"
+      "text-text-primary (17.06:1)",
+      "text-text-secondary (9.9:1)",
+      "text-text-muted (7.24:1)",
+      "text-accent-primary (5.67:1)",
+      "text-accent-secondary (7.25:1)",
+      "text-success (7.34:1)",
+      "text-danger (7.94:1)"
     ],
     "validLargeText": [],
-    "forbidden": [
-      "text-heading (1:1)",
-      "text-body (1.94:1)",
-      "text-muted (2.74:1)"
-    ]
+    "forbidden": []
   },
-  "bg-surface-dark-alt": {
-    "hex": "#3B4055",
+  "bg-bg-hover": {
+    "hex": "#F1F5F9",
     "validText": [
-      "text-faint (5.62:1)",
-      "text-on-dark (10.24:1)",
-      "text-on-dark-muted (6.7:1)"
+      "text-text-primary (16.3:1)",
+      "text-text-secondary (9.45:1)",
+      "text-text-muted (6.92:1)",
+      "text-accent-primary (5.42:1)",
+      "text-accent-secondary (6.92:1)",
+      "text-success (7.01:1)",
+      "text-danger (7.59:1)"
     ],
     "validLargeText": [],
-    "forbidden": [
-      "text-heading (1.26:1)",
-      "text-body (1.54:1)",
-      "text-muted (2.18:1)"
-    ]
+    "forbidden": []
   }
 };
 
 export const darkMode: Record<string, TokenPairing> = {
-  "bg-surface": {
-    "hex": "#1E2130",
+  "bg-bg-primary": {
+    "hex": "#0F172A",
     "validText": [
-      "text-heading (15.96:1)",
-      "text-body (10.44:1)",
-      "text-muted (5.33:1)",
-      "text-on-dark (15.96:1)",
-      "text-on-dark-muted (10.44:1)"
+      "text-text-primary (16.3:1)",
+      "text-text-secondary (12.02:1)",
+      "text-text-muted (8.54:1)",
+      "text-accent-primary (10.71:1)",
+      "text-accent-secondary (12.32:1)",
+      "text-success (11.71:1)",
+      "text-danger (9.41:1)"
     ],
     "validLargeText": [],
-    "forbidden": [
-      "text-faint (2.4:1)"
-    ]
+    "forbidden": []
   },
-  "bg-surface-alt": {
-    "hex": "#262A3A",
+  "bg-bg-card": {
+    "hex": "#1E293B",
     "validText": [
-      "text-heading (14.24:1)",
-      "text-body (9.31:1)",
-      "text-muted (4.76:1)",
-      "text-on-dark (14.24:1)",
-      "text-on-dark-muted (9.31:1)"
+      "text-text-primary (13.35:1)",
+      "text-text-secondary (9.85:1)",
+      "text-text-muted (7:1)",
+      "text-accent-primary (8.77:1)",
+      "text-accent-secondary (10.09:1)",
+      "text-success (9.6:1)",
+      "text-danger (7.71:1)"
     ],
     "validLargeText": [],
-    "forbidden": [
-      "text-faint (2.14:1)"
-    ]
+    "forbidden": []
   },
-  "bg-surface-muted": {
-    "hex": "#2D3142",
+  "bg-bg-hover": {
+    "hex": "#334155",
     "validText": [
-      "text-heading (12.89:1)",
-      "text-body (8.43:1)",
-      "text-on-dark (12.89:1)",
-      "text-on-dark-muted (8.43:1)"
-    ],
-    "validLargeText": [
-      "text-muted (4.3:1)"
-    ],
-    "forbidden": [
-      "text-faint (1.94:1)"
-    ]
-  },
-  "bg-surface-dark": {
-    "hex": "#1E2130",
-    "validText": [
-      "text-heading (15.96:1)",
-      "text-body (10.44:1)",
-      "text-muted (5.33:1)",
-      "text-on-dark (15.96:1)",
-      "text-on-dark-muted (10.44:1)"
+      "text-text-primary (9.45:1)",
+      "text-text-secondary (6.97:1)",
+      "text-text-muted (4.95:1)",
+      "text-accent-primary (6.21:1)",
+      "text-accent-secondary (7.14:1)",
+      "text-success (6.79:1)",
+      "text-danger (5.46:1)"
     ],
     "validLargeText": [],
-    "forbidden": [
-      "text-faint (2.4:1)"
-    ]
-  },
-  "bg-surface-dark-alt": {
-    "hex": "#3B4055",
-    "validText": [
-      "text-heading (10.24:1)",
-      "text-body (6.7:1)",
-      "text-on-dark (10.24:1)",
-      "text-on-dark-muted (6.7:1)"
-    ],
-    "validLargeText": [
-      "text-muted (3.42:1)"
-    ],
-    "forbidden": [
-      "text-faint (1.54:1)"
-    ]
+    "forbidden": []
   }
 };

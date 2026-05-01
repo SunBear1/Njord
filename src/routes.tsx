@@ -1,9 +1,5 @@
 import { lazy } from 'react';
 import { Navigate } from 'react-router-dom';
-import { loadLastRoute } from './utils/routePersistence';
-
-// HomePage loaded eagerly — it's the landing page, must be instant
-export { HomePage } from './pages/HomePage';
 
 // Each lazy route adds a 16ms async gap via Promise.all to keep Suspense
 // interruptible. Without this, prefetched modules resolve synchronously and
@@ -17,7 +13,10 @@ export const TaxPage = lazy(() => Promise.all([import('./pages/TaxPage'), YIELD(
 export const PortfolioPage = lazy(() => Promise.all([import('./pages/PortfolioPage'), YIELD()]).then(([m]) => m));
 export const RatesPage = lazy(() => Promise.all([import('./pages/RatesPage'), YIELD()]).then(([m]) => m));
 
+export function HomeRedirect() {
+  return <Navigate to="/forecast" replace />;
+}
+
 export function CatchAllRedirect() {
-  const lastRoute = loadLastRoute();
-  return <Navigate to={lastRoute ?? '/'} replace />;
+  return <Navigate to="/forecast" replace />;
 }

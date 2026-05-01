@@ -6,190 +6,63 @@
 @theme {
   /* Typography */
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
 
-  /* ===== PALETTE =====
-   * #2d3142 — dark navy (headings, dark surfaces, active states)
-   * #4f5d75 — slate gray (body text, secondary)
-   * #bfc0c0 — silver (borders, muted)
-   * #ffffff — white (backgrounds, cards)
-   * #ef8354 — warm orange (CTAs only — buttons, slider, key highlights)
-   * ======================== */
-
-  /* --- Surfaces --- */
-  --color-surface: #ffffff;
-  --color-surface-alt: #f8f9fa;
-  --color-surface-muted: #f1f2f4;
-  --color-surface-dark: #2d3142;
-  --color-surface-dark-alt: #3b4055;
-
-  /* --- Header (navigation bar) --- */
-  --color-header-bg: #2d3142;
-  --color-header-border: transparent;
-
-  /* --- Text ---
-   * Usage guide (verified by src/__tests__/colorContrast.test.ts):
+  /* ===== WCAG AAA PALETTE — 5 Hue Families =====
+   * Slate   — neutral backgrounds, text, borders
+   * Sky     — primary accent
+   * Teal    — secondary accent
+   * Emerald — success/positive
+   * Red     — danger/negative
    *
-   * READABLE TEXT — safe for normal-size body copy:
-   *   heading        light: #2d3142 (12.9:1 on white) | dark: #ffffff (16:1)
-   *   body           light: #4f5d75 (6.7:1 on white)  | dark: #d0d1d2 (10.4:1)
-   *   muted          light: #6b7486 (4.7:1 on white)  | dark: #8e95a8 (5.3:1)
-   *   on-dark        always #ffffff — only use ON dark surfaces
-   *   on-dark-muted  always #d0d1d2 — only use ON dark surfaces
-   *
-   * DECORATIVE ONLY — NEVER use for readable text:
-   *   faint          light: #bfc0c0 (1.8:1 on white)  | dark: #4f5d75 (2.4:1)
-   *                  → Borders, separators, disabled placeholders only.
-   *                  → DO NOT add dark:text-faint to any readable text element.
-   *                  → ESLint enforces this: dark:text-faint is a lint error.
-   */
-  --color-heading: #2d3142;
-  --color-body: #4f5d75;
-  --color-muted: #6b7486;
-  --color-faint: #bfc0c0; /* decorative only — see guide above */
-  --color-on-dark: #ffffff;
-  --color-on-dark-muted: #d0d1d2;
+   * BANNED: Yellow, Orange, Pink/Magenta, Blue (pure), Brown
+   * ============================================== */
 
-  /* --- Accent (orange — use sparingly: CTAs, slider, key interactive) --- */
-  --color-accent: #ef8354;
-  --color-accent-hover: #e06f3e;
-  --color-accent-light: #fdf5f1;
-  --color-accent-muted: #fbe8dd;
+  /* --- Backgrounds --- */
+  --color-bg-primary: #FFFFFF;
+  --color-bg-card: #F8FAFC;
+  --color-bg-hover: #F1F5F9;
+
+  /* --- Text --- */
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #334155;
+  --color-text-muted: #475569;
+
+  /* --- Accent (sky) --- */
+  --color-accent-primary: #0369a1;
+  --color-accent-secondary: #115E59;
+  --color-accent-interactive: #0369a1;
+  --color-text-on-accent: #FFFFFF;
+
+  /* --- Status --- */
+  --color-success: #065F46;
+  --color-danger: #991B1B;
 
   /* --- Border --- */
-  --color-edge: #e2e3e5;
-  --color-edge-strong: #bfc0c0;
-
-  /* --- Status / scenario --- */
-  --color-success: #16a34a;
-  --color-error: #dc2626;
-  --color-warning: #ef8354;
-  --color-bear: #dc2626;
-  --color-base: #ef8354;
-  --color-bull: #16a34a;
-
-  /* --- Legacy aliases --- */
-  --color-brand: #ef8354;
-  --color-bg-primary: #f8f9fa;
-  --color-bg-secondary: #ffffff;
-  --color-bg-card: #ffffff;
-  --color-bg-muted: #f1f2f4;
-  --color-text-primary: #2d3142;
-  --color-text-secondary: #4f5d75;
-  --color-text-muted: #6b7486;
-  --color-text-faint: #bfc0c0;
-  --color-border: #e2e3e5;
-  --color-border-strong: #bfc0c0;
-  --color-accent-info: #2d3142;
-  --color-accent-warning: #ef8354;
-  --color-accent-success: #16a34a;
-  --color-accent-error: #dc2626;
-  --color-input-border: #bfc0c0;
-  --color-input-border-focus: #2d3142;
-
-  /* --- Tailwind overrides ---
-   * "blue" → navy (active/selected states, focus rings)
-   * "gray/slate" → palette neutrals */
-
-  --color-blue-50: #f3f4f7;
-  --color-blue-100: #e6e8ee;
-  --color-blue-200: #c8ccd6;
-  --color-blue-300: #8e95a8;
-  --color-blue-400: #4f5d75;
-  --color-blue-500: #3b4055;
-  --color-blue-600: #2d3142;
-  --color-blue-700: #2d3142;
-  --color-blue-800: #222635;
-  --color-blue-900: #1a1d2b;
-  --color-blue-950: #101320;
-
-  --color-indigo-50: #f3f4f7;
-  --color-indigo-100: #e6e8ee;
-  --color-indigo-200: #c8ccd6;
-  --color-indigo-300: #8e95a8;
-  --color-indigo-400: #4f5d75;
-  --color-indigo-500: #3b4055;
-  --color-indigo-600: #2d3142;
-  --color-indigo-700: #2d3142;
-  --color-indigo-800: #222635;
-  --color-indigo-900: #1a1d2b;
-  --color-indigo-950: #101320;
-
-  --color-gray-50: #f8f9fa;
-  --color-gray-100: #f1f2f4;
-  --color-gray-200: #e2e3e5;
-  --color-gray-300: #bfc0c0;
-  --color-gray-400: #6b7486;
-  --color-gray-500: #4f5d75;
-  --color-gray-600: #4f5d75;
-  --color-gray-700: #3b4055;
-  --color-gray-800: #2d3142;
-  --color-gray-900: #2d3142;
-  --color-gray-950: #1a1d2b;
-
-  --color-slate-50: #f8f9fa;
-  --color-slate-100: #f1f2f4;
-  --color-slate-200: #e2e3e5;
-  --color-slate-300: #bfc0c0;
-  --color-slate-400: #6b7486;
-  --color-slate-500: #4f5d75;
-  --color-slate-600: #4f5d75;
-  --color-slate-700: #3b4055;
-  --color-slate-800: #2d3142;
-  --color-slate-900: #2d3142;
-  --color-slate-950: #1a1d2b;
+  --color-border: #CBD5E1;
 }
 
 /* Dark theme — active when <html class="dark"> */
 html.dark {
   color-scheme: dark;
 
-  --color-surface: #1e2130;
-  --color-surface-alt: #262a3a;
-  --color-surface-muted: #2d3142;
-  --color-surface-dark: #1e2130;
-  --color-surface-dark-alt: #3b4055;
+  --color-bg-primary: #0F172A;
+  --color-bg-card: #1E293B;
+  --color-bg-hover: #334155;
 
-  /* --- Header (navigation bar) --- */
-  --color-header-bg: #010409;
-  --color-header-border: #21262d;
+  --color-text-primary: #F1F5F9;
+  --color-text-secondary: #CBD5E1;
+  --color-text-muted: #A9B5BF;
 
-  --color-heading: #ffffff;
-  --color-body: #d0d1d2;
-  --color-muted: #8e95a8;
-  --color-faint: #4f5d75;
-  --color-on-dark: #ffffff;
-  --color-on-dark-muted: #d0d1d2;
+  --color-accent-primary: #7dd3fc;
+  --color-accent-secondary: #67E8F9;
+  --color-accent-interactive: #7dd3fc;
+  --color-text-on-accent: #082f49;
 
-  --color-accent: #ef8354;
-  --color-accent-hover: #f7a577;
-  --color-accent-light: #2a2220;
-  --color-accent-muted: #3d2e26;
+  --color-success: #6EE7B7;
+  --color-danger: #FCA5A5;
 
-  --color-edge: #3b4055;
-  --color-edge-strong: #4f5d75;
-
-  --color-bear: #ef4444;
-  --color-base: #ef8354;
-  --color-bull: #22c55e;
-
-  --color-brand: #ef8354;
-  --color-bg-primary: #1e2130;
-  --color-bg-secondary: #262a3a;
-  --color-bg-card: #262a3a;
-  --color-bg-muted: #2d3142;
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #d0d1d2;
-  --color-text-muted: #8e95a8;
-  --color-text-faint: #4f5d75;
-  --color-border: #3b4055;
-  --color-border-strong: #4f5d75;
-  --color-accent-info: #ef8354;
-  --color-accent-warning: #ef8354;
-  --color-accent-success: #22c55e;
-  --color-accent-error: #ef4444;
-  --color-input-border: #4f5d75;
-  --color-input-border-focus: #ef8354;
+  --color-border: #334155;
 }
 
 body {
@@ -198,6 +71,141 @@ body {
   font-family: var(--font-sans);
   font-feature-settings: 'cv02', 'cv03', 'cv04'; /* Inter optical variants */
   -webkit-font-smoothing: antialiased;
+}
+
+/* Aurora header — slow-moving serpentine ribbons */
+.aurora-header {
+  position: relative;
+  overflow: hidden;
+  background: #0c1222;
+}
+
+.aurora-header > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Base glow layer — wide, diffuse, slow sweep */
+.aurora-header::before {
+  content: '';
+  position: absolute;
+  inset: -80% -50%;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse 120% 80% at 30% 50%,
+    rgba(52, 211, 153, 0.35) 0%,
+    rgba(6, 182, 212, 0.25) 25%,
+    transparent 55%
+  ), radial-gradient(
+    ellipse 100% 90% at 70% 40%,
+    rgba(168, 85, 247, 0.3) 0%,
+    rgba(34, 211, 238, 0.2) 30%,
+    transparent 60%
+  );
+  filter: blur(40px);
+  animation: aurora-serpentine 30s ease-in-out infinite;
+}
+
+/* Secondary ribbon layer — offset timing for depth */
+.aurora-header::after {
+  content: '';
+  position: absolute;
+  inset: -60% -40%;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse 80% 120% at 50% 60%,
+    rgba(34, 211, 238, 0.3) 0%,
+    rgba(52, 211, 153, 0.25) 30%,
+    transparent 55%
+  ), radial-gradient(
+    ellipse 90% 70% at 20% 30%,
+    rgba(139, 92, 246, 0.2) 0%,
+    transparent 50%
+  );
+  filter: blur(35px);
+  animation: aurora-serpentine-alt 40s ease-in-out infinite;
+}
+
+/* Individual ribbon beams — tall, narrow, curved serpentines */
+.aurora-beams {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.aurora-beam {
+  position: absolute;
+  top: -40%;
+  height: 250%;
+  border-radius: 40% 60% 50% 50%;
+  filter: blur(20px);
+  opacity: 0.35;
+}
+
+.aurora-beam:nth-child(1) {
+  left: 8%;
+  width: 8%;
+  background: linear-gradient(180deg, transparent, rgba(52, 211, 153, 0.6) 30%, rgba(34, 211, 238, 0.4) 70%, transparent);
+  animation: aurora-ribbon 25s ease-in-out infinite;
+}
+.aurora-beam:nth-child(2) {
+  left: 28%;
+  width: 6%;
+  background: linear-gradient(180deg, transparent, rgba(34, 211, 238, 0.5) 40%, rgba(168, 85, 247, 0.4) 70%, transparent);
+  animation: aurora-ribbon 32s ease-in-out 3s infinite;
+}
+.aurora-beam:nth-child(3) {
+  left: 48%;
+  width: 10%;
+  background: linear-gradient(180deg, transparent 10%, rgba(139, 92, 246, 0.5) 35%, rgba(52, 211, 153, 0.3) 65%, transparent);
+  animation: aurora-ribbon 28s ease-in-out 6s infinite;
+}
+.aurora-beam:nth-child(4) {
+  left: 66%;
+  width: 7%;
+  background: linear-gradient(180deg, transparent, rgba(6, 182, 212, 0.5) 30%, rgba(52, 211, 153, 0.5) 60%, transparent);
+  animation: aurora-ribbon 35s ease-in-out 2s infinite;
+}
+.aurora-beam:nth-child(5) {
+  left: 84%;
+  width: 9%;
+  background: linear-gradient(180deg, transparent, rgba(52, 211, 153, 0.4) 40%, rgba(139, 92, 246, 0.3) 70%, transparent);
+  animation: aurora-ribbon 30s ease-in-out 5s infinite;
+}
+
+@keyframes aurora-serpentine {
+  0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
+  33% { transform: translateX(3%) translateY(-2%) rotate(0.5deg); }
+  66% { transform: translateX(-2%) translateY(1%) rotate(-0.3deg); }
+}
+
+@keyframes aurora-serpentine-alt {
+  0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); opacity: 0.7; }
+  50% { transform: translateX(-3%) translateY(2%) rotate(-0.5deg); opacity: 0.9; }
+}
+
+@keyframes aurora-ribbon {
+  0%, 100% { transform: translateX(0) scaleX(1) skewX(0deg); opacity: 0.3; }
+  25% { transform: translateX(8px) scaleX(1.1) skewX(2deg); opacity: 0.4; }
+  50% { transform: translateX(-5px) scaleX(0.9) skewX(-1deg); opacity: 0.35; }
+  75% { transform: translateX(3px) scaleX(1.05) skewX(1deg); opacity: 0.45; }
+}
+
+/* Form input accent styling */
+input[type="range"],
+input[type="radio"],
+input[type="checkbox"] {
+  accent-color: var(--color-accent-interactive);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+  cursor: pointer;
 }
 
 @media (prefers-reduced-motion: reduce) {

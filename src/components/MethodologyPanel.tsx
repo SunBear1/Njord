@@ -5,11 +5,11 @@ export function MethodologyPanel() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="bg-surface-alt dark:bg-surface-dark border border-edge dark:border-edge-strong rounded-xl overflow-hidden">
+    <div className="bg-bg-card border border-border rounded-xl overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-5 py-3 text-heading dark:text-on-dark font-medium hover:bg-surface-muted dark:hover:bg-surface-dark-alt transition-colors"
+        className="w-full flex items-center justify-between px-5 py-3 text-text-primary font-medium hover:bg-bg-hover transition-colors"
       >
         <span className="flex items-center gap-2">
           <BookOpen size={16} aria-hidden="true" />
@@ -19,15 +19,15 @@ export function MethodologyPanel() {
       </button>
 
       {open && (
-        <div className="px-5 py-4 border-t border-edge dark:border-edge-strong text-sm text-heading dark:text-on-dark space-y-5">
+        <div className="px-5 py-4 border-t border-border text-sm text-text-primary space-y-5">
 
           {/* 1. Wartość bieżąca */}
           <section className="space-y-1">
-            <h3 className="font-semibold text-heading dark:text-on-dark">1. Wartość bieżąca portfela</h3>
-            <div className="bg-surface dark:bg-surface-dark border border-edge dark:border-edge-strong rounded-lg p-3 font-mono text-xs">
+            <h3 className="font-semibold text-text-primary">1. Wartość bieżąca portfela</h3>
+            <div className="bg-bg-card border border-border rounded-lg p-3 font-mono text-xs">
               Wartość<sub>PLN</sub> = Liczba akcji × Cena akcji<sub>USD</sub> × Kurs kantor<sub>kupno</sub>
             </div>
-            <p className="text-xs text-body dark:text-on-dark-muted">
+            <p className="text-xs text-text-secondary">
               Punkt startowy obu scenariuszy — kwota, którą masz dziś w akcjach,
               wyrażona w PLN po przeliczeniu po <strong>kursie kantorowym (kupno)</strong>, czyli
               ile faktycznie dostaniesz, sprzedając dolary.
@@ -36,15 +36,15 @@ export function MethodologyPanel() {
 
           {/* 2a. Konto oszczędnościowe */}
           <section className="space-y-1">
-            <h3 className="font-semibold text-heading dark:text-on-dark">2a. Konto oszczędnościowe</h3>
-            <div className="bg-surface dark:bg-surface-dark border border-edge dark:border-edge-strong rounded-lg p-3 font-mono text-xs space-y-1">
+            <h3 className="font-semibold text-text-primary">2a. Konto oszczędnościowe</h3>
+            <div className="bg-bg-card border border-border rounded-lg p-3 font-mono text-xs space-y-1">
               <div>Stopa miesięczna = Oprocentowanie roczne ÷ 12</div>
               <div>Wartość brutto = Kapitał × (1 + stopa miesięczna)<sup>n miesięcy</sup></div>
               <div>Odsetki brutto = Wartość brutto − Kapitał</div>
               <div>Odsetki netto = Odsetki brutto × (1 − 0,19)</div>
               <div className="font-semibold">Wartość końcowa = Kapitał + Odsetki netto</div>
             </div>
-            <p className="text-xs text-body dark:text-on-dark-muted">
+            <p className="text-xs text-text-secondary">
               Kapitalizacja miesięczna. Podatek Belki (19%) naliczany od wypracowanych odsetek.
               Oprocentowanie jest prognozowane modelem <strong>mean-reversion</strong> — bieżąca stopa stopniowo
               zbliża się do długoterminowej równowagi (~3,0%), co odzwierciedla cykliczność stóp procentowych NBP.
@@ -53,8 +53,8 @@ export function MethodologyPanel() {
 
           {/* 2b. Obligacje skarbowe */}
           <section className="space-y-1">
-            <h3 className="font-semibold text-heading dark:text-on-dark">2b. Obligacje skarbowe</h3>
-            <div className="bg-surface dark:bg-surface-dark border border-edge dark:border-edge-strong rounded-lg p-3 font-mono text-xs space-y-1">
+            <h3 className="font-semibold text-text-primary">2b. Obligacje skarbowe</h3>
+            <div className="bg-bg-card border border-border rounded-lg p-3 font-mono text-xs space-y-1">
               <div className="font-semibold">Obligacje kapitalizowane (OTS, TOS, EDO, ROS, ROD):</div>
               <div className="pl-4">Rok 1: Wartość × (1 + stopa 1. roku)</div>
               <div className="pl-4">Rok 2+: Wartość × (1 + stopa efektywna) za każdy pełny rok</div>
@@ -73,13 +73,13 @@ export function MethodologyPanel() {
               <div className="pl-4">Odejmowana PRZED naliczeniem podatku</div>
               <div className="pl-4">Niektóre obligacje nie pozwalają na wcześniejszy wykup (OTS, TOS)</div>
             </div>
-            <p className="text-xs text-body dark:text-on-dark-muted">
+            <p className="text-xs text-text-secondary">
               Kapitalizacja roczna. Obligacje indeksowane inflacją (COI, EDO, ROS, ROD) mają stałą stopę
               w 1. roku, potem inflacja CPI + marża (prognozowana modelem mean-reversion).
               Inflacja pobierana automatycznie z Eurostat HICP.
               Stawki odpowiadają aktualnej ofercie z obligacjeskarbowe.pl — mogą się zmieniać co miesiąc.
             </p>
-            <p className="text-xs text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900 rounded px-2 py-1">
+            <p className="text-xs text-danger bg-danger/5 border border-danger/20 rounded px-2 py-1">
               ⚠️ Model nie uwzględnia rolowania (ponownego zakupu) obligacji po zapadalności.
               Jeśli horyzont &gt; zapadalność (np. OTS 3-mies. przy 9-mies. horyzoncie),
               wynik odzwierciedla prostą ekstrapolację stopy, nie trzykrotny zakup obligacji.
@@ -88,8 +88,8 @@ export function MethodologyPanel() {
 
           {/* 3. Trzymanie akcji */}
           <section className="space-y-1">
-            <h3 className="font-semibold text-heading dark:text-on-dark">3. Trzymanie akcji (scenariusz)</h3>
-            <div className="bg-surface dark:bg-surface-dark border border-edge dark:border-edge-strong rounded-lg p-3 font-mono text-xs space-y-1">
+            <h3 className="font-semibold text-text-primary">3. Trzymanie akcji (scenariusz)</h3>
+            <div className="bg-bg-card border border-border rounded-lg p-3 font-mono text-xs space-y-1">
               <div>Cena przyszła = Cena dziś × (1 + Δ ceny akcji%)</div>
               <div>Kurs przyszły = Kurs kantorowy × (1 + Δ kursu USD/PLN%)</div>
               <div className="font-semibold pt-1">Wartość brutto (to co dostaniesz w PLN):</div>
@@ -101,8 +101,8 @@ export function MethodologyPanel() {
               <div className="pl-4">Podatek = Zysk podatkowy × 19%</div>
               <div className="font-semibold pt-1">Wartość netto = Brutto<sub>kantor</sub> − Podatek<sub>NBP</sub></div>
             </div>
-            <div className="bg-surface-alt dark:bg-surface-muted border border-edge dark:border-edge rounded px-2 py-1.5 text-xs text-body dark:text-on-dark-muted flex items-start gap-2">
-              <span className="text-heading dark:text-on-dark mt-0.5 shrink-0">💱</span>
+            <div className="bg-bg-card border border-border rounded px-2 py-1.5 text-xs text-text-secondary flex items-start gap-2">
+              <span className="text-text-primary mt-0.5 shrink-0">💱</span>
               <span>
                 <strong>Dwa kursy:</strong> Wycena portfela w PLN używa kursu <strong>Alior Kantor (kupno)</strong> — tyle
                 faktycznie dostaniesz, sprzedając USD. Podatek Belki obliczany jest po kursie <strong>NBP (tabela A, kurs średni)</strong>,
@@ -113,8 +113,8 @@ export function MethodologyPanel() {
 
           {/* 4. Sugestie z historii */}
           <section className="space-y-1">
-            <h3 className="font-semibold text-heading dark:text-on-dark">4. Scenariusze z danych historycznych</h3>
-            <div className="bg-surface dark:bg-surface-dark border border-edge dark:border-edge-strong rounded-lg p-3 font-mono text-xs space-y-1">
+            <h3 className="font-semibold text-text-primary">4. Scenariusze z danych historycznych</h3>
+            <div className="bg-bg-card border border-border rounded-lg p-3 font-mono text-xs space-y-1">
               <div className="font-semibold">Dobór modelu (warstwowy):</div>
               <div className="pl-4">Horyzont ≤ 6 mies. → Block Bootstrap (3 000 ścieżek, blok 5 dni)</div>
               <div className="pl-4">Horyzont &gt; 6 mies. → Kalibrowany GBM (formuła zamknięta)</div>
@@ -131,9 +131,9 @@ export function MethodologyPanel() {
               <div className="pl-4">Roczny zwrot: [−80%, +100%] | Całkowity: [−95%, +1000%]</div>
               <div className="pt-1">σ dzienne, ρ (korelacja Pearsona) — ~2 lata danych historycznych</div>
               <div>Δ FX Bear = −ρ × |FX p95|,  Δ FX Bull = +ρ × |FX p95|</div>
-              <div className="pt-1 text-faint dark:text-muted">HMM (Hidden Markov Model) — informacyjnie: detekcja reżimu rynkowego (wzrost/spadek). Nie wpływa na scenariusze.</div>
+              <div className="pt-1 text-text-muted">HMM (Hidden Markov Model) — informacyjnie: detekcja reżimu rynkowego (wzrost/spadek). Nie wpływa na scenariusze.</div>
             </div>
-            <p className="text-xs text-body dark:text-on-dark-muted">
+            <p className="text-xs text-text-secondary">
               Scenariusze to zakresy prawdopodobieństwa, nie prognozy. Żaden model nie jest w stanie
               przewidzieć przyszłych cen akcji. Drift shrinkage zapobiega ekstrapolacji krótkoterminowych
               trendów — nawet jeśli akcje wzrosły +200% w ostatnim roku, model ogranicza oczekiwany zwrot.
@@ -143,12 +143,12 @@ export function MethodologyPanel() {
 
           {/* 5. Oś czasu */}
           <section className="space-y-1">
-            <h3 className="font-semibold text-heading dark:text-on-dark">5. Wykres wartości w czasie</h3>
-            <div className="bg-surface dark:bg-surface-dark border border-edge dark:border-edge-strong rounded-lg p-3 font-mono text-xs space-y-1">
+            <h3 className="font-semibold text-text-primary">5. Wykres wartości w czasie</h3>
+            <div className="bg-bg-card border border-border rounded-lg p-3 font-mono text-xs space-y-1">
               <div>Ułamek czasu: f = m / H (miesiąc m z horyzontu H)</div>
               <div>Δ<sub>m</sub> = (1 + Δ)<sup>f</sup> − 1  (interpolacja geometryczna)</div>
             </div>
-            <p className="text-xs text-body dark:text-on-dark-muted">
+            <p className="text-xs text-text-secondary">
               Scenariuszowe zmiany cen (Δ akcji, Δ FX) są skalowane <strong>geometrycznie</strong> do każdego
               miesiąca — odzwierciedla to multiplikatywną naturę stóp zwrotu. Np. jeśli w scenariuszu
               Bull Δ akcji = +15% na 6 miesięcy, to po 3 miesiącach przyjmujemy
@@ -158,8 +158,8 @@ export function MethodologyPanel() {
 
           {/* 6. Heatmapa */}
           <section className="space-y-1">
-            <h3 className="font-semibold text-heading dark:text-on-dark">6. Mapa break-even</h3>
-            <p className="text-xs text-body dark:text-on-dark-muted">
+            <h3 className="font-semibold text-text-primary">6. Mapa break-even</h3>
+            <p className="text-xs text-text-secondary">
               Siatka 11×11 kombinacji (Δ ceny akcji × Δ kursu USD/PLN) od −20% do +20%.
               Dla każdej kombinacji obliczamy wartość końcową akcji (po podatku) i porównujemy
               z wartością benchmarku (konto lub obligacje). Zielone komórki = akcje biją benchmark.
@@ -168,23 +168,23 @@ export function MethodologyPanel() {
 
           {/* 7. Korekta o inflację */}
           <section className="space-y-1">
-            <h3 className="font-semibold text-heading dark:text-on-dark">7. Korekta o inflację (zwrot realny)</h3>
-            <div className="bg-surface dark:bg-surface-dark border border-edge dark:border-edge-strong rounded-lg p-3 font-mono text-xs">
+            <h3 className="font-semibold text-text-primary">7. Korekta o inflację (zwrot realny)</h3>
+            <div className="bg-bg-card border border-border rounded-lg p-3 font-mono text-xs">
               Inflacja<sub>skumulowana</sub> = (1 + r<sub>CPI</sub>)<sup>T</sup> − 1<br />
               Zwrot<sub>realny</sub> = (1 + Zwrot<sub>nominalny</sub>) / (1 + Inflacja<sub>skumulowana</sub>) − 1
             </div>
-            <p className="text-xs text-body dark:text-on-dark-muted">
+            <p className="text-xs text-text-secondary">
               Stosujemy dokładny wzór Fishera. Stopa inflacji pochodzi z danych Eurostat (HICP, miesięczne).
               Zamiast stałej stawki na cały horyzont, używamy modelu <strong>mean-reversion</strong>:{' '}
-              <code className="bg-surface-muted dark:bg-surface-dark-alt px-1 rounded text-[11px]">rate(t) = 2,5% + (r₀ − 2,5%) × e<sup>−t/18</sup></code>{' '}
+              <code className="bg-bg-hover px-1 rounded text-[11px]">rate(t) = 2,5% + (r₀ − 2,5%) × e<sup>−t/18</sup></code>{' '}
               — bieżąca inflacja stopniowo powraca do celu NBP (2,5%).
               Obliczona jest efektywna średnia roczna stawka dla konkretnego horyzontu.
             </p>
           </section>
 
-          <section className="bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900 rounded-lg p-3 space-y-1">
-            <h3 className="font-semibold text-amber-900 dark:text-amber-200">Założenia i ograniczenia</h3>
-            <ul className="list-disc list-inside text-xs text-amber-800 dark:text-amber-300 space-y-1">
+          <section className="bg-danger/5 border border-danger/20 rounded-lg p-3 space-y-1">
+            <h3 className="font-semibold text-danger">Założenia i ograniczenia</h3>
+            <ul className="list-disc list-inside text-xs text-danger space-y-1">
               <li>
                 <strong>Podatek Belki (19%)</strong> od zysku zarówno z akcji, jak i z odsetek
               </li>

@@ -1,5 +1,5 @@
 import { useState, useCallback, lazy, Suspense } from 'react';
-import { Search, Loader2, AlertTriangle } from 'lucide-react';
+import { Search, Loader2, AlertTriangle, TrendingUp } from 'lucide-react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useAssetData } from '../hooks/useAssetData';
 import { useSellAnalysis } from '../hooks/useSellAnalysis';
@@ -35,16 +35,22 @@ export function ForecastPage() {
   }, [tickerInput, fetchData]);
 
   return (
-    <div className="space-y-4">
-      {/* Ticker input */}
-      <div className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold text-heading">Prognoza cenowa</h2>
+    <div className="space-y-6">
+      {/* Hero / Ticker input */}
+      <div className="bg-bg-card rounded-xl border border-border shadow-sm p-6 space-y-5">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-accent-primary/10">
+            <TrendingUp size={20} className="text-accent-primary" aria-hidden="true" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-text-primary">Prognoza cenowa</h2>
+            <p className="text-sm text-text-muted">Analiza probabilistyczna cen akcji i ETF</p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="flex items-end gap-3">
-          <div className="flex-1 max-w-xs">
-            <label htmlFor="forecast-ticker" className="block text-sm font-medium text-body mb-1">
+          <div className="flex-1 max-w-sm">
+            <label htmlFor="forecast-ticker" className="block text-sm font-medium text-text-secondary mb-1">
               Ticker
             </label>
             <input
@@ -53,7 +59,7 @@ export function ForecastPage() {
               value={tickerInput}
               onChange={e => setTickerInput(e.target.value.toUpperCase())}
               placeholder="np. AAPL, MSFT, SPY…"
-              className="w-full px-3 py-2 border border-border-strong rounded-lg bg-white dark:bg-surface-dark text-body dark:text-on-dark placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-surface-dark/30 text-sm"
+              className="w-full px-3 py-2.5 border border-border rounded-lg bg-bg-card text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-accent-primary text-sm transition-colors"
               autoComplete="off"
               spellCheck={false}
             />
@@ -61,7 +67,7 @@ export function ForecastPage() {
           <button
             type="submit"
             disabled={assetLoading || !tickerInput.trim()}
-            className="flex items-center gap-2 px-4 py-2 bg-accent text-on-dark rounded-lg font-medium text-sm hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="flex items-center gap-2 px-5 py-2.5 bg-accent-interactive text-text-on-accent rounded-lg font-medium text-sm hover:bg-accent-interactive/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
           >
             {assetLoading ? (
               <Loader2 size={16} className="animate-spin" aria-hidden="true" />
@@ -73,21 +79,20 @@ export function ForecastPage() {
         </form>
 
         {assetError && (
-          <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400" role="alert">
+          <div className="flex items-center gap-2 text-sm text-danger" role="alert">
             <AlertTriangle size={16} aria-hidden="true" />
             <span>{assetError}</span>
           </div>
         )}
 
         {assetData && (
-          <div className="flex items-center gap-3 text-sm text-muted">
-            <span className="font-medium text-heading">{assetData.asset.name}</span>
-            <span>({activeTicker})</span>
-            <span className="text-faint">·</span>
+          <div className="flex items-center gap-3 text-sm text-text-muted pt-1 border-t border-border">
+            <span className="font-semibold text-text-primary">{assetData.asset.name}</span>
+            <span className="text-text-muted">({activeTicker})</span>
             {currentFxRate > 0 && (
               <>
-                <span className="text-faint">·</span>
-                <span>{(assetData.asset.currentPrice * currentFxRate).toFixed(2)} PLN</span>
+                <span className="text-text-muted">·</span>
+                <span className="font-mono tabular-nums">{(assetData.asset.currentPrice * currentFxRate).toFixed(2)} PLN</span>
               </>
             )}
           </div>
@@ -96,7 +101,7 @@ export function ForecastPage() {
 
       {assetData && (
         <ErrorBoundary>
-          <Suspense fallback={<div className="text-center py-8 text-muted dark:text-muted">Ładowanie modułu…</div>}>
+          <Suspense fallback={<div className="text-center py-8 text-text-muted">Ładowanie modułu…</div>}>
             <SellAnalysisPanel
               analysis={sellAnalysis}
               isLoading={sellLoading}
@@ -110,8 +115,9 @@ export function ForecastPage() {
       )}
 
       {!assetData && !assetLoading && !assetError && (
-        <div className="bg-surface rounded-xl border border-dashed border-border-strong p-10 text-center text-muted dark:text-muted space-y-2">
-          <p className="text-lg">Wprowadź ticker, aby zobaczyć prognozę cenową</p>
+        <div className="bg-bg-card rounded-xl border border-dashed border-border p-12 text-center text-text-muted space-y-3">
+          <TrendingUp size={32} className="mx-auto text-accent-primary/40" aria-hidden="true" />
+          <p className="text-lg font-medium text-text-secondary">Wprowadź ticker, aby zobaczyć prognozę cenową</p>
           <p className="text-sm">Wpisz symbol spółki lub ETF (np. AAPL, MSFT, SPY) i kliknij „Analizuj".</p>
         </div>
       )}

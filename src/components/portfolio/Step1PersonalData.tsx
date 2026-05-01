@@ -27,7 +27,7 @@ function Toggle({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs text-muted dark:text-muted">{value ? '' : 'NIE'}</span>
+      <span className="text-xs text-text-muted">{value ? '' : 'NIE'}</span>
       <button
         type="button"
         id={id}
@@ -35,16 +35,16 @@ function Toggle({
         aria-checked={value}
         onClick={() => onChange(!value)}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-          value ? 'bg-accent' : 'bg-surface-muted dark:bg-surface-dark-alt'
+          value ? 'bg-accent-primary' : 'bg-bg-hover'
         }`}
       >
         <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-surface transition-transform ${
+          className={`inline-block h-4 w-4 transform rounded-full bg-bg-card transition-transform ${
             value ? 'translate-x-6' : 'translate-x-1'
           }`}
         />
       </button>
-      <span className="text-xs text-muted dark:text-muted">{value ? 'TAK' : ''}</span>
+      <span className="text-xs text-text-muted">{value ? 'TAK' : ''}</span>
     </div>
   );
 }
@@ -57,14 +57,14 @@ export default function Step1PersonalData({
   ikzeAnnualLimit,
 }: Step1Props) {
   return (
-    <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-5 space-y-5">
+    <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-5">
       {/* Row 1: Monthly amount + Horizon */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Monthly amount */}
         <div>
           <label
             htmlFor="monthlyAmount"
-            className="block text-sm font-medium text-body dark:text-on-dark-muted mb-1"
+            className="block text-sm font-medium text-text-secondary mb-1"
           >
             <User className="inline h-4 w-4 mr-1 -mt-0.5" aria-hidden="true" />
             Miesięczna kwota do inwestowania (PLN)
@@ -77,9 +77,9 @@ export default function Step1PersonalData({
             step={100}
             value={personalData.totalMonthlyPLN}
             onChange={(e) => updatePersonalData({ totalMonthlyPLN: Number(e.target.value) })}
-            className="w-full rounded-lg border border-edge-strong dark:border-edge-strong bg-surface dark:bg-surface-dark-alt px-3 py-2 text-sm text-heading dark:text-on-dark font-mono focus:outline-none focus:ring-2 focus:ring-surface-dark/30"
+            className="w-full rounded-lg border border-border bg-bg-card px-3 py-2 text-sm text-text-primary font-mono focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
           />
-          <p className="text-xs text-faint dark:text-muted mt-1">
+          <p className="text-xs text-text-muted mt-1">
             Roczny budżet: {fmtPLN(annualBudget)}
           </p>
         </div>
@@ -88,7 +88,7 @@ export default function Step1PersonalData({
         <div>
           <label
             htmlFor="horizon"
-            className="block text-sm font-medium text-body dark:text-on-dark-muted mb-1"
+            className="block text-sm font-medium text-text-secondary mb-1"
           >
             <Calendar className="inline h-4 w-4 mr-1 -mt-0.5" aria-hidden="true" />
             Horyzont inwestycyjny: {personalData.horizonYears} lat
@@ -101,9 +101,9 @@ export default function Step1PersonalData({
             step={1}
             value={personalData.horizonYears}
             onChange={(e) => updatePersonalData({ horizonYears: Number(e.target.value) })}
-            className="w-full accent-blue-600"
+            className="w-full"
           />
-          <div className="flex justify-between text-xs text-faint dark:text-muted mt-1">
+          <div className="flex justify-between text-xs text-text-muted mt-1">
             <span>1 rok</span>
             <span>25 lat</span>
             <span>50 lat</span>
@@ -115,26 +115,26 @@ export default function Step1PersonalData({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* PIT bracket */}
         <fieldset>
-          <legend className="block text-sm font-medium text-body dark:text-on-dark-muted mb-1">
+          <legend className="block text-sm font-medium text-text-secondary mb-1">
             <Percent className="inline h-4 w-4 mr-1 -mt-0.5" aria-hidden="true" />
             Stawka PIT
           </legend>
           <div className="flex gap-4">
             {PIT_OPTIONS.map((opt) => (
-              <label key={opt.value} className="flex items-center gap-1.5 text-sm text-body dark:text-on-dark-muted cursor-pointer">
+              <label key={opt.value} className="flex items-center gap-1.5 text-sm text-text-secondary cursor-pointer">
                 <input
                   type="radio"
                   name="pitBracket"
                   value={opt.value}
                   checked={personalData.pitBracket === opt.value}
                   onChange={() => updatePersonalData({ pitBracket: opt.value })}
-                  className="accent-blue-600"
+                  
                 />
                 {opt.label}
               </label>
             ))}
           </div>
-          <p className="text-xs text-faint dark:text-muted mt-1">
+          <p className="text-xs text-text-muted mt-1">
             Wpływa na wartość odliczenia IKZE od podatku
           </p>
         </fieldset>
@@ -143,7 +143,7 @@ export default function Step1PersonalData({
         <div>
           <label
             htmlFor="selfEmployed"
-            className="block text-sm font-medium text-body dark:text-on-dark-muted mb-1"
+            className="block text-sm font-medium text-text-secondary mb-1"
           >
             Działalność gospodarcza
           </label>
@@ -152,7 +152,7 @@ export default function Step1PersonalData({
             value={personalData.isSelfEmployed}
             onChange={(v) => updatePersonalData({ isSelfEmployed: v })}
           />
-          <p className="text-xs text-faint dark:text-muted mt-1">
+          <p className="text-xs text-text-muted mt-1">
             Wyższy limit IKZE dla osób prowadzących DG
           </p>
         </div>
@@ -164,7 +164,7 @@ export default function Step1PersonalData({
         <div>
           <label
             htmlFor="inflationRate"
-            className="block text-sm font-medium text-body dark:text-on-dark-muted mb-1"
+            className="block text-sm font-medium text-text-secondary mb-1"
           >
             <Percent className="inline h-4 w-4 mr-1 -mt-0.5" aria-hidden="true" />
             Zakładana inflacja roczna (%)
@@ -177,9 +177,9 @@ export default function Step1PersonalData({
             step={0.1}
             value={personalData.inflationRate}
             onChange={(e) => updatePersonalData({ inflationRate: Number(e.target.value) })}
-            className="w-full rounded-lg border border-edge-strong dark:border-edge-strong bg-surface dark:bg-surface-dark-alt px-3 py-2 text-sm text-heading dark:text-on-dark font-mono focus:outline-none focus:ring-2 focus:ring-surface-dark/30"
+            className="w-full rounded-lg border border-border bg-bg-card px-3 py-2 text-sm text-text-primary font-mono focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
           />
-          <p className="text-xs text-faint dark:text-muted mt-1">
+          <p className="text-xs text-text-muted mt-1">
             Używana do dyskontowania wartości realnej portfela
           </p>
         </div>
@@ -188,7 +188,7 @@ export default function Step1PersonalData({
         <div>
           <label
             htmlFor="beneficiary800"
-            className="block text-sm font-medium text-body dark:text-on-dark-muted mb-1"
+            className="block text-sm font-medium text-text-secondary mb-1"
           >
             Beneficjent programu 800+
           </label>
@@ -197,22 +197,22 @@ export default function Step1PersonalData({
             value={personalData.isBeneficiary800Plus}
             onChange={(v) => updatePersonalData({ isBeneficiary800Plus: v })}
           />
-          <p className="text-xs text-faint dark:text-muted mt-1">
+          <p className="text-xs text-text-muted mt-1">
             Odblokuje obligacje rodzinne ROS i ROD
           </p>
         </div>
       </div>
 
       {/* Summary bar */}
-      <div className="rounded-lg border bg-accent-light dark:bg-surface-dark/30 border-accent dark:border-accent px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-accent-hover dark:text-on-dark-muted">
+      <div className="rounded-lg border bg-bg-hover/30 border-accent-primary/40 px-4 py-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-accent-primary/80">
         <span>
           Twój roczny budżet: <strong>{fmtPLN(annualBudget)}</strong>
         </span>
-        <span className="text-accent dark:text-accent-hover hidden md:inline" aria-hidden="true">|</span>
+        <span className="text-accent-primary/80 hidden md:inline" aria-hidden="true">|</span>
         <span>
           Limit IKE: <strong>{fmtPLN(ikeAnnualLimit)}</strong>
         </span>
-        <span className="text-accent dark:text-accent-hover hidden md:inline" aria-hidden="true">|</span>
+        <span className="text-accent-primary/80 hidden md:inline" aria-hidden="true">|</span>
         <span>
           Limit IKZE: <strong>{fmtPLN(ikzeAnnualLimit)}</strong>
         </span>

@@ -20,8 +20,8 @@ interface ComparisonChartProps {
 
 function ComparisonChart({ results, isDark }: ComparisonChartProps) {
   const bmLabel = results[0]?.benchmarkLabel ?? 'Konto';
-  const gridColor = isDark ? '#374151' : '#f0f0f0';
-  const tickColor = isDark ? '#9ca3af' : '#666666';
+  const gridColor = isDark ? '#334155' : '#F1F5F9';
+  const tickColor = isDark ? '#A9B5BF' : '#475569';
 
   const data = useMemo(() => [
     {
@@ -45,8 +45,8 @@ function ComparisonChart({ results, isDark }: ComparisonChartProps) {
   const currentValue = results[0]?.currentValuePLN ?? 0;
 
   return (
-    <div className="bg-surface dark:bg-surface-dark rounded-xl border border-edge dark:border-edge-strong shadow-sm p-5 space-y-3">
-      <h3 className="text-base font-semibold text-heading dark:text-on-dark">Wartość końcowa — porównanie</h3>
+    <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-3">
+      <h3 className="text-base font-semibold text-text-primary">Wartość końcowa — porównanie</h3>
       <ResponsiveContainer width="100%" height={300} debounce={32}>
         <BarChart data={data} barCategoryGap="25%">
           <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
@@ -55,16 +55,16 @@ function ComparisonChart({ results, isDark }: ComparisonChartProps) {
           <Tooltip
             formatter={fmtTooltipPLN}
             contentStyle={{
-              backgroundColor: isDark ? '#1e2130' : '#ffffff',
-              borderColor: isDark ? '#3b4055' : '#e2e3e5',
+              backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+              borderColor: isDark ? '#334155' : '#CBD5E1',
               borderRadius: '8px',
-              color: isDark ? '#ffffff' : '#2d3142',
+              color: isDark ? '#F1F5F9' : '#0F172A',
             }}
           />
           <Legend />
-          <ReferenceLine y={currentValue} stroke="#94a3b8" strokeDasharray="5 5" label={{ value: 'Wartość dziś', fontSize: 11, fill: '#94a3b8' }} />
-          <Bar dataKey="Akcje (netto)" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-          <Bar dataKey={bmKey} fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+          <ReferenceLine y={currentValue} stroke={isDark ? '#A9B5BF' : '#475569'} strokeDasharray="5 5" label={{ value: 'Wartość dziś', fontSize: 11, fill: isDark ? '#A9B5BF' : '#475569' }} />
+          <Bar dataKey="Akcje (netto)" fill={isDark ? '#67E8F9' : '#115E59'} radius={[4, 4, 0, 0]} />
+          <Bar dataKey={bmKey} fill={isDark ? '#7dd3fc' : '#0369a1'} radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

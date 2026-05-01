@@ -59,15 +59,15 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
       />
 
       {/* Modal */}
-      <div className="relative bg-surface dark:bg-surface-dark rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-edge dark:border-edge-strong">
+      <div className="relative bg-bg-card rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-border">
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-2">
-          <h2 className="text-xl font-bold text-heading dark:text-on-dark">
+          <h2 className="text-xl font-bold text-text-primary">
             {tab === 'login' ? 'Zaloguj się' : 'Utwórz konto'}
           </h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-faint hover:text-body dark:hover:text-on-dark-muted hover:bg-surface-muted dark:hover:bg-surface-dark-alt transition-colors"
+            className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors"
             aria-label="Zamknij"
           >
             <X size={20} />
@@ -75,12 +75,12 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
         </div>
 
         {/* Tab switcher */}
-        <div className="flex mx-6 mt-2 mb-4 p-1 bg-surface-muted dark:bg-surface-dark-alt rounded-lg">
+        <div className="flex mx-6 mt-2 mb-4 p-1 bg-bg-hover rounded-lg">
           <button
             className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
               tab === 'login'
-                ? 'bg-surface dark:bg-surface-dark-alt text-heading dark:text-on-dark shadow-sm'
-                : 'text-muted dark:text-muted hover:text-body dark:hover:text-on-dark-muted'
+                ? 'bg-bg-card text-text-primary shadow-sm'
+                : 'text-text-muted hover:text-text-primary'
             }`}
             onClick={() => switchTab('login')}
           >
@@ -89,8 +89,8 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
           <button
             className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
               tab === 'register'
-                ? 'bg-surface dark:bg-surface-dark-alt text-heading dark:text-on-dark shadow-sm'
-                : 'text-muted dark:text-muted hover:text-body dark:hover:text-on-dark-muted'
+                ? 'bg-bg-card text-text-primary shadow-sm'
+                : 'text-text-muted hover:text-text-primary'
             }`}
             onClick={() => switchTab('register')}
           >
@@ -102,14 +102,14 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
         <div className="px-6 space-y-2">
           <a
             href="/api/auth/github"
-            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-surface-dark dark:bg-surface-dark-alt text-on-dark rounded-lg hover:bg-surface-dark dark:hover:bg-surface-dark-alt transition-colors font-medium text-sm"
+            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-text-primary text-bg-primary rounded-lg hover:bg-text-primary/90 transition-colors font-medium text-sm"
           >
             <GitHubIcon />
             Kontynuuj przez GitHub
           </a>
           <a
             href="/api/auth/google"
-            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-surface dark:bg-surface-dark-alt text-body dark:text-on-dark rounded-lg border border-edge-strong dark:border-edge-strong hover:bg-surface-alt dark:hover:bg-surface-dark-alt transition-colors font-medium text-sm"
+            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-bg-card text-text-secondary rounded-lg border border-border hover:bg-bg-card transition-colors font-medium text-sm"
           >
             <GoogleIcon />
             Kontynuuj przez Google
@@ -118,29 +118,29 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
 
         {/* Divider */}
         <div className="flex items-center gap-3 px-6 my-4">
-          <div className="flex-1 h-px bg-surface-muted dark:bg-surface-dark-alt" />
-          <span className="text-xs text-faint dark:text-muted uppercase tracking-wider">lub</span>
-          <div className="flex-1 h-px bg-surface-muted dark:bg-surface-dark-alt" />
+          <div className="flex-1 h-px bg-bg-hover" />
+          <span className="text-xs text-text-muted uppercase tracking-wider">lub</span>
+          <div className="flex-1 h-px bg-bg-hover" />
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-3">
           {tab === 'register' && (
             <div className="relative">
-              <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-faint" aria-hidden="true" />
+              <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" aria-hidden="true" />
               <input
                 type="text"
                 placeholder="Imię (opcjonalnie)…"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoComplete="name"
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-edge-strong dark:border-edge-strong bg-surface dark:bg-surface-dark-alt text-heading dark:text-on-dark text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-surface-dark/30 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-bg-card text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-transparent"
               />
             </div>
           )}
 
           <div className="relative">
-            <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-faint" aria-hidden="true" />
+            <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" aria-hidden="true" />
             <input
               type="email"
               placeholder="Email…"
@@ -149,12 +149,12 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
               required
               autoComplete="email"
               spellCheck={false}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-edge-strong dark:border-edge-strong bg-surface dark:bg-surface-dark-alt text-heading dark:text-on-dark text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-surface-dark/30 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-bg-card text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-transparent"
             />
           </div>
 
           <div className="relative">
-            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-faint" aria-hidden="true" />
+            <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" aria-hidden="true" />
             <input
               type="password"
               placeholder="Hasło…"
@@ -163,12 +163,12 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
               required
               minLength={8}
               autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-edge-strong dark:border-edge-strong bg-surface dark:bg-surface-dark-alt text-heading dark:text-on-dark text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-surface-dark/30 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-border bg-bg-card text-text-primary text-sm placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary/30 focus:border-transparent"
             />
           </div>
 
           {error && (
-            <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
+            <div className="p-3 rounded-lg bg-danger/5 border border-danger/30 text-danger text-sm">
               {error}
             </div>
           )}
@@ -176,7 +176,7 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-2.5 px-4 bg-accent text-on-dark rounded-lg font-medium text-sm hover:bg-accent-hover disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+            className="w-full py-2.5 px-4 bg-accent-interactive text-text-on-accent rounded-lg font-medium text-sm hover:bg-accent-interactive/80 disabled:opacity-60 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2"
           >
             {isSubmitting
               ? (tab === 'login' ? 'Logowanie…' : 'Tworzenie konta…')

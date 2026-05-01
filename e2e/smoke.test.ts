@@ -1,18 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Njord smoke tests', () => {
-  test('home page loads with feature cards', async ({ page }) => {
+  test('forecast page loads as default route', async ({ page }) => {
     await page.goto('/');
-    await page.waitForSelector('h1, [role="main"], main', { timeout: 10_000 });
+    await page.waitForSelector('main', { timeout: 10_000 });
 
-    // Home page should show the Njord header
-    await expect(page.getByRole('heading', { name: /Njord/i })).toBeVisible();
-
-    // Feature cards should be visible
-    await expect(page.getByText(/Porównanie inwestycji/i).first()).toBeVisible();
+    // / redirects to /forecast — should show forecast heading
     await expect(page.getByText(/Prognoza cenowa/i).first()).toBeVisible();
-    await expect(page.getByText(/Podatek Belki/i).first()).toBeVisible();
-    await expect(page.getByText(/Kreator portfela/i).first()).toBeVisible();
   });
 
   test('page title is set', async ({ page }) => {
@@ -68,8 +62,8 @@ test.describe('Njord smoke tests', () => {
 
     const htmlEl = page.locator('html');
 
-    // Find moon/sun icon button
-    const darkToggle = page.locator('button').filter({ has: page.locator('svg') }).nth(0);
+    // Find dark mode toggle button by aria-label
+    const darkToggle = page.getByRole('button', { name: /tryb/i });
     await darkToggle.click();
 
     // Page should still be functional after toggle
@@ -111,32 +105,32 @@ test.describe('Njord smoke tests', () => {
   });
 
   test('navbar links navigate between pages', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/forecast');
     await page.waitForSelector('main', { timeout: 10_000 });
 
     // Click comparison nav link
-    await page.locator('nav').getByRole('link', { name: /Porównanie inwestycji/i }).click();
+    await page.locator('nav').getByRole('link', { name: /Porównanie/i }).click();
     await expect(page).toHaveURL(/\/comparison/);
 
     // Click forecast nav link
-    await page.locator('nav').getByRole('link', { name: /Prognoza cenowa/i }).click();
+    await page.locator('nav').getByRole('link', { name: /Prognoza/i }).click();
     await expect(page).toHaveURL(/\/forecast/);
 
     // Click tax nav link
-    await page.locator('nav').getByRole('link', { name: /Podatek Belki/i }).click();
+    await page.locator('nav').getByRole('link', { name: /Podatek/i }).click();
     await expect(page).toHaveURL(/\/tax/);
 
     // Click home via logo
-    await page.locator('nav').getByRole('link', { name: /Strona główna/i }).click();
-    await expect(page).toHaveURL(/\/$/);
+    await page.locator('a[aria-label*="Strona główna"]').click();
+    await expect(page).toHaveURL(/\/forecast/);
   });
 
-  test('unknown routes redirect to home', async ({ page }) => {
+  test('unknown routes redirect to forecast', async ({ page }) => {
     await page.goto('/nonexistent-page');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    // Should redirect to home — check for feature cards
-    await expect(page.getByText(/Porównanie inwestycji/i).first()).toBeVisible({ timeout: 5_000 });
+    // Should redirect to forecast
+    await expect(page.getByText(/Prognoza cenowa/i).first()).toBeVisible({ timeout: 5_000 });
   });
 });
 
