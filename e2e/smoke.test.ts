@@ -138,6 +138,54 @@ test.describe('Njord smoke tests', () => {
     // Should redirect to home — check for feature cards
     await expect(page.getByText(/Porównanie inwestycji/i).first()).toBeVisible({ timeout: 5_000 });
   });
+
+  test('portfolio wizard page loads with steps', async ({ page }) => {
+    await page.goto('/portfolio');
+    await page.waitForSelector('main', { timeout: 10_000 });
+
+    // "Kreator portfela" heading must be present
+    await expect(page.getByText('Kreator portfela')).toBeVisible();
+
+    // Four wizard step labels visible
+    await expect(page.getByText('Twoje dane')).toBeVisible();
+    await expect(page.getByText('Brokerzy')).toBeVisible();
+    await expect(page.getByText('Alokacja')).toBeVisible();
+    await expect(page.getByText('Podsumowanie')).toBeVisible();
+  });
+
+  test('portfolio wizard step 1 has monthly amount input', async ({ page }) => {
+    await page.goto('/portfolio');
+    await page.waitForSelector('main', { timeout: 10_000 });
+
+    // Step 1 shows "Miesięczna kwota" label
+    await expect(page.getByText(/Miesięczna kwota do inwestowania/i)).toBeVisible();
+
+    // Input for monthly amount is present and editable
+    const monthlyInput = page.locator('input[type="number"]').first();
+    await expect(monthlyInput).toBeVisible();
+    await monthlyInput.fill('1000');
+    await expect(monthlyInput).toHaveValue('1000');
+  });
+
+  test('rates page shows USD, EUR and GBP currencies', async ({ page }) => {
+    await page.goto('/rates');
+    await page.waitForSelector('main', { timeout: 10_000 });
+
+    // Rates page shows known currency names (from CURRENCY_META)
+    await expect(page.getByText('Dolar amerykański')).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText('Euro')).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText('Funt szterling')).toBeVisible({ timeout: 8_000 });
+  });
+
+  test('rates page has kupno/sprzedaz column headers', async ({ page }) => {
+    await page.goto('/rates');
+    await page.waitForSelector('main', { timeout: 10_000 });
+
+    // Table headers: Kupno = buy, Sprzedaż = sell
+    await expect(page.getByText('Kupno').first()).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText('Sprzedaż').first()).toBeVisible({ timeout: 8_000 });
+  });
+
 });
 
 test.describe('Njord accessibility basics', () => {
