@@ -108,8 +108,11 @@ async function fetchCurrencyPair(currency: string): Promise<CurrencyRateEntry> {
 }
 
 async function fetchAlior(currency: string): Promise<CurrencyRateEntry['alior']> {
+  // cache: 'no-store' bypasses the CF subrequest cache — Alior sends Cache-Control: public, max-age=1
+  // which CF would otherwise honour, causing stale ts values on every poll.
   const res = await fetch(`${ALIOR_BASE}/${currency}_PLN`, {
     signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+    cache: 'no-store',
   });
   if (!res.ok) return null;
   const data: AliorResponse = await res.json();

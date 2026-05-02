@@ -1,10 +1,11 @@
+import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { useMultiCurrencyRates, type CurrencyRateEntry, type RateDirection, type RateChangeInfo } from '../hooks/useMultiCurrencyRates';
 
-const CURRENCY_META: Record<string, { name: string; symbol: string }> = {
-  USD: { name: 'Dolar amerykański', symbol: '$' },
-  EUR: { name: 'Euro', symbol: '€' },
-  GBP: { name: 'Funt szterling', symbol: '£' },
+const CURRENCY_META: Record<string, { symbol: string }> = {
+  USD: { symbol: '$' },
+  EUR: { symbol: '€' },
+  GBP: { symbol: '£' },
 };
 
 function spreadPct(buy: number, sell: number): string {
@@ -94,10 +95,9 @@ function SourceTable({ title, href, rates, changes, getRate, getDir, animKey }: 
               return (
                 <tr key={entry.currency} className="hover:bg-bg-hover/50 transition-colors">
                   <td className="px-5 py-3">
-                    <div>
-                      <span className="font-semibold text-text-primary">{meta?.symbol} {entry.currency}/PLN</span>
-                      <span className="text-xs text-text-muted ml-2">{meta?.name}</span>
-                    </div>
+                    <span className="font-semibold text-text-primary tabular-nums">
+                      <span className="text-text-muted mr-1">{meta?.symbol}</span>{entry.currency}
+                    </span>
                   </td>
                   <RateCell value={data.buy} dir={dirs.buy} colorClass="text-success" animKey={animKey} />
                   <RateCell value={data.sell} dir={dirs.sell} colorClass="text-danger" animKey={animKey} />
@@ -119,6 +119,13 @@ export function RatesPage() {
   const hasData = rates.length > 0;
   const animKey = lastUpdated?.getTime() ?? 0;
 
+  // Live wall clock — ticks every second regardless of whether rates changed
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1_000);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -126,13 +133,13 @@ export function RatesPage() {
           <h1 className="text-2xl font-bold text-text-primary">Kursy walut</h1>
           <p className="text-sm text-text-muted mt-1">Porównanie kursów kupna i sprzedaży</p>
         </div>
-        {lastUpdated && (
+        {hasData && (
           <div className="flex items-center gap-2 text-xs text-text-muted bg-bg-hover/60 rounded-lg px-3 py-1.5 border border-border">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
             </span>
-            <span className="font-mono">{fmtTime(lastUpdated)}</span>
+            <span className="font-mono">{fmtTime(now)}</span>
           </div>
         )}
       </div>
