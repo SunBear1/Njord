@@ -204,18 +204,13 @@ test.describe('Chart loading — skeleton states', () => {
     await expect(page.locator('[aria-label="Odśwież dane giełdowe"]')).toBeVisible({ timeout: 3_000 });
   });
 
-  test('chart skeleton (aria-busy) shows while lazy chart modules load', async ({ page }) => {
+  test('lazy chart sections load without aria-busy after data and shares are set', async ({ page }) => {
     await page.route(MARKET_DATA_URL, (route) =>
       route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
     );
 
-    // Service-worker-like delay on all JS chunks to force Suspense to show skeleton
-    await page.route('**/*.js', async (route) => {
-      await new Promise((r) => setTimeout(r, 200));
-      await route.continue();
-    });
-
     await page.goto('/comparison');
+    await page.waitForSelector('main', { timeout: 10_000 });
 
     await page.getByRole('button', { name: /ETF/i }).click();
 
@@ -223,15 +218,20 @@ test.describe('Chart loading — skeleton states', () => {
     await tickerInput.fill('AAPL');
     await tickerInput.press('Enter');
 
-    // At some point during loading, the chart skeleton should appear
-    // (aria-label="Ładowanie wykresu…" from Skeleton.Chart)
-    // Use a relaxed check — skeleton may flash quickly
-    const skeleton = page.locator('[aria-label="Ładowanie wykresu…"]');
-    // Charts eventually resolve — the heading appears
-    await expect(page.getByText('Wartość końcowa — porównanie')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/Apple Inc\./)).toBeVisible({ timeout: 8_000 });
+
+    const sharesInput = page.getByLabel(/Liczba akcji/i).or(
+      page.locator('input[id="shares-input"]'),
+    );
+    await sharesInput.fill('10');
+
+    // All lazy chart sections (TimelineChart, BreakevenChart) resolve via Suspense —
+    // once resolved, no aria-busy containers remain in the chart area
+    await expect(page.getByText('Wartość końcowa — porównanie')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('[aria-busy="true"]')).toHaveCount(0, { timeout: 10_000 });
+
     // No unhandled error banners from React
     await expect(page.getByText('Wystąpił błąd podczas renderowania tego komponentu')).not.toBeVisible();
-    void skeleton; // referenced to suppress lint warning
   });
 });
 

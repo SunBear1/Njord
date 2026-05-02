@@ -159,9 +159,9 @@ test.describe('Njord smoke tests', () => {
     await page.goto('/rates');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    await expect(page.getByText('Dolar amerykański')).toBeVisible({ timeout: 8_000 });
-    await expect(page.getByText('Euro')).toBeVisible({ timeout: 8_000 });
-    await expect(page.getByText('Funt szterling')).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText('Dolar amerykański').first()).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText('Euro').first()).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText('Funt szterling').first()).toBeVisible({ timeout: 8_000 });
   });
 
   test('rates page has kupno/sprzedaz column headers', async ({ page }) => {
