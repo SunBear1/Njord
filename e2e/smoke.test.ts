@@ -62,7 +62,6 @@ test.describe('Njord smoke tests', () => {
 
     const htmlEl = page.locator('html');
 
-    // Find dark mode toggle button by aria-label
     const darkToggle = page.getByRole('button', { name: /tryb/i });
     await darkToggle.click();
 
@@ -131,6 +130,46 @@ test.describe('Njord smoke tests', () => {
 
     // Should redirect to forecast
     await expect(page.getByText(/Prognoza cenowa/i).first()).toBeVisible({ timeout: 5_000 });
+  });
+
+  test('portfolio wizard page loads with steps', async ({ page }) => {
+    await page.goto('/portfolio');
+    await page.waitForSelector('main', { timeout: 10_000 });
+
+    await expect(page.getByText('Kreator portfela')).toBeVisible();
+    await expect(page.getByText('Twoje dane')).toBeVisible();
+    await expect(page.getByText('Brokerzy')).toBeVisible();
+    await expect(page.getByText('Alokacja')).toBeVisible();
+    await expect(page.getByText('Podsumowanie')).toBeVisible();
+  });
+
+  test('portfolio wizard step 1 has monthly amount input', async ({ page }) => {
+    await page.goto('/portfolio');
+    await page.waitForSelector('main', { timeout: 10_000 });
+
+    await expect(page.getByText(/Miesięczna kwota do inwestowania/i)).toBeVisible();
+
+    const monthlyInput = page.locator('input[type="number"]').first();
+    await expect(monthlyInput).toBeVisible();
+    await monthlyInput.fill('1000');
+    await expect(monthlyInput).toHaveValue('1000');
+  });
+
+  test('rates page shows major currency names', async ({ page }) => {
+    await page.goto('/rates');
+    await page.waitForSelector('main', { timeout: 10_000 });
+
+    await expect(page.getByText('Dolar amerykański').first()).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText('Euro').first()).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText('Funt szterling').first()).toBeVisible({ timeout: 8_000 });
+  });
+
+  test('rates page has kupno/sprzedaz column headers', async ({ page }) => {
+    await page.goto('/rates');
+    await page.waitForSelector('main', { timeout: 10_000 });
+
+    await expect(page.getByText('Kupno').first()).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText('Sprzedaż').first()).toBeVisible({ timeout: 8_000 });
   });
 });
 
