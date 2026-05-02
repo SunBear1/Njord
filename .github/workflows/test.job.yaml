@@ -11,4 +11,24 @@ jobs:
 
       - uses: ./.github/actions/setup
 
-      - run: npm run test:coverage
+      - name: Run tests with coverage and JSON output
+        shell: bash
+        run: npm run test:coverage -- --reporter=json --outputFile=coverage/test-results.json
+
+      - name: Analyze test quality
+        shell: bash
+        run: npx tsx scripts/test-quality.ts coverage/analysis.json
+
+      - name: Generate test quality report
+        shell: bash
+        run: npx tsx scripts/generate-test-report.ts coverage/analysis.json
+
+      - name: Archive test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-artifacts
+          path: |
+            coverage/
+            test-quality-report.md
+          retention-days: 30
