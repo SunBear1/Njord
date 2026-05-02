@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { useMultiCurrencyRates, type CurrencyRateEntry, type RateDirection, type RateChangeInfo } from '../hooks/useMultiCurrencyRates';
 
@@ -119,6 +120,13 @@ export function RatesPage() {
   const hasData = rates.length > 0;
   const animKey = lastUpdated?.getTime() ?? 0;
 
+  // Live wall clock — ticks every second regardless of whether rates changed
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1_000);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -126,13 +134,13 @@ export function RatesPage() {
           <h1 className="text-2xl font-bold text-text-primary">Kursy walut</h1>
           <p className="text-sm text-text-muted mt-1">Porównanie kursów kupna i sprzedaży</p>
         </div>
-        {lastUpdated && (
+        {hasData && (
           <div className="flex items-center gap-2 text-xs text-text-muted bg-bg-hover/60 rounded-lg px-3 py-1.5 border border-border">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
             </span>
-            <span className="font-mono">{fmtTime(lastUpdated)}</span>
+            <span className="font-mono">{fmtTime(now)}</span>
           </div>
         )}
       </div>
