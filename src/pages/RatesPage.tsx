@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { useMultiCurrencyRates, type CurrencyRateEntry, type RateDirection, type RateChangeInfo } from '../hooks/useMultiCurrencyRates';
 
-const CURRENCY_META: Record<string, { name: string; symbol: string }> = {
-  USD: { name: 'Dolar amerykański', symbol: '$' },
-  EUR: { name: 'Euro', symbol: '€' },
-  GBP: { name: 'Funt szterling', symbol: '£' },
+const CURRENCY_META: Record<string, { flag: string }> = {
+  USD: { flag: '🇺🇸' },
+  EUR: { flag: '🇪🇺' },
+  GBP: { flag: '🇬🇧' },
 };
 
 function spreadPct(buy: number, sell: number): string {
@@ -95,10 +95,9 @@ function SourceTable({ title, href, rates, changes, getRate, getDir, animKey }: 
               return (
                 <tr key={entry.currency} className="hover:bg-bg-hover/50 transition-colors">
                   <td className="px-5 py-3">
-                    <div>
-                      <span className="font-semibold text-text-primary">{meta?.symbol} {entry.currency}/PLN</span>
-                      <span className="text-xs text-text-muted ml-2">{meta?.name}</span>
-                    </div>
+                    <span className="font-semibold text-text-primary">
+                      {meta?.flag} {entry.currency}
+                    </span>
                   </td>
                   <RateCell value={data.buy} dir={dirs.buy} colorClass="text-success" animKey={animKey} />
                   <RateCell value={data.sell} dir={dirs.sell} colorClass="text-danger" animKey={animKey} />
