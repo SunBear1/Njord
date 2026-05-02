@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { useMultiCurrencyRates, type CurrencyRateEntry, type RateDirection, type RateChangeInfo } from '../hooks/useMultiCurrencyRates';
 
-const CURRENCY_META: Record<string, { flag: string }> = {
-  USD: { flag: '🇺🇸' },
-  EUR: { flag: '🇪🇺' },
-  GBP: { flag: '🇬🇧' },
+// Chip colors are decorative only — no semantic meaning, safe on all OS/fonts
+const CURRENCY_META: Record<string, { chipClass: string }> = {
+  USD: { chipClass: 'bg-blue-500/15 text-blue-400 dark:text-blue-300' },
+  EUR: { chipClass: 'bg-amber-500/15 text-amber-600 dark:text-amber-300' },
+  GBP: { chipClass: 'bg-violet-500/15 text-violet-500 dark:text-violet-300' },
 };
 
 function spreadPct(buy: number, sell: number): string {
@@ -95,8 +96,8 @@ function SourceTable({ title, href, rates, changes, getRate, getDir, animKey }: 
               return (
                 <tr key={entry.currency} className="hover:bg-bg-hover/50 transition-colors">
                   <td className="px-5 py-3">
-                    <span className="font-semibold text-text-primary">
-                      {meta?.flag} {entry.currency}
+                    <span className={`inline-flex items-center justify-center w-10 rounded px-1.5 py-0.5 text-xs font-bold font-mono tracking-wide ${meta?.chipClass ?? ''}`}>
+                      {entry.currency}
                     </span>
                   </td>
                   <RateCell value={data.buy} dir={dirs.buy} colorClass="text-success" animKey={animKey} />
