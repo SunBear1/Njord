@@ -24,7 +24,7 @@ function DirectionIcon({ dir, animKey }: { dir: RateDirection; animKey: number }
       key={animKey}
       size={12}
       className="inline-block ml-1 text-success"
-      style={{ animation: 'flash-fade 1s ease-out forwards' }}
+      style={{ animation: 'flash-fade 1.5s ease-out' }}
       aria-label="wzrost"
     />
   );
@@ -33,7 +33,7 @@ function DirectionIcon({ dir, animKey }: { dir: RateDirection; animKey: number }
       key={animKey}
       size={12}
       className="inline-block ml-1 text-danger"
-      style={{ animation: 'flash-fade 1s ease-out forwards' }}
+      style={{ animation: 'flash-fade 1.5s ease-out' }}
       aria-label="spadek"
     />
   );
@@ -43,7 +43,11 @@ function DirectionIcon({ dir, animKey }: { dir: RateDirection; animKey: number }
 function RateCell({ value, dir, colorClass, animKey }: { value: number; dir: RateDirection; colorClass: string; animKey: number }) {
   return (
     <td className="px-3 py-3 text-right font-mono tabular-nums">
-      <span className={`font-semibold ${colorClass}`}>
+      <span
+        key={dir !== null ? animKey : 0}
+        className={`font-semibold ${colorClass}`}
+        style={dir !== null ? { animation: 'value-pop 1.5s ease-out' } : undefined}
+      >
         {value.toFixed(4)}
       </span>
       <DirectionIcon dir={dir} animKey={animKey} />

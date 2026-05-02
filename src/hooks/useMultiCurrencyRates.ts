@@ -30,7 +30,7 @@ export interface MultiCurrencyRates {
   lastUpdated: Date | null;
 }
 
-const REFRESH_INTERVAL_MS = 1_000;
+const REFRESH_INTERVAL_MS = 10_000;
 const CURRENCIES = 'USD,EUR,GBP';
 
 interface ProxyResponse {
@@ -58,6 +58,13 @@ export function computeChanges(
   curr: CurrencyRateEntry[],
 ): Record<string, RateChangeInfo> {
   const result: Record<string, RateChangeInfo> = {};
+  // No previous data → initial load, no directional arrows
+  if (prev.length === 0) {
+    for (const entry of curr) {
+      result[entry.currency] = { aliorBuy: null, aliorSell: null, nbpBuy: null, nbpSell: null };
+    }
+    return result;
+  }
   for (const entry of curr) {
     const old = prev.find(p => p.currency === entry.currency);
     result[entry.currency] = {
