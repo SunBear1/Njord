@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 
 export interface RateData {
   buy: number;
@@ -31,61 +30,30 @@ export interface MultiCurrencyRates {
   lastUpdated: Date | null;
 }
 
-const REFRESH_INTERVAL_MS = 3_000;
+const REFRESH_INTERVAL_MS = 1_000;
 const CURRENCIES = 'USD,EUR,GBP';
-const ALIOR_BASE = 'https://klient.internetowykantor.pl/api/public/marketBrief';
-const NBP_BASE = 'https://api.nbp.pl/api/exchangerates/rates/C';
 
-interface AliorResponse {
-  ts: string;
-  directExchangeOffers: { forexNow: number; sellNow: number; buyNow: number };
+interface ProxyResponse {
+  rates: CurrencyRateEntry[];
+  fetchedAt: number;
 }
 
-interface NbpResponse {
-  rates: Array<{ bid: number; ask: number; effectiveDate: string }>;
-}
-
-async function fetchViaProxy(): Promise<CurrencyRateEntry[]> {
-  const res = await fetchWithTimeout(`/api/currency-rates?currencies=${CURRENCIES}`);
+async function fetchViaProxy(signal: AbortSignal): Promise<CurrencyRateEntry[]> {
+  const res = await fetch(`/api/currency-rates?currencies=${CURRENCIES}`, {
+    cache: 'no-store',
+    signal,
+  });
   if (!res.ok) throw new Error(`Proxy HTTP ${res.status}`);
-  const data = await res.json() as { rates: CurrencyRateEntry[] };
+  const data = await res.json() as ProxyResponse;
   return data.rates;
 }
 
-async function fetchDirectForCurrency(currency: string): Promise<CurrencyRateEntry> {
-  const [aliorRes, nbpRes] = await Promise.allSettled([
-    fetchWithTimeout(`${ALIOR_BASE}/${currency}_PLN`).then(async r => {
-      if (!r.ok) return null;
-      const d: AliorResponse = await r.json();
-      const { buyNow, sellNow, forexNow } = d.directExchangeOffers;
-      return { buy: buyNow, sell: sellNow, mid: forexNow, ts: d.ts };
-    }),
-    fetchWithTimeout(`${NBP_BASE}/${currency}/?format=json`).then(async r => {
-      if (!r.ok) return null;
-      const d: NbpResponse = await r.json();
-      const rate = d.rates[0];
-      if (!rate) return null;
-      return { buy: rate.bid, sell: rate.ask, mid: (rate.bid + rate.ask) / 2, date: rate.effectiveDate };
-    }),
-  ]);
-
-  return {
-    currency,
-    alior: aliorRes.status === 'fulfilled' ? aliorRes.value : null,
-    nbp: nbpRes.status === 'fulfilled' ? nbpRes.value : null,
-  };
-}
-
-async function fetchDirectAll(): Promise<CurrencyRateEntry[]> {
-  return Promise.all(CURRENCIES.split(',').map(fetchDirectForCurrency));
-}
-
-function direction(prev: number | undefined, curr: number): RateDirection {
+export function direction(prev: number | undefined, curr: number): RateDirection {
   if (prev === undefined || prev === curr) return null;
   return curr > prev ? 'up' : 'down';
 }
 
-function computeChanges(
+export function computeChanges(
   prev: CurrencyRateEntry[],
   curr: CurrencyRateEntry[],
 ): Record<string, RateChangeInfo> {
@@ -102,6 +70,21 @@ function computeChanges(
   return result;
 }
 
+/**
+ * Returns true when any currency's Alior timestamp or NBP date has changed.
+ * Used to skip React re-renders (and flash animations) when the API returns
+ * identical data on consecutive polls.
+ */
+export function hasDataChanged(prev: CurrencyRateEntry[], curr: CurrencyRateEntry[]): boolean {
+  if (prev.length !== curr.length) return true;
+  for (let i = 0; i < curr.length; i++) {
+    if (prev[i].currency !== curr[i].currency) return true;
+    if (prev[i].alior?.ts !== curr[i].alior?.ts) return true;
+    if (prev[i].nbp?.date !== curr[i].nbp?.date) return true;
+  }
+  return false;
+}
+
 export function useMultiCurrencyRates(): MultiCurrencyRates {
   const [rates, setRates] = useState<CurrencyRateEntry[]>([]);
   const [changes, setChanges] = useState<Record<string, RateChangeInfo>>({});
@@ -109,45 +92,56 @@ export function useMultiCurrencyRates(): MultiCurrencyRates {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const prevRatesRef = useRef<CurrencyRateEntry[]>([]);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
+    let mounted = true;
 
     async function load() {
-      if (cancelled) return;
-      setIsLoading(true);
-      setError(null);
+      // Cancel any in-flight request before starting a new one
+      abortControllerRef.current?.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       try {
-        const data = await fetchViaProxy();
-        if (cancelled) return;
-        setChanges(computeChanges(prevRatesRef.current, data));
-        prevRatesRef.current = data;
-        setRates(data);
-        setLastUpdated(new Date());
-      } catch {
-        try {
-          const data = await fetchDirectAll();
-          if (cancelled) return;
-          const hasAny = data.some(r => r.alior || r.nbp);
-          if (!hasAny) {
-            setError('Nie udało się pobrać kursów walut.');
-          } else {
-            setChanges(computeChanges(prevRatesRef.current, data));
-            prevRatesRef.current = data;
-            setRates(data);
-            setLastUpdated(new Date());
-          }
-        } catch {
-          if (!cancelled) setError('Błąd połączenia.');
+        const data = await fetchViaProxy(controller.signal);
+        if (!mounted || controller.signal.aborted) return;
+
+        if (hasDataChanged(prevRatesRef.current, data)) {
+          setChanges(computeChanges(prevRatesRef.current, data));
+          prevRatesRef.current = data;
+          setRates(data);
+          setLastUpdated(new Date());
         }
+        setError(null);
+      } catch {
+        if (!mounted || controller.signal.aborted) return;
+        setError('Nie udało się pobrać kursów walut.');
       } finally {
-        if (!cancelled) setIsLoading(false);
+        // Only clear initial loading spinner — subsequent polls are silent
+        if (mounted && !controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     }
 
+    function onVisibilityChange() {
+      if (!document.hidden) load();
+    }
+
     load();
-    const interval = setInterval(load, REFRESH_INTERVAL_MS);
-    return () => { cancelled = true; clearInterval(interval); };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    const intervalId = setInterval(() => {
+      if (!document.hidden) load();
+    }, REFRESH_INTERVAL_MS);
+
+    return () => {
+      mounted = false;
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      abortControllerRef.current?.abort();
+    };
   }, []);
 
   return { rates, changes, isLoading, error, lastUpdated };
