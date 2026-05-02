@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 import { useMultiCurrencyRates, type CurrencyRateEntry, type RateDirection, type RateChangeInfo } from '../hooks/useMultiCurrencyRates';
 
 const CURRENCY_META: Record<string, { name: string; symbol: string }> = {
@@ -36,7 +36,7 @@ function DirectionIcon({ dir, animKey }: { dir: RateDirection; animKey: number }
       aria-label="spadek"
     />
   );
-  return <Minus size={10} className="text-text-muted/40 inline-block ml-1" aria-hidden="true" />;
+  return null;
 }
 
 function RateCell({ value, dir, colorClass, animKey }: { value: number; dir: RateDirection; colorClass: string; animKey: number }) {

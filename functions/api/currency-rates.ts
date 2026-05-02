@@ -123,8 +123,10 @@ async function fetchAlior(currency: string): Promise<CurrencyRateEntry['alior']>
  * a 1-hour edge cache is appropriate.
  */
 async function fetchNbpCached(currency: string): Promise<CurrencyRateEntry['nbp']> {
+  // caches.default is a Cloudflare Workers extension — not in the standard DOM lib
+  const cfCaches = caches as unknown as { default: Cache };
   const cacheKey = new Request(`https://njord.internal/nbp-c/${currency}`);
-  const cache = caches.default;
+  const cache = cfCaches.default;
 
   const cached = await cache.match(cacheKey);
   if (cached) {
