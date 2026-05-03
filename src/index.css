@@ -91,6 +91,11 @@ body {
   z-index: 1;
 }
 
+/* Readable text on busy aurora backgrounds */
+.nav-text-shadow {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
 @keyframes flash-fade {
   0%   { opacity: 1; transform: scale(1.4); }
   25%  { opacity: 1; transform: scale(1); }
