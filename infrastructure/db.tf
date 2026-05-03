@@ -18,10 +18,10 @@ resource "null_resource" "finance_db_schema" {
   depends_on = [cloudflare_d1_database.finance_data]
 
   provisioner "local-exec" {
-    command = "npx wrangler d1 execute ${cloudflare_d1_database.finance_data.name} --remote --file=./sql/schema.sql"
+    command = "npx wrangler d1 execute ${cloudflare_d1_database.finance_data.name} --remote --file=./infrastructure/schema.sql"
   }
 
   triggers = {
-    schema_hash = filesha256("${path.module}/../sql/schema.sql")
+    schema_hash = filesha256("${path.module}/schema.sql")
   }
 }
