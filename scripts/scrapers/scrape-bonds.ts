@@ -125,7 +125,38 @@ function mergeBonds(bonds: BondRow[], scrapedRates: Map<string, ScrapedBondRate>
   return { mergedBonds, summaryRows };
 }
 
-async function upsertToD1(bonds: BondRow[]): Promise<{ inserted: number; updated: number }> {
+async function fetchCurrentBondsFromD1(baseUrl: string, token: string): Promise<Map<string, BondRow>> {
+  const res = await fetch(baseUrl, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sql: 'SELECT * FROM bonds' }),
+  });
+
+  if (!res.ok) {
+    console.warn(`Could not fetch current bonds from D1 (HTTP ${res.status}); all bonds will be upserted.`);
+    return new Map();
+  }
+
+  const result = (await res.json()) as { result: Array<{ results: BondRow[] }> };
+  const rows = result.result?.[0]?.results ?? [];
+  return new Map(rows.map((row) => [row.id, row]));
+}
+
+function isBondUnchanged(existing: BondRow, incoming: BondRow): boolean {
+  return (
+    existing.name_pl === incoming.name_pl &&
+    existing.maturity_months === incoming.maturity_months &&
+    existing.rate_type === incoming.rate_type &&
+    existing.first_year_rate_pct === incoming.first_year_rate_pct &&
+    existing.margin_pct === incoming.margin_pct &&
+    existing.coupon_frequency === incoming.coupon_frequency &&
+    existing.early_redemption_allowed === incoming.early_redemption_allowed &&
+    existing.early_redemption_penalty_pct === incoming.early_redemption_penalty_pct &&
+    existing.is_family === incoming.is_family
+  );
+}
+
+async function upsertToD1(bonds: BondRow[]): Promise<{ inserted: number; updated: number; skipped: number }> {
   const { CF_API_TOKEN, CF_ACCOUNT_ID, CF_D1_DATABASE_ID } = process.env;
   if (!CF_API_TOKEN || !CF_ACCOUNT_ID || !CF_D1_DATABASE_ID) {
     throw new Error('Missing required env vars: CF_API_TOKEN, CF_ACCOUNT_ID, CF_D1_DATABASE_ID');
@@ -133,10 +164,19 @@ async function upsertToD1(bonds: BondRow[]): Promise<{ inserted: number; updated
 
   const baseUrl = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/d1/database/${CF_D1_DATABASE_ID}/query`;
 
+  const currentBonds = await fetchCurrentBondsFromD1(baseUrl, CF_API_TOKEN);
+
   let inserted = 0;
   let updated = 0;
+  let skipped = 0;
 
   for (const bond of bonds) {
+    const existing = currentBonds.get(bond.id);
+    if (existing && isBondUnchanged(existing, bond)) {
+      skipped++;
+      continue;
+    }
+
     const sql = `INSERT OR REPLACE INTO bonds (id, name_pl, maturity_months, rate_type, first_year_rate_pct, margin_pct, coupon_frequency, early_redemption_allowed, early_redemption_penalty_pct, is_family, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`;
 
     const res = await fetch(baseUrl, {
@@ -168,15 +208,14 @@ async function upsertToD1(bonds: BondRow[]): Promise<{ inserted: number; updated
       continue;
     }
 
-    const result = (await res.json()) as { result: Array<{ meta: { changes: number } }> };
-    if (result.result[0]?.meta.changes > 0) {
-      updated += 1;
+    if (existing) {
+      updated++;
     } else {
-      inserted += 1;
+      inserted++;
     }
   }
 
-  return { inserted, updated };
+  return { inserted, updated, skipped };
 }
 
 async function writeSummary(content: string): Promise<void> {
@@ -219,7 +258,7 @@ async function main(): Promise<void> {
     }
 
     const { mergedBonds, summaryRows } = mergeBonds(bonds, scrapedRates);
-    const { inserted, updated } = await upsertToD1(mergedBonds);
+    const { inserted, updated, skipped } = await upsertToD1(mergedBonds);
 
     const summary = [
       '## 🏦 Bond Scraper Results',
@@ -230,6 +269,7 @@ async function main(): Promise<void> {
       `| Unique live rates | ${scrapedRates.size} |`,
       `| Inserted | ${inserted} |`,
       `| Updated | ${updated} |`,
+      `| Skipped (unchanged) | ${skipped} |`,
       ...(scrapeWarning ? ['', scrapeWarning] : []),
       '',
       '### Bonds',

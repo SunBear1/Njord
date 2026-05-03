@@ -71,7 +71,7 @@ function loadCsvRows(): ForecastRow[] {
 
 function buildUpsertStatements(rows: ForecastRow[]): string[] {
   return rows.map((row) =>
-    `INSERT OR REPLACE INTO inflation_forecasts ` +
+    `INSERT OR IGNORE INTO inflation_forecasts ` +
     `(report_date, forecast_year, forecast_quarter, central_path_pct, lower_50_pct, upper_50_pct, lower_90_pct, upper_90_pct) ` +
     `VALUES ('${row.report_date}', ${row.forecast_year}, ${row.forecast_quarter}, ` +
     `${row.central_path_pct}, ${row.lower_50_pct}, ${row.upper_50_pct}, ${row.lower_90_pct}, ${row.upper_90_pct})`,
@@ -152,7 +152,8 @@ async function main(): Promise<void> {
       `| Source file | data/nbp-inflation-forecast.csv |`,
       `| CSV rows | ${rows.length} |`,
       `| Statements executed | ${executed} |`,
-      `| Rows upserted | ${changedRows} |`,
+      `| Rows inserted | ${changedRows} |`,
+      `| Rows skipped (existing) | ${rows.length - changedRows} |`,
     ].join('\n'));
 
     console.log('Done.');
