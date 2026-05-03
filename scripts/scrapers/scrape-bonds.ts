@@ -1,12 +1,18 @@
 /**
- * Bond scraper — fetches current bond parameters from obligacjeskarbowe.pl
- * and upserts them into the FINANCE_DB D1 database via Cloudflare REST API.
+ * Bond scraper — loads stable bond parameters from the curated CSV file,
+ * scrapes current first-year rates from obligacjeskarbowe.pl, merges both
+ * datasets, and upserts the result into FINANCE_DB D1 via the Cloudflare
+ * REST API.
  *
  * Intended to run as a GitHub Actions cron job.
  * Env vars required: CF_API_TOKEN, CF_ACCOUNT_ID, CF_D1_DATABASE_ID
  */
 
-const BONDS_URL = 'https://www.obligacjeskarbowe.pl/oferta-obligacji/';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+
+const BONDS_URL = 'https://www.obligacjeskarbowe.pl/oferta/';
+const EXPECTED_BOND_TYPES = 8;
 
 interface BondRow {
   id: string;
@@ -21,58 +27,102 @@ interface BondRow {
   is_family: number;
 }
 
-// Known bond type configurations — used to map scraped data
-const BOND_CONFIG: Record<string, Partial<BondRow>> = {
-  OTS: { maturity_months: 3, rate_type: 'fixed', coupon_frequency: 1, early_redemption_allowed: 0 },
-  DOS: { maturity_months: 24, rate_type: 'fixed', coupon_frequency: 1, early_redemption_allowed: 1 },
-  TOS: { maturity_months: 36, rate_type: 'floating_wibor', coupon_frequency: 2, early_redemption_allowed: 1 },
-  COI: { maturity_months: 48, rate_type: 'inflation_indexed', coupon_frequency: 1, early_redemption_allowed: 1 },
-  EDO: { maturity_months: 120, rate_type: 'inflation_indexed', coupon_frequency: 1, early_redemption_allowed: 1 },
-  ROR: { maturity_months: 12, rate_type: 'floating_reference', coupon_frequency: 12, early_redemption_allowed: 1 },
-  DOR: { maturity_months: 24, rate_type: 'floating_reference', coupon_frequency: 12, early_redemption_allowed: 1 },
-  ROS: { maturity_months: 72, rate_type: 'inflation_indexed', coupon_frequency: 1, early_redemption_allowed: 1, is_family: 1 },
-  ROD: { maturity_months: 144, rate_type: 'inflation_indexed', coupon_frequency: 1, early_redemption_allowed: 1, is_family: 1 },
-};
+interface ScrapedBondRate {
+  id: string;
+  seriesCode: string | null;
+  firstYearRatePct: number | null;
+  source: 'scraped' | 'csv';
+}
 
-async function scrape(): Promise<BondRow[]> {
-  const res = await fetch(BONDS_URL, {
-    headers: { 'User-Agent': 'Njord-Scraper/1.0' },
+function loadBondsFromCsv(): BondRow[] {
+  const csvPath = resolve(process.cwd(), 'public/polish_treasury_bonds.csv');
+  const raw = readFileSync(csvPath, 'utf-8');
+  const lines = raw.trim().split('\n');
+  const headers = lines[0].split(',');
+
+  return lines.slice(1).map((line) => {
+    const values = line.split(',');
+    const row: Record<string, string> = {};
+    headers.forEach((header, index) => {
+      row[header] = values[index];
+    });
+
+    return {
+      id: row.id,
+      name_pl: row.name_pl,
+      maturity_months: Number.parseInt(row.maturity_months, 10),
+      rate_type: row.rate_type,
+      first_year_rate_pct: row.first_year_rate_pct ? Number.parseFloat(row.first_year_rate_pct) : null,
+      margin_pct: row.margin_pct ? Number.parseFloat(row.margin_pct) : null,
+      coupon_frequency: Number.parseInt(row.coupon_frequency, 10),
+      early_redemption_allowed: row.early_redemption_allowed === 'true' ? 1 : 0,
+      early_redemption_penalty_pct: row.early_redemption_penalty_pct ? Number.parseFloat(row.early_redemption_penalty_pct) : null,
+      is_family: row.is_family === 'true' ? 1 : 0,
+    };
   });
-  if (!res.ok) {
-    throw new Error(`Failed to fetch obligacjeskarbowe.pl: HTTP ${res.status}`);
+}
+
+async function scrapeLiveRates(): Promise<Map<string, ScrapedBondRate>> {
+  const response = await fetch(BONDS_URL, {
+    headers: {
+      'User-Agent': 'Njord-Scraper/1.0',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${BONDS_URL}: HTTP ${response.status}`);
   }
 
-  const html = await res.text();
-  const bonds: BondRow[] = [];
+  const html = await response.text();
+  const seriesMatches = [...html.matchAll(/Seria:<\/strong>\s*([A-Z]{3}\d{4})/g)].map((match) => match[1]);
+  const rateMatches = [...html.matchAll(/<h2 class="product-box__value">[\s\S]*?(\d+,\d+)<sub>%<\/sub>[\s\S]*?<\/h2>/g)].map((match) => match[1]);
+  const pairCount = Math.min(seriesMatches.length, rateMatches.length);
+  const scrapedRates = new Map<string, ScrapedBondRate>();
 
-  // Parse bond offers from HTML — match patterns like "OTS0325" with rate info
-  for (const [prefix, config] of Object.entries(BOND_CONFIG)) {
-    // Match bond IDs like OTS0325, COI0428, EDO0135
-    const idPattern = new RegExp(`(${prefix}\\d{4})`, 'g');
-    const ids = [...new Set([...html.matchAll(idPattern)].map((m) => m[1]))];
+  if (seriesMatches.length !== rateMatches.length) {
+    console.warn(`Warning: found ${seriesMatches.length} series codes but ${rateMatches.length} rate values; pairing ${pairCount}.`);
+  }
 
-    // Extract rate from context around the bond mentions
-    const ratePattern = new RegExp(`${prefix}[^]*?(\\d+[.,]\\d+)\\s*%`, 'i');
-    const rateMatch = html.match(ratePattern);
-    const rate = rateMatch ? parseFloat(rateMatch[1].replace(',', '.')) : null;
+  for (let index = 0; index < pairCount; index += 1) {
+    const seriesCode = seriesMatches[index];
+    const id = seriesCode.slice(0, 3);
 
-    for (const id of ids) {
-      bonds.push({
-        id,
-        name_pl: `Obligacje ${prefix} (${config.maturity_months}M)`,
-        maturity_months: config.maturity_months!,
-        rate_type: config.rate_type!,
-        first_year_rate_pct: config.rate_type === 'fixed' || config.rate_type === 'inflation_indexed' ? rate : null,
-        margin_pct: config.rate_type === 'inflation_indexed' ? rate : null,
-        coupon_frequency: config.coupon_frequency!,
-        early_redemption_allowed: config.early_redemption_allowed ?? 1,
-        early_redemption_penalty_pct: config.early_redemption_allowed === 1 ? 0.7 : null,
-        is_family: config.is_family ?? 0,
-      });
+    if (scrapedRates.has(id)) {
+      continue;
     }
+
+    scrapedRates.set(id, {
+      id,
+      seriesCode,
+      firstYearRatePct: Number.parseFloat(rateMatches[index].replace(',', '.')),
+      source: 'scraped',
+    });
   }
 
-  return bonds;
+  return scrapedRates;
+}
+
+function mergeBonds(bonds: BondRow[], scrapedRates: Map<string, ScrapedBondRate>): {
+  mergedBonds: BondRow[];
+  summaryRows: ScrapedBondRate[];
+} {
+  const summaryRows = bonds.map((bond) => {
+    const scrapedRate = scrapedRates.get(bond.id);
+
+    return {
+      id: bond.id,
+      seriesCode: scrapedRate?.seriesCode ?? null,
+      firstYearRatePct: scrapedRate?.firstYearRatePct ?? bond.first_year_rate_pct,
+      source: scrapedRate ? 'scraped' : 'csv',
+    } satisfies ScrapedBondRate;
+  });
+
+  const mergedBonds = bonds.map((bond, index) => ({
+    ...bond,
+    first_year_rate_pct: summaryRows[index].firstYearRatePct,
+  }));
+
+  return { mergedBonds, summaryRows };
 }
 
 async function upsertToD1(bonds: BondRow[]): Promise<{ inserted: number; updated: number }> {
@@ -98,9 +148,16 @@ async function upsertToD1(bonds: BondRow[]): Promise<{ inserted: number; updated
       body: JSON.stringify({
         sql,
         params: [
-          bond.id, bond.name_pl, bond.maturity_months, bond.rate_type,
-          bond.first_year_rate_pct, bond.margin_pct, bond.coupon_frequency,
-          bond.early_redemption_allowed, bond.early_redemption_penalty_pct, bond.is_family,
+          bond.id,
+          bond.name_pl,
+          bond.maturity_months,
+          bond.rate_type,
+          bond.first_year_rate_pct,
+          bond.margin_pct,
+          bond.coupon_frequency,
+          bond.early_redemption_allowed,
+          bond.early_redemption_penalty_pct,
+          bond.is_family,
         ],
       }),
     });
@@ -111,11 +168,11 @@ async function upsertToD1(bonds: BondRow[]): Promise<{ inserted: number; updated
       continue;
     }
 
-    const result = await res.json() as { result: Array<{ meta: { changes: number } }> };
+    const result = (await res.json()) as { result: Array<{ meta: { changes: number } }> };
     if (result.result[0]?.meta.changes > 0) {
-      updated++;
+      updated += 1;
     } else {
-      inserted++;
+      inserted += 1;
     }
   }
 
@@ -134,31 +191,55 @@ async function writeSummary(content: string): Promise<void> {
 
 async function main(): Promise<void> {
   try {
-    console.log('Scraping bond data from obligacjeskarbowe.pl...');
-    const bonds = await scrape();
-    console.log(`Found ${bonds.length} bonds`);
+    console.log('Loading bond data from CSV...');
+    const bonds = loadBondsFromCsv();
+    console.log(`Found ${bonds.length} bonds in CSV`);
 
     if (bonds.length === 0) {
-      await writeSummary('⚠️ No bonds found during scrape — page structure may have changed.');
+      await writeSummary('⚠️ No bonds found in CSV — file may be empty or malformed.');
       process.exit(1);
     }
 
-    const { inserted, updated } = await upsertToD1(bonds);
+    let scrapedRates = new Map<string, ScrapedBondRate>();
+    let scrapeWarning: string | null = null;
+
+    try {
+      console.log(`Scraping current bond rates from ${BONDS_URL}...`);
+      scrapedRates = await scrapeLiveRates();
+      console.log(`Found ${scrapedRates.size} unique bond types from live page`);
+
+      if (scrapedRates.size < EXPECTED_BOND_TYPES) {
+        scrapeWarning = `⚠️ Only found ${scrapedRates.size} unique bond types on ${BONDS_URL}; using CSV fallback for missing rates.`;
+        console.warn(scrapeWarning);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      scrapeWarning = `⚠️ Failed to scrape live rates (${message}); using CSV fallback for all rates.`;
+      console.warn(scrapeWarning);
+    }
+
+    const { mergedBonds, summaryRows } = mergeBonds(bonds, scrapedRates);
+    const { inserted, updated } = await upsertToD1(mergedBonds);
 
     const summary = [
       '## 🏦 Bond Scraper Results',
       '',
-      `| Metric | Count |`,
-      `|--------|-------|`,
-      `| Bonds found | ${bonds.length} |`,
+      '| Metric | Count |',
+      '|--------|-------|',
+      `| Bonds in CSV | ${bonds.length} |`,
+      `| Unique live rates | ${scrapedRates.size} |`,
       `| Inserted | ${inserted} |`,
       `| Updated | ${updated} |`,
+      ...(scrapeWarning ? ['', scrapeWarning] : []),
       '',
       '### Bonds',
       '',
-      '| ID | Rate Type | First Year Rate | Margin |',
-      '|----|-----------|-----------------|--------|',
-      ...bonds.map((b) => `| ${b.id} | ${b.rate_type} | ${b.first_year_rate_pct ?? '-'}% | ${b.margin_pct ?? '-'}% |`),
+      '| ID | Series | Rate Type | First Year Rate | Rate Source | Margin |',
+      '|----|--------|-----------|-----------------|-------------|--------|',
+      ...mergedBonds.map((bond, index) => {
+        const summaryRow = summaryRows[index];
+        return `| ${bond.id} | ${summaryRow.seriesCode ?? '-'} | ${bond.rate_type} | ${bond.first_year_rate_pct ?? '-'}% | ${summaryRow.source} | ${bond.margin_pct ?? '-'}% |`;
+      }),
     ].join('\n');
 
     await writeSummary(summary);
