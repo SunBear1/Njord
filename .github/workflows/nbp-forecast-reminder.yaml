@@ -1,0 +1,57 @@
+name: NBP Forecast Reminder
+
+on:
+  schedule:
+    # Runs on the 12th of March, July, November (typical NBP report publication window)
+    - cron: "0 9 12 3,7,11 *"
+  workflow_dispatch:
+
+jobs:
+  create-reminder:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Create reminder issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const month = new Date().toLocaleString('en', { month: 'long' });
+            const year = new Date().getFullYear();
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Update NBP inflation forecast (${month} ${year})`,
+              labels: ['data-update'],
+              body: [
+                '## NBP opublikował nowy Raport o inflacji',
+                '',
+                'Pora zaktualizować prognozę inflacji NBP w repozytorium.',
+                '',
+                '### Źródło',
+                '',
+                '📄 **[Raporty o inflacji – NBP](https://nbp.pl/polityka-pieniezna/dokumenty-rpp/raporty-o-inflacji/)**',
+                '',
+                '### Co zrobić',
+                '',
+                '1. Pobierz najnowszy raport (PDF)',
+                '2. Znajdź **Rozdział 4** → Tabela z projekcją CPI (ścieżka centralna + przedziały 50%/90%)',
+                '3. Zaktualizuj plik: **`data/nbp-inflation-forecast.sql`**',
+                '4. Zmień komentarz `Last updated` na aktualny raport',
+                '5. Commit + push → CI automatycznie zaaplikuje dane do D1',
+                '',
+                '### Format danych',
+                '',
+                '```sql',
+                "INSERT OR REPLACE INTO inflation_forecasts (report_date, forecast_year, forecast_quarter, central_path_pct, lower_50_pct, upper_50_pct, lower_90_pct, upper_90_pct)",
+                'VALUES',
+                "  ('YYYY-MM', year, quarter, central, low50, up50, low90, up90);",
+                '```',
+                '',
+                '---',
+                '_Ten issue został utworzony automatycznie. Zamknij po zaktualizowaniu danych._',
+              ].join('\n'),
+            });
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
