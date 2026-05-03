@@ -1,10 +1,10 @@
 /**
  * GET /finance/currency
  *
- * Aggregates FX rates from multiple sources (NBP, Alior, Walutomat, Kantor.pl).
+ * Aggregates FX rates from multiple sources (NBP, Alior, Walutomat).
  * Query params:
  *   - pairs: comma-separated (default "USD/PLN,EUR/PLN,GBP/PLN")
- *   - source: "all" | "nbp" | "alior" | "walutomat" | "kantor_pl" (default "all")
+ *   - source: "all" | "nbp" | "alior" | "walutomat" (default "all")
  */
 
 import type { CurrencyRate, ApiResponse } from '../_shared/types';
@@ -12,10 +12,9 @@ import { BAD_REQUEST, errorResponse } from '../_shared/errors';
 import { fetchNbpRates } from './_adapters/nbp';
 import { fetchAliorRates } from './_adapters/alior';
 import { fetchWalutomatRates } from './_adapters/walutomat';
-import { fetchKantorPlRates } from './_adapters/kantor-pl';
 
 const ALLOWED_PAIRS = new Set(['USD/PLN', 'EUR/PLN', 'GBP/PLN']);
-const ALLOWED_SOURCES = new Set(['all', 'nbp', 'alior', 'walutomat', 'kantor_pl']);
+const ALLOWED_SOURCES = new Set(['all', 'nbp', 'alior', 'walutomat']);
 
 type FetchFn = () => Promise<CurrencyRate[]>;
 
@@ -23,7 +22,6 @@ const SOURCE_MAP: Record<string, FetchFn> = {
   nbp: fetchNbpRates,
   alior: fetchAliorRates,
   walutomat: fetchWalutomatRates,
-  kantor_pl: fetchKantorPlRates,
 };
 
 export const onRequestGet: PagesFunction = async ({ request }) => {

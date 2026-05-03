@@ -36,8 +36,24 @@ const CURRENCY_SYMBOL: Record<string, string> = {
   PLN: 'zł',
 };
 
+const SPAN_TO_PARAMS: Record<SpanKey, { interval: string; range: string } | null> = {
+  '1D': { interval: '5m', range: '1d' },
+  '1T': { interval: '30m', range: '5d' },
+  '1M': null,
+  '3M': null,
+  '6M': null,
+  '1Y': null,
+  '2Y': null,
+  '5Y': null,
+};
+
 function currencySymbol(currency: string): string {
   return CURRENCY_SYMBOL[currency] ?? currency;
+}
+
+function barToHistoricalPrice(bar: { timestamp: number; close: number }): HistoricalPrice {
+  const date = new Date(bar.timestamp * 1000).toISOString().slice(0, 16).replace('T', ' ');
+  return { date, close: bar.close };
 }
 
 export function StockPriceChart({
@@ -55,23 +71,28 @@ export function StockPriceChart({
   }>({ span: null, prices: [] });
   const abortRef = useRef<AbortController | null>(null);
 
-  const isIntraday = SPANS.find((s) => s.key === activeSpan)?.intraday ?? false;
+  const isIntraday = SPANS.find((span) => span.key === activeSpan)?.intraday ?? false;
   const intradayLoading = isIntraday && intradayState.span !== activeSpan;
 
   useEffect(() => {
     if (!isIntraday) return;
 
+    const params = SPAN_TO_PARAMS[activeSpan];
+    if (!params) return;
+
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
 
-    fetch(`/api/intraday?ticker=${encodeURIComponent(ticker)}&span=${activeSpan}`, {
-      signal: controller.signal,
-    })
-      .then((r) => r.json() as Promise<{ prices?: HistoricalPrice[] }>)
+    fetch(
+      `/api/v1/finance/stocks/${encodeURIComponent(ticker)}?interval=${params.interval}&range=${params.range}`,
+      { signal: controller.signal },
+    )
+      .then((response) => response.json() as Promise<{ data?: Array<{ timestamp: number; close: number }> }>)
       .then((data) => {
         if (!controller.signal.aborted) {
-          setIntradayState({ span: activeSpan, prices: data.prices ?? [] });
+          const prices = (data.data ?? []).map(barToHistoricalPrice);
+          setIntradayState({ span: activeSpan, prices });
         }
       })
       .catch(() => {
@@ -101,7 +122,7 @@ export function StockPriceChart({
 
   const yDomain = useMemo((): [number, number] => {
     if (sliced.length === 0) return [0, 1];
-    const closes = sliced.map((p) => p.close);
+    const closes = sliced.map((price) => price.close);
     const min = Math.min(...closes);
     const max = Math.max(...closes);
     const pad = (max - min) * 0.05 || max * 0.05;
@@ -112,7 +133,7 @@ export function StockPriceChart({
   const xTicks = useMemo(() => {
     if (sliced.length === 0) return [];
     const n = tickCount(activeSpan);
-    if (sliced.length <= n) return sliced.map((p) => p.date);
+    if (sliced.length <= n) return sliced.map((price) => price.date);
     const step = Math.floor(sliced.length / (n - 1));
     const ticks: string[] = [];
     for (let i = 0; i < n - 1; i++) ticks.push(sliced[i * step].date);
@@ -120,8 +141,8 @@ export function StockPriceChart({
     return ticks;
   }, [sliced, activeSpan]);
 
-  const formatXTick = (v: string) =>
-    isIntraday ? formatIntradayTime(v) : formatXAxisDate(v, activeSpan);
+  const formatXTick = (value: string) =>
+    isIntraday ? formatIntradayTime(value) : formatXAxisDate(value, activeSpan);
 
   return (
     <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-4">
@@ -130,7 +151,7 @@ export function StockPriceChart({
         <div>
           <div className="flex items-center gap-2">
             <span className="text-base font-semibold text-text-primary">{ticker}</span>
-            {!intradayLoading && sliced.length >= 2 && (
+            {!intradayLoading && sliced.length >= 2 ? (
               <span
                 className={`flex items-center gap-1 text-sm font-medium ${
                   isPositive ? 'text-success' : 'text-danger'
@@ -144,7 +165,7 @@ export function StockPriceChart({
                 {isPositive ? '+' : ''}
                 {periodChange.toFixed(2)}%
               </span>
-            )}
+            ) : null}
           </div>
           <div className="text-2xl font-bold text-text-primary mt-0.5">
             {sym}
@@ -154,18 +175,18 @@ export function StockPriceChart({
 
         {/* Span selector */}
         <div className="flex items-center gap-1 flex-wrap">
-          {SPANS.map((s) => (
+          {SPANS.map((span) => (
             <button
-              key={s.key}
+              key={span.key}
               type="button"
-              onClick={() => setActiveSpan(s.key)}
+              onClick={() => setActiveSpan(span.key)}
               className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                activeSpan === s.key
+                activeSpan === span.key
                   ? 'bg-accent-interactive text-text-on-accent'
                   : 'text-text-muted hover:text-text-primary hover:bg-bg-hover'
               }`}
             >
-              {s.label}
+              {span.label}
             </button>
           ))}
         </div>
@@ -201,8 +222,8 @@ export function StockPriceChart({
 
             <YAxis
               domain={yDomain}
-              tickFormatter={(v: number) =>
-                `${sym}${v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+              tickFormatter={(value: number) =>
+                `${sym}${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
               }
               tick={{ fontSize: 11, fill: tickColor }}
               axisLine={false}

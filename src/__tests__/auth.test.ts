@@ -1,13 +1,13 @@
 /**
  * Unit tests for auth utilities (JWT, password hashing, cookies, UI helpers).
  *
- * These test the functions in functions/api/auth/_utils/ which use
+ * These test the functions in functions/api/v1/auth/_utils/ which use
  * Web Crypto API — available in Node.js 22+ (global crypto.subtle).
  */
 
 import { describe, it, expect } from 'vitest';
-import { signJwt, verifyJwt } from '../../functions/api/auth/_utils/jwt';
-import { hashPassword, verifyPassword } from '../../functions/api/auth/_utils/password';
+import { signJwt, verifyJwt } from '../../functions/api/v1/auth/_utils/jwt';
+import { hashPassword, verifyPassword } from '../../functions/api/v1/auth/_utils/password';
 import {
   setAuthCookie,
   clearAuthCookie,
@@ -15,7 +15,7 @@ import {
   setOAuthStateCookie,
   getOAuthStateCookie,
   clearOAuthStateCookie,
-} from '../../functions/api/auth/_utils/cookie';
+} from '../../functions/api/v1/auth/_utils/cookie';
 import { getInitials } from '../utils/userDisplayHelpers';
 
 const TEST_SECRET = 'test-secret-key-at-least-32-characters-long';

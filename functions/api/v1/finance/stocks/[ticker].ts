@@ -1,5 +1,5 @@
 /**
- * GET /finance/stocks/:ticker
+ * GET /api/v1/finance/stocks/:ticker
  *
  * Proxies Yahoo Finance chart API.
  * Query params:
@@ -7,7 +7,7 @@
  *   - range: 1d | 5d | 1mo | 3mo | 6mo | 1y | 2y | 5y (default "1mo")
  */
 
-import type { StockBar, ApiResponse } from '../_shared/types';
+import type { StockBar, ApiMeta, ApiResponse } from '../_shared/types';
 import { BAD_REQUEST, UPSTREAM_ERROR, NOT_FOUND, ApiError, errorResponse } from '../_shared/errors';
 
 const ALLOWED_INTERVALS = new Set(['5m', '15m', '30m', '1h', '1d', '1wk', '1mo']);
@@ -20,20 +20,31 @@ function rangeIndex(range: string): number {
   return RANGE_ORDER.indexOf(range);
 }
 
+interface YahooChartMeta {
+  regularMarketPrice?: number;
+  currency?: string;
+  instrumentType?: string;
+  longName?: string;
+  shortName?: string;
+}
+
+interface YahooChartResult {
+  meta: YahooChartMeta;
+  timestamp: number[];
+  indicators: {
+    quote: Array<{
+      open: (number | null)[];
+      high: (number | null)[];
+      low: (number | null)[];
+      close: (number | null)[];
+      volume: (number | null)[];
+    }>;
+  };
+}
+
 interface YahooChartResponse {
   chart: {
-    result: Array<{
-      timestamp: number[];
-      indicators: {
-        quote: Array<{
-          open: (number | null)[];
-          high: (number | null)[];
-          low: (number | null)[];
-          close: (number | null)[];
-          volume: (number | null)[];
-        }>;
-      };
-    }> | null;
+    result: YahooChartResult[] | null;
     error: { code: string; description: string } | null;
   };
 }
@@ -97,19 +108,33 @@ export const onRequestGet: PagesFunction<Record<string, unknown>, 'ticker'> = as
 
     const quote = result.indicators.quote[0];
     const bars: StockBar[] = result.timestamp
-      .map((ts, i) => ({
-        timestamp: ts,
-        open: quote.open[i] ?? 0,
-        high: quote.high[i] ?? 0,
-        low: quote.low[i] ?? 0,
-        close: quote.close[i] ?? 0,
-        volume: quote.volume[i] ?? 0,
+      .map((timestamp, index) => ({
+        timestamp,
+        open: quote.open[index] ?? 0,
+        high: quote.high[index] ?? 0,
+        low: quote.low[index] ?? 0,
+        close: quote.close[index] ?? 0,
+        volume: quote.volume[index] ?? 0,
       }))
       .filter((bar) => bar.close !== 0);
 
-    const body: ApiResponse<StockBar[]> = {
+    const meta = result.meta;
+    const body: ApiResponse<StockBar[]> & {
+      _meta: ApiMeta & {
+        currency?: string;
+        currentPrice?: number;
+        name?: string;
+        type?: string;
+      };
+    } = {
       data: bars,
-      _meta: { source: 'yahoo' },
+      _meta: {
+        source: 'yahoo',
+        currency: meta?.currency,
+        currentPrice: meta?.regularMarketPrice,
+        name: meta?.longName ?? meta?.shortName,
+        type: meta?.instrumentType === 'ETF' ? 'etf' : 'stock',
+      },
     };
 
     return new Response(JSON.stringify(body), {

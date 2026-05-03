@@ -1,5 +1,5 @@
 /**
- * GET /api/auth/google/callback
+ * GET /api/v1/auth/google/callback
  *
  * Handles the OAuth callback from Google:
  * 1. Verifies state (CSRF)
@@ -40,7 +40,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
 
   try {
     // Exchange code for access token
-    const redirectUri = `${url.origin}/api/auth/google/callback`;
+    const redirectUri = `${url.origin}/api/v1/auth/google/callback`;
     const tokenRes = await fetch(GOOGLE_TOKEN_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

@@ -14,7 +14,7 @@ interface UseAuthReturn {
   clearError: () => void;
 }
 
-const AUTH_BASE = '/api/auth';
+const AUTH_BASE = '/api/v1/auth';
 
 async function authFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${AUTH_BASE}${path}`, {

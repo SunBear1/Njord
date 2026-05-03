@@ -1,5 +1,5 @@
 /**
- * GET /api/auth/github
+ * GET /api/v1/auth/github
  *
  * Redirects the user to GitHub's OAuth authorization page.
  * Stores a random state token in a short-lived cookie for CSRF protection.
@@ -20,7 +20,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
   const action = url.searchParams.get('action');
   // Encode action in state: "{uuid}" or "{uuid}:link"
   const stateValue = action === 'link' ? `${crypto.randomUUID()}:link` : crypto.randomUUID();
-  const redirectUri = `${url.origin}/api/auth/github/callback`;
+  const redirectUri = `${url.origin}/api/v1/auth/github/callback`;
 
   const params = new URLSearchParams({
     client_id: env.GITHUB_CLIENT_ID,

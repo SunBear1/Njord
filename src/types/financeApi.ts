@@ -1,5 +1,5 @@
 /**
- * Client-side types for the /finance/* API responses.
+ * Client-side types for the /api/v1/finance/* API responses.
  * Mirrors the server-side types but without Cloudflare-specific dependencies.
  */
 
@@ -60,9 +60,21 @@ export interface ApiMeta {
   next_expected_update?: string;
 }
 
+export interface StockMeta extends ApiMeta {
+  currency?: string;
+  currentPrice?: number;
+  name?: string;
+  type?: string;
+}
+
 export interface ApiResponse<T> {
   data: T;
   _meta: ApiMeta;
+}
+
+export interface StockBarsResponse {
+  data: StockBar[];
+  _meta: StockMeta;
 }
 
 export interface StockSearchResult {

@@ -10,30 +10,34 @@ import { test, expect } from '@playwright/test';
  * - ErrorBoundary fallback renders when a chart throws
  */
 
-const MARKET_DATA_URL = '**/api/market-data**';
+// Matches GET /api/v1/finance/stocks/:ticker
+const MARKET_DATA_URL = '**/api/v1/finance/stocks/**';
+// Matches direct NBP API calls made by twelveDataProvider for FX history
+const NBP_URL = 'https://api.nbp.pl/**';
 
 const VALID_ASSET_RESPONSE = {
-  assetData: {
-    asset: {
-      ticker: 'AAPL',
-      name: 'Apple Inc.',
-      type: 'stock',
-      currency: 'USD',
-      currentPrice: 150,
-    },
-    historicalPrices: Array.from({ length: 252 }, (_, i) => ({
-      date: new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10),
-      close: 150 * (1 + Math.sin(i * 0.1) * 0.05),
-    })),
+  data: Array.from({ length: 252 }, (_, i) => ({
+    timestamp: Math.floor(Date.now() / 1000) - i * 86_400,
+    open:   150 * (1 + Math.sin(i * 0.1) * 0.05),
+    high:   155 * (1 + Math.sin(i * 0.1) * 0.05),
+    low:    145 * (1 + Math.sin(i * 0.1) * 0.05),
+    close:  150 * (1 + Math.sin(i * 0.1) * 0.05),
+    volume: 1_000_000,
+  })),
+  _meta: {
+    source: 'yahoo',
+    name: 'Apple Inc.',
+    currency: 'USD',
+    type: 'stock',
+    currentPrice: 150,
   },
-  fxData: {
-    currentRate: 4.0,
-    historicalRates: Array.from({ length: 252 }, (_, i) => ({
-      date: new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10),
-      mid: 4.0 * (1 + Math.sin(i * 0.05) * 0.02),
-    })),
-  },
-  source: 'yahoo',
+};
+
+const VALID_NBP_HISTORICAL_RESPONSE = {
+  rates: Array.from({ length: 252 }, (_, i) => ({
+    effectiveDate: new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10),
+    mid: 4.0 * (1 + Math.sin(i * 0.05) * 0.02),
+  })),
 };
 
 test.describe('Chart loading — API error handling', () => {
@@ -104,6 +108,9 @@ test.describe('Chart loading — successful data flow', () => {
     await page.route(MARKET_DATA_URL, (route) =>
       route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
     );
+    await page.route(NBP_URL, (route) =>
+      route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
+    );
 
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
@@ -137,6 +144,9 @@ test.describe('Chart loading — successful data flow', () => {
     await page.route(MARKET_DATA_URL, (route) =>
       route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
     );
+    await page.route(NBP_URL, (route) =>
+      route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
+    );
 
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
@@ -162,6 +172,9 @@ test.describe('Chart loading — successful data flow', () => {
     await page.route(MARKET_DATA_URL, (route) =>
       route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
     );
+    await page.route(NBP_URL, (route) =>
+      route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
+    );
 
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
@@ -186,6 +199,9 @@ test.describe('Chart loading — successful data flow', () => {
 
 test.describe('Chart loading — skeleton states', () => {
   test('skeleton shown while market data is loading', async ({ page }) => {
+    await page.route(NBP_URL, (route) =>
+      route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
+    );
     // Delay the response to capture the loading state
     await page.route(MARKET_DATA_URL, async (route) => {
       await new Promise((r) => setTimeout(r, 800));
@@ -207,6 +223,9 @@ test.describe('Chart loading — skeleton states', () => {
   test('lazy chart sections load without aria-busy after data and shares are set', async ({ page }) => {
     await page.route(MARKET_DATA_URL, (route) =>
       route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
+    );
+    await page.route(NBP_URL, (route) =>
+      route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
     );
 
     await page.goto('/comparison');
@@ -240,6 +259,9 @@ test.describe('Chart loading — ErrorBoundary', () => {
     await page.route(MARKET_DATA_URL, (route) =>
       route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
     );
+    await page.route(NBP_URL, (route) =>
+      route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
+    );
 
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
@@ -270,6 +292,9 @@ test.describe('Chart loading — ErrorBoundary', () => {
     // by navigating the DOM directly on the /comparison page after charts loaded
     await page.route(MARKET_DATA_URL, (route) =>
       route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
+    );
+    await page.route(NBP_URL, (route) =>
+      route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
     );
 
     await page.goto('/comparison');
