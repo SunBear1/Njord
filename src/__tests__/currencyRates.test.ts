@@ -7,11 +7,13 @@
 
 import { describe, it, expect } from 'vitest';
 import {
+  adaptRates,
   direction,
   computeChanges,
   hasDataChanged,
   type CurrencyRateEntry,
 } from '../hooks/useMultiCurrencyRates';
+import type { CurrencyRate } from '../types/financeApi';
 
 // ---------------------------------------------------------------------------
 // direction()
@@ -256,6 +258,35 @@ describe('Alior response parsing', () => {
     expect(sellNow).toBe(4.10);
     expect(forexNow).toBe(4.05);
     expect(raw.ts).toBe('2026-05-02T10:00:00.000Z');
+  });
+});
+
+describe('adaptRates', () => {
+  it('groups flat API rates into USD/EUR/GBP entries', () => {
+    const rates: CurrencyRate[] = [
+      { source: 'alior', pair: 'USD/PLN', bid: 4.0, ask: 4.1, mid: 4.05, timestamp: '2026-05-02T10:00:00Z' },
+      { source: 'nbp', pair: 'USD/PLN', bid: 3.98, ask: 4.02, timestamp: '2026-05-02T00:00:00Z' },
+      { source: 'alior', pair: 'EUR/PLN', bid: 4.2, ask: 4.3, timestamp: '2026-05-02T10:00:00Z' },
+      { source: 'nbp', pair: 'GBP/PLN', bid: 4.9, ask: 5.0, mid: 4.95, timestamp: '2026-05-02T00:00:00Z' },
+    ];
+
+    expect(adaptRates(rates)).toEqual([
+      {
+        currency: 'USD',
+        alior: { buy: 4.0, sell: 4.1, mid: 4.05, ts: '2026-05-02T10:00:00Z' },
+        nbp: { buy: 3.98, sell: 4.02, mid: 4.0, date: '2026-05-02' },
+      },
+      {
+        currency: 'EUR',
+        alior: { buy: 4.2, sell: 4.3, mid: 4.25, ts: '2026-05-02T10:00:00Z' },
+        nbp: null,
+      },
+      {
+        currency: 'GBP',
+        alior: null,
+        nbp: { buy: 4.9, sell: 5.0, mid: 4.95, date: '2026-05-02' },
+      },
+    ]);
   });
 });
 

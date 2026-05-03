@@ -101,14 +101,14 @@ export function AuthModal({ isOpen, onClose, onLogin, onRegister, error, onClear
         {/* OAuth buttons */}
         <div className="px-6 space-y-2">
           <a
-            href="/api/auth/github"
+            href="/api/v1/auth/github"
             className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-text-primary text-bg-primary rounded-lg hover:bg-text-primary/90 transition-colors font-medium text-sm"
           >
             <GitHubIcon />
             Kontynuuj przez GitHub
           </a>
           <a
-            href="/api/auth/google"
+            href="/api/v1/auth/google"
             className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-bg-card text-text-secondary rounded-lg border border-border hover:bg-bg-card transition-colors font-medium text-sm"
           >
             <GoogleIcon />

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import type { ApiResponse, CurrencyRate } from '../types/financeApi';
 
 export interface RateData {
   buy: number;
@@ -31,21 +32,45 @@ export interface MultiCurrencyRates {
 }
 
 const REFRESH_INTERVAL_MS = 10_000;
-const CURRENCIES = 'USD,EUR,GBP';
+const CURRENCIES = ['USD', 'EUR', 'GBP'] as const;
+const PAIRS = CURRENCIES.map((currency) => `${currency}/PLN`).join(',');
 
-interface ProxyResponse {
-  rates: CurrencyRateEntry[];
-  fetchedAt: number;
+export function adaptRates(rates: CurrencyRate[]): CurrencyRateEntry[] {
+  return CURRENCIES.map((currency) => {
+    const pair = `${currency}/PLN`;
+    const aliorRate = rates.find((rate) => rate.source === 'alior' && rate.pair === pair);
+    const nbpRate = rates.find((rate) => rate.source === 'nbp' && rate.pair === pair);
+
+    return {
+      currency,
+      alior: aliorRate
+        ? {
+            buy: aliorRate.bid,
+            sell: aliorRate.ask,
+            mid: aliorRate.mid ?? (aliorRate.bid + aliorRate.ask) / 2,
+            ts: aliorRate.timestamp,
+          }
+        : null,
+      nbp: nbpRate
+        ? {
+            buy: nbpRate.bid,
+            sell: nbpRate.ask,
+            mid: nbpRate.mid ?? (nbpRate.bid + nbpRate.ask) / 2,
+            date: nbpRate.timestamp.slice(0, 10),
+          }
+        : null,
+    };
+  });
 }
 
 async function fetchViaProxy(signal: AbortSignal): Promise<CurrencyRateEntry[]> {
-  const res = await fetch(`/api/currency-rates?currencies=${CURRENCIES}`, {
+  const res = await fetch(`/api/v1/finance/currency?pairs=${PAIRS}`, {
     cache: 'no-store',
     signal,
   });
   if (!res.ok) throw new Error(`Proxy HTTP ${res.status}`);
-  const data = await res.json() as ProxyResponse;
-  return data.rates;
+  const data = await res.json() as ApiResponse<CurrencyRate[]>;
+  return adaptRates(data.data);
 }
 
 export function direction(prev: number | undefined, curr: number): RateDirection {
@@ -66,7 +91,7 @@ export function computeChanges(
     return result;
   }
   for (const entry of curr) {
-    const old = prev.find(p => p.currency === entry.currency);
+    const old = prev.find((rate) => rate.currency === entry.currency);
     result[entry.currency] = {
       aliorBuy: direction(old?.alior?.buy, entry.alior?.buy ?? 0),
       aliorSell: direction(old?.alior?.sell, entry.alior?.sell ?? 0),

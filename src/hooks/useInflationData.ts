@@ -45,7 +45,7 @@ export function useInflationData() {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetchWithTimeout('/finance/inflation', controller.signal);
+        const res = await fetchWithTimeout('/api/v1/finance/inflation', controller.signal);
         if (!res.ok) throw new Error(`GUS CPI HTTP ${res.status}`);
 
         const json = (await res.json()) as GusInflationResponse;

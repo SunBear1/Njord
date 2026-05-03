@@ -60,7 +60,7 @@ export const onRequest: PagesFunction = async ({ request, next }) => {
 
   // Auth routes must never be cached — prevent proxy/CDN from serving one user's data to another
   const url = new URL(request.url);
-  if (url.pathname.startsWith('/api/auth/')) {
+  if (url.pathname.startsWith('/api/v1/auth/')) {
     newResponse.headers.set('Cache-Control', 'no-store');
   }
 

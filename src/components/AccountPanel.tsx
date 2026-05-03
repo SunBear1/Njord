@@ -306,7 +306,7 @@ function LinkedAccountRow({ provider, label, isLinked, icon }: {
         </span>
       ) : (
         <a
-          href={`/api/auth/${provider}?action=link`}
+          href={`/api/v1/auth/${provider}?action=link`}
           className="flex items-center gap-1 text-xs font-medium text-accent-primary hover:text-accent-primary/80 transition-colors"
         >
           <Unlink size={14} aria-hidden="true" />

@@ -1,5 +1,5 @@
 /**
- * React Query hooks for the new /finance/* API endpoints.
+ * React Query hooks for the new /api/v1/finance/* API endpoints.
  *
  * Each hook wraps useQuery with appropriate caching (staleTime) based on
  * how frequently the underlying data changes.
@@ -32,7 +32,7 @@ export function useStockData(ticker: string, interval = '1d', range = '1mo') {
     queryKey: ['finance', 'stocks', ticker, interval, range],
     queryFn: () =>
       fetchApi<StockBar[]>(
-        `/finance/stocks/${encodeURIComponent(ticker)}?interval=${interval}&range=${range}`,
+        `/api/v1/finance/stocks/${encodeURIComponent(ticker)}?interval=${interval}&range=${range}`,
       ),
     staleTime: 15 * 60 * 1000, // 15 minutes
     enabled: !!ticker,
@@ -47,7 +47,7 @@ export function useCurrencyRates(pairs?: string, source?: string) {
 
   return useQuery({
     queryKey: ['finance', 'currency', pairs, source],
-    queryFn: () => fetchApi<CurrencyRate[]>(`/finance/currency${qs ? `?${qs}` : ''}`),
+    queryFn: () => fetchApi<CurrencyRate[]>(`/api/v1/finance/currency${qs ? `?${qs}` : ''}`),
     staleTime: 10 * 1000, // 10 seconds
     refetchInterval: 10 * 1000,
   });
@@ -61,7 +61,7 @@ export function useBonds(type?: string, isFamily?: boolean) {
 
   return useQuery({
     queryKey: ['finance', 'bonds', type, isFamily],
-    queryFn: () => fetchApi<Bond[]>(`/finance/bonds${qs ? `?${qs}` : ''}`),
+    queryFn: () => fetchApi<Bond[]>(`/api/v1/finance/bonds${qs ? `?${qs}` : ''}`),
     staleTime: 60 * 60 * 1000, // 1 hour
   });
 }
@@ -74,7 +74,7 @@ export function useInflation(from?: string, to?: string) {
 
   return useQuery({
     queryKey: ['finance', 'inflation', from, to],
-    queryFn: () => fetchApi<InflationDataPoint[]>(`/finance/inflation${qs ? `?${qs}` : ''}`),
+    queryFn: () => fetchApi<InflationDataPoint[]>(`/api/v1/finance/inflation${qs ? `?${qs}` : ''}`),
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
   });
 }
@@ -87,7 +87,7 @@ export function useInflationForecast(report?: string) {
   return useQuery({
     queryKey: ['finance', 'inflation-forecast', report],
     queryFn: () =>
-      fetchApi<InflationForecast[]>(`/finance/inflation/forecast${qs ? `?${qs}` : ''}`),
+      fetchApi<InflationForecast[]>(`/api/v1/finance/inflation/forecast${qs ? `?${qs}` : ''}`),
     staleTime: 24 * 60 * 60 * 1000, // 24 hours
   });
 }
@@ -97,7 +97,7 @@ export function useStockSearch(query: string) {
     queryKey: ['finance', 'stocks-search', query],
     queryFn: () =>
       fetchApi<StockSearchResult[]>(
-        `/finance/stocks/search?q=${encodeURIComponent(query)}`,
+        `/api/v1/finance/stocks/search?q=${encodeURIComponent(query)}`,
       ),
     staleTime: 60 * 1000, // 1 minute
     enabled: query.length >= 1,

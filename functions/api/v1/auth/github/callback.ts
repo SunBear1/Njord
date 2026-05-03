@@ -1,5 +1,5 @@
 /**
- * GET /api/auth/github/callback
+ * GET /api/v1/auth/github/callback
  *
  * Handles the OAuth callback from GitHub:
  * 1. Verifies state (CSRF)

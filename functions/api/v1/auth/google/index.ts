@@ -1,5 +1,5 @@
 /**
- * GET /api/auth/google
+ * GET /api/v1/auth/google
  *
  * Redirects the user to Google's OAuth 2.0 authorization page.
  * Stores a random state token in a short-lived cookie for CSRF protection.
@@ -19,7 +19,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
   const url = new URL(request.url);
   const action = url.searchParams.get('action');
   const stateValue = action === 'link' ? `${crypto.randomUUID()}:link` : crypto.randomUUID();
-  const redirectUri = `${url.origin}/api/auth/google/callback`;
+  const redirectUri = `${url.origin}/api/v1/auth/google/callback`;
 
   const params = new URLSearchParams({
     client_id: env.GOOGLE_CLIENT_ID,

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import type { ApiResponse, CurrencyRate } from '../types/financeApi';
 
 export interface CurrencyRates {
   alior: { buy: number; sell: number; mid: number; ts: string } | null;
@@ -8,20 +9,37 @@ export interface CurrencyRates {
   lastUpdated: Date | null;
 }
 
-interface ProxyResponse {
-  alior: CurrencyRates['alior'];
-  nbp: CurrencyRates['nbp'];
-}
-
-async function fetchViaProxy(): Promise<ProxyResponse> {
-  const res = await fetch('/api/currency-rates', { cache: 'no-store' });
+async function fetchViaProxy(): Promise<Pick<CurrencyRates, 'alior' | 'nbp'>> {
+  const res = await fetch('/api/v1/finance/currency?pairs=USD/PLN', { cache: 'no-store' });
   if (!res.ok) throw new Error(`Proxy HTTP ${res.status}`);
-  return await res.json() as ProxyResponse;
+
+  const rates = ((await res.json()) as ApiResponse<CurrencyRate[]>).data;
+  const aliorRate = rates.find((rate) => rate.source === 'alior' && rate.pair === 'USD/PLN');
+  const nbpRate = rates.find((rate) => rate.source === 'nbp' && rate.pair === 'USD/PLN');
+
+  return {
+    alior: aliorRate
+      ? {
+          buy: aliorRate.bid,
+          sell: aliorRate.ask,
+          mid: aliorRate.mid ?? (aliorRate.bid + aliorRate.ask) / 2,
+          ts: aliorRate.timestamp,
+        }
+      : null,
+    nbp: nbpRate
+      ? {
+          buy: nbpRate.bid,
+          sell: nbpRate.ask,
+          mid: nbpRate.mid ?? (nbpRate.bid + nbpRate.ask) / 2,
+          date: nbpRate.timestamp.slice(0, 10),
+        }
+      : null,
+  };
 }
 
 /**
  * Fetches USD/PLN buy/sell rates from Alior Kantor and NBP Table C via the
- * /api/currency-rates proxy. Auto-refreshes every 60 seconds.
+ * /api/v1/finance/currency proxy. Auto-refreshes every 60 seconds.
  * Used by ComparisonPage and TaxPage for FX rate display (not the live ticker).
  */
 export function useCurrencyRates(): CurrencyRates {
