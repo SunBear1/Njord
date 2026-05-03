@@ -95,11 +95,6 @@ export function ForecastPage() {
               {assetData.asset.currency}{' '}
               {assetData.asset.currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
-            {currentFxRate > 0 && (
-              <span className="font-mono tabular-nums text-text-muted text-xs">
-                ≈ {(assetData.asset.currentPrice * currentFxRate).toFixed(2)} PLN
-              </span>
-            )}
           </div>
         )}
       </div>

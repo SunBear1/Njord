@@ -184,11 +184,11 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           {/* Summary cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <SummaryCard
-              label="Cena o najwyższym EV"
+              label="Najlepsza cena sprzedaży"
               value={fmtUSD(analysis.optimalTarget.target)}
               subvalue={`${((analysis.optimalTarget.target / analysis.currentPrice - 1) * 100).toFixed(1)}% od bieżącej`}
               accent="blue"
-              tooltip="Cena, przy której P(osiągnięcia) × cena × korekta na czas reinwestycji jest najwyższy. Nie uwzględnia awersji do ryzyka ani kosztu czekania."
+              tooltip="Cena, przy której szansa osiągnięcia pomnożona przez wartość jest najwyższa. Nie uwzględnia awersji do ryzyka ani kosztu czekania."
             />
             <SummaryCard
               label="P(realizacja)"
@@ -199,9 +199,9 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
             <SummaryCard
               label="Oczekiwana wartość"
               value={fmtUSD(analysis.optimalTarget.expectedValue)}
-              subvalue={`PLN: ${(analysis.optimalTarget.expectedValue * currentFxRate).toFixed(0)} zł`}
+              subvalue={`przy ${(analysis.optimalTarget.pTouch * 100).toFixed(0)}% szansie osiągnięcia`}
               accent="purple"
-              tooltip="EV = P(osiągnięcia) × cena × reinwestycja + (1 – P) × mediana końcowa. Kurs PLN jako stały."
+              tooltip="Szansa osiągnięcia × cena × reinwestycja + (1 – szansa) × mediana ceny końcowej."
             />
             <SummaryCard
               label="Ryzyko spadku"
