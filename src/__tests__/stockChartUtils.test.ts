@@ -6,6 +6,7 @@ import {
   filterBySpan,
   calcPeriodChange,
   formatXAxisDate,
+  formatIntradayTime,
   tickCount,
   SPANS,
   type SpanKey,
@@ -47,14 +48,10 @@ describe('filterBySpan', () => {
     expect(result.length).toBe(30);
   });
 
-  it('1W filters to last 7 calendar days relative to last data point', () => {
-    // 40 daily prices; last date is day 39 from start
-    const dates = dailyDates('2024-01-01', 40);
-    const prices = makePrices(dates);
-    const result = filterBySpan(prices, '1W');
-    // last date = 2024-02-09; cutoff = 2024-02-02 → should keep ~8 points (02-02 to 02-09)
-    expect(result.length).toBeGreaterThanOrEqual(7);
-    expect(result.length).toBeLessThanOrEqual(9);
+  it('intraday spans return prices as-is (pre-filtered by API)', () => {
+    const prices = makePrices(dailyDates('2024-01-01', 10));
+    expect(filterBySpan(prices, '1D').length).toBe(10);
+    expect(filterBySpan(prices, '1T').length).toBe(10);
   });
 
   it('1M spans config has 30 days', () => {
@@ -66,6 +63,12 @@ describe('filterBySpan', () => {
     const dates = dailyDates('2024-01-01', 252);
     const prices = makePrices(dates);
     expect(filterBySpan(prices, '2Y').length).toBe(252);
+  });
+
+  it('5Y returns everything when data is only 2 years long', () => {
+    const dates = dailyDates('2023-01-01', 504);
+    const prices = makePrices(dates);
+    expect(filterBySpan(prices, '5Y').length).toBe(504);
   });
 
   it('3M filters correctly — last 91 calendar days', () => {
@@ -148,10 +151,6 @@ describe('calcPeriodChange', () => {
 describe('formatXAxisDate', () => {
   const date = '2025-05-14'; // 14 May 2025
 
-  it('1W: returns day + month name', () => {
-    expect(formatXAxisDate(date, '1W')).toBe('14 maj');
-  });
-
   it('1M: returns day + month name', () => {
     expect(formatXAxisDate(date, '1M')).toBe('14 maj');
   });
@@ -172,6 +171,10 @@ describe('formatXAxisDate', () => {
     expect(formatXAxisDate(date, '2Y')).toBe("maj '25");
   });
 
+  it('5Y: returns month + 2-digit year', () => {
+    expect(formatXAxisDate(date, '5Y')).toBe("maj '25");
+  });
+
   it('handles January correctly', () => {
     expect(formatXAxisDate('2025-01-01', '1M')).toBe('1 sty');
   });
@@ -186,11 +189,28 @@ describe('formatXAxisDate', () => {
 });
 
 // ---------------------------------------------------------------------------
+// formatIntradayTime
+// ---------------------------------------------------------------------------
+
+describe('formatIntradayTime', () => {
+  it('extracts HH:MM from datetime string (UTC)', () => {
+    // "2025-01-15 13:30" UTC → some local time
+    const result = formatIntradayTime('2025-01-15 13:30');
+    // Should be a string of format HH:MM
+    expect(result).toMatch(/^\d{2}:\d{2}$/);
+  });
+
+  it('returns a 5-character string HH:MM', () => {
+    expect(formatIntradayTime('2025-06-02 09:05').length).toBe(5);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // tickCount
 // ---------------------------------------------------------------------------
 
 describe('tickCount', () => {
-  const allSpans: SpanKey[] = ['1W', '1M', '3M', '6M', '1Y', '2Y'];
+  const allSpans: SpanKey[] = ['1D', '1T', '1M', '3M', '6M', '1Y', '2Y', '5Y'];
 
   it('returns a positive integer for every span', () => {
     for (const span of allSpans) {
@@ -200,8 +220,8 @@ describe('tickCount', () => {
     }
   });
 
-  it('2Y has more ticks than 1W', () => {
-    expect(tickCount('2Y')).toBeGreaterThanOrEqual(tickCount('1W'));
+  it('5Y has at least as many ticks as 1M', () => {
+    expect(tickCount('5Y')).toBeGreaterThanOrEqual(tickCount('1M'));
   });
 });
 
@@ -210,9 +230,9 @@ describe('tickCount', () => {
 // ---------------------------------------------------------------------------
 
 describe('SPANS config', () => {
-  it('contains all 6 expected keys', () => {
+  it('contains all 8 expected keys in order', () => {
     const keys = SPANS.map((s) => s.key);
-    expect(keys).toEqual(['1W', '1M', '3M', '6M', '1Y', '2Y']);
+    expect(keys).toEqual(['1D', '1T', '1M', '3M', '6M', '1Y', '2Y', '5Y']);
   });
 
   it('all spans have positive days', () => {
@@ -221,10 +241,20 @@ describe('SPANS config', () => {
     }
   });
 
-  it('spans are in ascending day order', () => {
-    for (let i = 1; i < SPANS.length; i++) {
-      expect(SPANS[i].days).toBeGreaterThan(SPANS[i - 1].days);
+  it('1D and 1T are marked as intraday', () => {
+    expect(SPANS.find((s) => s.key === '1D')?.intraday).toBe(true);
+    expect(SPANS.find((s) => s.key === '1T')?.intraday).toBe(true);
+  });
+
+  it('non-intraday spans do not have intraday flag', () => {
+    for (const span of SPANS.filter((s) => !s.intraday)) {
+      expect(span.intraday).toBeFalsy();
     }
+  });
+
+  it('5Y has the most calendar days', () => {
+    const maxDays = Math.max(...SPANS.map((s) => s.days));
+    expect(SPANS.find((s) => s.key === '5Y')?.days).toBe(maxDays);
   });
 
   it('all labels are non-empty strings', () => {

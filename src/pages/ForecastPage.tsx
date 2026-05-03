@@ -1,5 +1,5 @@
 import { useState, useCallback, lazy, Suspense } from 'react';
-import { Search, Loader2, AlertTriangle, TrendingUp } from 'lucide-react';
+import { Search, Loader2, AlertTriangle, TrendingUp, CheckCircle2 } from 'lucide-react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useAssetData } from '../hooks/useAssetData';
 import { useSellAnalysis } from '../hooks/useSellAnalysis';
@@ -86,8 +86,9 @@ export function ForecastPage() {
           </div>
         )}
 
-        {assetData && (
+        {assetData && !assetLoading && (
           <div className="flex items-center gap-3 text-sm text-text-muted pt-1 border-t border-border flex-wrap">
+            <CheckCircle2 size={14} className="text-success shrink-0" aria-hidden="true" />
             <span className="font-semibold text-text-primary">{assetData.asset.name}</span>
             <span className="text-text-muted">({activeTicker})</span>
             <span className="text-text-muted">·</span>
