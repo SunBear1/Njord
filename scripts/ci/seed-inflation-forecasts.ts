@@ -1,13 +1,14 @@
 /**
- * NBP Inflation Forecast uploader — reads data/nbp-inflation-forecast.csv
- * and upserts rows into FINANCE_DB D1.
+ * seed-inflation-forecasts — reads data/nbp-inflation-forecast.csv
+ * and inserts new rows into the FINANCE_DB.inflation_forecasts D1 table.
  *
  * Flow:
  *   1. Calendar workflow (nbp-forecast-reminder.yaml) creates a GitHub Issue
  *      on the 12th of Mar/Jul/Nov reminding the user to update the CSV.
  *   2. User edits data/nbp-inflation-forecast.csv with new report data and pushes.
- *   3. collect-finance-data workflow runs this script → CSV rows are upserted to D1.
+ *   3. update-finance-db workflow runs this script → new rows inserted to D1.
  *
+ * Idempotent: INSERT OR IGNORE — existing (report_date, year, quarter) rows are skipped.
  * Env vars: CF_API_TOKEN, CF_ACCOUNT_ID, CF_D1_DATABASE_ID
  */
 

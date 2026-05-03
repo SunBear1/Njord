@@ -1,10 +1,10 @@
 /**
- * Bond scraper — loads stable bond parameters from the curated CSV file,
+ * seed-bonds — loads stable bond parameters from data/polish_treasury_bonds.csv,
  * scrapes current first-year rates from obligacjeskarbowe.pl, merges both
- * datasets, and upserts the result into FINANCE_DB D1 via the Cloudflare
- * REST API.
+ * datasets, and upserts changed rows into the FINANCE_DB.bonds D1 table.
  *
- * Intended to run as a GitHub Actions cron job.
+ * Skips bonds where all fields match the current DB row (idempotent).
+ * Intended to run as a GitHub Actions job (schedule + push to data/polish_treasury_bonds.csv).
  * Env vars required: CF_API_TOKEN, CF_ACCOUNT_ID, CF_D1_DATABASE_ID
  */
 

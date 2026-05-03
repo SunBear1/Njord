@@ -1,9 +1,9 @@
 /**
- * CPI fetcher — retrieves Polish CPI YoY data from the GUS direct JSON download
- * and inserts into FINANCE_DB D1 via Cloudflare REST API.
+ * seed-inflation-historical — retrieves Polish CPI YoY data from the GUS direct
+ * JSON download and inserts new rows into the FINANCE_DB.inflation_historical D1 table.
  *
- * Idempotent: skips months already in the database (INSERT OR IGNORE).
- * Intended to run as a GitHub Actions cron job.
+ * Idempotent: INSERT OR IGNORE — existing (year, month) rows are skipped.
+ * Intended to run as a GitHub Actions scheduled job (not on CSV push).
  *
  * Env vars: CF_API_TOKEN, CF_ACCOUNT_ID, CF_D1_DATABASE_ID
  */
