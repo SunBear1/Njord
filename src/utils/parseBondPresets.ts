@@ -1,6 +1,6 @@
 import type { BondPreset, BondRateType } from '../types/scenario';
 
-function generateDescription(
+export function generateDescription(
   rateType: BondRateType,
   margin: number,
   maturityMonths: number,
@@ -68,4 +68,40 @@ export function parseBondPresetsFromCsv(raw: string): BondPreset[] {
 
     return preset;
   });
+}
+
+export interface BondDbRow {
+  id: string;
+  name_pl: string;
+  maturity_months: number;
+  rate_type: string;
+  first_year_rate_pct: number | null;
+  margin_pct: number | null;
+  coupon_frequency: number;
+  early_redemption_allowed: number;
+  early_redemption_penalty_pct: number | null;
+  is_family: number;
+}
+
+export function mapDbRowToBondPreset(row: BondDbRow): BondPreset {
+  const rateType = row.rate_type as BondRateType;
+  const margin = row.margin_pct ?? 0;
+  const isFamily = row.is_family === 1;
+
+  const preset: BondPreset = {
+    id: row.id,
+    name: row.name_pl,
+    maturityMonths: row.maturity_months,
+    rateType,
+    firstYearRate: row.first_year_rate_pct ?? 0,
+    margin,
+    couponFrequency: row.coupon_frequency,
+    earlyRedemptionAllowed: row.early_redemption_allowed === 1,
+    earlyRedemptionPenalty: row.early_redemption_penalty_pct ?? 0,
+    description: generateDescription(rateType, margin, row.maturity_months, isFamily),
+  };
+
+  if (isFamily) preset.isFamily = true;
+
+  return preset;
 }

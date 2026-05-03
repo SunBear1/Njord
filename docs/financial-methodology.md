@@ -724,7 +724,7 @@ For RSU / zero-cost lots: cost = 0, only the sale commission is deductible.
 | Historical daily prices | Yahoo Finance (via Njord's backend proxy) | Yes — 1 hour |
 | Live USD/PLN sell rate | NBP API (direct from your browser) | No |
 | NBP Table A mid rate for a specific date | NBP API (`api.nbp.pl`) | No — fetched per transaction |
-| Polish Treasury Bond rates and terms | `public/polish_treasury_bonds.csv`, sourced from *obligacjeskarbowe.pl* | — |
+| Polish Treasury Bond rates and terms | `data/polish_treasury_bonds.csv`, sourced from *obligacjeskarbowe.pl* | — |
 | Current inflation rate | Entered by the user | — |
 | Current savings rate | Entered by the user | — |
 

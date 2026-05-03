@@ -26,18 +26,20 @@ resource "cloudflare_pages_project" "njord" {
 
   deployment_configs = {
     production = {
-      compatibility_date = "2026-04-27"
+      compatibility_date = "2026-05-03"
       d1_databases = {
-        DB = { id = cloudflare_d1_database.users_db.id }
+        DB         = { id = cloudflare_d1_database.users_db.id },
+        FINANCE_DB = { id = cloudflare_d1_database.finance_data.id }
       }
       placement = {
         mode = "smart"
       }
     }
     preview = {
-      compatibility_date = "2026-04-27"
+      compatibility_date = "2026-05-03"
       d1_databases = {
-        DB = { id = cloudflare_d1_database.users_db.id }
+        DB         = { id = cloudflare_d1_database.users_db.id },
+        FINANCE_DB = { id = cloudflare_d1_database.finance_data.id }
       }
     }
   }
