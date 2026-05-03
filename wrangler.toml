@@ -14,3 +14,8 @@ compatibility_date = "2025-11-01"
 binding = "DB"
 database_name = "njord-users-db"
 database_id = "7557d670-0d6f-4959-b99d-94b9368dc53d"
+
+[[d1_databases]]
+binding = "FINANCE_DB"
+database_name = "finance-data-db"
+database_id = "PLACEHOLDER_FROM_TERRAFORM_OUTPUT"
