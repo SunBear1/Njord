@@ -1,10 +1,12 @@
 /**
- * NBP Inflation Forecast loader — applies the manually curated seed file
- * (data/nbp-inflation-forecast.sql) to FINANCE_DB D1.
+ * NBP Inflation Forecast uploader — reads data/nbp-inflation-forecast.csv
+ * and upserts rows into FINANCE_DB D1.
  *
- * NBP publishes projections 3x/year (Mar, Jul, Nov) as PDF reports.
- * A human reads the report, updates the seed file, and commits.
- * This script applies the seed to D1 via CI (idempotent — safe to re-run).
+ * Flow:
+ *   1. Calendar workflow (nbp-forecast-reminder.yaml) creates a GitHub Issue
+ *      on the 12th of Mar/Jul/Nov reminding the user to update the CSV.
+ *   2. User edits data/nbp-inflation-forecast.csv with new report data and pushes.
+ *   3. collect-finance-data workflow runs this script → CSV rows are upserted to D1.
  *
  * Env vars: CF_API_TOKEN, CF_ACCOUNT_ID, CF_D1_DATABASE_ID
  */
@@ -12,7 +14,7 @@
 import { appendFileSync, readFileSync } from 'fs';
 import { resolve } from 'path';
 
-const SEED_SQL_PATH = resolve(process.cwd(), 'data/nbp-inflation-forecast.sql');
+const CSV_PATH = resolve(process.cwd(), 'data/nbp-inflation-forecast.csv');
 
 interface D1QueryResponse {
   success?: boolean;
@@ -23,17 +25,57 @@ interface D1QueryResponse {
   }>;
 }
 
-function loadSeedStatements(): string[] {
-  const sql = readFileSync(SEED_SQL_PATH, 'utf-8');
+interface ForecastRow {
+  report_date: string;
+  forecast_year: number;
+  forecast_quarter: number;
+  central_path_pct: number;
+  lower_50_pct: number;
+  upper_50_pct: number;
+  lower_90_pct: number;
+  upper_90_pct: number;
+}
 
-  return sql
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0 && !line.startsWith('--'))
-    .join('\n')
-    .split(';')
-    .map((statement) => statement.trim())
-    .filter((statement) => statement.length > 0);
+function loadCsvRows(): ForecastRow[] {
+  const raw = readFileSync(CSV_PATH, 'utf-8');
+  const lines = raw.trim().split('\n');
+  if (lines.length < 2) {
+    throw new Error('CSV file is empty or has no data rows');
+  }
+
+  const headers = lines[0].split(',').map((h) => h.trim());
+  const expectedHeaders = [
+    'report_date', 'forecast_year', 'forecast_quarter',
+    'central_path_pct', 'lower_50_pct', 'upper_50_pct', 'lower_90_pct', 'upper_90_pct',
+  ];
+  for (const h of expectedHeaders) {
+    if (!headers.includes(h)) {
+      throw new Error(`Missing required CSV column: ${h}`);
+    }
+  }
+
+  return lines.slice(1).filter((line) => line.trim().length > 0).map((line) => {
+    const values = line.split(',').map((v) => v.trim());
+    return {
+      report_date: values[headers.indexOf('report_date')],
+      forecast_year: Number(values[headers.indexOf('forecast_year')]),
+      forecast_quarter: Number(values[headers.indexOf('forecast_quarter')]),
+      central_path_pct: Number(values[headers.indexOf('central_path_pct')]),
+      lower_50_pct: Number(values[headers.indexOf('lower_50_pct')]),
+      upper_50_pct: Number(values[headers.indexOf('upper_50_pct')]),
+      lower_90_pct: Number(values[headers.indexOf('lower_90_pct')]),
+      upper_90_pct: Number(values[headers.indexOf('upper_90_pct')]),
+    };
+  });
+}
+
+function buildUpsertStatements(rows: ForecastRow[]): string[] {
+  return rows.map((row) =>
+    `INSERT OR REPLACE INTO inflation_forecasts ` +
+    `(report_date, forecast_year, forecast_quarter, central_path_pct, lower_50_pct, upper_50_pct, lower_90_pct, upper_90_pct) ` +
+    `VALUES ('${row.report_date}', ${row.forecast_year}, ${row.forecast_quarter}, ` +
+    `${row.central_path_pct}, ${row.lower_50_pct}, ${row.upper_50_pct}, ${row.lower_90_pct}, ${row.upper_90_pct})`,
+  );
 }
 
 async function executeStatements(
@@ -91,22 +133,24 @@ async function writeSummary(content: string): Promise<void> {
 
 async function main(): Promise<void> {
   try {
-    console.log('Loading NBP forecast seed file...');
-    const statements = loadSeedStatements();
+    console.log('Loading NBP forecast CSV...');
+    const rows = loadCsvRows();
 
-    if (statements.length === 0) {
-      throw new Error(`No SQL statements found in ${SEED_SQL_PATH}`);
+    if (rows.length === 0) {
+      throw new Error(`No data rows found in ${CSV_PATH}`);
     }
 
-    console.log(`Applying ${statements.length} SQL statement(s) to D1...`);
+    const statements = buildUpsertStatements(rows);
+    console.log(`Upserting ${rows.length} forecast row(s) to D1...`);
     const { executed, changedRows } = await executeStatements(statements);
 
     await writeSummary([
-      '## 📈 NBP Forecast Seed Results',
+      '## 📈 NBP Forecast Upload Results',
       '',
       `| Metric | Value |`,
       `|--------|-------|`,
-      `| Seed file | data/nbp-inflation-forecast.sql |`,
+      `| Source file | data/nbp-inflation-forecast.csv |`,
+      `| CSV rows | ${rows.length} |`,
       `| Statements executed | ${executed} |`,
       `| Rows upserted | ${changedRows} |`,
     ].join('\n'));
@@ -114,7 +158,7 @@ async function main(): Promise<void> {
     console.log('Done.');
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    await writeSummary(`## ❌ NBP Forecast Seed Failed\n\n${message}`);
+    await writeSummary(`## ❌ NBP Forecast Upload Failed\n\n${message}`);
     console.error(message);
     process.exit(1);
   }

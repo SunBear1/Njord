@@ -35,7 +35,7 @@ interface ScrapedBondRate {
 }
 
 function loadBondsFromCsv(): BondRow[] {
-  const csvPath = resolve(process.cwd(), 'public/polish_treasury_bonds.csv');
+  const csvPath = resolve(process.cwd(), 'data/polish_treasury_bonds.csv');
   const raw = readFileSync(csvPath, 'utf-8');
   const lines = raw.trim().split('\n');
   const headers = lines[0].split(',');
