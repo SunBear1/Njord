@@ -51,7 +51,7 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSet
     return (
       <button
         onClick={onLoginClick}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
       >
         <UserIcon size={16} aria-hidden="true" />
         Zaloguj się
@@ -66,7 +66,7 @@ export function UserMenu({ user, isLoading, onLoginClick, onLogout, onAccountSet
     <div ref={menuRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm text-white/80 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+        className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
         aria-expanded={isOpen}
         aria-haspopup="true"
       >

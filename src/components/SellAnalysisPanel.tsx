@@ -107,7 +107,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
       <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5">
         <div className="flex items-center gap-2 mb-3">
           <Target size={20} className="text-accent-primary" />
-          <h2 className="text-lg font-semibold text-text-primary">Optymalna cena sprzedaży</h2>
+          <h2 className="text-lg font-semibold text-text-primary">Analiza ceny sprzedaży</h2>
         </div>
 
         {/* Unified horizon chips — each shows duration + dynamically computed target month */}
@@ -184,10 +184,11 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           {/* Summary cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <SummaryCard
-              label="Optymalna cena"
+              label="Najlepsza cena sprzedaży"
               value={fmtUSD(analysis.optimalTarget.target)}
               subvalue={`${((analysis.optimalTarget.target / analysis.currentPrice - 1) * 100).toFixed(1)}% od bieżącej`}
               accent="blue"
+              tooltip="Cena, przy której szansa osiągnięcia pomnożona przez wartość jest najwyższa. Nie uwzględnia awersji do ryzyka ani kosztu czekania."
             />
             <SummaryCard
               label="P(realizacja)"
@@ -198,8 +199,9 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
             <SummaryCard
               label="Oczekiwana wartość"
               value={fmtUSD(analysis.optimalTarget.expectedValue)}
-              subvalue={`PLN: ${(analysis.optimalTarget.expectedValue * currentFxRate).toFixed(0)} zł`}
+              subvalue={`przy ${(analysis.optimalTarget.pTouch * 100).toFixed(0)}% szansie osiągnięcia`}
               accent="purple"
+              tooltip="Szansa osiągnięcia × cena × reinwestycja + (1 – szansa) × mediana ceny końcowej."
             />
             <SummaryCard
               label="Ryzyko spadku"
@@ -212,7 +214,16 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           {/* Regime + peak info */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="bg-bg-card rounded-xl border border-border shadow-sm p-4">
-              <div className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Reżim rynkowy</div>
+              <div className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1 flex items-center gap-1">
+                Reżim rynkowy
+                <span
+                  className="ml-1 text-text-muted cursor-help"
+                  title="Wynik modelu HMM (2 stany) na ~500 obs. Baum-Welch jest mało wiarygodny przy &lt;2000 obs. — traktuj jako sygnał orientacyjny, nie predykcję."
+                  aria-label="Uwaga o wiarygodności modelu"
+                >
+                  ⓘ
+                </span>
+              </div>
               <div className={`text-lg font-bold ${analysis.regimeInfo.currentRegimeLabel === 'bull' ? 'text-success' : 'text-danger '}`}>
                 {analysis.regimeInfo.currentRegimeLabel === 'bull' ? '📈 Faza wzrostowa' : '📉 Faza spadkowa'}
               </div>
@@ -431,7 +442,7 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
 // Subcomponent
 // ---------------------------------------------------------------------------
 
-function SummaryCard({ label, value, subvalue, accent }: { label: string; value: string; subvalue: string; accent: 'blue' | 'green' | 'purple' | 'red' }) {
+function SummaryCard({ label, value, subvalue, accent, tooltip }: { label: string; value: string; subvalue: string; accent: 'blue' | 'green' | 'purple' | 'red'; tooltip?: string }) {
   const colors = {
     blue: 'border-accent-primary/40 bg-bg-hover/30',
     green: 'border-success/30 bg-success/5',
@@ -446,7 +457,12 @@ function SummaryCard({ label, value, subvalue, accent }: { label: string; value:
   };
   return (
     <div className={`rounded-xl border shadow-sm p-4 ${colors[accent]}`}>
-      <div className="text-xs font-semibold text-text-muted uppercase tracking-wide">{label}</div>
+      <div className="text-xs font-semibold text-text-muted uppercase tracking-wide flex items-center gap-1">
+        {label}
+        {tooltip && (
+          <span className="cursor-help text-text-muted" title={tooltip} aria-label={tooltip}>ⓘ</span>
+        )}
+      </div>
       <div className={`text-2xl font-bold mt-1 ${textColors[accent]}`}>{value}</div>
       <div className="text-xs text-text-muted mt-0.5">{subvalue}</div>
     </div>

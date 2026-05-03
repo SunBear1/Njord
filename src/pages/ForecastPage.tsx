@@ -4,6 +4,7 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useAssetData } from '../hooks/useAssetData';
 import { useSellAnalysis } from '../hooks/useSellAnalysis';
 import { useDarkMode } from '../hooks/useDarkMode';
+import { StockPriceChart } from '../components/StockPriceChart';
 
 const SellAnalysisPanel = lazy(() =>
   import('../components/SellAnalysisPanel').then(m => ({ default: m.SellAnalysisPanel })),
@@ -86,18 +87,27 @@ export function ForecastPage() {
         )}
 
         {assetData && (
-          <div className="flex items-center gap-3 text-sm text-text-muted pt-1 border-t border-border">
+          <div className="flex items-center gap-3 text-sm text-text-muted pt-1 border-t border-border flex-wrap">
             <span className="font-semibold text-text-primary">{assetData.asset.name}</span>
             <span className="text-text-muted">({activeTicker})</span>
-            {currentFxRate > 0 && (
-              <>
-                <span className="text-text-muted">·</span>
-                <span className="font-mono tabular-nums">{(assetData.asset.currentPrice * currentFxRate).toFixed(2)} PLN</span>
-              </>
-            )}
+            <span className="text-text-muted">·</span>
+            <span className="font-mono tabular-nums font-semibold text-text-primary">
+              {assetData.asset.currency}{' '}
+              {assetData.asset.currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
           </div>
         )}
       </div>
+
+      {assetData && (
+        <StockPriceChart
+          ticker={activeTicker}
+          currentPrice={assetData.asset.currentPrice}
+          historicalPrices={assetData.historicalPrices}
+          currency={assetData.asset.currency}
+          isDark={isDark}
+        />
+      )}
 
       {assetData && (
         <ErrorBoundary>

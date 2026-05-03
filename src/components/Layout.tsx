@@ -4,6 +4,7 @@ import { Moon, Sun, BarChart3, Receipt, Sprout, TrendingUp, ArrowDownUp, Menu, X
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useAuth } from '../hooks/useAuth';
 import { UserMenu } from '../components/UserMenu';
+import { AuroraCanvas } from '../components/AuroraCanvas';
 import { saveLastRoute } from '../utils/routePersistence';
 
 const AuthModalLazy = lazy(() => import('../components/AuthModal').then(m => ({ default: m.AuthModal })));
@@ -38,16 +39,11 @@ export function Layout() {
     <div className="min-h-screen bg-bg-primary">
       {/* Aurora Header */}
       <header className="aurora-header text-white shadow-lg">
-        <div className="aurora-beams" aria-hidden="true">
-          <div className="aurora-beam" />
-          <div className="aurora-beam" />
-          <div className="aurora-beam" />
-          <div className="aurora-beam" />
-          <div className="aurora-beam" />
-        </div>
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <AuroraCanvas />
+        <div className="absolute inset-0 bg-black/30 backdrop-blur-sm z-[1]" aria-hidden="true" />
+        <div className="nav-text-shadow max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/forecast" className="flex items-center gap-2" aria-label="Njord — Strona główna">
-            <Anchor size={24} className="text-white/90" aria-hidden="true" />
+            <Anchor size={24} className="text-white" aria-hidden="true" />
             <span className="text-2xl font-bold tracking-tight">Njord</span>
           </Link>
 
@@ -58,10 +54,10 @@ export function Layout() {
                 key={to}
                 to={to}
                 className={({ isActive }) =>
-                  `flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors border-b-2 ${
+                  `flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
                     isActive
-                      ? 'border-white text-white'
-                      : 'border-transparent text-white/70 hover:text-white hover:border-white/50'
+                      ? 'bg-white/20 text-white'
+                      : 'text-white/90 hover:text-white hover:bg-white/10'
                   }`
                 }
               >
@@ -76,7 +72,7 @@ export function Layout() {
               type="button"
               onClick={toggleDarkMode}
               aria-label={isDark ? 'Włącz tryb jasny' : 'Włącz tryb ciemny'}
-              className="p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+              className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
             >
               {isDark ? <Sun size={20} /> : <Moon size={20} />}
             </button>
@@ -92,7 +88,7 @@ export function Layout() {
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? 'Zamknij menu' : 'Otwórz menu'}
-              className="md:hidden p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+              className="md:hidden p-2 rounded-lg text-white hover:bg-white/10 transition-colors"
             >
               {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
@@ -101,7 +97,7 @@ export function Layout() {
 
         {/* Mobile navigation drawer */}
         {mobileMenuOpen && (
-          <nav className="md:hidden border-t border-white/20 px-4 py-3" aria-label="Nawigacja mobilna">
+          <nav className="nav-text-shadow md:hidden border-t border-white/20 px-4 py-3" aria-label="Nawigacja mobilna">
             <div className="flex flex-col gap-1">
               {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
                 <NavLink
@@ -109,10 +105,10 @@ export function Layout() {
                   to={to}
                   onClick={() => setMobileMenuOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors ${
+                    `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
                       isActive
-                        ? 'text-white border-l-2 border-white'
-                        : 'text-white/70 hover:text-white border-l-2 border-transparent'
+                        ? 'bg-white/20 text-white'
+                        : 'text-white/90 hover:text-white hover:bg-white/10'
                     }`
                   }
                 >

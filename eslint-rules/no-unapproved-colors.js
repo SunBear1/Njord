@@ -13,7 +13,7 @@ const APPROVED_HEX = new Set([
   '#1E293B', '#A9B5BF', '#38bdf8', '#67E8F9', '#6EE7B7', '#FCA5A5',
   // Interactive + text-on-accent
   '#082f49',
-  // Aurora (decorative gradient colors)
+  // Aurora (decorative canvas colors)
   '#0c1222', '#06b6d4', '#34d399', '#a855f7',
   // Also allow common neutrals that appear in borders/hover
   '#64748B',
