@@ -1,4 +1,4 @@
-import type { CurrencyRate } from '../_shared/types';
+import type { CurrencyRate } from '../../_shared/types';
 
 const NBP_BASE = 'https://api.nbp.pl/api/exchangerates/rates/C';
 const TIMEOUT_MS = 5_000;

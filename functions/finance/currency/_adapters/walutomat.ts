@@ -1,4 +1,4 @@
-import type { CurrencyRate } from '../_shared/types';
+import type { CurrencyRate } from '../../_shared/types';
 
 const WALUTOMAT_BASE = 'https://user.walutomat.pl/api/public/marketBrief';
 const TIMEOUT_MS = 5_000;

@@ -1,4 +1,4 @@
-import type { CurrencyRate } from '../_shared/types';
+import type { CurrencyRate } from '../../_shared/types';
 
 const KANTOR_URL = 'https://banker.kantor.pl/ajax';
 const TIMEOUT_MS = 5_000;
