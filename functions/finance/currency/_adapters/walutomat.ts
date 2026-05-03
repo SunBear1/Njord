@@ -6,12 +6,12 @@ const PAIRS = ['USD_PLN', 'EUR_PLN', 'GBP_PLN'] as const;
 
 interface WalutomatResponse {
   pair: string;
-  ts: string;
-  directExchangeOffers: {
-    buyNow: number;
-    sellNow: number;
-    forexNow: number;
+  bestOffers: {
+    bid_now: number;
+    ask_now: number;
+    forex_now: number;
   };
+  lastExchanges?: Array<{ ts: string }>;
 }
 
 export async function fetchWalutomatRates(): Promise<CurrencyRate[]> {
@@ -30,17 +30,21 @@ export async function fetchWalutomatRates(): Promise<CurrencyRate[]> {
     const res = responses[i];
     if (res.status !== 'fulfilled' || !res.value.ok) continue;
 
-    const data = (await res.value.json()) as WalutomatResponse;
-    const { buyNow, sellNow, forexNow } = data.directExchangeOffers;
+    try {
+      const data = (await res.value.json()) as WalutomatResponse;
+      const { bid_now, ask_now, forex_now } = data.bestOffers;
 
-    results.push({
-      source: 'walutomat',
-      pair: PAIRS[i].replace('_', '/'),
-      bid: buyNow,
-      ask: sellNow,
-      mid: forexNow,
-      timestamp: data.ts,
-    });
+      results.push({
+        source: 'walutomat',
+        pair: PAIRS[i].replace('_', '/'),
+        bid: bid_now,
+        ask: ask_now,
+        mid: forex_now,
+        timestamp: data.lastExchanges?.[0]?.ts ?? new Date().toISOString(),
+      });
+    } catch {
+      // skip this pair if parsing fails
+    }
   }
 
   return results;
