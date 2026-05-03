@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   AreaChart,
   Area,
@@ -9,13 +9,14 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
 import type { HistoricalPrice } from '../types/asset';
 import {
   SPANS,
   filterBySpan,
   calcPeriodChange,
   formatXAxisDate,
+  formatIntradayTime,
   tickCount,
   type SpanKey,
 } from '../utils/stockChartUtils';
@@ -47,6 +48,38 @@ export function StockPriceChart({
   isDark,
 }: StockPriceChartProps) {
   const [activeSpan, setActiveSpan] = useState<SpanKey>('1Y');
+  // Intraday data fetched on demand; derive loading from span mismatch
+  const [intradayState, setIntradayState] = useState<{
+    span: SpanKey | null;
+    prices: HistoricalPrice[];
+  }>({ span: null, prices: [] });
+  const abortRef = useRef<AbortController | null>(null);
+
+  const isIntraday = SPANS.find((s) => s.key === activeSpan)?.intraday ?? false;
+  const intradayLoading = isIntraday && intradayState.span !== activeSpan;
+
+  useEffect(() => {
+    if (!isIntraday) return;
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    fetch(`/api/intraday?ticker=${encodeURIComponent(ticker)}&span=${activeSpan}`, {
+      signal: controller.signal,
+    })
+      .then((r) => r.json() as Promise<{ prices?: HistoricalPrice[] }>)
+      .then((data) => {
+        if (!controller.signal.aborted) {
+          setIntradayState({ span: activeSpan, prices: data.prices ?? [] });
+        }
+      })
+      .catch(() => {
+        // Silently ignore — abort errors expected on span change
+      });
+
+    return () => { controller.abort(); };
+  }, [ticker, activeSpan, isIntraday]);
 
   const sym = currencySymbol(currency);
   const gridColor = isDark ? '#334155' : '#F1F5F9';
@@ -58,10 +91,10 @@ export function StockPriceChart({
   const tooltipBorder = isDark ? '#334155' : '#CBD5E1';
   const tooltipText = isDark ? '#F1F5F9' : '#0F172A';
 
-  const sliced = useMemo(
-    () => filterBySpan(historicalPrices, activeSpan),
-    [historicalPrices, activeSpan],
-  );
+  const sliced = useMemo(() => {
+    if (isIntraday) return intradayState.prices;
+    return filterBySpan(historicalPrices, activeSpan);
+  }, [isIntraday, intradayState.prices, historicalPrices, activeSpan]);
 
   const periodChange = useMemo(() => calcPeriodChange(sliced), [sliced]);
   const isPositive = periodChange >= 0;
@@ -87,6 +120,9 @@ export function StockPriceChart({
     return ticks;
   }, [sliced, activeSpan]);
 
+  const formatXTick = (v: string) =>
+    isIntraday ? formatIntradayTime(v) : formatXAxisDate(v, activeSpan);
+
   return (
     <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5 space-y-4">
       {/* Header row */}
@@ -94,19 +130,21 @@ export function StockPriceChart({
         <div>
           <div className="flex items-center gap-2">
             <span className="text-base font-semibold text-text-primary">{ticker}</span>
-            <span
-              className={`flex items-center gap-1 text-sm font-medium ${
-                isPositive ? 'text-success' : 'text-danger'
-              }`}
-            >
-              {isPositive ? (
-                <TrendingUp size={14} aria-hidden="true" />
-              ) : (
-                <TrendingDown size={14} aria-hidden="true" />
-              )}
-              {isPositive ? '+' : ''}
-              {periodChange.toFixed(2)}%
-            </span>
+            {!intradayLoading && sliced.length >= 2 && (
+              <span
+                className={`flex items-center gap-1 text-sm font-medium ${
+                  isPositive ? 'text-success' : 'text-danger'
+                }`}
+              >
+                {isPositive ? (
+                  <TrendingUp size={14} aria-hidden="true" />
+                ) : (
+                  <TrendingDown size={14} aria-hidden="true" />
+                )}
+                {isPositive ? '+' : ''}
+                {periodChange.toFixed(2)}%
+              </span>
+            )}
           </div>
           <div className="text-2xl font-bold text-text-primary mt-0.5">
             {sym}
@@ -134,7 +172,12 @@ export function StockPriceChart({
       </div>
 
       {/* Chart */}
-      {sliced.length > 1 ? (
+      {intradayLoading ? (
+        <div className="h-60 flex items-center justify-center text-text-muted text-sm gap-2">
+          <Loader2 size={16} className="animate-spin motion-reduce:animate-none" />
+          Wczytywanie danych intraday…
+        </div>
+      ) : sliced.length > 1 ? (
         <ResponsiveContainer width="100%" height={240} debounce={32}>
           <AreaChart data={sliced} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
             <defs>
@@ -149,7 +192,7 @@ export function StockPriceChart({
             <XAxis
               dataKey="date"
               ticks={xTicks}
-              tickFormatter={(v) => formatXAxisDate(v as string, activeSpan)}
+              tickFormatter={formatXTick}
               tick={{ fontSize: 11, fill: tickColor }}
               axisLine={false}
               tickLine={false}
@@ -172,6 +215,9 @@ export function StockPriceChart({
               content={({ active, payload, label }) => {
                 if (!active || !payload?.length) return null;
                 const price = payload[0]?.value as number | undefined;
+                const displayLabel = isIntraday
+                  ? formatIntradayTime(label as string)
+                  : (label as string);
                 return (
                   <div
                     style={{
@@ -181,7 +227,7 @@ export function StockPriceChart({
                     }}
                     className="border rounded-lg shadow-sm px-3 py-2 text-xs"
                   >
-                    <div className="font-semibold mb-0.5">{label as string}</div>
+                    <div className="font-semibold mb-0.5">{displayLabel}</div>
                     <div>
                       {sym}
                       {(price ?? 0).toLocaleString('en-US', {

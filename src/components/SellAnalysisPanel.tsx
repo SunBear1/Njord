@@ -12,7 +12,8 @@ import {
   ReferenceLine,
 } from 'recharts';
 import type { ValueType } from 'recharts/types/component/DefaultTooltipContent';
-import { Target, TrendingUp, AlertTriangle, Loader2, Calendar } from 'lucide-react';
+import { Target, TrendingUp, Info, Loader2 } from 'lucide-react';
+import { Tooltip as UITooltip } from './Tooltip';
 import type { SellAnalysisResult } from '../types/sellAnalysis';
 import { fmtUSD } from '../utils/formatting';
 
@@ -211,18 +212,14 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
             />
           </div>
 
-          {/* Regime + peak info */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {/* Regime + peak info — 2-column grid (Szczyt dzień removed) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="bg-bg-card rounded-xl border border-border shadow-sm p-4">
-              <div className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1 flex items-center gap-1">
-                Reżim rynkowy
-                <span
-                  className="ml-1 text-text-muted cursor-help"
-                  title="Wynik modelu HMM (2 stany) na ~500 obs. Baum-Welch jest mało wiarygodny przy &lt;2000 obs. — traktuj jako sygnał orientacyjny, nie predykcję."
-                  aria-label="Uwaga o wiarygodności modelu"
-                >
-                  ⓘ
-                </span>
+              <div className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1 flex items-center gap-1.5">
+                Trend rynkowy
+                <UITooltip content="Wynik modelu HMM (2 stany) dopasowanego do ~500 historycznych sesji. Baum-Welch wymaga co najmniej 2000 obserwacji dla wiarygodnych wyników — traktuj jako sygnał orientacyjny." side="top">
+                  <Info size={12} className="text-text-muted cursor-help" aria-hidden="true" />
+                </UITooltip>
               </div>
               <div className={`text-lg font-bold ${analysis.regimeInfo.currentRegimeLabel === 'bull' ? 'text-success' : 'text-danger '}`}>
                 {analysis.regimeInfo.currentRegimeLabel === 'bull' ? '📈 Faza wzrostowa' : '📉 Faza spadkowa'}
@@ -233,20 +230,15 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
               </div>
             </div>
             <div className="bg-bg-card rounded-xl border border-border shadow-sm p-4">
-              <div className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Mediana szczytowej ceny</div>
+              <div className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1 flex items-center gap-1.5">
+                Możliwy szczyt ceny
+                <UITooltip content="Mediana najwyższej ceny, jaką model spodziewa się zobaczyć w horyzoncie inwestycji. Zakres p10–p90 obejmuje 80% wyników symulacji." side="top">
+                  <Info size={12} className="text-text-muted cursor-help" aria-hidden="true" />
+                </UITooltip>
+              </div>
               <div className="text-lg font-bold text-text-primary">{fmtUSD(analysis.peakDistribution.p50)}</div>
               <div className="text-xs text-text-muted mt-1">
                 Zakres: {fmtUSD(analysis.peakDistribution.p10)} – {fmtUSD(analysis.peakDistribution.p90)}
-              </div>
-            </div>
-            <div className="bg-bg-card rounded-xl border border-border shadow-sm p-4">
-              <div className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Szczyt (dzień)</div>
-              <div className="text-lg font-bold text-text-primary flex items-center gap-1.5">
-                <Calendar size={16} className="text-text-muted" />
-                dzień {analysis.peakTimingDistribution.p50.toFixed(0)}
-              </div>
-              <div className="text-xs text-text-muted mt-1">
-                Zakres: dzień {analysis.peakTimingDistribution.p10.toFixed(0)} – {analysis.peakTimingDistribution.p90.toFixed(0)}
               </div>
             </div>
           </div>
@@ -413,17 +405,13 @@ export function SellAnalysisPanel({ analysis, isLoading, horizonDays, onHorizonC
           </div>
 
           {/* Disclaimer */}
-          <div className="bg-danger/5 border border-danger/30 rounded-xl p-4 flex items-start gap-3">
-            <AlertTriangle size={16} className="text-danger shrink-0 mt-0.5" />
-            <div className="text-xs text-danger space-y-1">
-              <p className="font-semibold">Ograniczenia modelu</p>
-              <ul className="list-disc list-inside space-y-0.5">
-                <li>Model nie przewiduje wydarzeń jednorazowych (wyniki kwartalne, przejęcia, regulacje)</li>
-                <li>Bazuje na historycznych rozkładach zwrotów (~2 lata) — przeszłość nie gwarantuje przyszłości</li>
-                <li>HMM wykrywa reżimy historyczne, ale ma ograniczoną moc predykcyjną</li>
-                <li>Kurs USD/PLN założony jako stały — zmiana kursu wpłynie na wynik w PLN</li>
-                <li>To narzędzie analityczne, nie rekomendacja inwestycyjna</li>
-              </ul>
+          <div className="bg-bg-hover/30 border border-border rounded-xl p-4 flex items-start gap-3">
+            <Info size={16} className="text-text-muted shrink-0 mt-0.5" />
+            <div className="text-xs text-text-secondary space-y-1.5">
+              <p className="font-semibold text-text-primary">Jak czytać te wyniki?</p>
+              <p>Prognozy opierają się na historycznych wzorcach cenowych. Model nie uwzględnia niespodziewanych wydarzeń — takich jak wyniki kwartalne, przejęcia czy zmiany regulacyjne — które mogą drastycznie zmienić cenę.</p>
+              <p>Pokazane zakresy (p10–p90) oznaczają, że 80% symulacji dało wynik w tym przedziale — <strong>nie</strong> jest to gwarancja. Przyszłość może wypaść poza tym zakresem.</p>
+              <p className="text-text-muted">To narzędzie analityczne, a nie rekomendacja inwestycyjna.</p>
             </div>
           </div>
         </>
@@ -457,10 +445,12 @@ function SummaryCard({ label, value, subvalue, accent, tooltip }: { label: strin
   };
   return (
     <div className={`rounded-xl border shadow-sm p-4 ${colors[accent]}`}>
-      <div className="text-xs font-semibold text-text-muted uppercase tracking-wide flex items-center gap-1">
+      <div className="text-xs font-semibold text-text-muted uppercase tracking-wide flex items-center gap-1.5">
         {label}
         {tooltip && (
-          <span className="cursor-help text-text-muted" title={tooltip} aria-label={tooltip}>ⓘ</span>
+          <UITooltip content={tooltip}>
+            <Info size={12} className="text-text-muted cursor-help" aria-hidden="true" />
+          </UITooltip>
         )}
       </div>
       <div className={`text-2xl font-bold mt-1 ${textColors[accent]}`}>{value}</div>
