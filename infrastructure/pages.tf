@@ -28,7 +28,7 @@ resource "cloudflare_pages_project" "njord" {
     production = {
       compatibility_date = "2026-05-03"
       d1_databases = {
-        DB = { id = cloudflare_d1_database.users_db.id },
+        DB         = { id = cloudflare_d1_database.users_db.id },
         FINANCE_DB = { id = cloudflare_d1_database.finance_data.id }
       }
       placement = {
@@ -38,7 +38,7 @@ resource "cloudflare_pages_project" "njord" {
     preview = {
       compatibility_date = "2026-05-03"
       d1_databases = {
-        DB = { id = cloudflare_d1_database.users_db.id },
+        DB         = { id = cloudflare_d1_database.users_db.id },
         FINANCE_DB = { id = cloudflare_d1_database.finance_data.id }
       }
     }
