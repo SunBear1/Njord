@@ -9,7 +9,7 @@ jobs:
   scrape:
     runs-on: ubuntu-latest
     env:
-      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+      CF_API_TOKEN: ${{ secrets.TF_CF_API_KEY }}
       CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
     steps:
       - name: Checkout repository
