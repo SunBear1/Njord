@@ -40,7 +40,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
     email: user.email,
     name: user.name,
     hasPassword: user.password_hash !== null,
-    linkedProviders: oauthRows.results.map((r) => r.provider),
+    linkedProviders: oauthRows.results.map((r: { provider: string }) => r.provider),
   };
 
   return jsonResponse(publicUser);

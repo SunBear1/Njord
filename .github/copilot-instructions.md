@@ -16,18 +16,6 @@ Polish-language investment calculator SPA. Compares USD stock/ETF portfolios aga
 - **CI:** GitHub Actions (Ubuntu latest)
 - **Shell:** fish (default shell on localhost machine)
 
-## Commands
-
-```bash
-npm run dev          # Frontend -> localhost:5173
-npm run dev:full     # Full stack (Vite + CF Pages Functions) -> localhost:8788
-npm run build        # tsc -b && vite build
-npm run lint         # ESLint (zero-error)
-npm test             # Vitest — all tests
-npm run test:e2e     # Playwright E2E
-npx tsc --noEmit     # Type-check only
-```
-
 ## Architecture
 
 ```
@@ -90,7 +78,7 @@ Always enforced across all code changes:
 Critical validation before commiting changes:
 
 ```bash
-npx tsc --noEmit && npm run lint && npm test && npm run build && npm run test:e2e
+npx tsc --noEmit --skipLibCheck -p functions/tsconfig.json && npm run lint && npm test && npm run build && npx playwright test
 ```
 
 No exceptions. Fix failures before proceeding. Context-specific checks in `.github/instructions/` files per domain.
