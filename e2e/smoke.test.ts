@@ -18,7 +18,10 @@ test.describe('Njord smoke tests', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    // The ticker input should be on screen
+    // Open the input modal via the chip button
+    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
+
+    // The ticker input should be visible inside the modal
     const tickerInput = page.locator('input[placeholder*="AAPL"], input[placeholder*="np."], input[id*="ticker"]').first();
     await expect(tickerInput).toBeVisible();
   });
@@ -43,6 +46,9 @@ test.describe('Njord smoke tests', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
+    // Open the input modal
+    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
+
     // The benchmark selector has buttons for savings/bonds options
     const buttons = page.locator('button').filter({ hasText: /konto|obligacj|kont|ETF/i });
     await expect(buttons.first()).toBeVisible({ timeout: 5_000 });
@@ -51,6 +57,9 @@ test.describe('Njord smoke tests', () => {
   test('horizon slider is present on comparison page', async ({ page }) => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
+
+    // Open the input modal
+    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
 
     const slider = page.locator('input[type="range"]').first();
     await expect(slider).toBeVisible();
@@ -74,6 +83,9 @@ test.describe('Njord smoke tests', () => {
   test('ticker input accepts text on comparison page', async ({ page }) => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
+
+    // Open the input modal
+    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
 
     const inputs = page.locator('input[type="text"], input:not([type])').first();
     await inputs.fill('AAPL');

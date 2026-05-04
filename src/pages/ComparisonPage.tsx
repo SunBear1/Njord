@@ -1,9 +1,10 @@
 import { useState, useCallback, useEffect, useMemo, useDeferredValue, lazy, Suspense } from 'react';
-import { InputPanel } from '../components/InputPanel';
+import { InputModal } from '../components/InputModal';
 import { ScenarioEditor } from '../components/ScenarioEditor';
 import { VerdictBanner } from '../components/VerdictBanner';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { Skeleton } from '../components/Skeleton';
+import { Settings2 } from 'lucide-react';
 import { useAssetData } from '../hooks/useAssetData';
 import { useEtfData } from '../hooks/useEtfData';
 import { useInflationData } from '../hooks/useInflationData';
@@ -74,6 +75,7 @@ export function ComparisonPage() {
   }, [fetchEtf, resetEtfAutofill]);
 
   const scenarios = userScenarios ?? suggestedScenarios ?? DEFAULT_SCENARIOS;
+  const isModelApplied = userScenarios === null && suggestedScenarios !== null;
 
   const onApplySuggested = useCallback(
     () => handleApplySuggested(suggestedScenarios),
@@ -144,7 +146,20 @@ export function ComparisonPage() {
   const deferredResults = useDeferredValue(results);
   const deferredTimeline = useDeferredValue(timeline);
 
-  const [inputCollapsed, setInputCollapsed] = useState(false);
+  const [isInputOpen, setIsInputOpen] = useState(false);
+
+  // Build compact summary for the chip
+  const horizonLabel = horizonMonths <= 11
+    ? `${horizonMonths} mies.`
+    : horizonMonths % 12 === 0
+      ? `${horizonMonths / 12} ${horizonMonths / 12 === 1 ? 'rok' : horizonMonths / 12 < 5 ? 'lata' : 'lat'}`
+      : `${Math.floor(horizonMonths / 12)}l. ${horizonMonths % 12}m.`;
+  const bmChipLabel = benchmarkType === 'savings'
+    ? `Konto ${wibor3m > 0 ? wibor3m.toFixed(1) + '%' : '—'}`
+    : benchmarkType === 'etf'
+      ? etfTicker ? `ETF ${etfTicker}` : 'ETF'
+      : `Obligacje ${bondSettings.firstYearRate.toFixed(1)}%`;
+  const hasData = ticker && shares > 0 && currentPriceUSD > 0;
 
   const inputPanelProps = {
     onFetchAsset: fetchData,
@@ -210,30 +225,56 @@ export function ComparisonPage() {
     currentPriceUSD,
     currentFxRate,
     volatilityStats,
+    isModelApplied,
   };
 
   return (
     <div className="space-y-4">
-        {inputCollapsed ? (
-          <>
-            <InputPanel {...inputPanelProps} collapsed onToggleCollapse={() => setInputCollapsed(false)} />
-            <ScenarioEditor {...scenarioEditorProps} compact />
-          </>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <InputPanel {...inputPanelProps} onToggleCollapse={results ? () => setInputCollapsed(true) : undefined} />
-              <ScenarioEditor {...scenarioEditorProps} />
-            </div>
+      {/* Compact input summary chip */}
+      <button
+        type="button"
+        onClick={() => setIsInputOpen(true)}
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-bg-card border border-border rounded-xl shadow-sm hover:bg-bg-hover transition-colors text-left"
+      >
+        <div className="flex items-center gap-2 flex-wrap min-w-0 text-sm text-text-secondary">
+          {hasData ? (
+            <>
+              <span className="font-semibold text-text-primary">{ticker}</span>
+              <span className="text-text-muted">·</span>
+              <span>{shares} akcji</span>
+              <span className="text-text-muted">·</span>
+              <span>${currentPriceUSD.toFixed(2)}</span>
+              <span className="text-text-muted">·</span>
+              <span>{bmChipLabel}</span>
+              <span className="text-text-muted">·</span>
+              <span className="text-accent-primary font-medium">{horizonLabel}</span>
+            </>
+          ) : (
+            <span className="text-text-muted italic">Uzupełnij dane, aby zobaczyć wyniki →</span>
+          )}
+        </div>
+        <span className="flex items-center gap-1.5 text-xs text-text-primary font-medium whitespace-nowrap shrink-0">
+          <Settings2 size={14} aria-hidden="true" />
+          {hasData ? 'Edytuj' : 'Dane wejściowe'}
+        </span>
+      </button>
 
-            {!canCalc && (
-              <div className="bg-bg-card rounded-xl border border-dashed border-border p-10 text-center text-text-muted space-y-2">
-                <p className="text-lg">Wprowadź ticker i dane portfela, aby zobaczyć wyniki</p>
-                <p className="text-sm">Podaj ticker spółki lub ETF, liczbę akcji i parametry benchmarku.</p>
-              </div>
-            )}
-          </>
-        )}
+      {/* Input modal */}
+      <InputModal
+        isOpen={isInputOpen}
+        onClose={() => setIsInputOpen(false)}
+        {...inputPanelProps}
+      />
+
+      {/* Scenario editor — full width */}
+      <ScenarioEditor {...scenarioEditorProps} />
+
+      {!canCalc && !isInputOpen && (
+        <div className="bg-bg-card rounded-xl border border-dashed border-border p-10 text-center text-text-muted space-y-2">
+          <p className="text-lg">Wprowadź ticker i dane portfela, aby zobaczyć wyniki</p>
+          <p className="text-sm">Podaj ticker spółki lub ETF, liczbę akcji i parametry benchmarku.</p>
+        </div>
+      )}
 
         {deferredResults && (
           <>

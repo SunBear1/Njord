@@ -1,7 +1,6 @@
 import type { ScenarioResult } from '../types/scenario';
 import { fmtPLN, fmtUSD, fmtDiff, fmtDiffPct } from '../utils/formatting';
 import { Trophy, Info, TrendingDown, TrendingUp, Minus } from 'lucide-react';
-import { NBP_TARGET } from '../utils/inflationProjection';
 import { Tooltip } from './Tooltip';
 
 interface VerdictBannerProps {
@@ -41,6 +40,55 @@ const SCENARIO_STYLE = {
   },
 };
 
+function ScenarioCard({ r, bmLabel, hasInflation }: { r: ScenarioResult; bmLabel: string; hasInflation: boolean }) {
+  const style = SCENARIO_STYLE[r.key] ?? SCENARIO_STYLE.base;
+  const stockWins = r.stockBeatsBenchmark;
+  return (
+    <div className={`${style.bg} ${style.border} border-2 rounded-xl p-5 space-y-3`}>
+      <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${style.badge}`}>
+        {SCENARIO_ICON[r.key]}
+        {r.key.charAt(0).toUpperCase() + r.key.slice(1)}
+      </span>
+      <div className="grid grid-cols-2 gap-2">
+        <div className={`rounded-xl p-3 text-center space-y-1 ${stockWins ? 'bg-bg-card shadow-sm ring-2 ring-accent-primary/50' : 'bg-bg-card/60'}`}>
+          <div className="flex items-center justify-center gap-1 text-xs font-bold text-accent-primary/80 uppercase tracking-wide">
+            {stockWins && <Trophy size={12} className="text-accent-primary" aria-hidden="true" />}
+            Akcje
+          </div>
+          <div className="text-base font-bold text-text-primary tabular-nums">{fmtPLN(r.stockNetEndValuePLN)}</div>
+          <div className="text-xs font-medium text-accent-primary tabular-nums">{fmtDiffPct(r.stockReturnNet)}</div>
+          {hasInflation && (
+            <div className="text-[10px] text-danger font-medium">
+              realnie {r.stockRealReturnNet >= 0 ? '+' : ''}{r.stockRealReturnNet.toFixed(2)}%
+            </div>
+          )}
+          {r.dividendsNetPLN > 0 && (
+            <div className="text-[10px] text-success font-medium">w tym dyw. {fmtPLN(r.dividendsNetPLN)}</div>
+          )}
+        </div>
+        <div className={`rounded-xl p-3 text-center space-y-1 ${!stockWins ? 'bg-bg-card shadow-sm ring-2 ring-accent-primary/50' : 'bg-bg-card/60'}`}>
+          <div className="flex items-center justify-center gap-1 text-xs font-bold text-accent-primary uppercase tracking-wide">
+            {!stockWins && <Trophy size={12} className="text-accent-primary" aria-hidden="true" />}
+            {bmLabel}
+          </div>
+          <div className="text-base font-bold text-text-primary tabular-nums">{fmtPLN(r.benchmarkEndValuePLN)}</div>
+          <div className="text-xs font-medium text-accent-primary tabular-nums">
+            {r.benchmarkReturnNet >= 0 ? '+' : ''}{r.benchmarkReturnNet.toFixed(2)}%
+          </div>
+          {hasInflation && (
+            <div className="text-[10px] text-danger font-medium">
+              realnie {r.benchmarkRealReturnNet >= 0 ? '+' : ''}{r.benchmarkRealReturnNet.toFixed(2)}%
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="text-xs font-medium rounded-lg px-3 py-2 text-center bg-bg-card/70 border border-border text-text-secondary">
+        Różnica: <strong>{fmtDiff(r.differencePLN)}</strong> ({fmtDiffPct(r.differencePercent)})
+      </div>
+    </div>
+  );
+}
+
 export function VerdictBanner({ results, inflationRate, currentInflationRate, inflationSource, cpiPeriod, inflationStale, horizonMonths, avgCostUSD }: VerdictBannerProps) {
   const bmLabel = results[0]?.benchmarkLabel ?? 'Konto';
   if (results.length === 0) return null;
@@ -48,27 +96,28 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
   const horizonYears = horizonMonths / 12;
 
   const disclaimerTooltip = hasInflation
-    ? `Podatek Belki 19% od zysku z akcji i ${bmLabel === 'Obligacje' ? 'obligacji' : 'konta oszczędnościowego'}. Inflacja ${inflationRate.toFixed(1)}% śr./rok (bieżąca ${currentInflationRate.toFixed(1)}% → cel NBP ${NBP_TARGET}%). Wartości realne zaznaczone kolorem.`
-    : 'Podatek Belki 19% od zysku z akcji i konta/obligacji. Dane inflacyjne nieładowane — wartości nominalne.';
+    ? `Od każdego zysku odprowadzany jest podatek Belki (19%). W obliczeniach przyjmujemy inflację ${inflationRate.toFixed(1)}%/rok — wartości "realne" pokazują, ile wart będzie wynik po uwzględnieniu wzrostu cen.`
+    : 'Od każdego zysku odprowadzany jest podatek Belki (19%). Dane o inflacji niedostępne — wyniki są nominalne (bez korekty o inflację).';
 
-  const baseResult = results[1] ?? results[0];
+  const baseResult = results.find(r => r.key === 'base') ?? results[1] ?? results[0];
+  const sensitivityResults = results.filter(r => r.key !== 'base');
   const stockWinsBase = baseResult?.stockBeatsBenchmark ?? false;
   const heroDiff = Math.abs(baseResult?.differencePLN ?? 0);
   const heroDiffPct = Math.abs(baseResult?.differencePercent ?? 0);
   const heroWinner = stockWinsBase ? 'Akcje' : bmLabel;
-  const heroIsPositive = stockWinsBase;
+  const heroVerb = stockWinsBase ? 'wygrywają' : bmLabel === 'Konto' ? 'wygrywa' : 'wygrywają';
 
   return (
     <div className="space-y-3">
-      {/* Hero verdict */}
-      <div className={`rounded-xl border-2 px-5 py-4 flex items-center gap-4 flex-wrap ${heroIsPositive ? 'bg-success/5 border-success/30' : 'bg-bg-hover border-border'}`}>
-        <div className={`text-2xl font-bold ${heroIsPositive ? 'text-success' : 'text-text-primary'}`}>
-          {heroWinner} {heroIsPositive ? 'wygrywają' : 'wygrywa'}
+      {/* Hero verdict — winner always green */}
+      <div className="rounded-xl border-2 px-5 py-4 flex items-center gap-4 flex-wrap bg-success/5 border-success/30">
+        <div className="text-2xl font-bold text-success">
+          {heroWinner} {heroVerb}
         </div>
         <div className="text-sm text-text-secondary">
           W scenariuszu bazowym — o{' '}
-          <strong className={`tabular-nums ${heroIsPositive ? 'text-success' : 'text-text-primary'}`}>{fmtPLN(heroDiff)}</strong>
-          {' '}(<strong>{heroDiffPct >= 0 ? '+' : ''}{heroDiffPct.toFixed(1)}%</strong>)
+          <strong className="tabular-nums text-success">{fmtPLN(heroDiff)}</strong>
+          {' '}(<strong>{heroDiffPct.toFixed(1)}%</strong>)
         </div>
       </div>
 
@@ -123,85 +172,32 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
         })()
       )}
 
-      {/* Scenario cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {results.map((r) => {
-          const style = SCENARIO_STYLE[r.key] ?? SCENARIO_STYLE.base;
-          const stockWins = r.stockBeatsBenchmark;
+      {/* Base scenario — full width */}
+      {baseResult && <ScenarioCard r={baseResult} bmLabel={bmLabel} hasInflation={hasInflation} />}
 
-          return (
-            <div
-              key={r.key}
-              className={`${style.bg} ${style.border} border-2 rounded-xl p-5 space-y-3`}
-            >
-              {/* Scenario badge */}
-              <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${style.badge}`}>
-                {SCENARIO_ICON[r.key]}
-                {r.key.charAt(0).toUpperCase() + r.key.slice(1)}
-              </span>
-
-              {/* Two-column comparison */}
-              <div className="grid grid-cols-2 gap-2">
-                {/* Akcje column */}
-                <div className={`rounded-xl p-3 text-center space-y-1 ${stockWins ? 'bg-bg-card shadow-sm ring-2 ring-accent-primary/50' : 'bg-bg-card/60'}`}>
-                  <div className="flex items-center justify-center gap-1 text-xs font-bold text-accent-primary/80 uppercase tracking-wide">
-                    {stockWins && <Trophy size={12} className="text-accent-primary" aria-hidden="true" />}
-                    Akcje
-                  </div>
-                  <div className="text-base font-bold text-text-primary tabular-nums">{fmtPLN(r.stockNetEndValuePLN)}</div>
-                  <div className="text-xs font-medium text-accent-primary tabular-nums">{fmtDiffPct(r.stockReturnNet)}</div>
-                  {hasInflation && (
-                    <div className="text-[10px] text-danger font-medium">
-                      realnie {r.stockRealReturnNet >= 0 ? '+' : ''}{r.stockRealReturnNet.toFixed(2)}%
-                    </div>
-                  )}
-                  {r.dividendsNetPLN > 0 && (
-                    <div className="text-[10px] text-success font-medium">
-                      w tym dyw. {fmtPLN(r.dividendsNetPLN)}
-                    </div>
-                  )}
-                </div>
-
-                {/* Benchmark column */}
-                <div className={`rounded-xl p-3 text-center space-y-1 ${!stockWins ? 'bg-bg-card shadow-sm ring-2 ring-accent-primary/50' : 'bg-bg-card/60'}`}>
-                  <div className="flex items-center justify-center gap-1 text-xs font-bold text-accent-primary uppercase tracking-wide">
-                    {!stockWins && <Trophy size={12} className="text-accent-primary" aria-hidden="true" />}
-                    {bmLabel}
-                  </div>
-                  <div className="text-base font-bold text-text-primary tabular-nums">{fmtPLN(r.benchmarkEndValuePLN)}</div>
-                  <div className="text-xs font-medium text-accent-primary tabular-nums">
-                    {r.benchmarkReturnNet >= 0 ? '+' : ''}{r.benchmarkReturnNet.toFixed(2)}%
-                  </div>
-                  {hasInflation && (
-                    <div className="text-[10px] text-danger font-medium">
-                      realnie {r.benchmarkRealReturnNet >= 0 ? '+' : ''}{r.benchmarkRealReturnNet.toFixed(2)}%
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Difference callout */}
-              <div className="text-xs font-medium rounded-lg px-3 py-2 text-center bg-bg-card/70 border border-border text-text-secondary">
-                Różnica: <strong>{fmtDiff(r.differencePLN)}</strong> ({fmtDiffPct(r.differencePercent)})
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {/* Bear + Bull — sensitivity analysis row */}
+      {sensitivityResults.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-text-muted uppercase tracking-wide px-1">Analiza wrażliwości</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {sensitivityResults.map(r => <ScenarioCard key={r.key} r={r} bmLabel={bmLabel} hasInflation={hasInflation} />)}
+          </div>
+        </div>
+      )}
 
       {/* Inflation projection note */}
       {hasInflation && (
-        <div className="bg-danger/5 border border-danger/30 rounded-xl px-4 py-3 text-xs text-danger flex items-start gap-2">
-          <TrendingDown size={16} className="mt-0.5 flex-shrink-0 text-danger" aria-hidden="true" />
+        <div className="bg-bg-hover border border-border rounded-xl px-4 py-3 text-xs text-text-secondary flex items-start gap-2">
+          <Info size={16} className="mt-0.5 flex-shrink-0 text-text-muted" aria-hidden="true" />
           <p>
-            <strong>Inflacja {currentInflationRate.toFixed(1)}%</strong>
+            <strong className="text-text-primary">Inflacja {currentInflationRate.toFixed(1)}%</strong>
             {cpiPeriod ? ` (${inflationSource ?? 'Eurostat'}, ${cpiPeriod})` : ''}.{' '}
-            Prognoza na {horizonYears.toFixed(horizonYears % 1 === 0 ? 0 : 1)} l.: <strong>{inflationRate.toFixed(1)}% śr./rok</strong>{' '}
-            (model: zbieżność do celu NBP {NBP_TARGET}%).{' '}
-            Skumulowana: <strong>{results[0]?.inflationTotalPercent.toFixed(1)}%</strong>.
+            W obliczeniach przyjmujemy ~<strong>{inflationRate.toFixed(1)}%/rok</strong> przez{' '}
+            {horizonYears.toFixed(horizonYears % 1 === 0 ? 0 : 1)} {horizonYears <= 1 ? 'rok' : horizonYears < 5 ? 'lata' : 'lat'}.{' '}
+            Łącznie kupisz za ok. <strong>{results[0]?.inflationTotalPercent.toFixed(1)}%</strong> mniej niż dziś.
             {inflationStale && (
               <span className="ml-1.5 text-danger font-medium">
-                ⚠ Dane mogą być nieaktualne — sprawdź Eurostat lub NBP.
+                ⚠ Dane mogą być nieaktualne.
               </span>
             )}
           </p>
