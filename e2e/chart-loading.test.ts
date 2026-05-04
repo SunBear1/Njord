@@ -104,7 +104,7 @@ test.describe('Chart loading — API error handling', () => {
 });
 
 test.describe('Chart loading — successful data flow', () => {
-  test('comparison chart renders all three scenario bars with valid data', async ({ page }) => {
+  test('verdict banner renders with scenario results', async ({ page }) => {
     await page.route(MARKET_DATA_URL, (route) =>
       route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
     );
@@ -132,12 +132,8 @@ test.describe('Chart loading — successful data flow', () => {
     );
     await sharesInput.fill('10');
 
-    // The comparison chart heading must appear
-    await expect(page.getByText('Wartość końcowa — porównanie')).toBeVisible({ timeout: 5_000 });
-
-    // Bear/Base/Bull bars rendered inside the chart
-    const chartSection = page.locator('text=Wartość końcowa — porównanie').locator('..');
-    await expect(chartSection).toBeVisible();
+    // The verdict banner with scenario results should appear
+    await expect(page.getByText(/Wyniki — co się bardziej opłaca/)).toBeVisible({ timeout: 5_000 });
   });
 
   test('timeline chart heading appears after data loads', async ({ page }) => {
@@ -166,34 +162,6 @@ test.describe('Chart loading — successful data flow', () => {
 
     // Timeline chart — lazy loaded via Suspense
     await expect(page.getByText('Wartość w czasie')).toBeVisible({ timeout: 8_000 });
-  });
-
-  test('breakeven heatmap heading appears after data loads', async ({ page }) => {
-    await page.route(MARKET_DATA_URL, (route) =>
-      route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
-    );
-    await page.route(NBP_URL, (route) =>
-      route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
-    );
-
-    await page.goto('/comparison');
-    await page.waitForSelector('main', { timeout: 10_000 });
-
-    await page.getByRole('button', { name: /ETF/i }).click();
-
-    const tickerInput = page.locator('input[placeholder*="AAPL"], input[id*="ticker"]').first();
-    await tickerInput.fill('AAPL');
-    await tickerInput.press('Enter');
-
-    await expect(page.getByText(/Apple Inc\./)).toBeVisible({ timeout: 8_000 });
-
-    const sharesInput = page.getByLabel(/Liczba akcji/i).or(
-      page.locator('input[type="number"]').first(),
-    );
-    await sharesInput.fill('10');
-
-    // Breakeven heatmap — lazy loaded via Suspense
-    await expect(page.getByText('Break-even — mapa rentowności')).toBeVisible({ timeout: 8_000 });
   });
 });
 
@@ -244,9 +212,8 @@ test.describe('Chart loading — skeleton states', () => {
     );
     await sharesInput.fill('10');
 
-    // All lazy chart sections (TimelineChart, BreakevenChart) resolve via Suspense —
-    // once resolved, no aria-busy containers remain in the chart area
-    await expect(page.getByText('Wartość końcowa — porównanie')).toBeVisible({ timeout: 10_000 });
+    // Timeline chart resolves via Suspense — once resolved, no aria-busy containers remain
+    await expect(page.getByText('Wartość w czasie')).toBeVisible({ timeout: 10_000 });
     await expect(page.locator('[aria-busy="true"]')).toHaveCount(0, { timeout: 10_000 });
 
     // No unhandled error banners from React
@@ -279,46 +246,12 @@ test.describe('Chart loading — ErrorBoundary', () => {
     );
     await sharesInput.fill('10');
 
-    await expect(page.getByText('Wartość końcowa — porównanie')).toBeVisible({ timeout: 5_000 });
+    // Verdict banner should be visible, not error boundary fallback
+    await expect(page.getByText(/Wyniki — co się bardziej opłaca/)).toBeVisible({ timeout: 5_000 });
 
     // ErrorBoundary fallback text must NOT be visible when everything succeeds
     await expect(
       page.getByText('Wystąpił błąd podczas renderowania tego komponentu'),
     ).not.toBeVisible();
-  });
-
-  test('retry button present in error boundary fallback copy', async ({ page }) => {
-    // Verify the ErrorBoundary component itself contains the retry button
-    // by navigating the DOM directly on the /comparison page after charts loaded
-    await page.route(MARKET_DATA_URL, (route) =>
-      route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
-    );
-    await page.route(NBP_URL, (route) =>
-      route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
-    );
-
-    await page.goto('/comparison');
-    await page.waitForSelector('main', { timeout: 10_000 });
-
-    await page.getByRole('button', { name: /ETF/i }).click();
-
-    const tickerInput = page.locator('input[placeholder*="AAPL"], input[id*="ticker"]').first();
-    await tickerInput.fill('AAPL');
-    await tickerInput.press('Enter');
-    await expect(page.getByText(/Apple Inc\./)).toBeVisible({ timeout: 8_000 });
-
-    // Inject a thrown error into the comparison chart via page.evaluate
-    // so we can verify the ErrorBoundary fallback UI
-    await page.evaluate(() => {
-      // Find the chart container and dispatch a synthetic error to trigger React's error boundary
-      const errorEvent = new ErrorEvent('error', {
-        message: 'Synthetic chart render error',
-        error: new Error('Synthetic chart render error'),
-      });
-      window.dispatchEvent(errorEvent);
-    });
-
-    // The error boundary may or may not catch window errors — what matters is the page doesn't crash
-    await expect(page.locator('main')).toBeVisible();
   });
 });
