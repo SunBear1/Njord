@@ -52,3 +52,14 @@ best-aurora-ever*
 *.Zone.Identifier
 Aurora Borealis Animation.jsx
 Aurora Borealis Animation.jsx:Zone.Identifier
+
+# ICM (persistent memory) - local session state
+.copilot/
+
+# AI/IDE tool configs - local only
+.aider.conventions.md
+.windsurfrules
+
+# Local documentation/reference (non-repo guidance)
+AGENTS.md
+CLAUDE.md
