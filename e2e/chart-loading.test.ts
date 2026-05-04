@@ -49,6 +49,9 @@ test.describe('Chart loading — API error handling', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
+    // Open input modal
+    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
+
     const tickerInput = page.locator('input[placeholder*="AAPL"], input[id*="ticker"]').first();
     await tickerInput.fill('AAPL');
     await tickerInput.press('Enter');
@@ -57,6 +60,7 @@ test.describe('Chart loading — API error handling', () => {
     await expect(page.locator('.text-danger, [class*="danger"]').first()).toBeVisible({ timeout: 5_000 });
 
     // No charts should be rendered — the placeholder message should show instead
+    await page.keyboard.press('Escape');
     await expect(page.getByText(/Wprowadź ticker/i)).toBeVisible({ timeout: 3_000 });
 
     // Page must remain functional (no full app crash)
@@ -74,6 +78,9 @@ test.describe('Chart loading — API error handling', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
+    // Open input modal
+    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
+
     const tickerInput = page.locator('input[placeholder*="AAPL"], input[id*="ticker"]').first();
     await tickerInput.fill('FAKEXYZ');
     await tickerInput.press('Enter');
@@ -90,6 +97,9 @@ test.describe('Chart loading — API error handling', () => {
 
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
+
+    // Open input modal
+    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
 
     const tickerInput = page.locator('input[placeholder*="AAPL"], input[id*="ticker"]').first();
     await tickerInput.fill('AAPL');
@@ -115,6 +125,9 @@ test.describe('Chart loading — successful data flow', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
+    // Open input modal
+    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
+
     // Use ETF benchmark — benchmarkReady = true without additional inputs
     await page.getByRole('button', { name: /ETF/i }).click();
 
@@ -132,6 +145,9 @@ test.describe('Chart loading — successful data flow', () => {
     );
     await sharesInput.fill('10');
 
+    // Close modal so verdict banner is unobscured
+    await page.keyboard.press('Escape');
+
     // The verdict banner with scenario results should appear
     await expect(page.getByText(/Wyniki — co się bardziej opłaca/)).toBeVisible({ timeout: 5_000 });
   });
@@ -147,6 +163,9 @@ test.describe('Chart loading — successful data flow', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
+    // Open input modal
+    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
+
     await page.getByRole('button', { name: /ETF/i }).click();
 
     const tickerInput = page.locator('input[placeholder*="AAPL"], input[id*="ticker"]').first();
@@ -159,6 +178,9 @@ test.describe('Chart loading — successful data flow', () => {
       page.locator('input[type="number"]').first(),
     );
     await sharesInput.fill('10');
+
+    // Close modal to view timeline chart
+    await page.keyboard.press('Escape');
 
     // Timeline chart — lazy loaded via Suspense
     await expect(page.getByText('Wartość w czasie')).toBeVisible({ timeout: 8_000 });
@@ -178,6 +200,9 @@ test.describe('Chart loading — skeleton states', () => {
 
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
+
+    // Open input modal
+    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
 
     const tickerInput = page.locator('input[placeholder*="AAPL"], input[id*="ticker"]').first();
     await tickerInput.fill('AAPL');
@@ -199,6 +224,9 @@ test.describe('Chart loading — skeleton states', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
+    // Open input modal
+    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
+
     await page.getByRole('button', { name: /ETF/i }).click();
 
     const tickerInput = page.locator('input[placeholder*="AAPL"], input[id*="ticker"]').first();
@@ -211,6 +239,9 @@ test.describe('Chart loading — skeleton states', () => {
       page.locator('input[id="shares-input"]'),
     );
     await sharesInput.fill('10');
+
+    // Close modal to view charts
+    await page.keyboard.press('Escape');
 
     // Timeline chart resolves via Suspense — once resolved, no aria-busy containers remain
     await expect(page.getByText('Wartość w czasie')).toBeVisible({ timeout: 10_000 });
@@ -233,6 +264,9 @@ test.describe('Chart loading — ErrorBoundary', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
+    // Open input modal
+    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
+
     await page.getByRole('button', { name: /ETF/i }).click();
 
     const tickerInput = page.locator('input[placeholder*="AAPL"], input[id*="ticker"]').first();
@@ -245,6 +279,9 @@ test.describe('Chart loading — ErrorBoundary', () => {
       page.locator('input[type="number"]').first(),
     );
     await sharesInput.fill('10');
+
+    // Close modal to view verdict banner
+    await page.keyboard.press('Escape');
 
     // Verdict banner should be visible, not error boundary fallback
     await expect(page.getByText(/Wyniki — co się bardziej opłaca/)).toBeVisible({ timeout: 5_000 });

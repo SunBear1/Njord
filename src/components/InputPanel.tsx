@@ -8,7 +8,7 @@ import { Tooltip } from './Tooltip';
 import { BondBenchmarkSection } from './inputs/BondBenchmarkSection';
 import { EtfBenchmarkSection } from './inputs/EtfBenchmarkSection';
 
-interface InputPanelProps {
+export interface InputPanelProps {
   onFetchAsset: (ticker: string) => void;
   assetData: AssetData | null;
   assetLoading: boolean;
