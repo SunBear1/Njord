@@ -45,7 +45,7 @@ resource "cloudflare_pages_project" "njord" {
   }
 
   lifecycle {
-    # Secrets (JWT_SECRET, OAuth keys, TWELVE_DATA_API_KEY) are managed
+    # Secrets (JWT_SECRET, OAuth keys) are managed
     # manually in the CF dashboard and must never be overwritten by Terraform.
     ignore_changes = [
       deployment_configs.production.env_vars,

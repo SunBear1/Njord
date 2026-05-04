@@ -23,10 +23,10 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
 
   // Fetch fresh user data + linked OAuth providers
   const [user, oauthRows] = await Promise.all([
-    env.DB.prepare(
+    env.AUTH_DB.prepare(
       'SELECT id, email, password_hash, name FROM users WHERE id = ?',
     ).bind(payload.sub).first<UserRow>(),
-    env.DB.prepare(
+    env.AUTH_DB.prepare(
       'SELECT provider FROM oauth_accounts WHERE user_id = ?',
     ).bind(payload.sub).all<{ provider: string }>(),
   ]);

@@ -28,7 +28,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     return errorResponse('INVALID_CREDENTIALS', 'Nieprawidłowy email lub hasło.', 401);
   }
 
-  const user = await env.DB.prepare(
+  const user = await env.AUTH_DB.prepare(
     'SELECT id, email, password_hash, name FROM users WHERE email = ?',
   ).bind(email.toLowerCase()).first<UserRow>();
 
@@ -43,7 +43,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
 
   const [token, oauthRows] = await Promise.all([
     signJwt({ sub: user.id, email: user.email, name: user.name }, env.JWT_SECRET),
-    env.DB.prepare('SELECT provider FROM oauth_accounts WHERE user_id = ?').bind(user.id).all<{ provider: string }>(),
+    env.AUTH_DB.prepare('SELECT provider FROM oauth_accounts WHERE user_id = ?').bind(user.id).all<{ provider: string }>(),
   ]);
 
   const isSecure = new URL(request.url).protocol === 'https:';

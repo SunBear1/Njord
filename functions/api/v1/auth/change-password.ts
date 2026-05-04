@@ -43,7 +43,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     return errorResponse('WEAK_PASSWORD', `Hasło nie może przekraczać ${MAX_PASSWORD_LENGTH} znaków.`, 400);
   }
 
-  const user = await env.DB.prepare('SELECT id, password_hash FROM users WHERE id = ?')
+  const user = await env.AUTH_DB.prepare('SELECT id, password_hash FROM users WHERE id = ?')
     .bind(payload.sub).first<UserRow>();
 
   if (!user) {
@@ -62,7 +62,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
   }
 
   const newHash = await hashPassword(newPassword);
-  await env.DB.prepare('UPDATE users SET password_hash = ?, updated_at = datetime(\'now\') WHERE id = ?')
+  await env.AUTH_DB.prepare('UPDATE users SET password_hash = ?, updated_at = datetime(\'now\') WHERE id = ?')
     .bind(newHash, payload.sub).run();
 
   return jsonResponse({ ok: true });
