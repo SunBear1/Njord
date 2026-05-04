@@ -48,7 +48,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
   }
 
   // Check for existing user
-  const existing = await env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email.toLowerCase()).first<UserRow>();
+  const existing = await env.AUTH_DB.prepare('SELECT id FROM users WHERE email = ?').bind(email.toLowerCase()).first<UserRow>();
   if (existing) {
     return errorResponse('EMAIL_EXISTS', 'Konto z tym adresem email już istnieje.', 409);
   }
@@ -56,7 +56,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
   const userId = crypto.randomUUID();
   const passwordHash = await hashPassword(password);
 
-  await env.DB.prepare(
+  await env.AUTH_DB.prepare(
     'INSERT INTO users (id, email, password_hash, name) VALUES (?, ?, ?, ?)',
   ).bind(userId, email.toLowerCase(), passwordHash, name ?? null).run();
 

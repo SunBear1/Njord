@@ -32,7 +32,7 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
     body = {};
   }
 
-  const user = await env.DB.prepare('SELECT id, password_hash FROM users WHERE id = ?')
+  const user = await env.AUTH_DB.prepare('SELECT id, password_hash FROM users WHERE id = ?')
     .bind(payload.sub).first<UserRow>();
 
   if (!user) {
@@ -51,9 +51,9 @@ export const onRequestPost: PagesFunction<AuthEnv> = async ({ request, env }) =>
   }
 
   // Delete OAuth accounts first, then user (CASCADE should handle this, but be explicit)
-  await env.DB.batch([
-    env.DB.prepare('DELETE FROM oauth_accounts WHERE user_id = ?').bind(user.id),
-    env.DB.prepare('DELETE FROM users WHERE id = ?').bind(user.id),
+  await env.AUTH_DB.batch([
+    env.AUTH_DB.prepare('DELETE FROM oauth_accounts WHERE user_id = ?').bind(user.id),
+    env.AUTH_DB.prepare('DELETE FROM users WHERE id = ?').bind(user.id),
   ]);
 
   const isSecure = new URL(request.url).protocol === 'https:';

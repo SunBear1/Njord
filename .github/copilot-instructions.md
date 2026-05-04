@@ -1,117 +1,118 @@
-# Copilot Instructions — Njord
+# Njord
 
-**Njord** — Polish-language investment calculator SPA comparing USD stock/ETF portfolios against Polish savings instruments (savings accounts, 8 types of government bonds, ETFs). All financial computation runs client-side. Hosted on Cloudflare Pages with thin Pages Functions backend.
+Polish-language investment calculator SPA. Compares USD stock/ETF portfolios against Polish savings instruments (savings accounts, 8 bond types, ETFs). All financial computation client-side.
 
-- **Routes:** `/` (home), `/comparison`, `/forecast`, `/tax`, `/portfolio`, `/rates`
 - **Live:** https://njord.pages.dev
+- **Routes:** `/` `/comparison` `/forecast` `/tax` `/portfolio` `/rates`
 - **UI language:** Polish | **Code/commits/docs:** English
-- **Base currency:** PLN (converted from USD via NBP)
 
-## Commands
+## Platform
 
-```bash
-npm run dev          # Frontend only → http://localhost:5173/
-npm run dev:full     # Full stack (Vite + Pages Functions) → http://localhost:8788/
-npm run build        # tsc -b && vite build
-npm run lint         # ESLint (zero-error enforced)
-npm test             # Vitest — all tests
-npm run test:watch   # Vitest — watch mode
-npm run test:e2e     # Playwright E2E (requires preview server)
-npx tsc --noEmit     # Type-check only (fast)
-npx vitest run src/__tests__/gbmModel.test.ts  # Single test file
-```
-
-Local Pages Functions work without any configuration (Yahoo Finance requires no key).
-To enable the Twelve Data fallback, create `.dev.vars` with `TWELVE_DATA_API_KEY=...`.
+- **Runtime:** Node 22 LTS | **Package manager:** npm (never yarn/pnpm)
+- **Framework:** React 19 + Vite 6 | **Language:** TypeScript strict
+- **Styling:** Tailwind CSS v4 (utility classes only, semantic tokens via `@theme`)
+- **Deploy:** Cloudflare Pages — V8 isolates (NOT Node.js; no `fs`, `path`, `process`)
+- **Browser targets:** last 2 versions Chrome, Firefox, Safari
+- **CI:** GitHub Actions (Ubuntu latest)
+- **Shell:** fish (default shell on localhost machine)
 
 ## Architecture
 
 ```
-src/
-├── pages/              Route-level components (own their state)
-├── components/         UI components (props from pages)
-├── hooks/              Data fetching + state management
-├── utils/              Pure calculation functions (ZERO side effects)
-│   └── models/         GBM, Bootstrap, HMM prediction models
-├── providers/          API adapters (Yahoo Finance, NBP)
-├── workers/            Web Worker for HMM Monte Carlo (browser, NOT CF Worker)
-└── types/              TypeScript interfaces
+src/pages/         Page components (own their state, pass via props)
+src/components/    UI (receives props, never fetches data)
+src/hooks/         Data fetching + state management
+src/utils/         Pure calculation functions (ZERO side effects)
+src/utils/models/  GBM, Bootstrap, HMM prediction models
+src/providers/     API adapters (Yahoo Finance, NBP)
+src/workers/       Web Worker for HMM Monte Carlo (browser, NOT CF Worker)
+src/types/         TypeScript interfaces
 
-functions/api/          Cloudflare Pages Functions (thin proxy/cache)
-infrastructure/         Terraform (CF Pages + D1)
+functions/api/     CF Pages Functions (thin proxy/cache layer)
+infrastructure/    Terraform (CF Pages + D1)
 ```
 
-**Each page component owns its state** — `Layout.tsx` owns shared concerns (dark mode, auth). react-router-dom v7 with BrowserRouter.
+No global state. Pages own state -> pass via props. `Layout.tsx` owns shared concerns only.
 
-**Data flow:**
-1. `useAssetData` → calls `/api/market-data` Pages Function → Yahoo Finance (primary) or Twelve Data (429 fallback) + NBP (FX history)
-2. `useFxData` → direct NBP call for live USD/PLN sell rate
-3. `useHistoricalVolatility` → runs prediction models client-side (GBM or Bootstrap depending on horizon)
-4. Page components → pass scenarios + asset data to calculation functions → distribute results to chart/display components
+## Response Format
 
-**Backend** (`functions/api/market-data.ts`): Thin proxy — Yahoo Finance primary (no key), Twelve Data fallback on 429 (optional key). Caches at CF edge for 1 hour. All financial computation runs in the browser.
+- Be terse. Minimal diffs. Changed lines only unless full context is needed.
+- One best answer — no alternatives unless asked.
+- No preamble, no restating the question, no summaries of what you did.
+- If the answer is one command, give one command.
+- Use plan mode for multi-file changes.
 
-**Prediction engine:** ≤6 months → Block Bootstrap; >6 months → Calibrated GBM. HMM is used only by the Price Forecast feature — it does NOT drive bear/base/bull scenarios.
+## Critical Invariants
 
-**Financial calculations** (`src/utils/calculations.ts`): Pure functions — `calcAllScenarios`, `calcTimeline`, `calcHeatmap`. Polish 19% Belka tax applied to all profit.
+1. **Belka tax = 19% on PROFIT only** — never on principal.
+2. **FX x stock deltas are multiplicative** — `(1+dS) * (1+dFX)`, never additive.
+3. **NBP rate = last business day BEFORE transaction** — never the transaction date itself.
+4. **No global state** — no Redux, Zustand, Jotai, Context stores. Pages own state.
+5. **Pure financial functions** — no `fetch`, `localStorage`, or DOM in `src/utils/`.
+6. **UI in Polish, code in English** — no mixing.
+7. **Tailwind tokens only** — no hardcoded hex, no CSS modules, no `@apply`.
+8. **All checks pass before commit** — `npx tsc --noEmit && npm run lint && npm test && npm run build`.
+9. **No secrets in code** — never commit `.dev.vars`, API keys, or tokens.
 
 ## Conventions
 
-- **UI text: Polish.** Everything else (code, commits, docs, comments): English.
 - **Commits:** Conventional Commits — `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`
-- **Styling:** Tailwind CSS v4 utility classes only. Semantic color tokens defined in `src/index.css` via `@theme` — use existing tokens, add new ones there when needed. Never hardcode hex in components.
-- **Components:** Functional with hooks. Props typed via interfaces. No class components.
-- **React 19:** Use `use()` instead of `useContext()`. Pass `ref` as a regular prop (no `forwardRef`).
-- **Charts:** Recharts library with consistent color palette from CSS variables.
-- **Icons:** Lucide React.
+- **React 19:** `use()` not `useContext()`. `ref` as prop, no `forwardRef`.
+- **Components:** Functional + hooks. Props typed via named interfaces.
+- **Charts:** Recharts with colors from CSS variables. **Icons:** Lucide React.
+- **Prediction engine:** <=6 months -> Block Bootstrap; >6 months -> Calibrated GBM.
 
-## Critical Invariants (never violate)
+## Code Quality
 
-1. **Belka tax = 19% on PROFIT only** — never on principal.
-2. **FX × stock deltas are multiplicative** — `(1+dS) × (1+dFX)`, never additive.
-3. **NBP rate = last business day BEFORE transaction** — never the transaction date.
-4. **No global state** — pages own state, pass via props.
-5. **Pure financial functions** — no `fetch`, no `localStorage`, no DOM in `src/utils/`.
-6. **UI in Polish, code in English** — no mixing.
-7. **Tailwind tokens only** — no hardcoded colors, no CSS modules.
-8. **All tests pass before commit** — `npm run lint && npm test && npm run build`.
+Always enforced across all code changes:
 
-## Validation (every change)
+- **File limits:** Components <300 lines, utils <200, hooks <150
+- **No catch-all files:** Never create `utils/helpers.ts`, `common/index.ts`, or similar dumping grounds
+- **No premature abstractions:** No factories, DI containers, or interfaces with only 1 implementation
+- **Naming:** Domain-specific (`belkaTax`, `nbpRate`, `deltaStock`) — never generic (`data`, `info`, `item`, `result`, `value`)
+- **Code:** No `console.log` (only `console.error` for genuine errors), no commented-out code, no `TODO` without issue reference
+- **Imports:** Every import must be used; no dead code
+
+## Validation
+
+Critical validation before commiting changes:
 
 ```bash
-npx tsc --noEmit && npm run lint && npm test && npm run build
+npx tsc --noEmit --skipLibCheck -p functions/tsconfig.json && npm run lint && npm test && npm run build && npx playwright test
 ```
 
-No exceptions. No skipping. Fix failures before proceeding.
+No exceptions. Fix failures before proceeding. Context-specific checks in `.github/instructions/` files per domain.
 
-## Delivering work
+## Delivering Work
 
-Every task — regardless of which agent performs it — is delivered as a pull request:
+1. Feature branch: `<type>/<short-description>` (e.g. `feat/bond-calculator`).
+2. Conventional Commits message.
+3. Push + `gh pr create --base main`.
+4. Present PR URL as the final step.
 
-1. Do all work on a dedicated feature branch (never commit directly to `main`).
-   - Branch name: `<type>/<short-description>` following Conventional Commits types (e.g. `feat/bond-calculator`, `fix/nbp-rate-lookup`, `ci/path-filters`).
-2. Commit with a Conventional Commits message (`feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, etc.).
-3. Push the branch and open a PR targeting **`main`** with `gh pr create --base main`. Always target `main` — never another feature branch.
-4. Present the PR URL to the user as the final step of every task.
+Never commit directly to `main`.
 
-## Color Tokens & Accessibility
+## Security
 
-**Critical:** `dark:text-faint` is an **ESLint error** — it fails WCAG AA on all dark surfaces.
+- `.dev.vars` is `.gitignore`d — never stage it.
+- API keys live in CF Pages secrets, never in code or responses.
+- If a command is destructive (`rm -rf`, `DROP`, force push) — warn before executing.
 
-Before applying any text color token in dark mode, consult `src/tokens/colorPairings.ts`:
+## Dependencies
 
-| Intent | Light token | Dark token | Dark contrast on bg-surface |
-|--------|------------|------------|------------------------------|
-| Headings, primary | `text-heading` | `dark:text-heading` | 16:1 ✅ |
-| Body copy | `text-body` | `dark:text-body` or `dark:text-on-dark-muted` | 10.4:1 ✅ |
-| Secondary / helper | `text-muted` | `dark:text-muted` | 5.3:1 ✅ |
-| Text on dark card | — | `dark:text-on-dark` | 16:1 ✅ |
-| Decorative only | `text-faint` | ❌ never `dark:text-faint` | 2.4:1 ❌ |
+Before adding any npm package:
+1. Can I write it in <50 lines of TS? -> Write it.
+2. Is it a polyfill for something in Node 22 / modern browsers? -> Do not add.
+3. Does it pull >100KB into the bundle? -> Find a lighter alternative.
+4. Maintained (updated in last 6 months)? -> Acceptable.
 
-**Post-generation validation (after any UI change):**
-```bash
-npm run test:contrast  # 36 WCAG contrast tests — runs as part of npm test
-npm run lint           # ESLint bans dark:text-faint
-```
+## Path-Specific Instructions
 
-If you change color tokens in `src/index.css`, re-run `npm run generate:pairings` and commit the updated `src/tokens/colorPairings.ts`.
+Detailed rules for specific file types live in `.github/instructions/`:
+- `react-components.instructions.md` — Component design, Tailwind, accessibility
+- `hooks-state-providers.instructions.md` — State management, data fetching, providers
+- `financial-calculations.instructions.md` — Tax, bond math, prediction models
+- `testing.instructions.md` — Test patterns, Playwright, edge cases
+- `backend-api.instructions.md` — Cloudflare Pages Functions, caching, CORS
+- `styling-tokens.instructions.md` — Design tokens, theming, dark mode
+- `infrastructure.instructions.md` — Terraform, GitHub Actions

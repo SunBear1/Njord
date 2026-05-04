@@ -91,7 +91,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
       }
 
       // Check if this GitHub account is already linked to another user
-      const existingOAuth = await env.DB.prepare(
+      const existingOAuth = await env.AUTH_DB.prepare(
         'SELECT user_id FROM oauth_accounts WHERE provider = ? AND provider_user_id = ?',
       ).bind('github', String(ghUser.id)).first<{ user_id: string }>();
 
@@ -100,7 +100,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
       }
 
       if (!existingOAuth) {
-        await env.DB.prepare(
+        await env.AUTH_DB.prepare(
           'INSERT INTO oauth_accounts (id, user_id, provider, provider_user_id, provider_email) VALUES (?, ?, ?, ?, ?)',
         ).bind(crypto.randomUUID(), payload.sub, 'github', String(ghUser.id), primaryEmail).run();
       }
@@ -112,7 +112,7 @@ export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => 
     }
 
     // Normal login/register flow
-    const user = await findOrCreateOAuthUser(env.DB, {
+    const user = await findOrCreateOAuthUser(env.AUTH_DB, {
       provider: 'github',
       providerUserId: String(ghUser.id),
       email: primaryEmail,
