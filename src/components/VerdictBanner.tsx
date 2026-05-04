@@ -27,12 +27,12 @@ const SCENARIO_STYLE = {
   bear: {
     bg: 'bg-danger/5',
     border: 'border-danger/30',
-    badge: 'bg-danger/10 bg-danger/10 text-danger border border-danger/30',
+    badge: 'bg-danger/10 text-danger border border-danger/30',
   },
   base: {
-    bg: 'bg-danger/5',
-    border: 'border-danger/30',
-    badge: 'bg-danger/10 text-danger border border-danger/30',
+    bg: 'bg-bg-hover/30',
+    border: 'border-border',
+    badge: 'bg-bg-hover text-text-secondary border border-border',
   },
   bull: {
     bg: 'bg-success/5',
@@ -51,8 +51,27 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
     ? `Podatek Belki 19% od zysku z akcji i ${bmLabel === 'Obligacje' ? 'obligacji' : 'konta oszczędnościowego'}. Inflacja ${inflationRate.toFixed(1)}% śr./rok (bieżąca ${currentInflationRate.toFixed(1)}% → cel NBP ${NBP_TARGET}%). Wartości realne zaznaczone kolorem.`
     : 'Podatek Belki 19% od zysku z akcji i konta/obligacji. Dane inflacyjne nieładowane — wartości nominalne.';
 
+  const baseResult = results[1] ?? results[0];
+  const stockWinsBase = baseResult?.stockBeatsBenchmark ?? false;
+  const heroDiff = Math.abs(baseResult?.differencePLN ?? 0);
+  const heroDiffPct = Math.abs(baseResult?.differencePercent ?? 0);
+  const heroWinner = stockWinsBase ? 'Akcje' : bmLabel;
+  const heroIsPositive = stockWinsBase;
+
   return (
     <div className="space-y-3">
+      {/* Hero verdict */}
+      <div className={`rounded-xl border-2 px-5 py-4 flex items-center gap-4 flex-wrap ${heroIsPositive ? 'bg-success/5 border-success/30' : 'bg-bg-hover border-border'}`}>
+        <div className={`text-2xl font-bold ${heroIsPositive ? 'text-success' : 'text-text-primary'}`}>
+          {heroWinner} {heroIsPositive ? 'wygrywają' : 'wygrywa'}
+        </div>
+        <div className="text-sm text-text-secondary">
+          W scenariuszu bazowym — o{' '}
+          <strong className={`tabular-nums ${heroIsPositive ? 'text-success' : 'text-text-primary'}`}>{fmtPLN(heroDiff)}</strong>
+          {' '}(<strong>{heroDiffPct >= 0 ? '+' : ''}{heroDiffPct.toFixed(1)}%</strong>)
+        </div>
+      </div>
+
       {/* Header row: title + single disclaimer badge */}
       <div className="flex items-center gap-3 flex-wrap">
         <h2 className="text-lg font-semibold text-text-primary">Wyniki — co się bardziej opłaca?</h2>

@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect, useMemo, useDeferredValue, lazy, Susp
 import { InputPanel } from '../components/InputPanel';
 import { ScenarioEditor } from '../components/ScenarioEditor';
 import { VerdictBanner } from '../components/VerdictBanner';
-import ComparisonChart from '../components/ComparisonChart';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { Skeleton } from '../components/Skeleton';
 import { useAssetData } from '../hooks/useAssetData';
@@ -16,12 +15,10 @@ import { usePortfolioState } from '../hooks/usePortfolioState';
 import {
   calcAllScenarios,
   calcTimeline,
-  calcHeatmap,
 } from '../utils/calculations';
 import { blendedInflationRate, blendedSavingsRate } from '../utils/inflationProjection';
 
 const TimelineChartLazy = lazy(() => import('../components/TimelineChart'));
-const BreakevenChartLazy = lazy(() => import('../components/BreakevenChart'));
 
 const DEFAULT_SCENARIOS = {
   bear: { deltaStock: -10, deltaFx: -5 },
@@ -141,13 +138,11 @@ export function ComparisonPage() {
 
   const results = useMemo(() => canCalc ? calcAllScenarios(calcInputs, scenarios) : null, [canCalc, calcInputs, scenarios]);
   const timeline = useMemo(() => canCalc ? calcTimeline(calcInputs, scenarios) : null, [canCalc, calcInputs, scenarios]);
-  const heatmap = useMemo(() => canCalc ? calcHeatmap(calcInputs) : null, [canCalc, calcInputs]);
 
   // Defer chart data to prevent Recharts' internal Redux store from being overwhelmed
   // by concurrent React 19 renders during rapid state updates (ticker load + model completion)
   const deferredResults = useDeferredValue(results);
   const deferredTimeline = useDeferredValue(timeline);
-  const deferredHeatmap = useDeferredValue(heatmap);
 
   const [inputCollapsed, setInputCollapsed] = useState(false);
 
@@ -242,12 +237,6 @@ export function ComparisonPage() {
 
         {deferredResults && (
           <>
-            <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-bg-hover border border-border text-xs text-text-muted" role="note">
-              <span aria-hidden="true">ℹ️</span>
-              <span>
-                <strong>Wartości szacunkowe</strong> — wyniki zależą od wybranych scenariuszy i nie uwzględniają wydarzeń fundamentalnych. Nie stanowią doradztwa inwestycyjnego ani podatkowego.
-              </span>
-            </div>
             <ErrorBoundary>
               <VerdictBanner
                 results={deferredResults}
@@ -260,9 +249,6 @@ export function ComparisonPage() {
                 avgCostUSD={avgCostUSD || undefined}
               />
             </ErrorBoundary>
-            <ErrorBoundary>
-              <ComparisonChart results={deferredResults} isDark={isDark} />
-            </ErrorBoundary>
             {deferredTimeline && (
               <ErrorBoundary>
                 <Suspense fallback={<Skeleton.Chart height={220} />}>
@@ -272,17 +258,6 @@ export function ComparisonPage() {
                     benchmarkLabel={deferredResults[0]?.benchmarkLabel ?? 'Konto'}
                     inflationRate={effectiveInflation}
                     isDark={isDark}
-                  />
-                </Suspense>
-              </ErrorBoundary>
-            )}
-            {deferredHeatmap && (
-              <ErrorBoundary>
-                <Suspense fallback={<Skeleton.Chart height={220} />}>
-                  <BreakevenChartLazy
-                    cells={deferredHeatmap}
-                    benchmarkEndValuePLN={deferredResults[0]?.benchmarkEndValuePLN ?? 0}
-                    benchmarkLabel={deferredResults[0]?.benchmarkLabel ?? 'Konto'}
                   />
                 </Suspense>
               </ErrorBoundary>
