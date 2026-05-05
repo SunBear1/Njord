@@ -39,6 +39,7 @@ export interface AutofillSources {
 
 export interface PortfolioState {
   // Inputs
+  savedAt: number;
   ticker: string;
   setTicker: (v: string) => void;
   shares: number;
@@ -94,15 +95,16 @@ export function usePortfolioState(
 ): PortfolioState {
   const [saved] = useState(loadState);
 
+  const [savedAt, setSavedAt] = useState(0);
   const [ticker, setTicker] = useState(saved?.ticker ?? '');
   const [shares, setShares] = useState(saved?.shares ?? 0);
-  const [currentPriceUSD, setCurrentPriceUSD] = useState(0);
-  const [currentFxRate, setCurrentFxRate] = useState(0);
+  const [currentPriceUSD, setCurrentPriceUSD] = useState(saved?.currentPriceUSD ?? 0);
+  const [currentFxRate, setCurrentFxRate] = useState(saved?.currentFxRate ?? 0);
   const [wibor3m, setWibor3m] = useState(saved?.wibor3m ?? 0);
   const [benchmarkType, setBenchmarkType] = useState<BenchmarkType>(saved?.benchmarkType ?? 'savings');
   const [bondSettings, setBondSettings] = useState<BondSettings>(saved?.bondSettings ?? DEFAULT_BOND_SETTINGS);
   const [bondPresetId, setBondPresetId] = useState(saved?.bondPresetId ?? 'OTS');
-  const [inflationRate, setInflationRate] = useState(0);
+  const [inflationRate, setInflationRate] = useState(saved?.inflationRate ?? 0);
   const [nbpRefRate, setNbpRefRate] = useState(saved?.nbpRefRate ?? 0);
   const [horizonMonths, setHorizonMonths] = useState(saved?.horizonMonths ?? DEFAULT_HORIZON_MONTHS);
   const [avgCostUSD, setAvgCostUSD] = useState(saved?.avgCostUSD ?? 0);
@@ -164,15 +166,18 @@ export function usePortfolioState(
   useEffect(() => {
     const timer = setTimeout(() => {
       saveState({
-        ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId,
+        ticker, shares, currentPriceUSD, currentFxRate, wibor3m, inflationRate,
+        nbpRefRate, bondSettings, bondPresetId,
         horizonMonths, benchmarkType, userScenarios, avgCostUSD, isRSU,
         brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent,
         etfTerPercent, etfTicker,
       });
+      setSavedAt(Date.now());
     }, 600);
     return () => clearTimeout(timer);
   }, [
-    ticker, shares, wibor3m, nbpRefRate, bondSettings, bondPresetId,
+    ticker, shares, currentPriceUSD, currentFxRate, wibor3m, inflationRate,
+    nbpRefRate, bondSettings, bondPresetId,
     horizonMonths, benchmarkType, userScenarios, avgCostUSD, isRSU,
     brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent,
     etfTerPercent, etfTicker,
@@ -217,6 +222,7 @@ export function usePortfolioState(
   }, []);
 
   return {
+    savedAt,
     ticker, setTicker,
     shares, setShares,
     currentPriceUSD, setCurrentPriceUSD,

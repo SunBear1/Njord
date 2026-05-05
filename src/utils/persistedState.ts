@@ -1,13 +1,16 @@
 import type { BenchmarkType, BondSettings, Scenarios } from '../types/scenario';
 
 const STORAGE_KEY = 'njord_state';
-const SCHEMA_VERSION = 5;
+const SCHEMA_VERSION = 6;
 
 interface PersistedState {
   _v: number;
   ticker: string;
   shares: number;
+  currentPriceUSD: number;
+  currentFxRate: number;
   wibor3m: number;
+  inflationRate: number;
   nbpRefRate: number;
   bondSettings: BondSettings;
   bondPresetId: string;
@@ -29,7 +32,7 @@ export function loadState(): Partial<PersistedState> | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PersistedState & { activeSection?: string };
     // Accept current and previous schema versions
-    if (parsed._v !== SCHEMA_VERSION && parsed._v !== 4 && parsed._v !== 3 && parsed._v !== 2 && parsed._v !== 1) return null;
+    if (parsed._v !== SCHEMA_VERSION && parsed._v !== 5 && parsed._v !== 4 && parsed._v !== 3 && parsed._v !== 2 && parsed._v !== 1) return null;
     // Migration: v2 → v3 — add maturityMonths to bondSettings, add isRSU
     if ((parsed._v === 1 || parsed._v === 2) && parsed.bondSettings && !('maturityMonths' in parsed.bondSettings)) {
       (parsed.bondSettings as BondSettings).maturityMonths = 12;

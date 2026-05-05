@@ -42,7 +42,7 @@ export function ComparisonPage() {
     etfAnnualizedReturn: etfAnnualizedReturn,
   });
   const {
-    ticker, setTicker, shares, setShares, currentPriceUSD, setCurrentPriceUSD,
+    savedAt, ticker, setTicker, shares, setShares, currentPriceUSD, setCurrentPriceUSD,
     currentFxRate, setCurrentFxRate, wibor3m, setWibor3m, benchmarkType, horizonMonths, setHorizonMonths,
     userScenarios, scenarioEditKey, setScenarioEditKey,
     inflationRate, setInflationRate, etfAnnualReturnPercent, setEtfAnnualReturnPercent,
@@ -263,6 +263,7 @@ export function ComparisonPage() {
       <InputModal
         isOpen={isInputOpen}
         onClose={() => setIsInputOpen(false)}
+        savedAt={savedAt}
         {...inputPanelProps}
       />
 

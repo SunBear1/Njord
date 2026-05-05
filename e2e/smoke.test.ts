@@ -92,6 +92,18 @@ test.describe('Njord smoke tests', () => {
     await expect(inputs).toHaveValue('AAPL');
   });
 
+  test('comparison input modal shows saved message after form entry', async ({ page }) => {
+    await page.goto('/comparison');
+    await page.waitForSelector('main', { timeout: 10_000 });
+
+    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
+
+    const sharesInput = page.locator('#shares-input');
+    await sharesInput.fill('12');
+
+    await expect(page.getByText('Dane wejściowe zostały zapisane')).toBeVisible({ timeout: 3_000 });
+  });
+
   test('price forecast page loads with ticker input', async ({ page }) => {
     await page.goto('/forecast');
     await page.waitForSelector('main', { timeout: 10_000 });

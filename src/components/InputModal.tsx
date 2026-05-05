@@ -1,55 +1,92 @@
-import { useEffect } from 'react';
-import { X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { CheckCircle2 } from 'lucide-react';
 import { InputPanel } from './InputPanel';
 import type { InputPanelProps } from './InputPanel';
 
-interface InputModalProps extends Omit<InputPanelProps, 'collapsed' | 'onToggleCollapse'> {
+interface InputModalProps extends Omit<InputPanelProps, 'collapsed' | 'onToggleCollapse' | 'header'> {
   isOpen: boolean;
   onClose: () => void;
+  savedAt: number;
 }
 
-export function InputModal({ isOpen, onClose, ...inputPanelProps }: InputModalProps) {
+export function InputModal({ isOpen, onClose, savedAt, ...inputPanelProps }: InputModalProps) {
+  const [showSavedNotice, setShowSavedNotice] = useState(false);
+  const seenSavedAtRef = useRef(savedAt);
+  const handleClose = useCallback(() => {
+    seenSavedAtRef.current = savedAt;
+    setShowSavedNotice(false);
+    onClose();
+  }, [onClose, savedAt]);
+
   useEffect(() => {
     if (!isOpen) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose(); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [isOpen, onClose]);
+  }, [handleClose, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      seenSavedAtRef.current = savedAt;
+      return;
+    }
+
+    if (savedAt === 0 || savedAt === seenSavedAtRef.current) {
+      return;
+    }
+
+    seenSavedAtRef.current = savedAt;
+    setShowSavedNotice(true);
+
+    const timer = window.setTimeout(() => {
+      setShowSavedNotice(false);
+    }, 2000);
+
+    return () => window.clearTimeout(timer);
+  }, [isOpen, savedAt]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
-      {/* Backdrop */}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+      onClick={handleClose}
+    >
       <div
-        className="absolute inset-0 bg-black/40"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Drawer panel */}
-      <div
-        className="relative bg-bg-primary w-full max-w-xl h-full overflow-y-auto shadow-2xl border-l border-border flex flex-col"
+        className="bg-bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
         role="dialog"
         aria-modal="true"
         aria-label="Dane wejściowe"
+        onClick={(event) => event.stopPropagation()}
       >
-        {/* Close button */}
-        <div className="flex items-center justify-between px-5 pt-4 pb-2 shrink-0 border-b border-border bg-bg-primary sticky top-0 z-10">
-          <span className="text-base font-semibold text-text-primary">Dane wejściowe</span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-hover transition-colors"
-            aria-label="Zamknij"
-          >
-            <X size={20} />
-          </button>
+        <div className="sticky top-0 bg-bg-card border-b border-border">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div className="space-y-1">
+              <h2 className="text-lg font-semibold text-text-primary">Dane wejściowe</h2>
+              <p
+                aria-live="polite"
+                className={`flex items-center gap-1.5 text-xs text-success transition-opacity duration-200 ${showSavedNotice ? 'visible opacity-100' : 'invisible opacity-0'}`}
+              >
+                <CheckCircle2 size={12} aria-hidden="true" />
+                Dane wejściowe zostały zapisane
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="text-2xl leading-none text-text-muted hover:text-text-primary"
+              aria-label="Zamknij"
+            >
+              ×
+            </button>
+          </div>
         </div>
 
-        {/* InputPanel without collapse controls */}
-        <div className="flex-1">
-          <InputPanel {...inputPanelProps} />
+        <div className="px-6 py-5">
+          <InputPanel
+            {...inputPanelProps}
+            header={null}
+          />
         </div>
       </div>
     </div>
