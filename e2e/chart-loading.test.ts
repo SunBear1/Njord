@@ -59,9 +59,9 @@ test.describe('Chart loading — API error handling', () => {
     // Error message should appear below the ticker input
     await expect(page.locator('.text-danger, [class*="danger"]').first()).toBeVisible({ timeout: 5_000 });
 
-    // No charts should be rendered — the placeholder message should show instead
+    // No charts should be rendered — the recommendation-first empty state should show instead
     await page.keyboard.press('Escape');
-    await expect(page.getByText(/Wprowadź ticker/i)).toBeVisible({ timeout: 3_000 });
+    await expect(page.getByText(/Najpierw ustaw pozycję i alternatywę reinwestycji/i)).toBeVisible({ timeout: 3_000 });
 
     // Page must remain functional (no full app crash)
     await expect(page.locator('main')).toBeVisible();
@@ -114,7 +114,7 @@ test.describe('Chart loading — API error handling', () => {
 });
 
 test.describe('Chart loading — successful data flow', () => {
-  test('verdict banner renders with scenario results', async ({ page }) => {
+  test('recommendation-first summary renders with decision markers', async ({ page }) => {
     await page.route(MARKET_DATA_URL, (route) =>
       route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
     );
@@ -145,11 +145,12 @@ test.describe('Chart loading — successful data flow', () => {
     );
     await sharesInput.fill('10');
 
-    // Close modal so verdict banner is unobscured
+    // Close modal so the recommendation layer is visible
     await page.keyboard.press('Escape');
 
-    // The verdict banner with scenario results should appear
-    await expect(page.getByText(/Wyniki — co się bardziej opłaca/)).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText(/Rekomendacja teraz/)).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText(/Dlaczego taki werdykt/)).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole('button', { name: /Pokaż pełną analizę/i })).toBeVisible();
   });
 
   test('timeline chart heading appears after data loads', async ({ page }) => {
@@ -179,11 +180,40 @@ test.describe('Chart loading — successful data flow', () => {
     );
     await sharesInput.fill('10');
 
-    // Close modal to view timeline chart
+    // Close modal, then open the deep-analysis layer
     await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: /Pokaż pełną analizę/i }).click();
 
     // Timeline chart — lazy loaded via Suspense
     await expect(page.getByText('Wartość w czasie')).toBeVisible({ timeout: 8_000 });
+  });
+
+  test('sticky input header stays on top while modal content scrolls', async ({ page }) => {
+    await page.goto('/comparison');
+    await page.waitForSelector('main', { timeout: 10_000 });
+
+    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
+
+    const dialog = page.getByRole('dialog', { name: /Dane wejściowe/i });
+    const header = dialog.locator('[data-input-modal-header="true"]');
+    await expect(header).toBeVisible();
+
+    await dialog.evaluate((node) => {
+      node.scrollTop = 120;
+    });
+
+    const headerBox = await header.boundingBox();
+    expect(headerBox).not.toBeNull();
+
+    const headerOwnsBottomEdge = await page.evaluate(({ x, y }) => {
+      const element = document.elementFromPoint(x, y);
+      return Boolean(element?.closest('[data-input-modal-header="true"]'));
+    }, {
+      x: (headerBox?.x ?? 0) + ((headerBox?.width ?? 0) / 2),
+      y: (headerBox?.y ?? 0) + (headerBox?.height ?? 0) - 4,
+    });
+
+    expect(headerOwnsBottomEdge).toBe(true);
   });
 });
 
@@ -240,8 +270,9 @@ test.describe('Chart loading — skeleton states', () => {
     );
     await sharesInput.fill('10');
 
-    // Close modal to view charts
+    // Close modal, then open the deep-analysis layer
     await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: /Pokaż pełną analizę/i }).click();
 
     // Timeline chart resolves via Suspense — once resolved, no aria-busy containers remain
     await expect(page.getByText('Wartość w czasie')).toBeVisible({ timeout: 10_000 });
@@ -280,10 +311,11 @@ test.describe('Chart loading — ErrorBoundary', () => {
     );
     await sharesInput.fill('10');
 
-    // Close modal to view verdict banner
+    // Close modal, then open the deep-analysis layer
     await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: /Pokaż pełną analizę/i }).click();
 
-    // Verdict banner should be visible, not error boundary fallback
+    // Deep-analysis verdict banner should be visible, not error boundary fallback
     await expect(page.getByText(/Wyniki — co się bardziej opłaca/)).toBeVisible({ timeout: 5_000 });
 
     // ErrorBoundary fallback text must NOT be visible when everything succeeds
