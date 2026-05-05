@@ -65,3 +65,11 @@ export function saveState(state: Omit<PersistedState, '_v'>): void {
     // localStorage unavailable or quota exceeded — ignore silently
   }
 }
+
+export function clearState(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // localStorage unavailable or quota exceeded — ignore silently
+  }
+}
