@@ -1,5 +1,6 @@
 import type { ScenarioResult } from '../types/scenario';
 import { fmtPLN, fmtUSD, fmtDiff, fmtDiffPct } from '../utils/formatting';
+import { getWinnerVerb } from '../utils/comparisonDecision';
 import { Trophy, Info, TrendingDown, TrendingUp, Minus } from 'lucide-react';
 import { Tooltip } from './Tooltip';
 
@@ -105,7 +106,7 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
   const heroDiff = Math.abs(baseResult?.differencePLN ?? 0);
   const heroDiffPct = Math.abs(baseResult?.differencePercent ?? 0);
   const heroWinner = stockWinsBase ? 'Akcje' : bmLabel;
-  const heroVerb = stockWinsBase ? 'wygrywają' : bmLabel === 'Konto' ? 'wygrywa' : 'wygrywają';
+  const heroVerb = getWinnerVerb(heroWinner);
 
   return (
     <div className="space-y-3">
@@ -206,4 +207,3 @@ export function VerdictBanner({ results, inflationRate, currentInflationRate, in
     </div>
   );
 }
-

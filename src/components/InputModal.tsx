@@ -59,7 +59,10 @@ export function InputModal({ isOpen, onClose, savedAt, ...inputPanelProps }: Inp
         aria-label="Dane wejściowe"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="sticky top-0 bg-bg-card border-b border-border">
+        <div
+          data-input-modal-header="true"
+          className="sticky top-0 z-20 bg-bg-card border-b border-border shadow-sm"
+        >
           <div className="flex items-center justify-between px-6 py-4">
             <div className="space-y-1">
               <h2 className="text-lg font-semibold text-text-primary">Dane wejściowe</h2>
