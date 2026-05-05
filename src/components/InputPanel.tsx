@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import type { ReactNode } from 'react';
 import { Loader2, AlertCircle, CheckCircle2, RefreshCw, Calculator, ChevronDown, ChevronUp } from 'lucide-react';
 import type { AssetData } from '../types/asset';
 import type { InflationData } from '../hooks/useInflationData';
@@ -46,6 +47,8 @@ export interface InputPanelProps {
   bondPresets: BondPreset[];
   /** True while bond presets are being fetched */
   bondPresetsLoading?: boolean;
+  /** Optional header override; pass null to hide the built-in panel header */
+  header?: ReactNode | null;
   /** Collapsed summary mode */
   collapsed?: boolean;
   onToggleCollapse?: () => void;
@@ -103,6 +106,7 @@ export function InputPanel({
   initialBondPresetId,
   bondPresets,
   bondPresetsLoading,
+  header,
   collapsed,
   onToggleCollapse,
   onTickerChange,
@@ -269,18 +273,20 @@ export function InputPanel({
             style={{ opacity: collapsed ? 0 : 1 }}
           >
 
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-text-primary">Dane wejściowe</h2>
-        {onToggleCollapse && (
-          <button
-            type="button"
-            onClick={onToggleCollapse}
-            className="flex items-center gap-1 text-xs text-text-primary hover:text-text-primary font-medium transition-colors"
-          >
-            Zwiń <ChevronUp size={16} />
-          </button>
-        )}
-      </div>
+      {header !== null && (header ?? (
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-text-primary">Dane wejściowe</h2>
+          {onToggleCollapse && (
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className="flex items-center gap-1 text-xs font-medium text-text-primary hover:text-text-primary transition-colors"
+            >
+              Zwiń <ChevronUp size={16} />
+            </button>
+          )}
+        </div>
+      ))}
 
       {/* Rate limit banner */}
       {rateLimited && (
