@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useState, lazy, Suspense } from 'react';
-import { ArrowRightLeft, Sparkles, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react';
+import { ArrowRightLeft, Loader2, Sparkles, Trash2 } from 'lucide-react';
 import type { ScenarioKey, Scenarios } from '../types/scenario';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { Skeleton } from '../components/Skeleton';
@@ -52,6 +52,10 @@ function toTraitStats(stats: VolatilityStats | null): PersistedComparisonTraitSt
     fxSigmaAnnual: stats.fxSigmaAnnual,
     correlation: stats.correlation,
   };
+}
+
+function hasNumericValue(value: number): boolean {
+  return value > 0 || value < 0;
 }
 
 export function ComparisonPage() {
@@ -109,6 +113,8 @@ export function ComparisonPage() {
   const [openSection, setOpenSection] = useState<'asset' | 'benchmark' | null>('asset');
   const [analysis, setAnalysis] = useState<AnalysisSnapshot | null>(() => loadComparisonAnalysis());
   const [editingScenario, setEditingScenario] = useState<ScenarioKey | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const analyzeTimerRef = useRef<number | null>(null);
 
   const suggested = useHistoricalVolatility(
     assetData?.historicalPrices ?? null,
@@ -168,6 +174,7 @@ export function ComparisonPage() {
     : bondSettings.rateType === 'reference'
       ? nbpRefRate + bondSettings.margin
       : effectiveInflation + bondSettings.margin;
+  const selectedBondPreset = bondPresets.find((preset) => preset.id === bondPresetId) ?? null;
 
   const calcInputs = useMemo(() => ({
     shares,
@@ -208,12 +215,16 @@ export function ComparisonPage() {
     wibor3m,
   ]);
 
-  const benchmarkReady = benchmarkType === 'savings'
-    ? wibor3m > 0
+  const isAssetFormComplete = Boolean(ticker.trim()) && shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && (avgCostUSD > 0 || isRSU);
+  const isBenchmarkFormComplete = benchmarkType === 'savings'
+    ? wibor3m > 0 && horizonMonths > 0
     : benchmarkType === 'etf'
-      ? etfAnnualReturnPercent > 0 && Boolean(etfTicker)
-      : bondPresets.some((preset) => preset.id === bondPresetId);
-  const canAnalyze = Boolean(ticker) && shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && horizonMonths > 0 && benchmarkReady;
+      ? Boolean(etfTicker.trim()) && hasNumericValue(etfAnnualReturnPercent) && horizonMonths > 0
+      : Boolean(selectedBondPreset) && horizonMonths > 0 && (
+        selectedBondPreset?.rateType === 'fixed'
+          || (selectedBondPreset?.rateType === 'reference' ? nbpRefRate > 0 : hasNumericValue(inflationRate))
+      );
+  const canAnalyze = isAssetFormComplete && isBenchmarkFormComplete;
   const draftSignature = JSON.stringify({
     ticker,
     shares,
@@ -231,18 +242,34 @@ export function ComparisonPage() {
     etfTicker,
   });
 
+  useEffect(() => () => {
+    if (analyzeTimerRef.current !== null) {
+      window.clearTimeout(analyzeTimerRef.current);
+    }
+  }, []);
+
   const handleAnalyze = useCallback(() => {
-    if (!canAnalyze) return;
-    persistAnalysis({
-      inputs: calcInputs,
-      scenarios: currentScenarios,
-      signature: draftSignature,
-      assetLabel: assetData?.asset.name ?? ticker,
-      ticker,
-      traitStats: toTraitStats(volatilityStats),
-    });
-    setOpenSection(null);
-  }, [assetData?.asset.name, calcInputs, canAnalyze, currentScenarios, draftSignature, persistAnalysis, ticker, volatilityStats]);
+    if (!canAnalyze || isAnalyzing) return;
+
+    setIsAnalyzing(true);
+    if (analyzeTimerRef.current !== null) {
+      window.clearTimeout(analyzeTimerRef.current);
+    }
+
+    analyzeTimerRef.current = window.setTimeout(() => {
+      persistAnalysis({
+        inputs: calcInputs,
+        scenarios: currentScenarios,
+        signature: draftSignature,
+        assetLabel: assetData?.asset.name ?? ticker,
+        ticker,
+        traitStats: toTraitStats(volatilityStats),
+      });
+      setOpenSection(null);
+      setIsAnalyzing(false);
+      analyzeTimerRef.current = null;
+    }, 500);
+  }, [assetData?.asset.name, calcInputs, canAnalyze, currentScenarios, draftSignature, isAnalyzing, persistAnalysis, ticker, volatilityStats]);
 
   const analysisResults = useMemo(
     () => (analysis ? calcAllScenarios(analysis.inputs, analysis.scenarios) : null),
@@ -288,9 +315,12 @@ export function ComparisonPage() {
     <div className="space-y-6">
       <section className="rounded-2xl border border-border bg-bg-card shadow-sm p-6 space-y-4">
         <div className="space-y-3">
-          <span className="inline-flex items-center gap-2 rounded-full border border-accent-primary/30 bg-accent-primary/5 px-3 py-1 text-xs font-semibold text-accent-primary">
-            <ArrowRightLeft size={14} aria-hidden="true" />
-            Decyzja sprzedaży
+          <span className="inline-flex items-start gap-2 rounded-full border border-accent-primary/30 bg-accent-primary/5 px-3 py-1 text-xs font-semibold text-accent-primary">
+            <ArrowRightLeft size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
+            <span data-testid="comparison-decision-chip-text" className="flex flex-col leading-tight">
+              <span>Decyzja</span>
+              <span>sprzedaży</span>
+            </span>
           </span>
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-text-primary">Sprzedać czy trzymać akcje?</h1>
@@ -359,10 +389,11 @@ export function ComparisonPage() {
           <button
             type="button"
             onClick={handleAnalyze}
-            disabled={!canAnalyze}
+            disabled={!canAnalyze || isAnalyzing}
             className="inline-flex items-center gap-2 rounded-lg bg-accent-interactive px-4 py-2.5 text-sm font-medium text-text-on-accent hover:bg-accent-interactive/90 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
           >
-            Analizuj scenariusze
+            {isAnalyzing && <Loader2 size={16} className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}
+            {isAnalyzing ? 'Analizowanie…' : 'Analizuj scenariusze'}
           </button>
           <button
             type="button"
@@ -399,6 +430,8 @@ export function ComparisonPage() {
         <ComparisonVerdictPanel
           results={analysisResults}
           assetLabel={analysis.assetLabel}
+          horizonMonths={analysis.inputs.horizonMonths}
+          inflationRate={analysis.inputs.inflationRate}
         />
       )}
 
@@ -436,6 +469,7 @@ export function ComparisonPage() {
       {analysis && (
         <ComparisonStockTraits
           ticker={analysis.ticker}
+          assetLabel={analysis.assetLabel}
           stats={analysis.traitStats}
         />
       )}

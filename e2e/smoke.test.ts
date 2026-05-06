@@ -78,6 +78,7 @@ test.describe('Njord smoke tests', () => {
 
     await page.locator('#comparison-ticker').fill('AAPL');
     await page.locator('#comparison-shares').fill('12');
+    await page.locator('#comparison-avg-cost').fill('80');
 
     await page.getByRole('button', { name: /Reinwestycja i horyzont/i }).click();
     await page.getByRole('button', { name: /^Konto oszczędnościowe$/ }).click();
@@ -85,6 +86,20 @@ test.describe('Njord smoke tests', () => {
 
     await expect(page.getByRole('button', { name: /Akcje i pozycja/i })).toContainText('AAPL');
     await expect(page.getByRole('button', { name: /Reinwestycja i horyzont/i })).toContainText('5,82');
+    await expect(page.getByRole('button', { name: /Reinwestycja i horyzont/i })).toContainText('Zapisane dane');
+  });
+
+  test('comparison shows yellow warning badges before required fields are completed', async ({ page }) => {
+    await page.goto('/comparison');
+    await page.waitForSelector('main', { timeout: 10_000 });
+
+    const assetBadge = page.getByRole('button', { name: /Akcje i pozycja/i }).locator('span').filter({ hasText: 'Do uzupełnienia' }).first();
+    const decisionChip = page.getByTestId('comparison-decision-chip-text');
+
+    await expect(assetBadge).toBeVisible();
+    await expect(assetBadge.locator('svg')).toBeVisible();
+    await expect(assetBadge).toHaveCSS('color', 'rgb(180, 83, 9)');
+    await expect(decisionChip).toHaveCSS('flex-direction', 'column');
   });
 
   test('savings input accepts both dot and comma and dropdown closes with Gotowe', async ({ page }) => {

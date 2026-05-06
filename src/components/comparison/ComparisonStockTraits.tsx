@@ -5,6 +5,7 @@ import type { PersistedComparisonTraitStats } from '../../utils/persistedState';
 
 interface ComparisonStockTraitsProps {
   ticker: string;
+  assetLabel: string;
   stats: PersistedComparisonTraitStats | null;
 }
 
@@ -30,14 +31,17 @@ function TraitCard({ title, value, helper, icon }: TraitCardProps) {
 
 export function ComparisonStockTraits({
   ticker,
+  assetLabel,
   stats,
 }: ComparisonStockTraitsProps) {
-  if (!ticker || !stats) return null;
+  if (!ticker || !assetLabel || !stats) return null;
 
   return (
     <section className="space-y-4">
       <div>
-        <h2 className="text-xl font-semibold text-text-primary">Cechy kursu spółki {ticker}</h2>
+        <h2 className="text-xl font-semibold text-text-primary">
+          Cechy kursu spółki <span className="text-accent-primary">{assetLabel}</span>
+        </h2>
         <p className="text-sm text-text-secondary">
           Szybki podgląd cech historycznych, które pomagają interpretować scenariusze.
         </p>

@@ -41,7 +41,10 @@ export function ComparisonScenarioCard({
     : 'border-success/30 bg-success/5';
 
   return (
-    <article className={`rounded-2xl border p-5 shadow-sm space-y-4 ${toneClass}`}>
+    <article
+      data-testid={`comparison-scenario-${label.toLowerCase()}`}
+      className={`rounded-2xl border p-5 shadow-sm space-y-4 ${toneClass}`}
+    >
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">Scenariusz {label.toLowerCase()}</p>
@@ -63,21 +66,13 @@ export function ComparisonScenarioCard({
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border border-border/70 bg-bg-card/70 p-3">
+        <div data-testid={`comparison-scenario-${label.toLowerCase()}-metric`} className="rounded-xl border border-border/70 bg-bg-card/70 p-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">Cena akcji</p>
           <p className="mt-1 text-base font-semibold text-text-primary">{fmtUSD(projectedPriceUSD)}</p>
         </div>
-        <div className="rounded-xl border border-border/70 bg-bg-card/70 p-3">
+        <div data-testid={`comparison-scenario-${label.toLowerCase()}-metric`} className="rounded-xl border border-border/70 bg-bg-card/70 p-3">
           <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">USD/PLN</p>
           <p className="mt-1 text-base font-semibold text-text-primary">{formatFx(projectedFxRate)}</p>
-        </div>
-        <div className="rounded-xl border border-border/70 bg-bg-card/70 p-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">Akcje netto</p>
-          <p className="mt-1 text-base font-semibold text-text-primary">{fmtPLN(result.stockNetEndValuePLN)}</p>
-        </div>
-        <div className="rounded-xl border border-border/70 bg-bg-card/70 p-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">{benchmarkDisplayLabel(benchmarkLabel)}</p>
-          <p className="mt-1 text-base font-semibold text-text-primary">{fmtPLN(result.benchmarkEndValuePLN)}</p>
         </div>
       </div>
     </article>
