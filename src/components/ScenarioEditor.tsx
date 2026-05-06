@@ -13,6 +13,8 @@ interface ScenarioEditorProps {
   currentPriceUSD: number;
   currentFxRate: number;
   volatilityStats: VolatilityStats | null;
+  /** True when scenarios come from the volatility model (not user-edited) */
+  isModelApplied?: boolean;
   /** Horizontal compact layout when rendered full-width (InputPanel collapsed) */
   compact?: boolean;
 }
@@ -85,11 +87,22 @@ export function ScenarioEditor({
   currentPriceUSD,
   currentFxRate,
   volatilityStats,
+  isModelApplied,
   compact,
 }: ScenarioEditorProps) {
-  const [stockMode, setStockMode] = useState<InputMode>('pct');
+  const [stockMode, setStockMode] = useState<InputMode>(() => currentPriceUSD > 0 ? 'fixed' : 'pct');
   const [fxMode, setFxMode] = useState<InputMode>('pct');
-  const [localValues, setLocalValues] = useState(() => initValues(scenarios));
+  const [localValues, setLocalValues] = useState(() => {
+    if (currentPriceUSD > 0) {
+      const fmtFx = (n: number) => String(parseFloat(n.toFixed(2)));
+      return {
+        bear: { stock: (currentPriceUSD * (1 + scenarios.bear.deltaStock / 100)).toFixed(2), fx: fmtFx(scenarios.bear.deltaFx) },
+        base: { stock: (currentPriceUSD * (1 + scenarios.base.deltaStock / 100)).toFixed(2), fx: fmtFx(scenarios.base.deltaFx) },
+        bull: { stock: (currentPriceUSD * (1 + scenarios.bull.deltaStock / 100)).toFixed(2), fx: fmtFx(scenarios.bull.deltaFx) },
+      };
+    }
+    return initValues(scenarios);
+  });
   const [activeModelId, setActiveModelId] = useState<string | null>(null);
 
   // Sync localValues when scenarios change externally (model switch, apply suggested)
@@ -380,84 +393,151 @@ export function ScenarioEditor({
         );
       })()}
 
+      {/* Global mode toggles */}
+      <div className="flex items-center gap-4 mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-text-muted">Akcje</span>
+          <div className="w-20">
+            <ModeToggle mode={stockMode} onToggle={toggleStockMode} labelA="%" labelB="USD" disabled={currentPriceUSD <= 0} />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-text-muted">USD/PLN</span>
+          <div className="w-20">
+            <ModeToggle mode={fxMode} onToggle={toggleFxMode} labelA="%" labelB="PLN" disabled={currentFxRate <= 0} />
+          </div>
+        </div>
+      </div>
+
       {currentPriceUSD <= 0 ? (
         <div className="flex-1 flex items-center justify-center text-center py-8">
           <p className="text-sm text-text-muted italic">Pobierz dane akcji, aby zobaczyć scenariusze i prognozy modeli.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-2">
-          {SCENARIO_CONFIG.map(({ key, label, icon, headerBg, headerText, cardBorder, cardBg, inputBorder }) => {
+        <div className="space-y-2">
+          {/* Base — full-width prominent card */}
+          {(() => {
+            const cfg = SCENARIO_CONFIG.find(c => c.key === 'base')!;
+            const { key, label, icon, headerBg, headerText, cardBorder, cardBg, inputBorder } = cfg;
             const stockDelta = toDelta(localValues[key].stock, stockMode, currentPriceUSD);
             const fxDelta = toDelta(localValues[key].fx, fxMode, currentFxRate);
+            const impliedPrice = stockMode === 'fixed'
+              ? parseFloat(localValues[key].stock || '0').toFixed(2)
+              : (currentPriceUSD * (1 + stockDelta / 100)).toFixed(2);
+            const contextNote = isModelApplied
+              ? 'Wyliczono z historii'
+              : stockDelta === 0 && fxDelta === 0
+              ? 'Brak założenia — cena bez zmian'
+              : 'Własne założenie';
             return (
               <div key={key} className={`${cardBg} ${cardBorder} border rounded-xl p-3 space-y-3`}>
-                {/* Scenario header */}
-                <div className={`flex items-center justify-center gap-1 text-xs font-bold px-2 py-1 rounded ${headerBg} ${headerText}`}>
-                  {icon}{label}
-                </div>
-
-                {/* Stock input */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="text-[11px] font-medium text-text-secondary">Akcje ({stockUnit})</span>
-                    <ModeToggle mode={stockMode} onToggle={toggleStockMode} labelA="%" labelB="USD" disabled={currentPriceUSD <= 0} />
+                <div className="flex items-center justify-between">
+                  <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded ${headerBg} ${headerText}`}>
+                    {icon}{label}
                   </div>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={localValues[key].stock}
-                    onChange={(e) => handleStockChange(key, e.target.value)}
-                    onFocus={(e) => { anyInputFocused.current = true; e.target.select(); }}
-                    onBlur={() => handleStockBlur(key)}
-                    placeholder={stockMode === 'pct' ? '0' : String(currentPriceUSD || '')}
-                    className={`w-full border ${inputBorder} rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 bg-bg-card`}
-                  />
-                  {stockMode === 'fixed' && currentPriceUSD > 0 && (
-                    <p className={`text-[10px] text-center ${stockDelta >= 0 ? 'text-success' : 'text-danger'}`}>
-                      {stockDelta >= 0 ? '+' : ''}{stockDelta.toFixed(1)}%
-                    </p>
-                  )}
+                  <span className="text-xs text-text-muted">
+                    {contextNote}{' · →'}${impliedPrice}
+                  </span>
                 </div>
-
-                {/* FX input */}
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between gap-1">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-medium text-text-secondary">Akcje ({stockUnit})</span>
+                    <input
+                      type="text" inputMode="decimal"
+                      value={localValues[key].stock}
+                      onChange={(e) => handleStockChange(key, e.target.value)}
+                      onFocus={(e) => { anyInputFocused.current = true; e.target.select(); }}
+                      onBlur={() => handleStockBlur(key)}
+                      placeholder={stockMode === 'pct' ? '0' : String(currentPriceUSD || '')}
+                      className={`w-full border ${inputBorder} rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 bg-bg-card`}
+                    />
+                    {stockMode === 'fixed' && (
+                      <p className={`text-[10px] text-center ${stockDelta >= 0 ? 'text-success' : 'text-danger'}`}>
+                        {stockDelta >= 0 ? '+' : ''}{stockDelta.toFixed(1)}%
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-1">
                     <span className="text-[11px] font-medium text-text-secondary flex items-center gap-1">
                       USD/PLN ({fxUnit})
-                      {volatilityStats && Math.abs(volatilityStats.correlation) > 0.05 && key === 'bear' && (
-                        <Tooltip
-                          width="w-64"
-                          content={
-                            volatilityStats.correlation < 0
-                              ? 'Ujemna korelacja akcje↔USD: w scenariuszu wzrostowym (bull) PLN się umacnia (niższy kurs USD), w spadkowym (bear) USD rośnie jako „safe haven". To typowy wzorzec risk-on/risk-off.'
-                              : 'Dodatnia korelacja akcje↔USD: wzrosty akcji idą w parze ze wzrostem dolara, spadki — ze spadkiem. Ryzyko walutowe wzmacnia ruchy portfela.'
-                          }
-                        >
+                      {volatilityStats && Math.abs(volatilityStats.correlation) > 0.05 && (
+                        <Tooltip width="w-64" content={
+                          volatilityStats.correlation < 0
+                            ? 'Ujemna korelacja akcje↔USD: w scenariuszu wzrostowym PLN się umacnia, w spadkowym USD rośnie jako „safe haven".'
+                            : 'Dodatnia korelacja akcje↔USD: wzrosty akcji idą w parze ze wzrostem dolara.'
+                        }>
                           <HelpCircle size={10} className="text-text-muted cursor-help" aria-hidden="true" />
                         </Tooltip>
                       )}
                     </span>
-                    <ModeToggle mode={fxMode} onToggle={toggleFxMode} labelA="%" labelB="PLN" disabled={currentFxRate <= 0} />
+                    <input
+                      type="text" inputMode="decimal"
+                      value={localValues[key].fx}
+                      onChange={(e) => handleFxChange(key, e.target.value)}
+                      onFocus={(e) => { anyInputFocused.current = true; e.target.select(); }}
+                      onBlur={() => handleFxBlur(key)}
+                      placeholder={fxMode === 'pct' ? '0' : String(currentFxRate || '')}
+                      className={`w-full border ${inputBorder} rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 bg-bg-card`}
+                    />
+                    {fxMode === 'fixed' && currentFxRate > 0 && (
+                      <p className={`text-[10px] text-center ${fxDelta >= 0 ? 'text-success' : 'text-danger'}`}>
+                        {fxDelta >= 0 ? '+' : ''}{fxDelta.toFixed(1)}%
+                      </p>
+                    )}
                   </div>
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={localValues[key].fx}
-                    onChange={(e) => handleFxChange(key, e.target.value)}
-                    onFocus={(e) => { anyInputFocused.current = true; e.target.select(); }}
-                    onBlur={() => handleFxBlur(key)}
-                    placeholder={fxMode === 'pct' ? '0' : String(currentFxRate || '')}
-                    className={`w-full border ${inputBorder} rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 bg-bg-card`}
-                  />
-                  {fxMode === 'fixed' && currentFxRate > 0 && (
-                    <p className={`text-[10px] text-center ${fxDelta >= 0 ? 'text-success' : 'text-danger'}`}>
-                      {fxDelta >= 0 ? '+' : ''}{fxDelta.toFixed(1)}%
-                    </p>
-                  )}
                 </div>
               </div>
             );
-          })}
+          })()}
+
+          {/* Bear + Bull — sensitivity row */}
+          <div className="grid grid-cols-2 gap-2">
+            {SCENARIO_CONFIG.filter(cfg => cfg.key !== 'base').map(({ key, label, icon, headerBg, headerText, cardBorder, cardBg, inputBorder }) => {
+              const stockDelta = toDelta(localValues[key].stock, stockMode, currentPriceUSD);
+              const fxDelta = toDelta(localValues[key].fx, fxMode, currentFxRate);
+              return (
+                <div key={key} className={`${cardBg} ${cardBorder} border rounded-xl p-3 space-y-3`}>
+                  <div className={`flex items-center justify-center gap-1 text-xs font-bold px-2 py-1 rounded ${headerBg} ${headerText}`}>
+                    {icon}{label}
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-medium text-text-secondary">Akcje ({stockUnit})</span>
+                    <input
+                      type="text" inputMode="decimal"
+                      value={localValues[key].stock}
+                      onChange={(e) => handleStockChange(key, e.target.value)}
+                      onFocus={(e) => { anyInputFocused.current = true; e.target.select(); }}
+                      onBlur={() => handleStockBlur(key)}
+                      placeholder={stockMode === 'pct' ? '0' : String(currentPriceUSD || '')}
+                      className={`w-full border ${inputBorder} rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 bg-bg-card`}
+                    />
+                    {stockMode === 'fixed' && (
+                      <p className={`text-[10px] text-center ${stockDelta >= 0 ? 'text-success' : 'text-danger'}`}>
+                        {stockDelta >= 0 ? '+' : ''}{stockDelta.toFixed(1)}%
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-medium text-text-secondary">USD/PLN ({fxUnit})</span>
+                    <input
+                      type="text" inputMode="decimal"
+                      value={localValues[key].fx}
+                      onChange={(e) => handleFxChange(key, e.target.value)}
+                      onFocus={(e) => { anyInputFocused.current = true; e.target.select(); }}
+                      onBlur={() => handleFxBlur(key)}
+                      placeholder={fxMode === 'pct' ? '0' : String(currentFxRate || '')}
+                      className={`w-full border ${inputBorder} rounded px-2 py-1.5 text-sm text-center focus:outline-none focus:ring-2 bg-bg-card`}
+                    />
+                    {fxMode === 'fixed' && currentFxRate > 0 && (
+                      <p className={`text-[10px] text-center ${fxDelta >= 0 ? 'text-success' : 'text-danger'}`}>
+                        {fxDelta >= 0 ? '+' : ''}{fxDelta.toFixed(1)}%
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -481,19 +561,19 @@ export function ScenarioEditor({
                   <div className="text-2xl font-bold text-text-primary leading-none">{volatilityStats.fxSigmaAnnual.toFixed(1)}%<span className="text-xs font-normal text-text-muted ml-0.5">/rok</span></div>
                   <div className="text-xs text-text-muted leading-snug">Dodatkowe źródło ryzyka walutowego.</div>
                 </div>
+                {Math.abs(volatilityStats.correlation) > 0.1 && (
                 <div className="bg-bg-card rounded-lg p-3 space-y-1">
                   <div className="text-xs font-semibold text-text-muted uppercase tracking-wide">Korelacja z USD</div>
-                  <div className={`text-2xl font-bold leading-none ${Math.abs(volatilityStats.correlation) > 0.1 ? (volatilityStats.correlation > 0 ? 'text-danger' : 'text-accent-primary') : 'text-text-secondary'}`}>
+                  <div className={`text-2xl font-bold leading-none ${volatilityStats.correlation > 0 ? 'text-danger' : 'text-accent-primary'}`}>
                     {volatilityStats.correlation > 0 ? '+' : ''}{volatilityStats.correlation.toFixed(2)}
                   </div>
                   <div className="text-xs text-text-muted leading-snug">
                     {volatilityStats.correlation < -0.1
                       ? 'Spadek akcji → mocniejszy dolar (amortyzacja).'
-                      : volatilityStats.correlation > 0.1
-                      ? 'Ruchy akcji i dolara się wzmacniają.'
-                      : 'Niezależne od siebie.'}
+                      : 'Ruchy akcji i dolara się wzmacniają.'}
                   </div>
                 </div>
+                )}
                 <div className="bg-bg-card rounded-lg p-3 space-y-1">
                   <div className="text-xs font-semibold text-text-muted uppercase tracking-wide">Trend historyczny</div>
                   <div className={`text-2xl font-bold leading-none ${volatilityStats.stockMeanAnnual >= 0 ? 'text-success' : 'text-danger'}`}>

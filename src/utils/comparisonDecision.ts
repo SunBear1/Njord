@@ -54,7 +54,7 @@ export function getScenarioConsistencyText(
 function getReinvestmentTarget(label: string): string {
   if (label === 'Konto') return 'konto oszczędnościowe';
   if (label === 'Obligacje') return 'obligacje skarbowe';
-  if (label === 'ETF') return 'ETF';
+  if (label === 'ETF') return 'ETF-u';
   return label.toLowerCase();
 }
 
@@ -70,7 +70,6 @@ export function getDecisionSummary(results: ScenarioResult[]): DecisionSummary |
   const conflictingResults = results.filter(
     (result) => result.stockBeatsBenchmark !== baseResult.stockBeatsBenchmark,
   );
-
   const supportingScenarioLabels = supportingResults.map((result) => SCENARIO_LABELS[result.key]);
   const conflictingScenarioLabels = conflictingResults.map((result) => SCENARIO_LABELS[result.key]);
   const supportingScenarioCount = supportingResults.length;
