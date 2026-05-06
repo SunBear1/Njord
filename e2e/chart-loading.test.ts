@@ -1,27 +1,15 @@
 import { test, expect } from '@playwright/test';
 
-/**
- * Chart component loading tests.
- *
- * Covers the failure modes the team has encountered:
- * - API error → no chart crash, error message shown in input panel
- * - Valid API data → charts render correctly (bear/base/bull comparison chart)
- * - Skeleton visible while chart data loads
- * - ErrorBoundary fallback renders when a chart throws
- */
-
-// Matches GET /api/v1/finance/stocks/:ticker
 const MARKET_DATA_URL = '**/api/v1/finance/stocks/**';
-// Matches direct NBP API calls made by twelveDataProvider for FX history
 const NBP_URL = 'https://api.nbp.pl/**';
 
 const VALID_ASSET_RESPONSE = {
-  data: Array.from({ length: 252 }, (_, i) => ({
-    timestamp: Math.floor(Date.now() / 1000) - i * 86_400,
-    open:   150 * (1 + Math.sin(i * 0.1) * 0.05),
-    high:   155 * (1 + Math.sin(i * 0.1) * 0.05),
-    low:    145 * (1 + Math.sin(i * 0.1) * 0.05),
-    close:  150 * (1 + Math.sin(i * 0.1) * 0.05),
+  data: Array.from({ length: 252 }, (_, index) => ({
+    timestamp: Math.floor(Date.now() / 1000) - index * 86_400,
+    open: 150 * (1 + Math.sin(index * 0.1) * 0.05),
+    high: 155 * (1 + Math.sin(index * 0.1) * 0.05),
+    low: 145 * (1 + Math.sin(index * 0.1) * 0.05),
+    close: 150 * (1 + Math.sin(index * 0.1) * 0.05),
     volume: 1_000_000,
   })),
   _meta: {
@@ -34,14 +22,35 @@ const VALID_ASSET_RESPONSE = {
 };
 
 const VALID_NBP_HISTORICAL_RESPONSE = {
-  rates: Array.from({ length: 252 }, (_, i) => ({
-    effectiveDate: new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10),
-    mid: 4.0 * (1 + Math.sin(i * 0.05) * 0.02),
+  rates: Array.from({ length: 252 }, (_, index) => ({
+    effectiveDate: new Date(Date.now() - index * 86_400_000).toISOString().slice(0, 10),
+    mid: 4.0 * (1 + Math.sin(index * 0.05) * 0.02),
   })),
 };
 
-test.describe('Chart loading — API error handling', () => {
-  test('API 500 shows error message without crashing charts', async ({ page }) => {
+async function configureComparisonForAnalysis(page: Parameters<typeof test>[0]['page']) {
+  await page.route(MARKET_DATA_URL, (route) =>
+    route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
+  );
+  await page.route(NBP_URL, (route) =>
+    route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
+  );
+
+  await page.goto('/comparison');
+  await page.waitForSelector('main', { timeout: 10_000 });
+
+  await page.locator('#comparison-ticker').fill('AAPL');
+  await page.getByRole('button', { name: /Odśwież dane giełdowe/i }).click();
+  await expect(page.getByText(/Apple Inc\./)).toBeVisible({ timeout: 8_000 });
+
+  await page.locator('#comparison-shares').fill('10');
+  await page.getByRole('button', { name: /Reinwestycja i horyzont/i }).click();
+  await page.getByRole('button', { name: /^ETF$/ }).click();
+  await page.getByRole('button', { name: /Analizuj scenariusze/i }).click();
+}
+
+test.describe('Comparison page — API error handling', () => {
+  test('API 500 shows an inline error without crashing the page', async ({ page }) => {
     await page.route(MARKET_DATA_URL, (route) =>
       route.fulfill({ status: 500, json: { error: 'Upstream error', code: 'UPSTREAM_ERROR' } }),
     );
@@ -49,25 +58,14 @@ test.describe('Chart loading — API error handling', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    // Open input modal
-    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
+    await page.locator('#comparison-ticker').fill('AAPL');
+    await page.getByRole('button', { name: /Odśwież dane giełdowe/i }).click();
 
-    const tickerInput = page.locator('input[placeholder*="AAPL"], input[id*="ticker"]').first();
-    await tickerInput.fill('AAPL');
-    await tickerInput.press('Enter');
-
-    // Error message should appear below the ticker input
-    await expect(page.locator('.text-danger, [class*="danger"]').first()).toBeVisible({ timeout: 5_000 });
-
-    // No charts should be rendered — the recommendation-first empty state should show instead
-    await page.keyboard.press('Escape');
-    await expect(page.getByText(/Najpierw ustaw pozycję i alternatywę reinwestycji/i)).toBeVisible({ timeout: 3_000 });
-
-    // Page must remain functional (no full app crash)
+    await expect(page.locator('.text-danger').first()).toBeVisible({ timeout: 5_000 });
     await expect(page.locator('main')).toBeVisible();
   });
 
-  test('TICKER_NOT_FOUND error shows actionable message', async ({ page }) => {
+  test('TICKER_NOT_FOUND shows actionable feedback', async ({ page }) => {
     await page.route(MARKET_DATA_URL, (route) =>
       route.fulfill({
         status: 404,
@@ -78,249 +76,77 @@ test.describe('Chart loading — API error handling', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    // Open input modal
-    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
+    await page.locator('#comparison-ticker').fill('FAKEXYZ');
+    await page.getByRole('button', { name: /Odśwież dane giełdowe/i }).click();
 
-    const tickerInput = page.locator('input[placeholder*="AAPL"], input[id*="ticker"]').first();
-    await tickerInput.fill('FAKEXYZ');
-    await tickerInput.press('Enter');
-
-    // Some error feedback must appear
-    await expect(page.locator('.text-danger, [class*="danger"]').first()).toBeVisible({ timeout: 5_000 });
-
-    // Page remains usable
+    await expect(page.locator('.text-danger').first()).toBeVisible({ timeout: 5_000 });
     await expect(page.locator('main')).toBeVisible();
   });
 
-  test('network timeout does not crash the page', async ({ page }) => {
+  test('network timeout does not crash the comparison page', async ({ page }) => {
     await page.route(MARKET_DATA_URL, (route) => route.abort('timedout'));
 
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    // Open input modal
-    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
+    await page.locator('#comparison-ticker').fill('AAPL');
+    await page.getByRole('button', { name: /Odśwież dane giełdowe/i }).click();
 
-    const tickerInput = page.locator('input[placeholder*="AAPL"], input[id*="ticker"]').first();
-    await tickerInput.fill('AAPL');
-    await tickerInput.press('Enter');
-
-    // After network abort, an error message must surface
-    await expect(page.locator('.text-danger, [class*="danger"]').first()).toBeVisible({ timeout: 8_000 });
-
-    // Page remains functional
+    await expect(page.locator('.text-danger').first()).toBeVisible({ timeout: 8_000 });
     await expect(page.locator('main')).toBeVisible();
   });
 });
 
-test.describe('Chart loading — successful data flow', () => {
-  test('recommendation-first summary renders with decision markers', async ({ page }) => {
-    await page.route(MARKET_DATA_URL, (route) =>
-      route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
-    );
-    await page.route(NBP_URL, (route) =>
-      route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
-    );
+test.describe('Comparison page — successful analysis flow', () => {
+  test('verdict, scenario cards, timeline and stock traits render after explicit submit', async ({ page }) => {
+    await configureComparisonForAnalysis(page);
 
-    await page.goto('/comparison');
-    await page.waitForSelector('main', { timeout: 10_000 });
-
-    // Open input modal
-    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
-
-    // Use ETF benchmark — benchmarkReady = true without additional inputs
-    await page.getByRole('button', { name: /ETF/i }).click();
-
-    // Enter ticker to trigger the API call
-    const tickerInput = page.locator('input[placeholder*="AAPL"], input[id*="ticker"]').first();
-    await tickerInput.fill('AAPL');
-    await tickerInput.press('Enter');
-
-    // Wait for asset data to load (success indicator)
-    await expect(page.getByText(/Apple Inc\./)).toBeVisible({ timeout: 8_000 });
-
-    // Enter shares to enable calculation
-    const sharesInput = page.getByLabel(/Liczba akcji/i).or(
-      page.locator('input[type="number"]').filter({ hasNot: page.locator('[aria-label*="miesięcz"]') }).first(),
-    );
-    await sharesInput.fill('10');
-
-    // Close modal so the recommendation layer is visible
-    await page.keyboard.press('Escape');
-
-    await expect(page.getByText(/Rekomendacja teraz/)).toBeVisible({ timeout: 5_000 });
-    await expect(page.getByText(/Dlaczego taki werdykt/)).toBeVisible({ timeout: 5_000 });
-    await expect(page.getByRole('button', { name: /Pokaż pełną analizę/i })).toBeVisible();
-  });
-
-  test('timeline chart heading appears after data loads', async ({ page }) => {
-    await page.route(MARKET_DATA_URL, (route) =>
-      route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
-    );
-    await page.route(NBP_URL, (route) =>
-      route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
-    );
-
-    await page.goto('/comparison');
-    await page.waitForSelector('main', { timeout: 10_000 });
-
-    // Open input modal
-    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
-
-    await page.getByRole('button', { name: /ETF/i }).click();
-
-    const tickerInput = page.locator('input[placeholder*="AAPL"], input[id*="ticker"]').first();
-    await tickerInput.fill('AAPL');
-    await tickerInput.press('Enter');
-
-    await expect(page.getByText(/Apple Inc\./)).toBeVisible({ timeout: 8_000 });
-
-    const sharesInput = page.getByLabel(/Liczba akcji/i).or(
-      page.locator('input[type="number"]').first(),
-    );
-    await sharesInput.fill('10');
-
-    // Close modal, then open the deep-analysis layer
-    await page.keyboard.press('Escape');
-    await page.getByRole('button', { name: /Pokaż pełną analizę/i }).click();
-
-    // Timeline chart — lazy loaded via Suspense
+    await expect(page.getByText(/wygrywa w scenariuszu bazowym|wygrywają w scenariuszu bazowym/i)).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText(/Scenariusze skrajne/i)).toBeVisible();
     await expect(page.getByText('Wartość w czasie')).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText(/Cechy kursu spółki AAPL/i)).toBeVisible();
+    await expect(page.getByText('Wystąpił błąd podczas renderowania tego komponentu')).not.toBeVisible();
   });
 
-  test('sticky input header stays on top while modal content scrolls', async ({ page }) => {
-    await page.goto('/comparison');
-    await page.waitForSelector('main', { timeout: 10_000 });
+  test('scenario edit modal updates the bear card values', async ({ page }) => {
+    await configureComparisonForAnalysis(page);
 
-    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
+    const bearCard = page.locator('article').filter({ hasText: /Scenariusz bear/i }).first();
+    await bearCard.getByRole('button', { name: /Edytuj scenariusz Bear/i }).click();
 
-    const dialog = page.getByRole('dialog', { name: /Dane wejściowe/i });
-    const header = dialog.locator('[data-input-modal-header="true"]');
-    await expect(header).toBeVisible();
+    await page.locator('#scenario-stock-price').fill('130');
+    await page.locator('#scenario-fx-rate').fill('4,3000');
+    await page.getByRole('button', { name: /^Zapisz$/ }).click();
 
-    await dialog.evaluate((node) => {
-      node.scrollTop = 120;
-    });
+    await expect(bearCard).toContainText('$130.00');
+    await expect(bearCard).toContainText('4,3');
+  });
 
-    const headerBox = await header.boundingBox();
-    expect(headerBox).not.toBeNull();
+  test('stock traits link opens forecast page with the selected ticker', async ({ page }) => {
+    await configureComparisonForAnalysis(page);
 
-    const headerOwnsBottomEdge = await page.evaluate(({ x, y }) => {
-      const element = document.elementFromPoint(x, y);
-      return Boolean(element?.closest('[data-input-modal-header="true"]'));
-    }, {
-      x: (headerBox?.x ?? 0) + ((headerBox?.width ?? 0) / 2),
-      y: (headerBox?.y ?? 0) + (headerBox?.height ?? 0) - 4,
-    });
-
-    expect(headerOwnsBottomEdge).toBe(true);
+    await page.getByRole('link', { name: /Pełna prognoza ceny/i }).click();
+    await expect(page).toHaveURL(/\/forecast\?ticker=AAPL/);
+    await expect(page.locator('#forecast-ticker')).toHaveValue('AAPL');
   });
 });
 
-test.describe('Chart loading — skeleton states', () => {
-  test('skeleton shown while market data is loading', async ({ page }) => {
+test.describe('Comparison page — loading states', () => {
+  test('ticker row shows a spinner while market data is loading', async ({ page }) => {
     await page.route(NBP_URL, (route) =>
       route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
     );
-    // Delay the response to capture the loading state
     await page.route(MARKET_DATA_URL, async (route) => {
-      await new Promise((r) => setTimeout(r, 800));
+      await new Promise((resolve) => setTimeout(resolve, 800));
       await route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE });
     });
 
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    // Open input modal
-    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
+    await page.locator('#comparison-ticker').fill('AAPL');
+    await page.getByRole('button', { name: /Odśwież dane giełdowe/i }).click();
 
-    const tickerInput = page.locator('input[placeholder*="AAPL"], input[id*="ticker"]').first();
-    await tickerInput.fill('AAPL');
-    await tickerInput.press('Enter');
-
-    // Spinner/loader inside the ticker row should be visible immediately
-    // (The Loader2 icon appears while assetLoading = true)
-    await expect(page.locator('[aria-label="Odśwież dane giełdowe"]')).toBeVisible({ timeout: 3_000 });
-  });
-
-  test('lazy chart sections load without aria-busy after data and shares are set', async ({ page }) => {
-    await page.route(MARKET_DATA_URL, (route) =>
-      route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
-    );
-    await page.route(NBP_URL, (route) =>
-      route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
-    );
-
-    await page.goto('/comparison');
-    await page.waitForSelector('main', { timeout: 10_000 });
-
-    // Open input modal
-    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
-
-    await page.getByRole('button', { name: /ETF/i }).click();
-
-    const tickerInput = page.locator('input[placeholder*="AAPL"], input[id*="ticker"]').first();
-    await tickerInput.fill('AAPL');
-    await tickerInput.press('Enter');
-
-    await expect(page.getByText(/Apple Inc\./)).toBeVisible({ timeout: 8_000 });
-
-    const sharesInput = page.getByLabel(/Liczba akcji/i).or(
-      page.locator('input[id="shares-input"]'),
-    );
-    await sharesInput.fill('10');
-
-    // Close modal, then open the deep-analysis layer
-    await page.keyboard.press('Escape');
-    await page.getByRole('button', { name: /Pokaż pełną analizę/i }).click();
-
-    // Timeline chart resolves via Suspense — once resolved, no aria-busy containers remain
-    await expect(page.getByText('Wartość w czasie')).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator('[aria-busy="true"]')).toHaveCount(0, { timeout: 10_000 });
-
-    // No unhandled error banners from React
-    await expect(page.getByText('Wystąpił błąd podczas renderowania tego komponentu')).not.toBeVisible();
-  });
-});
-
-test.describe('Chart loading — ErrorBoundary', () => {
-  test('no React error boundary fallback visible on successful render', async ({ page }) => {
-    await page.route(MARKET_DATA_URL, (route) =>
-      route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
-    );
-    await page.route(NBP_URL, (route) =>
-      route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
-    );
-
-    await page.goto('/comparison');
-    await page.waitForSelector('main', { timeout: 10_000 });
-
-    // Open input modal
-    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
-
-    await page.getByRole('button', { name: /ETF/i }).click();
-
-    const tickerInput = page.locator('input[placeholder*="AAPL"], input[id*="ticker"]').first();
-    await tickerInput.fill('AAPL');
-    await tickerInput.press('Enter');
-
-    await expect(page.getByText(/Apple Inc\./)).toBeVisible({ timeout: 8_000 });
-
-    const sharesInput = page.getByLabel(/Liczba akcji/i).or(
-      page.locator('input[type="number"]').first(),
-    );
-    await sharesInput.fill('10');
-
-    // Close modal, then open the deep-analysis layer
-    await page.keyboard.press('Escape');
-    await page.getByRole('button', { name: /Pokaż pełną analizę/i }).click();
-
-    // Deep-analysis verdict banner should be visible, not error boundary fallback
-    await expect(page.getByText(/Wyniki — co się bardziej opłaca/)).toBeVisible({ timeout: 5_000 });
-
-    // ErrorBoundary fallback text must NOT be visible when everything succeeds
-    await expect(
-      page.getByText('Wystąpił błąd podczas renderowania tego komponentu'),
-    ).not.toBeVisible();
+    await expect(page.locator('.animate-spin').first()).toBeVisible({ timeout: 3_000 });
   });
 });

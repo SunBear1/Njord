@@ -4,8 +4,6 @@ test.describe('Njord smoke tests', () => {
   test('forecast page loads as default route', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('main', { timeout: 10_000 });
-
-    // / redirects to /forecast — should show forecast heading
     await expect(page.getByText(/Prognoza cenowa/i).first()).toBeVisible();
   });
 
@@ -18,27 +16,20 @@ test.describe('Njord smoke tests', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    // Open the input modal via the chip button
-    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
-
-    // The ticker input should be visible inside the modal
-    const tickerInput = page.locator('input[placeholder*="AAPL"], input[placeholder*="np."], input[id*="ticker"]').first();
-    await expect(tickerInput).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Sprzedać czy trzymać akcje/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Akcje i pozycja/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Reinwestycja i horyzont/i })).toBeVisible();
   });
 
   test('navigation to tax calculator works', async ({ page }) => {
     await page.goto('/tax');
     await page.waitForSelector('main', { timeout: 10_000 });
-
-    // The tax calculator heading should appear
     await expect(page.getByText(/Kalkulator podatku Belki/i)).toBeVisible({ timeout: 5_000 });
   });
 
   test('tax calculator shows add transaction button', async ({ page }) => {
     await page.goto('/tax');
     await page.waitForSelector('main', { timeout: 10_000 });
-
-    // Should show "Dodaj" button to add a transaction
     await expect(page.getByRole('button', { name: /Dodaj/i }).first()).toBeVisible({ timeout: 5_000 });
   });
 
@@ -46,94 +37,61 @@ test.describe('Njord smoke tests', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    // Open the input modal
-    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
-
-    // The benchmark selector has buttons for savings/bonds options
-    const buttons = page.locator('button').filter({ hasText: /konto|obligacj|kont|ETF/i });
-    await expect(buttons.first()).toBeVisible({ timeout: 5_000 });
+    await page.getByRole('button', { name: /Reinwestycja i horyzont/i }).click();
+    await expect(page.getByRole('button', { name: /^Konto oszczędnościowe$/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Obligacje skarbowe$/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /^ETF$/ })).toBeVisible();
   });
 
   test('horizon slider is present on comparison page', async ({ page }) => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    // Open the input modal
-    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
-
-    const slider = page.locator('input[type="range"]').first();
-    await expect(slider).toBeVisible();
+    await page.getByRole('button', { name: /Reinwestycja i horyzont/i }).click();
+    await expect(page.locator('input[type="range"]').first()).toBeVisible();
   });
 
   test('dark mode toggle works', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    const htmlEl = page.locator('html');
+    const htmlElement = page.locator('html');
+    await page.getByRole('button', { name: /tryb/i }).click();
 
-    const darkToggle = page.getByRole('button', { name: /tryb/i });
-    await darkToggle.click();
-
-    // Page should still be functional after toggle
     await expect(page.locator('body')).toBeVisible();
-    const afterClass = await htmlEl.getAttribute('class');
-    expect(afterClass === null || typeof afterClass === 'string').toBe(true);
+    const className = await htmlElement.getAttribute('class');
+    expect(className === null || typeof className === 'string').toBe(true);
   });
 
   test('ticker input accepts text on comparison page', async ({ page }) => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    // Open the input modal
-    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
-
-    const inputs = page.locator('input[type="text"], input:not([type])').first();
-    await inputs.fill('AAPL');
-    await expect(inputs).toHaveValue('AAPL');
+    const tickerInput = page.locator('#comparison-ticker');
+    await tickerInput.fill('AAPL');
+    await expect(tickerInput).toHaveValue('AAPL');
   });
 
-  test('comparison input modal shows saved message after form entry', async ({ page }) => {
+  test('comparison dropdowns show saved input summaries', async ({ page }) => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    await page.getByRole('button', { name: /Dane wejściowe|Edytuj/i }).click();
+    await page.locator('#comparison-ticker').fill('AAPL');
+    await page.locator('#comparison-shares').fill('12');
 
-    const sharesInput = page.locator('#shares-input');
-    await sharesInput.fill('12');
+    await page.getByRole('button', { name: /Reinwestycja i horyzont/i }).click();
+    await page.getByRole('button', { name: /^Konto oszczędnościowe$/ }).click();
+    await page.locator('#comparison-savings-rate').fill('5,82');
 
-    await expect(page.getByText('Dane wejściowe zostały zapisane')).toBeVisible({ timeout: 3_000 });
-  });
-
-  test('comparison clear-data button resets the page state', async ({ page }) => {
-    await page.goto('/comparison');
-    await page.waitForSelector('main', { timeout: 10_000 });
-
-    await page.getByRole('button', { name: /Dane wejściowe|Edytuj|Ustaw dane wejściowe/i }).click();
-
-    const sharesInput = page.locator('#shares-input');
-    await sharesInput.fill('12');
-    await expect(page.getByText('Dane wejściowe zostały zapisane')).toBeVisible({ timeout: 3_000 });
-    await page.keyboard.press('Escape');
-
-    page.once('dialog', async (dialog) => {
-      expect(dialog.message()).toMatch(/Wyczyścić zapisane dane porównania/i);
-      await dialog.accept();
-    });
-
-    await page.getByRole('button', { name: /Wyczyść dane/i }).click();
-    await expect(page.getByText(/Najpierw ustaw pozycję i alternatywę reinwestycji/i)).toBeVisible({ timeout: 3_000 });
+    await expect(page.getByRole('button', { name: /Akcje i pozycja/i })).toContainText('AAPL');
+    await expect(page.getByRole('button', { name: /Reinwestycja i horyzont/i })).toContainText('5,82');
   });
 
   test('price forecast page loads with ticker input', async ({ page }) => {
     await page.goto('/forecast');
     await page.waitForSelector('main', { timeout: 10_000 });
-
-    // Should show forecast heading
     await expect(page.getByText(/Prognoza cenowa/i).first()).toBeVisible();
-
-    // Should have its own ticker input
-    const tickerInput = page.locator('#forecast-ticker');
-    await expect(tickerInput).toBeVisible();
+    await expect(page.locator('#forecast-ticker')).toBeVisible();
   });
 
   test('privacy policy link opens modal', async ({ page }) => {
@@ -151,19 +109,15 @@ test.describe('Njord smoke tests', () => {
     await page.goto('/forecast');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    // Click comparison nav link
     await page.locator('nav').getByRole('link', { name: /Porównanie/i }).click();
     await expect(page).toHaveURL(/\/comparison/);
 
-    // Click forecast nav link
     await page.locator('nav').getByRole('link', { name: /Prognoza/i }).click();
     await expect(page).toHaveURL(/\/forecast/);
 
-    // Click tax nav link
     await page.locator('nav').getByRole('link', { name: /Podatek/i }).click();
     await expect(page).toHaveURL(/\/tax/);
 
-    // Click home via logo
     await page.locator('a[aria-label*="Strona główna"]').click();
     await expect(page).toHaveURL(/\/forecast/);
   });
@@ -171,8 +125,6 @@ test.describe('Njord smoke tests', () => {
   test('unknown routes redirect to forecast', async ({ page }) => {
     await page.goto('/nonexistent-page');
     await page.waitForSelector('main', { timeout: 10_000 });
-
-    // Should redirect to forecast
     await expect(page.getByText(/Prognoza cenowa/i).first()).toBeVisible({ timeout: 5_000 });
   });
 
@@ -203,7 +155,6 @@ test.describe('Njord smoke tests', () => {
     await page.goto('/rates');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    // Heading and description are static — always rendered regardless of API availability
     await expect(page.getByRole('heading', { name: 'Kursy walut' })).toBeVisible();
     await expect(page.getByText('Porównanie kursów kupna i sprzedaży')).toBeVisible();
   });
@@ -213,11 +164,7 @@ test.describe('Njord accessibility basics', () => {
   test('app has no obvious landmark violations', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('main', { timeout: 10_000 });
-
-    // Should have a main landmark
     await expect(page.locator('main')).toBeVisible();
-
-    // Should have at least one heading
     await expect(page.locator('h1, h2, h3').first()).toBeVisible();
   });
 
@@ -225,12 +172,10 @@ test.describe('Njord accessibility basics', () => {
     await page.goto('/');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    // Tab through a few elements — should not throw
     await page.keyboard.press('Tab');
     await page.keyboard.press('Tab');
     await page.keyboard.press('Tab');
 
-    // Verify page is still functional after keyboard navigation
     await expect(page.locator('body')).toBeVisible();
   });
 });

@@ -27,74 +27,63 @@ const DEFAULT_SCENARIOS: Scenarios = {
 };
 
 export interface AutofillSources {
-  /** Alior Kantor buy rate for USD/PLN — primary autofill */
   aliorBuyRate: number | null;
-  /** Proxy FX rate from the stock data endpoint — fallback autofill */
   proxyFxRate: number | null;
-  /** ECB inflation rate for Poland */
   inflationCurrentRate: number | null;
-  /** Historical CAGR from the ETF data endpoint */
   etfAnnualizedReturn: number | null;
 }
 
 export interface PortfolioState {
-  // Inputs
   savedAt: number;
   ticker: string;
-  setTicker: (v: string) => void;
+  setTicker: (value: string) => void;
   shares: number;
-  setShares: (v: number) => void;
+  setShares: (value: number) => void;
   currentPriceUSD: number;
-  setCurrentPriceUSD: (v: number) => void;
+  setCurrentPriceUSD: (value: number) => void;
   currentFxRate: number;
-  setCurrentFxRate: (v: number) => void;
+  setCurrentFxRate: (value: number) => void;
   wibor3m: number;
-  setWibor3m: (v: number) => void;
+  setWibor3m: (value: number) => void;
   benchmarkType: BenchmarkType;
   nbpRefRate: number;
-  setNbpRefRate: (v: number) => void;
+  setNbpRefRate: (value: number) => void;
   horizonMonths: number;
-  setHorizonMonths: (v: number) => void;
+  setHorizonMonths: (value: number) => void;
   avgCostUSD: number;
-  setAvgCostUSD: (v: number) => void;
+  setAvgCostUSD: (value: number) => void;
   isRSU: boolean;
-  setIsRSU: (v: boolean) => void;
+  setIsRSU: (value: boolean) => void;
   brokerFeeUSD: number;
-  setBrokerFeeUSD: (v: number) => void;
+  setBrokerFeeUSD: (value: number) => void;
   dividendYieldPercent: number;
-  setDividendYieldPercent: (v: number) => void;
+  setDividendYieldPercent: (value: number) => void;
   bondSettings: BondSettings;
-  setBondSettings: (v: BondSettings) => void;
+  setBondSettings: (value: BondSettings) => void;
   bondPresetId: string;
-  setBondPresetId: (v: string) => void;
+  setBondPresetId: (value: string) => void;
   etfAnnualReturnPercent: number;
-  setEtfAnnualReturnPercent: (v: number) => void;
+  setEtfAnnualReturnPercent: (value: number) => void;
   etfTerPercent: number;
-  setEtfTerPercent: (v: number) => void;
+  setEtfTerPercent: (value: number) => void;
   etfTicker: string;
-  setEtfTicker: (v: string) => void;
+  setEtfTicker: (value: string) => void;
   inflationRate: number;
-  setInflationRate: (v: number) => void;
+  setInflationRate: (value: number) => void;
   userScenarios: Scenarios | null;
-  setUserScenarios: (v: Scenarios | null) => void;
+  setUserScenarios: (value: Scenarios | null) => void;
   scenarioEditKey: number;
-  setScenarioEditKey: (updater: (k: number) => number) => void;
-  /** Call when a new stock ticker is fetched to reset scenarios + FX autofill */
+  setScenarioEditKey: (updater: (value: number) => number) => void;
   resetForNewTicker: () => void;
-  /** Call when a new ETF ticker is fetched to allow re-autofill of ETF return */
   resetEtfAutofill: () => void;
-  /** Reset the entire comparison input state and clear persisted comparison inputs */
   resetComparisonState: () => void;
-  // Handlers
   handleScenarioChange: (key: ScenarioKey, field: 'deltaStock' | 'deltaFx', value: number) => void;
-  handleBenchmarkTypeChange: (v: BenchmarkType) => void;
+  handleBenchmarkTypeChange: (value: BenchmarkType) => void;
   handleApplySuggested: (suggestedScenarios: Scenarios | null) => void;
-  handleApplyModelScenarios: (s: Scenarios) => void;
+  handleApplyModelScenarios: (scenarios: Scenarios) => void;
 }
 
-export function usePortfolioState(
-  autofill: AutofillSources,
-): PortfolioState {
+export function usePortfolioState(autofill: AutofillSources): PortfolioState {
   const [saved] = useState(loadState);
 
   const [savedAt, setSavedAt] = useState(0);
@@ -114,81 +103,98 @@ export function usePortfolioState(
   const [brokerFeeUSD, setBrokerFeeUSD] = useState(saved?.brokerFeeUSD ?? 0);
   const [dividendYieldPercent, setDividendYieldPercent] = useState(saved?.dividendYieldPercent ?? 0);
   const [etfAnnualReturnPercent, setEtfAnnualReturnPercent] = useState(saved?.etfAnnualReturnPercent ?? 8);
-  const [etfTerPercent, setEtfTerPercent] = useState(saved?.etfTerPercent ?? 0.07);
+  const [etfTerPercent, setEtfTerPercent] = useState(saved?.etfTerPercent ?? 0);
   const [etfTicker, setEtfTicker] = useState(saved?.etfTicker ?? 'IWDA.L');
   const [userScenarios, setUserScenarios] = useState<Scenarios | null>(saved?.userScenarios ?? null);
   const [scenarioEditKey, setScenarioEditKey] = useState(0);
 
-  // Autofill guard refs — track whether each source has already been applied.
-  // Mutable refs are kept private to the hook (not exposed) to comply with
-  // the react-hooks/immutability lint rule.
   const fxAutoFilledRef = useRef(false);
   const aliorAutoFilledRef = useRef(false);
   const inflationAutoFilledRef = useRef(false);
   const etfReturnAutoFilledRef = useRef(false);
 
-  // Primary FX autofill: Alior Kantor buy rate
   useEffect(() => {
     if (autofill.aliorBuyRate && !aliorAutoFilledRef.current) {
       aliorAutoFilledRef.current = true;
       fxAutoFilledRef.current = true;
-       
       setCurrentFxRate(autofill.aliorBuyRate);
     }
   }, [autofill.aliorBuyRate]);
 
-  // Fallback FX autofill: proxy FX rate from stock data endpoint
   useEffect(() => {
     if (autofill.proxyFxRate && !fxAutoFilledRef.current) {
       fxAutoFilledRef.current = true;
-       
       setCurrentFxRate(autofill.proxyFxRate);
     }
   }, [autofill.proxyFxRate]);
 
-  // Inflation autofill: ECB HICP current rate
   useEffect(() => {
     if (autofill.inflationCurrentRate && !inflationAutoFilledRef.current) {
       inflationAutoFilledRef.current = true;
-       
       setInflationRate(autofill.inflationCurrentRate);
     }
   }, [autofill.inflationCurrentRate]);
 
-  // ETF return autofill: historical CAGR from ETF data endpoint
   useEffect(() => {
     if (autofill.etfAnnualizedReturn !== null && !etfReturnAutoFilledRef.current) {
       etfReturnAutoFilledRef.current = true;
-       
       setEtfAnnualReturnPercent(parseFloat(autofill.etfAnnualizedReturn.toFixed(2)));
     }
   }, [autofill.etfAnnualizedReturn]);
 
-  // Persist to localStorage with 600ms debounce
   useEffect(() => {
     const timer = setTimeout(() => {
       saveState({
-        ticker, shares, currentPriceUSD, currentFxRate, wibor3m, inflationRate,
-        nbpRefRate, bondSettings, bondPresetId,
-        horizonMonths, benchmarkType, userScenarios, avgCostUSD, isRSU,
-        brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent,
-        etfTerPercent, etfTicker,
+        ticker,
+        shares,
+        currentPriceUSD,
+        currentFxRate,
+        wibor3m,
+        inflationRate,
+        nbpRefRate,
+        bondSettings,
+        bondPresetId,
+        horizonMonths,
+        benchmarkType,
+        userScenarios,
+        avgCostUSD,
+        isRSU,
+        brokerFeeUSD,
+        dividendYieldPercent,
+        etfAnnualReturnPercent,
+        etfTerPercent,
+        etfTicker,
       });
       setSavedAt(Date.now());
     }, 600);
+
     return () => clearTimeout(timer);
   }, [
-    ticker, shares, currentPriceUSD, currentFxRate, wibor3m, inflationRate,
-    nbpRefRate, bondSettings, bondPresetId,
-    horizonMonths, benchmarkType, userScenarios, avgCostUSD, isRSU,
-    brokerFeeUSD, dividendYieldPercent, etfAnnualReturnPercent,
-    etfTerPercent, etfTicker,
+    ticker,
+    shares,
+    currentPriceUSD,
+    currentFxRate,
+    wibor3m,
+    inflationRate,
+    nbpRefRate,
+    bondSettings,
+    bondPresetId,
+    horizonMonths,
+    benchmarkType,
+    userScenarios,
+    avgCostUSD,
+    isRSU,
+    brokerFeeUSD,
+    dividendYieldPercent,
+    etfAnnualReturnPercent,
+    etfTerPercent,
+    etfTicker,
   ]);
 
   const resetForNewTicker = useCallback(() => {
     fxAutoFilledRef.current = false;
     setUserScenarios(null);
-    setScenarioEditKey((k) => k + 1);
+    setScenarioEditKey((value) => value + 1);
   }, []);
 
   const resetEtfAutofill = useCallback(() => {
@@ -219,38 +225,37 @@ export function usePortfolioState(
     setBrokerFeeUSD(0);
     setDividendYieldPercent(0);
     setEtfAnnualReturnPercent(8);
-    setEtfTerPercent(0.07);
+    setEtfTerPercent(0);
     setEtfTicker('IWDA.L');
     setUserScenarios(null);
-    setScenarioEditKey((key) => key + 1);
+    setScenarioEditKey((value) => value + 1);
   }, []);
 
   const handleScenarioChange = useCallback(
     (key: ScenarioKey, field: 'deltaStock' | 'deltaFx', value: number) => {
-      setUserScenarios((prev) => {
-        const base = prev ?? DEFAULT_SCENARIOS;
+      setUserScenarios((previous) => {
+        const base = previous ?? DEFAULT_SCENARIOS;
         return { ...base, [key]: { ...base[key], [field]: value } };
       });
     },
     [],
   );
 
-  const handleBenchmarkTypeChange = useCallback((v: BenchmarkType) => {
-    setBenchmarkType(v);
-    if (v === 'savings') {
-      setHorizonMonths((prev) => Math.min(prev, 60));
+  const handleBenchmarkTypeChange = useCallback((value: BenchmarkType) => {
+    setBenchmarkType(value);
+    if (value === 'savings') {
+      setHorizonMonths((previous) => Math.min(previous, 60));
     }
   }, []);
 
   const handleApplySuggested = useCallback((suggestedScenarios: Scenarios | null) => {
-    if (suggestedScenarios) {
-      setUserScenarios(suggestedScenarios);
-      setScenarioEditKey((k) => k + 1);
-    }
+    if (!suggestedScenarios) return;
+    setUserScenarios(suggestedScenarios);
+    setScenarioEditKey((value) => value + 1);
   }, []);
 
-  const handleApplyModelScenarios = useCallback((s: Scenarios) => {
-    setUserScenarios(s);
+  const handleApplyModelScenarios = useCallback((scenarios: Scenarios) => {
+    setUserScenarios(scenarios);
   }, []);
 
   return {
