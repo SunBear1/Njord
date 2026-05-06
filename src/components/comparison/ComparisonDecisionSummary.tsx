@@ -1,7 +1,7 @@
-import { ArrowRightLeft, MoveRight } from 'lucide-react';
+import { ArrowRightLeft } from 'lucide-react';
 import type { ScenarioResult } from '../../types/scenario';
 import { fmtPLN } from '../../utils/formatting';
-import { getDecisionSummary } from '../../utils/comparisonDecision';
+import { getDecisionSummary, getScenarioConsistencyText } from '../../utils/comparisonDecision';
 
 interface ComparisonDecisionSummaryProps {
   results: ScenarioResult[];
@@ -15,9 +15,10 @@ export function ComparisonDecisionSummary({
   const summary = getDecisionSummary(results);
   if (!summary) return null;
 
-  const supportLabel = summary.conflictingScenarioCount === 0
-    ? 'Werdykt utrzymuje się we wszystkich scenariuszach.'
-    : `${summary.conflictingScenarioCount} z ${results.length} scenariuszy pokazuje inny kierunek, więc warto sprawdzić pełną analizę.`;
+  const supportLabel = getScenarioConsistencyText(
+    summary.supportingScenarioLabels,
+    summary.conflictingScenarioLabels,
+  );
 
   return (
     <section className="bg-bg-card rounded-xl border border-border shadow-sm p-6 space-y-4">
@@ -57,12 +58,11 @@ export function ComparisonDecisionSummary({
         </div>
 
         <div className="rounded-xl border border-border bg-bg-muted/40 p-4 space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">Co dalej</p>
-          <p className="flex items-center gap-2 text-base font-semibold text-text-primary">
-            Zobacz wskaźniki
-            <MoveRight size={16} aria-hidden="true" />
+          <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">Jak czytać dalej wynik</p>
+          <p className="text-base font-semibold text-text-primary">Najpierw sprawdź markery poniżej</p>
+          <p className="text-sm text-text-secondary">
+            {supportLabel} Jeśli scenariusze nie są zgodne, rozwiń pełną analizę.
           </p>
-          <p className="text-sm text-text-secondary">{supportLabel}</p>
         </div>
       </div>
     </section>

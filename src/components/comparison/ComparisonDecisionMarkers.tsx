@@ -1,6 +1,6 @@
 import type { ScenarioResult } from '../../types/scenario';
 import { fmtDiff, fmtPLN, fmtUSD } from '../../utils/formatting';
-import { getDecisionSummary } from '../../utils/comparisonDecision';
+import { getDecisionSummary, getScenarioConsistencyText } from '../../utils/comparisonDecision';
 
 interface ComparisonDecisionMarkersProps {
   results: ScenarioResult[];
@@ -43,14 +43,15 @@ export function ComparisonDecisionMarkers({
       tone: 'success',
       helper: `W bazowym scenariuszu (${summary.winnerDiffPct.toFixed(1)}%)`,
     },
-    {
-      label: 'Spójność werdyktu',
-      value: `${summary.supportingScenarioCount}/${results.length}`,
-      tone: summary.conflictingScenarioCount === 0 ? 'success' : 'default',
-      helper: summary.conflictingScenarioCount === 0
-        ? 'Żaden scenariusz nie odwraca decyzji.'
-        : `${summary.conflictingScenarioCount} ${summary.conflictingScenarioCount === 1 ? 'scenariusz pokazuje' : 'scenariusze pokazują'} inny wynik.`,
-    },
+      {
+        label: 'Spójność werdyktu',
+        value: `${summary.supportingScenarioCount}/${results.length}`,
+        tone: summary.conflictingScenarioCount === 0 ? 'success' : 'default',
+        helper: getScenarioConsistencyText(
+          summary.supportingScenarioLabels,
+          summary.conflictingScenarioLabels,
+        ),
+      },
     currentPositionCard,
     {
       label: 'Inflacja w tle',

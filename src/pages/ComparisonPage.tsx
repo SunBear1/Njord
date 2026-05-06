@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo, useDeferredValue, lazy, Suspense } from 'react';
-import { ArrowRightLeft, ChevronDown, ChevronUp, Settings2, Sparkles } from 'lucide-react';
+import { ArrowRightLeft, ChevronDown, ChevronUp, Settings2, Sparkles, Trash2 } from 'lucide-react';
 import { InputModal } from '../components/InputModal';
 import { ScenarioEditor } from '../components/ScenarioEditor';
 import { VerdictBanner } from '../components/VerdictBanner';
@@ -30,8 +30,8 @@ const DEFAULT_SCENARIOS = {
 
 export function ComparisonPage() {
   const [isDark] = useDarkMode();
-  const { assetData, proxyFxData, isLoading: assetLoading, error: assetError, fetchData: fetchAsset } = useAssetData();
-  const { etfData, etfAnnualizedReturn, isLoading: etfLoading, error: etfError, fetchEtf } = useEtfData();
+  const { assetData, proxyFxData, isLoading: assetLoading, error: assetError, fetchData: fetchAsset, resetData: resetAssetData } = useAssetData();
+  const { etfData, etfAnnualizedReturn, isLoading: etfLoading, error: etfError, fetchEtf, resetEtf } = useEtfData();
   const { presets: bondPresets, isLoading: bondPresetsLoading } = useBondPresets();
   const { data: inflationData, isLoading: inflationLoading } = useInflationData();
   const currencyRates = useCurrencyRates();
@@ -84,6 +84,7 @@ export function ComparisonPage() {
     setBondPresetId,
     resetForNewTicker,
     resetEtfAutofill,
+    resetComparisonState,
     handleBenchmarkTypeChange,
     handleApplySuggested,
     handleApplyModelScenarios,
@@ -108,6 +109,20 @@ export function ComparisonPage() {
     resetEtfAutofill();
     await fetchEtf(tickerArg);
   }, [fetchEtf, resetEtfAutofill]);
+
+  const [isInputOpen, setIsInputOpen] = useState(false);
+  const [showDeepAnalysis, setShowDeepAnalysis] = useState(false);
+
+  const handleClearData = useCallback(() => {
+    const shouldClear = window.confirm('Wyczyścić zapisane dane porównania i zacząć od nowa?');
+    if (!shouldClear) return;
+
+    resetComparisonState();
+    resetAssetData();
+    resetEtf();
+    setIsInputOpen(false);
+    setShowDeepAnalysis(false);
+  }, [resetComparisonState, resetAssetData, resetEtf]);
 
   const scenarios = userScenarios ?? suggestedScenarios ?? DEFAULT_SCENARIOS;
   const isModelApplied = userScenarios === null && suggestedScenarios !== null;
@@ -197,9 +212,6 @@ export function ComparisonPage() {
   const deferredResults = useDeferredValue(results);
   const deferredTimeline = useDeferredValue(timeline);
 
-  const [isInputOpen, setIsInputOpen] = useState(false);
-  const [showDeepAnalysis, setShowDeepAnalysis] = useState(false);
-
   const horizonLabel = horizonMonths <= 11
     ? `${horizonMonths} mies.`
     : horizonMonths % 12 === 0
@@ -211,6 +223,43 @@ export function ComparisonPage() {
       ? etfTicker ? `ETF ${etfTicker}` : 'ETF'
       : `Obligacje ${bondSettings.firstYearRate.toFixed(1)}%`;
   const hasData = ticker && shares > 0 && currentPriceUSD > 0;
+  const canClearData = useMemo(() => (
+    Boolean(ticker)
+    || shares > 0
+    || currentPriceUSD > 0
+    || currentFxRate > 0
+    || wibor3m > 0
+    || inflationRate > 0
+    || nbpRefRate > 0
+    || benchmarkType !== 'savings'
+    || bondPresetId !== 'OTS'
+    || avgCostUSD > 0
+    || isRSU
+    || brokerFeeUSD > 0
+    || dividendYieldPercent > 0
+    || etfAnnualReturnPercent !== 8
+    || etfTerPercent !== 0.07
+    || etfTicker !== 'IWDA.L'
+    || userScenarios !== null
+  ), [
+    ticker,
+    shares,
+    currentPriceUSD,
+    currentFxRate,
+    wibor3m,
+    inflationRate,
+    nbpRefRate,
+    benchmarkType,
+    bondPresetId,
+    avgCostUSD,
+    isRSU,
+    brokerFeeUSD,
+    dividendYieldPercent,
+    etfAnnualReturnPercent,
+    etfTerPercent,
+    etfTicker,
+    userScenarios,
+  ]);
   const decisionSummary = useMemo(
     () => (deferredResults ? getDecisionSummary(deferredResults) : null),
     [deferredResults],
@@ -311,14 +360,25 @@ export function ComparisonPage() {
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => setIsInputOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-accent-interactive px-4 py-2.5 text-sm font-medium text-text-on-accent hover:bg-accent-interactive/90 transition-colors"
-          >
-            <Settings2 size={16} aria-hidden="true" />
-            {hasData ? 'Edytuj dane wejściowe' : 'Ustaw dane wejściowe'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleClearData}
+              disabled={!canClearData}
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
+            >
+              <Trash2 size={16} aria-hidden="true" />
+              Wyczyść dane
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsInputOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg bg-accent-interactive px-4 py-2.5 text-sm font-medium text-text-on-accent hover:bg-accent-interactive/90 transition-colors"
+            >
+              <Settings2 size={16} aria-hidden="true" />
+              {hasData ? 'Edytuj dane wejściowe' : 'Ustaw dane wejściowe'}
+            </button>
+          </div>
         </div>
 
         {hasData ? (

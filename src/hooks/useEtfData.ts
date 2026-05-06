@@ -10,6 +10,7 @@ interface UseEtfDataReturn {
   isLoading: boolean;
   error: string | null;
   fetchEtf: (ticker: string) => Promise<void>;
+  resetEtf: () => void;
 }
 
 /** Compute CAGR from sorted historical prices (oldest→newest). */
@@ -54,5 +55,13 @@ export function useEtfData(): UseEtfDataReturn {
     }
   }, []);
 
-  return { etfData, etfAnnualizedReturn, isLoading, error, fetchEtf };
+  const resetEtf = useCallback(() => {
+    abortRef.current?.abort();
+    setEtfData(null);
+    setEtfAnnualizedReturn(null);
+    setError(null);
+    setIsLoading(false);
+  }, []);
+
+  return { etfData, etfAnnualizedReturn, isLoading, error, fetchEtf, resetEtf };
 }

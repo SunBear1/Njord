@@ -8,7 +8,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { BenchmarkType, BondSettings, ScenarioKey, Scenarios } from '../types/scenario';
-import { loadState, saveState } from '../utils/persistedState';
+import { clearState, loadState, saveState } from '../utils/persistedState';
 import { DEFAULT_HORIZON_MONTHS } from '../utils/assetConfig';
 
 const DEFAULT_BOND_SETTINGS: BondSettings = {
@@ -83,6 +83,8 @@ export interface PortfolioState {
   resetForNewTicker: () => void;
   /** Call when a new ETF ticker is fetched to allow re-autofill of ETF return */
   resetEtfAutofill: () => void;
+  /** Reset the entire comparison input state and clear persisted comparison inputs */
+  resetComparisonState: () => void;
   // Handlers
   handleScenarioChange: (key: ScenarioKey, field: 'deltaStock' | 'deltaFx', value: number) => void;
   handleBenchmarkTypeChange: (v: BenchmarkType) => void;
@@ -193,6 +195,36 @@ export function usePortfolioState(
     etfReturnAutoFilledRef.current = false;
   }, []);
 
+  const resetComparisonState = useCallback(() => {
+    clearState();
+    fxAutoFilledRef.current = false;
+    aliorAutoFilledRef.current = false;
+    inflationAutoFilledRef.current = false;
+    etfReturnAutoFilledRef.current = false;
+
+    setSavedAt(0);
+    setTicker('');
+    setShares(0);
+    setCurrentPriceUSD(0);
+    setCurrentFxRate(0);
+    setWibor3m(0);
+    setBenchmarkType('savings');
+    setBondSettings(DEFAULT_BOND_SETTINGS);
+    setBondPresetId('OTS');
+    setInflationRate(0);
+    setNbpRefRate(0);
+    setHorizonMonths(DEFAULT_HORIZON_MONTHS);
+    setAvgCostUSD(0);
+    setIsRSU(false);
+    setBrokerFeeUSD(0);
+    setDividendYieldPercent(0);
+    setEtfAnnualReturnPercent(8);
+    setEtfTerPercent(0.07);
+    setEtfTicker('IWDA.L');
+    setUserScenarios(null);
+    setScenarioEditKey((key) => key + 1);
+  }, []);
+
   const handleScenarioChange = useCallback(
     (key: ScenarioKey, field: 'deltaStock' | 'deltaFx', value: number) => {
       setUserScenarios((prev) => {
@@ -245,6 +277,7 @@ export function usePortfolioState(
     scenarioEditKey, setScenarioEditKey,
     resetForNewTicker,
     resetEtfAutofill,
+    resetComparisonState,
     handleScenarioChange,
     handleBenchmarkTypeChange,
     handleApplySuggested,

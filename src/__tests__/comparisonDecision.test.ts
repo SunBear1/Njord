@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { ScenarioResult } from '../types/scenario';
 import {
+  formatScenarioList,
   getBaseResult,
   getDecisionSummary,
+  getScenarioConsistencyText,
   getWinnerVerb,
 } from '../utils/comparisonDecision';
 
@@ -70,5 +72,28 @@ describe('comparisonDecision', () => {
     expect(summary?.actionTitle).toContain('sprzedać');
     expect(summary?.supportingScenarioCount).toBe(2);
     expect(summary?.conflictingScenarioCount).toBe(1);
+  });
+
+  it('TestGetDecisionSummary_WhenSavingsWins_ExpectsNaturalSavingsRecommendation', () => {
+    const results: ScenarioResult[] = [
+      createScenarioResult('bear', { benchmarkLabel: 'Konto', stockBeatsBenchmark: false }),
+      createScenarioResult('base', { benchmarkLabel: 'Konto', stockBeatsBenchmark: false }),
+      createScenarioResult('bull', { benchmarkLabel: 'Konto', stockBeatsBenchmark: true }),
+    ];
+
+    const summary = getDecisionSummary(results);
+
+    expect(summary?.actionTitle).toBe('Na ten moment lepiej sprzedać i przenieść środki na konto oszczędnościowe');
+    expect(summary?.actionSubtitle).toContain('konto oszczędnościowe');
+  });
+
+  it('TestFormatScenarioList_WhenTwoScenarioLabels_ExpectsPolishConjunction', () => {
+    expect(formatScenarioList(['Base', 'Bull'])).toBe('Base i Bull');
+  });
+
+  it('TestGetScenarioConsistencyText_WhenOneScenarioDiffers_ExpectsSupportingAndConflictingScenarioNames', () => {
+    expect(getScenarioConsistencyText(['Base', 'Bull'], ['Bear'])).toBe(
+      'Werdykt wspierają scenariusze Base i Bull. Inny kierunek pokazuje scenariusz Bear.',
+    );
   });
 });
