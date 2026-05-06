@@ -60,6 +60,10 @@ function parseDecimal(raw: string): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function hasNumericValue(value: number): boolean {
+  return value > 0 || value < 0;
+}
+
 export function ComparisonBenchmarkDropdown({
   isOpen,
   onToggle,
@@ -95,8 +99,16 @@ export function ComparisonBenchmarkDropdown({
   const [savingsRateInput, setSavingsRateInput] = useState(
     () => (wibor3m > 0 ? String(wibor3m) : ''),
   );
-  const hasSavedInput = benchmarkType !== 'savings' || wibor3m > 0 || horizonMonths > 0 || Boolean(etfTicker);
   const previousBenchmarkTypeRef = useRef(benchmarkType);
+  const selectedPreset = bondPresets.find((preset) => preset.id === bondPresetId) ?? null;
+  const isComplete = benchmarkType === 'savings'
+    ? wibor3m > 0 && horizonMonths > 0
+    : benchmarkType === 'bonds'
+      ? Boolean(selectedPreset) && horizonMonths > 0 && (
+        selectedPreset?.rateType === 'fixed'
+          || (selectedPreset?.rateType === 'reference' ? nbpRefRate > 0 : hasNumericValue(inflationRate))
+      )
+      : Boolean(etfTicker.trim()) && hasNumericValue(etfAnnualReturnPercent) && horizonMonths > 0;
 
   useEffect(() => {
     const switchedToSavings = previousBenchmarkTypeRef.current !== 'savings' && benchmarkType === 'savings';
@@ -115,12 +127,11 @@ export function ComparisonBenchmarkDropdown({
     }
 
     if (benchmarkType === 'bonds') {
-      const selectedPreset = bondPresets.find((preset) => preset.id === bondPresetId);
       return `${selectedPreset?.name ?? 'Obligacje skarbowe'} · ${horizonSummary(horizonMonths)}`;
     }
 
     return `ETF ${etfTicker || 'bez tickera'} · ${etfAnnualReturnPercent > 0 ? `${formatPercent(etfAnnualReturnPercent)}% p.a.` : 'bez stopy'} · ${horizonSummary(horizonMonths)}`;
-  }, [benchmarkType, bondPresetId, bondPresets, etfAnnualReturnPercent, etfTicker, horizonMonths, wibor3m]);
+  }, [benchmarkType, etfAnnualReturnPercent, etfTicker, horizonMonths, selectedPreset?.name, wibor3m]);
 
   const detail = benchmarkType === 'savings'
     ? `Skrót zapisanych danych odświeża się automatycznie. Efektywna stopa w tym horyzoncie: ${effectiveSavingsRate > 0 ? `${formatPercent(effectiveSavingsRate)}%` : '—'}.`
@@ -154,7 +165,7 @@ export function ComparisonBenchmarkDropdown({
       summary={summary}
       detail={detail}
       isOpen={isOpen}
-      hasSavedInput={hasSavedInput}
+      isComplete={isComplete}
       onToggle={onToggle}
       onDone={onToggle}
     >

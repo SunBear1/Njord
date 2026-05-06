@@ -5,6 +5,8 @@ import { getDecisionSummary } from '../../utils/comparisonDecision';
 interface ComparisonVerdictPanelProps {
   results: ScenarioResult[];
   assetLabel: string;
+  horizonMonths: number;
+  inflationRate: number;
 }
 
 function benchmarkDisplayLabel(label: string): string {
@@ -13,14 +15,44 @@ function benchmarkDisplayLabel(label: string): string {
   return label;
 }
 
+function benchmarkInstrumentLabel(label: string): string {
+  if (label === 'Konto') return 'konto oszczędnościowe';
+  if (label === 'Obligacje') return 'obligacje skarbowe';
+  return 'ETF';
+}
+
+function horizonSummary(value: number): string {
+  if (value <= 11) {
+    return `${value} ${value === 1 ? 'miesiącu' : 'miesiącach'}`;
+  }
+  if (value % 12 === 0) {
+    const years = value / 12;
+    return `${years} ${years === 1 ? 'roku' : 'latach'}`;
+  }
+  return `${Math.floor(value / 12)} l. ${value % 12} mies.`;
+}
+
+function formatPercent(value: number): string {
+  return new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 0, maximumFractionDigits: 1 }).format(value);
+}
+
 export function ComparisonVerdictPanel({
   results,
   assetLabel,
+  horizonMonths,
+  inflationRate,
 }: ComparisonVerdictPanelProps) {
   const summary = getDecisionSummary(results);
   if (!summary) return null;
 
   const { baseResult } = summary;
+  const capitalLabel = summary.winnerLabel === 'Akcje'
+    ? `akcje ${assetLabel}`
+    : benchmarkInstrumentLabel(baseResult.benchmarkLabel);
+  const decisionCapital = summary.winnerLabel === 'Akcje'
+    ? baseResult.stockNetEndValuePLN
+    : baseResult.benchmarkEndValuePLN;
+
   return (
     <section className="rounded-2xl border border-border bg-bg-card shadow-sm p-6 space-y-5">
       <div className="space-y-2">
@@ -50,32 +82,25 @@ export function ComparisonVerdictPanel({
       </div>
 
       <article className="rounded-xl border border-accent-primary/20 bg-accent-primary/5 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-accent-primary">Przewaga po podatku</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-accent-primary">Przewaga netto</p>
         <p className="mt-2 text-2xl font-semibold text-text-primary">{fmtPLN(Math.abs(baseResult.differencePLN))}</p>
-        <p className="mt-1 text-sm text-text-secondary">
-          O tyle więcej zostaje po podatku w scenariuszu bazowym przy zwycięskiej decyzji.
-        </p>
       </article>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3">
         <article className="rounded-xl border border-border/70 bg-bg-muted/20 p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">Kapitał do decyzji</p>
-          <p className="mt-2 text-base font-semibold text-text-primary">{fmtPLN(baseResult.currentValuePLN)}</p>
-          <p className="mt-1 text-sm text-text-secondary">
-            Tyle wynosi przewaga zwycięzcy po podatku w scenariuszu bazowym.
+          <p className="text-sm font-medium text-text-secondary">
+            Posiadany kapitał po {horizonSummary(horizonMonths)} po zainwestowaniu w {capitalLabel}
           </p>
-        </article>
-
-        <article className="rounded-xl border border-border/70 bg-bg-muted/20 p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">Inflacja w tle</p>
-          <p className="mt-2 text-base font-semibold text-text-primary">
-            {baseResult.inflationTotalPercent > 0 ? `${baseResult.inflationTotalPercent.toFixed(1)}%` : 'Brak korekty'}
-          </p>
-          <p className="mt-1 text-sm text-text-secondary">
-            Informacja pomocnicza: pokazuje, jak część nominalnego zysku zjada utrata siły nabywczej.
-          </p>
+          <p className="mt-2 text-base font-semibold text-text-primary">{fmtPLN(decisionCapital)}</p>
         </article>
       </div>
+
+      {inflationRate > 0 && (
+        <p className="text-xs text-text-muted">
+          <span className="font-semibold text-text-secondary">Inflacja w tle {formatPercent(inflationRate)}%</span>
+          {' '}Informacja pomocnicza: pokazuje, jak część nominalnego zysku zjada utrata siły nabywczej.
+        </p>
+      )}
     </section>
   );
 }

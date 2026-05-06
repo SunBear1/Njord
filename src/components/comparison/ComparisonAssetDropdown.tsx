@@ -102,6 +102,7 @@ export function ComparisonAssetDropdown({
   const positionValueUSD = shares > 0 && currentPriceUSD > 0 ? shares * currentPriceUSD : 0;
   const estimatedShares = currentPriceUSD > 0 ? parseDecimal(valueInput) / currentPriceUSD : 0;
   const hasSavedInput = Boolean(ticker) || shares > 0 || avgCostUSD > 0 || isRSU;
+  const isComplete = Boolean(ticker.trim()) && shares > 0 && currentPriceUSD > 0 && currentFxRate > 0 && (avgCostUSD > 0 || isRSU);
 
   const summary = useMemo(() => {
     if (!hasSavedInput) {
@@ -134,7 +135,7 @@ export function ComparisonAssetDropdown({
       summary={summary}
       detail={detail}
       isOpen={isOpen}
-      hasSavedInput={hasSavedInput}
+      isComplete={isComplete}
       onToggle={onToggle}
       onDone={onToggle}
     >

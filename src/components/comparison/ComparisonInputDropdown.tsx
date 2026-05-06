@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
-import { CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface ComparisonInputDropdownProps {
   title: string;
   summary: string;
   detail: string;
   isOpen: boolean;
-  hasSavedInput: boolean;
+  isComplete: boolean;
   onToggle: () => void;
   onDone?: () => void;
   children: ReactNode;
@@ -17,7 +17,7 @@ export function ComparisonInputDropdown({
   summary,
   detail,
   isOpen,
-  hasSavedInput,
+  isComplete,
   onToggle,
   onDone,
   children,
@@ -34,12 +34,12 @@ export function ComparisonInputDropdown({
           <div className="flex items-center gap-2 flex-wrap">
             <h2 className="text-base font-semibold text-text-primary">{title}</h2>
             <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
-              hasSavedInput
+              isComplete
                 ? 'bg-success/10 text-success'
-                : 'bg-bg-muted text-text-muted'
+                : 'bg-warning/10 text-warning'
             }`}>
-              {hasSavedInput && <CheckCircle2 size={12} aria-hidden="true" />}
-              {hasSavedInput ? 'Zapisane dane' : 'Do uzupełnienia'}
+              {isComplete ? <CheckCircle2 size={12} aria-hidden="true" /> : <AlertTriangle size={12} aria-hidden="true" />}
+              {isComplete ? 'Zapisane dane' : 'Do uzupełnienia'}
             </span>
           </div>
           <p className="text-sm font-medium text-text-primary">{summary}</p>

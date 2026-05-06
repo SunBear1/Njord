@@ -37,6 +37,7 @@
   /* --- Status --- */
   --color-success: #065F46;
   --color-danger: #991B1B;
+  --color-warning: #B45309;
 
   /* --- Border --- */
   --color-border: #CBD5E1;
@@ -61,6 +62,7 @@ html.dark {
 
   --color-success: #6EE7B7;
   --color-danger: #FCA5A5;
+  --color-warning: #FCD34D;
 
   --color-border: #334155;
 }
