@@ -20,6 +20,13 @@ import { useBondPresets } from '../hooks/useBondPresets';
 import { usePortfolioState } from '../hooks/usePortfolioState';
 import { calcAllScenarios, calcTimeline } from '../utils/calculations';
 import { blendedInflationRate, blendedSavingsRate } from '../utils/inflationProjection';
+import {
+  clearComparisonAnalysis,
+  loadComparisonAnalysis,
+  saveComparisonAnalysis,
+  type PersistedComparisonAnalysis,
+  type PersistedComparisonTraitStats,
+} from '../utils/persistedState';
 
 const TimelineChartLazy = lazy(() => import('../components/TimelineChart'));
 
@@ -29,15 +36,7 @@ const DEFAULT_SCENARIOS: Scenarios = {
   bull: { deltaStock: 10, deltaFx: 5 },
 };
 
-interface AnalysisSnapshot {
-  inputs: Parameters<typeof calcAllScenarios>[0];
-  scenarios: Scenarios;
-  signature: string;
-  assetLabel: string;
-  ticker: string;
-  horizonLabel: string;
-  volatilityStats: VolatilityStats | null;
-}
+type AnalysisSnapshot = PersistedComparisonAnalysis;
 
 function benchmarkFullLabel(label: string): string {
   if (label === 'Konto') return 'Konto oszczędnościowe';
@@ -45,15 +44,14 @@ function benchmarkFullLabel(label: string): string {
   return label;
 }
 
-function formatHorizonLabel(value: number): string {
-  if (value <= 11) {
-    return `${value} ${value === 1 ? 'miesiąc' : value < 5 ? 'miesiące' : 'miesięcy'}`;
-  }
-  if (value % 12 === 0) {
-    const years = value / 12;
-    return `${years} ${years === 1 ? 'rok' : years < 5 ? 'lata' : 'lat'}`;
-  }
-  return `${Math.floor(value / 12)} l. ${value % 12} mies.`;
+function toTraitStats(stats: VolatilityStats | null): PersistedComparisonTraitStats | null {
+  if (!stats) return null;
+
+  return {
+    stockSigmaAnnual: stats.stockSigmaAnnual,
+    fxSigmaAnnual: stats.fxSigmaAnnual,
+    correlation: stats.correlation,
+  };
 }
 
 export function ComparisonPage() {
@@ -96,10 +94,6 @@ export function ComparisonPage() {
     setAvgCostUSD,
     isRSU,
     setIsRSU,
-    brokerFeeUSD,
-    setBrokerFeeUSD,
-    dividendYieldPercent,
-    setDividendYieldPercent,
     nbpRefRate,
     setNbpRefRate,
     bondSettings,
@@ -113,7 +107,7 @@ export function ComparisonPage() {
   } = portfolio;
 
   const [openSection, setOpenSection] = useState<'asset' | 'benchmark' | null>('asset');
-  const [analysis, setAnalysis] = useState<AnalysisSnapshot | null>(null);
+  const [analysis, setAnalysis] = useState<AnalysisSnapshot | null>(() => loadComparisonAnalysis());
   const [editingScenario, setEditingScenario] = useState<ScenarioKey | null>(null);
 
   const suggested = useHistoricalVolatility(
@@ -124,6 +118,16 @@ export function ComparisonPage() {
 
   const { suggestedScenarios, stats: volatilityStats } = suggested;
   const currentScenarios = userScenarios ?? suggestedScenarios ?? DEFAULT_SCENARIOS;
+  const persistAnalysis = useCallback((nextAnalysis: AnalysisSnapshot | null) => {
+    setAnalysis(nextAnalysis);
+
+    if (nextAnalysis) {
+      saveComparisonAnalysis(nextAnalysis);
+      return;
+    }
+
+    clearComparisonAnalysis();
+  }, []);
 
   const handleFetchAsset = useCallback(async (nextTicker: string) => {
     resetForNewTicker();
@@ -182,20 +186,18 @@ export function ComparisonPage() {
     inflationRate,
     avgCostUSD,
     isRSU,
-    brokerFeeUSD,
-    dividendYieldPercent,
+    brokerFeeUSD: 0,
+    dividendYieldPercent: 0,
     etfAnnualReturnPercent,
     etfTerPercent: 0,
   }), [
     avgCostUSD,
     benchmarkType,
     bondSettings,
-    brokerFeeUSD,
     computedBondEffectiveRate,
     currentFxRate,
     currentPriceUSD,
     currencyRates.nbp?.mid,
-    dividendYieldPercent,
     effectiveSavingsRate,
     etfAnnualReturnPercent,
     horizonMonths,
@@ -225,25 +227,22 @@ export function ComparisonPage() {
     nbpRefRate,
     avgCostUSD,
     isRSU,
-    brokerFeeUSD,
-    dividendYieldPercent,
     etfAnnualReturnPercent,
     etfTicker,
   });
 
   const handleAnalyze = useCallback(() => {
     if (!canAnalyze) return;
-    setAnalysis({
+    persistAnalysis({
       inputs: calcInputs,
       scenarios: currentScenarios,
       signature: draftSignature,
       assetLabel: assetData?.asset.name ?? ticker,
       ticker,
-      horizonLabel: formatHorizonLabel(horizonMonths),
-      volatilityStats,
+      traitStats: toTraitStats(volatilityStats),
     });
     setOpenSection(null);
-  }, [assetData?.asset.name, calcInputs, canAnalyze, currentScenarios, draftSignature, horizonMonths, ticker, volatilityStats]);
+  }, [assetData?.asset.name, calcInputs, canAnalyze, currentScenarios, draftSignature, persistAnalysis, ticker, volatilityStats]);
 
   const analysisResults = useMemo(
     () => (analysis ? calcAllScenarios(analysis.inputs, analysis.scenarios) : null),
@@ -262,13 +261,13 @@ export function ComparisonPage() {
   const handleClearData = useCallback(() => {
     const shouldClear = window.confirm('Wyczyścić zapisane dane porównania i zacząć od nowa?');
     if (!shouldClear) return;
-    setAnalysis(null);
+    persistAnalysis(null);
     setEditingScenario(null);
     resetComparisonState();
     resetAssetData();
     resetEtf();
     setOpenSection('asset');
-  }, [resetAssetData, resetComparisonState, resetEtf]);
+  }, [persistAnalysis, resetAssetData, resetComparisonState, resetEtf]);
 
   const handleScenarioSave = useCallback((scenarioKey: ScenarioKey, stockPrice: number, fxRate: number) => {
     if (!analysis) return;
@@ -281,9 +280,9 @@ export function ComparisonPage() {
       },
     };
 
-    setAnalysis({ ...analysis, scenarios: nextScenarios });
+    persistAnalysis({ ...analysis, scenarios: nextScenarios });
     setUserScenarios(nextScenarios);
-  }, [analysis, setUserScenarios]);
+  }, [analysis, persistAnalysis, setUserScenarios]);
 
   return (
     <div className="space-y-6">
@@ -317,14 +316,10 @@ export function ComparisonPage() {
           nbpMidRate={currencyRates.nbp?.mid ?? null}
           avgCostUSD={avgCostUSD}
           isRSU={isRSU}
-          brokerFeeUSD={brokerFeeUSD}
-          dividendYieldPercent={dividendYieldPercent}
           onTickerChange={setTicker}
           onSharesChange={setShares}
           onAvgCostUSDChange={setAvgCostUSD}
           onIsRSUChange={setIsRSU}
-          onBrokerFeeUSDChange={setBrokerFeeUSD}
-          onDividendYieldChange={setDividendYieldPercent}
         />
 
         <ComparisonBenchmarkDropdown
@@ -404,7 +399,6 @@ export function ComparisonPage() {
         <ComparisonVerdictPanel
           results={analysisResults}
           assetLabel={analysis.assetLabel}
-          horizonLabel={analysis.horizonLabel}
         />
       )}
 
@@ -439,6 +433,13 @@ export function ComparisonPage() {
         </section>
       )}
 
+      {analysis && (
+        <ComparisonStockTraits
+          ticker={analysis.ticker}
+          stats={analysis.traitStats}
+        />
+      )}
+
       {analysis && analysisTimeline && (
         <ErrorBoundary>
           <Suspense fallback={<Skeleton.Chart height={220} />}>
@@ -451,13 +452,6 @@ export function ComparisonPage() {
             />
           </Suspense>
         </ErrorBoundary>
-      )}
-
-      {analysis && (
-        <ComparisonStockTraits
-          ticker={analysis.ticker}
-          stats={analysis.volatilityStats}
-        />
       )}
 
       {analysis && editingScenario && (

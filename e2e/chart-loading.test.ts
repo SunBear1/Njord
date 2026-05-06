@@ -102,6 +102,7 @@ test.describe('Comparison page — successful analysis flow', () => {
     await configureComparisonForAnalysis(page);
 
     await expect(page.getByText(/wygrywa w scenariuszu bazowym|wygrywają w scenariuszu bazowym/i)).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText(/przewaga nad akcjami/i)).toBeVisible();
     await expect(page.getByText(/Scenariusze skrajne/i)).toBeVisible();
     await expect(page.getByText('Wartość w czasie')).toBeVisible({ timeout: 8_000 });
     await expect(page.getByText(/Cechy kursu spółki AAPL/i)).toBeVisible();
@@ -128,6 +129,26 @@ test.describe('Comparison page — successful analysis flow', () => {
     await page.getByRole('link', { name: /Pełna prognoza ceny/i }).click();
     await expect(page).toHaveURL(/\/forecast\?ticker=AAPL/);
     await expect(page.locator('#forecast-ticker')).toHaveValue('AAPL');
+  });
+
+  test('stock traits stay visible after returning from forecast and remain above the chart', async ({ page }) => {
+    await configureComparisonForAnalysis(page);
+
+    const stockTraitsHeading = page.getByRole('heading', { name: /Cechy kursu spółki AAPL/i });
+    const timelineHeading = page.getByText('Wartość w czasie');
+
+    await page.getByRole('link', { name: /Pełna prognoza ceny/i }).click();
+    await expect(page).toHaveURL(/\/forecast\?ticker=AAPL/);
+
+    await page.goBack();
+    await page.waitForURL(/\/comparison/);
+    await expect(stockTraitsHeading).toBeVisible({ timeout: 8_000 });
+    await expect(timelineHeading).toBeVisible({ timeout: 8_000 });
+
+    const stockTraitsBox = await stockTraitsHeading.boundingBox();
+    const timelineBox = await timelineHeading.boundingBox();
+
+    expect(stockTraitsBox?.y).toBeLessThan(timelineBox?.y ?? Number.POSITIVE_INFINITY);
   });
 });
 

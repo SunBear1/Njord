@@ -8,6 +8,7 @@ interface ComparisonInputDropdownProps {
   isOpen: boolean;
   hasSavedInput: boolean;
   onToggle: () => void;
+  onDone?: () => void;
   children: ReactNode;
 }
 
@@ -18,6 +19,7 @@ export function ComparisonInputDropdown({
   isOpen,
   hasSavedInput,
   onToggle,
+  onDone,
   children,
 }: ComparisonInputDropdownProps) {
   return (
@@ -25,10 +27,10 @@ export function ComparisonInputDropdown({
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-start justify-between gap-4 px-5 py-4 text-left"
+        className="flex w-full flex-col gap-3 px-5 py-4 text-left md:flex-row md:items-start md:justify-between"
         aria-expanded={isOpen}
       >
-        <div className="min-w-0 space-y-1">
+        <div className="min-w-0 flex-1 space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
             <h2 className="text-base font-semibold text-text-primary">{title}</h2>
             <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
@@ -53,6 +55,17 @@ export function ComparisonInputDropdown({
       {isOpen && (
         <div className="border-t border-border px-5 py-5">
           {children}
+          {onDone && (
+            <div className="mt-5 flex justify-end border-t border-border pt-4">
+              <button
+                type="button"
+                onClick={onDone}
+                className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-primary hover:bg-bg-muted transition-colors"
+              >
+                Gotowe
+              </button>
+            </div>
+          )}
         </div>
       )}
     </section>

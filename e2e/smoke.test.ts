@@ -87,6 +87,23 @@ test.describe('Njord smoke tests', () => {
     await expect(page.getByRole('button', { name: /Reinwestycja i horyzont/i })).toContainText('5,82');
   });
 
+  test('savings input accepts both dot and comma and dropdown closes with Gotowe', async ({ page }) => {
+    await page.goto('/comparison');
+    await page.waitForSelector('main', { timeout: 10_000 });
+
+    await page.getByRole('button', { name: /Reinwestycja i horyzont/i }).click();
+
+    const savingsInput = page.locator('#comparison-savings-rate');
+    await savingsInput.fill('3.85');
+    await expect(savingsInput).toHaveValue('3.85');
+
+    await savingsInput.fill('3,85');
+    await expect(savingsInput).toHaveValue('3,85');
+
+    await page.getByRole('button', { name: /^Gotowe$/ }).click();
+    await expect(savingsInput).not.toBeVisible();
+  });
+
   test('price forecast page loads with ticker input', async ({ page }) => {
     await page.goto('/forecast');
     await page.waitForSelector('main', { timeout: 10_000 });

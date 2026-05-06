@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, CandlestickChart, ChartColumnIncreasing, Scale } from 'lucide-react';
-import type { VolatilityStats } from '../../hooks/useHistoricalVolatility';
+import type { PersistedComparisonTraitStats } from '../../utils/persistedState';
 
 interface ComparisonStockTraitsProps {
   ticker: string;
-  stats: VolatilityStats | null;
+  stats: PersistedComparisonTraitStats | null;
 }
 
 interface TraitCardProps {

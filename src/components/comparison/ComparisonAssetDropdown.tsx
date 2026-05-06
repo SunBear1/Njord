@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, CheckCircle2, Info, Loader2, RefreshCw, ChevronDown } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AlertCircle, CheckCircle2, Info, Loader2, RefreshCw } from 'lucide-react';
 import type { AssetData } from '../../types/asset';
 import { fmtNum, fmtUSD } from '../../utils/formatting';
 import { Tooltip } from '../Tooltip';
@@ -22,14 +22,10 @@ interface ComparisonAssetDropdownProps {
   nbpMidRate: number | null;
   avgCostUSD: number;
   isRSU: boolean;
-  brokerFeeUSD: number;
-  dividendYieldPercent: number;
   onTickerChange: (value: string) => void;
   onSharesChange: (value: number) => void;
   onAvgCostUSDChange: (value: number) => void;
   onIsRSUChange: (value: boolean) => void;
-  onBrokerFeeUSDChange: (value: number) => void;
-  onDividendYieldChange: (value: number) => void;
 }
 
 function formatPercent(value: number): string {
@@ -44,6 +40,10 @@ function parseDecimal(raw: string): number {
   const normalized = raw.replace(',', '.').replace(/\s+/g, '');
   const parsed = Number.parseFloat(normalized);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function roundShares(value: number): number {
+  return Number.parseFloat(value.toFixed(4));
 }
 
 export function ComparisonAssetDropdown({
@@ -61,29 +61,26 @@ export function ComparisonAssetDropdown({
   nbpMidRate,
   avgCostUSD,
   isRSU,
-  brokerFeeUSD,
-  dividendYieldPercent,
   onTickerChange,
   onSharesChange,
   onAvgCostUSDChange,
   onIsRSUChange,
-  onBrokerFeeUSDChange,
-  onDividendYieldChange,
 }: ComparisonAssetDropdownProps) {
   const [positionMode, setPositionMode] = useState<PositionMode>('shares');
   const [valueInput, setValueInput] = useState('');
-  const [showAdvanced, setShowAdvanced] = useState(
-    () => brokerFeeUSD > 0 || dividendYieldPercent > 0,
-  );
   const isFirstRender = useRef(true);
+
+  const setRoundedShares = useCallback((value: number) => {
+    onSharesChange(roundShares(value));
+  }, [onSharesChange]);
 
   useEffect(() => {
     if (positionMode !== 'value') return;
     const parsedValue = parseDecimal(valueInput);
     if (parsedValue > 0 && currentPriceUSD > 0) {
-      onSharesChange(parsedValue / currentPriceUSD);
+      setRoundedShares(parsedValue / currentPriceUSD);
     }
-  }, [currentPriceUSD, onSharesChange, positionMode, valueInput]);
+  }, [currentPriceUSD, positionMode, setRoundedShares, valueInput]);
 
   useEffect(() => {
     if (isFirstRender.current) {
@@ -139,6 +136,7 @@ export function ComparisonAssetDropdown({
       isOpen={isOpen}
       hasSavedInput={hasSavedInput}
       onToggle={onToggle}
+      onDone={onToggle}
     >
       <div className="space-y-5">
         <div className="space-y-1">
@@ -233,7 +231,7 @@ export function ComparisonAssetDropdown({
                   min={0}
                   step={0.0001}
                   value={shares || ''}
-                  onChange={(event) => onSharesChange(Number(event.target.value))}
+                  onChange={(event) => setRoundedShares(Number(event.target.value))}
                   placeholder="np. 25"
                   className="w-full border border-border rounded-lg bg-bg-card px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
                 />
@@ -253,9 +251,9 @@ export function ComparisonAssetDropdown({
                     setValueInput(nextValue);
                     const parsed = parseDecimal(nextValue);
                     if (parsed > 0 && currentPriceUSD > 0) {
-                      onSharesChange(parsed / currentPriceUSD);
+                      setRoundedShares(parsed / currentPriceUSD);
                     } else if (!nextValue.trim()) {
-                      onSharesChange(0);
+                      setRoundedShares(0);
                     }
                   }}
                   placeholder="np. 5000,50"
@@ -270,12 +268,14 @@ export function ComparisonAssetDropdown({
                 <div className="space-y-1">
                   {positionMode === 'shares' ? (
                     <>
-                      <p className="font-medium text-text-primary">Łączna wartość pozycji</p>
-                      <p>
-                        {shares > 0 && currentPriceUSD > 0
-                          ? fmtUSD(positionValueUSD)
-                          : 'Wpisz ticker i liczbę akcji, aby zobaczyć wartość pozycji.'}
-                      </p>
+                      {shares > 0 && currentPriceUSD > 0 ? (
+                        <p className="whitespace-nowrap">
+                          <span className="font-medium text-text-primary">Łączna wartość pozycji</span>
+                          {' '}— <span className="font-semibold text-text-primary">{fmtUSD(positionValueUSD)}</span>
+                        </p>
+                      ) : (
+                        <p>Wpisz ticker i liczbę akcji, aby zobaczyć wartość pozycji.</p>
+                      )}
                     </>
                   ) : (
                     <>
@@ -289,24 +289,6 @@ export function ComparisonAssetDropdown({
                   )}
                 </div>
               </div>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-border bg-bg-muted/40 px-4 py-3 space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">Dane rynkowe</p>
-            <div className="space-y-1 text-sm text-text-secondary">
-              <p>
-                Aktualna cena:{' '}
-                <span className="font-semibold text-text-primary">
-                  {currentPriceUSD > 0 ? fmtUSD(currentPriceUSD) : 'Czekam na dane'}
-                </span>
-              </p>
-              <p>
-                Kurs sprzedaży USD:{' '}
-                <span className="font-semibold text-text-primary">
-                  {currentFxRate > 0 ? `${fmtNum(currentFxRate)} PLN/USD` : 'Czekam na kurs'}
-                </span>
-              </p>
             </div>
           </div>
         </div>
@@ -347,69 +329,15 @@ export function ComparisonAssetDropdown({
         </label>
 
         <div className="rounded-xl border border-border bg-bg-muted/40 px-4 py-3 text-sm text-text-secondary space-y-1">
-          <p className="font-medium text-text-primary">Kurs sprzedaży USD jest ustawiany automatycznie</p>
-          <p>
-            Alior Kantor: <strong className="text-text-primary">{aliorRate ? `${fmtNum(aliorRate)} PLN/USD` : 'brak danych'}</strong>.
-            {' '}Ten kurs służy do przeliczenia sprzedaży na PLN.
-          </p>
-          <p>
-            Podatek Belki nadal liczony jest po kursie NBP:{' '}
-            <strong className="text-text-primary">{nbpMidRate ? `${fmtNum(nbpMidRate)} PLN/USD` : 'brak danych'}</strong>.
-          </p>
-        </div>
-
-        <div className="border border-border rounded-xl overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setShowAdvanced((current) => !current)}
-            className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-text-secondary hover:bg-bg-muted transition-colors"
-            aria-expanded={showAdvanced}
-          >
-            <span>Ustawienia zaawansowane</span>
-            <ChevronDown size={16} className={`transition-transform ${showAdvanced ? 'rotate-180' : ''}`} aria-hidden="true" />
-          </button>
-
-          {showAdvanced && (
-            <div className="border-t border-border px-4 py-4 space-y-4">
-              <div className="space-y-1">
-                <label htmlFor="comparison-broker-fee" className="text-sm font-medium text-text-secondary">
-                  Prowizja brokera (USD)
-                </label>
-                <input
-                  id="comparison-broker-fee"
-                  type="number"
-                  min={0}
-                  step={0.01}
-                  value={brokerFeeUSD || ''}
-                  onChange={(event) => onBrokerFeeUSDChange(Number(event.target.value))}
-                  placeholder="np. 1,00"
-                  className="w-full border border-border rounded-lg bg-bg-card px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label htmlFor="comparison-dividend-yield" className="text-sm font-medium text-text-secondary">
-                  Stopa dywidendy (% rocznie)
-                </label>
-                <input
-                  id="comparison-dividend-yield"
-                  type="number"
-                  min={0}
-                  max={20}
-                  step={0.1}
-                  value={dividendYieldPercent || ''}
-                  onChange={(event) => onDividendYieldChange(Number(event.target.value))}
-                  placeholder="np. 1,5"
-                  className="w-full border border-border rounded-lg bg-bg-card px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
-                />
-                {dividendYieldPercent > 0 && (
-                  <p className="text-xs text-text-muted">
-                    To założenie dodaje dywidendy netto do wyniku akcji.
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
+          <div className="flex items-start gap-1.5 text-xs text-accent-primary">
+            <Info size={12} className="mt-0.5 shrink-0" aria-hidden="true" />
+            <p>
+              Aktualny kurs sprzedaży USD z Alior Kantor:{' '}
+              <strong className="text-text-primary">{aliorRate ? `${fmtNum(aliorRate)} PLN/USD` : 'brak danych'}</strong>.
+              {' '}Podatek Belki nadal liczymy po kursie NBP:{' '}
+              <strong className="text-text-primary">{nbpMidRate ? `${fmtNum(nbpMidRate)} PLN/USD` : 'brak danych'}</strong>.
+            </p>
+          </div>
         </div>
 
         {avgCostUSD > 0 && currentPriceUSD > 0 && !isRSU && (
