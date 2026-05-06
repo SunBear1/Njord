@@ -77,7 +77,7 @@ export function ComparisonVerdictPanel({
           )}{' '}
           wynosi{' '}
           <strong className="text-text-primary">{fmtPLN(Math.abs(baseResult.differencePLN))}</strong>
-          {' '}({Math.abs(baseResult.differencePercent).toFixed(1)}%). To jest najważniejsza informacja w wyniku.
+          {' '}({Math.abs(baseResult.differencePercent).toFixed(1)}%).
         </p>
       </div>
 
@@ -89,7 +89,7 @@ export function ComparisonVerdictPanel({
       <div className="grid grid-cols-1 gap-3">
         <article className="rounded-xl border border-border/70 bg-bg-muted/20 p-4">
           <p className="text-sm font-medium text-text-secondary">
-            Posiadany kapitał po {horizonSummary(horizonMonths)} po zainwestowaniu w {capitalLabel}
+            Wartość inwestycji w {capitalLabel} po {horizonSummary(horizonMonths)}
           </p>
           <p className="mt-2 text-base font-semibold text-text-primary">{fmtPLN(decisionCapital)}</p>
         </article>
@@ -98,7 +98,6 @@ export function ComparisonVerdictPanel({
       {inflationRate > 0 && (
         <p className="text-xs text-text-muted">
           <span className="font-semibold text-text-secondary">Inflacja w tle {formatPercent(inflationRate)}%</span>
-          {' '}Informacja pomocnicza: pokazuje, jak część nominalnego zysku zjada utrata siły nabywczej.
         </p>
       )}
     </section>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react';
-import { ArrowRightLeft, Loader2, Sparkles, Trash2 } from 'lucide-react';
+import { Loader2, Sparkles, Trash2 } from 'lucide-react';
 import type { ScenarioKey, Scenarios } from '../types/scenario';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { Skeleton } from '../components/Skeleton';
@@ -281,6 +281,7 @@ export function ComparisonPage() {
   );
 
   const isAnalysisStale = analysis !== null && analysis.signature !== draftSignature;
+  const shouldShowResults = analysis !== null && !isAnalysisStale;
   const bearResult = analysisResults?.find((result) => result.key === 'bear') ?? null;
   const bullResult = analysisResults?.find((result) => result.key === 'bull') ?? null;
   const benchmarkLabel = analysisResults?.[0]?.benchmarkLabel ? benchmarkFullLabel(analysisResults[0].benchmarkLabel) : '';
@@ -315,12 +316,11 @@ export function ComparisonPage() {
     <div className="space-y-6">
       <section className="rounded-2xl border border-border bg-bg-card shadow-sm p-6 space-y-4">
         <div className="space-y-3">
-          <span className="inline-flex items-start gap-2 rounded-full border border-accent-primary/30 bg-accent-primary/5 px-3 py-1 text-xs font-semibold text-accent-primary">
-            <ArrowRightLeft size={14} className="mt-0.5 shrink-0" aria-hidden="true" />
-            <span data-testid="comparison-decision-chip-text" className="flex flex-col leading-tight">
-              <span>Decyzja</span>
-              <span>sprzedaży</span>
-            </span>
+          <span
+            data-testid="comparison-decision-chip"
+            className="inline-flex rounded-full border border-accent-primary/30 bg-accent-primary/5 px-3 py-1 text-xs font-semibold text-accent-primary"
+          >
+            Decyzja sprzedaży
           </span>
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-text-primary">Sprzedać czy trzymać akcje?</h1>
@@ -420,13 +420,16 @@ export function ComparisonPage() {
       )}
 
       {analysis && isAnalysisStale && (
-        <section className="rounded-2xl border border-accent-primary/30 bg-accent-primary/5 px-4 py-3 text-sm text-text-secondary">
-          Zmieniłeś dane wejściowe po ostatniej analizie. Kliknij <strong className="text-text-primary">Analizuj scenariusze</strong>,
-          {' '}aby odświeżyć werdykt.
+        <section className="rounded-2xl border border-warning/30 bg-warning/5 p-10 text-center space-y-3">
+          <h2 className="text-lg font-semibold text-text-primary">Wynik wymaga ponownej analizy</h2>
+          <p className="text-sm text-warning">
+            Zmieniłeś dane wejściowe po ostatniej analizie. Kliknij <strong>Analizuj scenariusze</strong>,
+            {' '}aby odświeżyć werdykt.
+          </p>
         </section>
       )}
 
-      {analysis && analysisResults && (
+      {shouldShowResults && analysisResults && (
         <ComparisonVerdictPanel
           results={analysisResults}
           assetLabel={analysis.assetLabel}
@@ -435,7 +438,7 @@ export function ComparisonPage() {
         />
       )}
 
-      {analysis && bearResult && bullResult && (
+      {shouldShowResults && bearResult && bullResult && (
         <section className="space-y-4">
           <div>
             <h2 className="text-xl font-semibold text-text-primary">Scenariusze skrajne</h2>
@@ -466,7 +469,7 @@ export function ComparisonPage() {
         </section>
       )}
 
-      {analysis && (
+      {shouldShowResults && (
         <ComparisonStockTraits
           ticker={analysis.ticker}
           assetLabel={analysis.assetLabel}
@@ -474,7 +477,7 @@ export function ComparisonPage() {
         />
       )}
 
-      {analysis && analysisTimeline && (
+      {shouldShowResults && analysisTimeline && (
         <ErrorBoundary>
           <Suspense fallback={<Skeleton.Chart height={220} />}>
             <TimelineChartLazy

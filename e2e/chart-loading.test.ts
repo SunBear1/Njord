@@ -114,7 +114,7 @@ test.describe('Comparison page — successful analysis flow', () => {
 
     await expect(page.getByText(/wygrywa w scenariuszu bazowym|wygrywają w scenariuszu bazowym/i)).toBeVisible({ timeout: 8_000 });
     await expect(page.getByText('Przewaga netto')).toBeVisible({ timeout: 8_000 });
-    await expect(page.getByText(/Posiadany kapitał po .* po zainwestowaniu w /i)).toBeVisible();
+    await expect(page.getByText(/Wartość inwestycji w .* po /i)).toBeVisible();
     await expect(page.getByText(/Inflacja w tle 2,4%/i)).toBeVisible();
     await expect(page.getByText(/Scenariusze skrajne/i)).toBeVisible();
     await expect(page.getByText('Wartość w czasie')).toBeVisible({ timeout: 8_000 });
@@ -230,5 +230,21 @@ test.describe('Comparison page — loading states', () => {
     await expect(page.getByText('Przewaga netto')).not.toBeVisible();
     await expect(page.getByText('Przewaga netto')).toBeVisible({ timeout: 4_000 });
     expect(Date.now() - start).toBeGreaterThanOrEqual(450);
+  });
+
+  test('changing inputs after analysis hides results and shows a yellow warning until re-analysis', async ({ page }) => {
+    await configureComparisonForAnalysis(page);
+
+    await expect(page.getByText('Przewaga netto')).toBeVisible({ timeout: 8_000 });
+
+    await page.getByRole('button', { name: /Twój portfel akcji/i }).click();
+    await page.locator('#comparison-shares').fill('12');
+
+    const warning = page.getByText(/Zmieniłeś dane wejściowe po ostatniej analizie/i);
+    await expect(warning).toBeVisible();
+    await expect(warning).toHaveCSS('color', 'rgb(180, 83, 9)');
+    await expect(page.getByText('Przewaga netto')).not.toBeVisible();
+    await expect(page.getByText(/Scenariusze skrajne/i)).not.toBeVisible();
+    await expect(page.getByText('Wartość w czasie')).not.toBeVisible();
   });
 });

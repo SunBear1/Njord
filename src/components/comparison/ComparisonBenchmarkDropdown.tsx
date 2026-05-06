@@ -168,6 +168,7 @@ export function ComparisonBenchmarkDropdown({
       isComplete={isComplete}
       onToggle={onToggle}
       onDone={onToggle}
+      wrapped
     >
       <div className="space-y-5">
         <div className="grid grid-cols-1 gap-2 md:grid-cols-3">

@@ -10,6 +10,7 @@ interface ComparisonInputDropdownProps {
   onToggle: () => void;
   onDone?: () => void;
   children: ReactNode;
+  wrapped?: boolean;
 }
 
 export function ComparisonInputDropdown({
@@ -21,13 +22,14 @@ export function ComparisonInputDropdown({
   onToggle,
   onDone,
   children,
+  wrapped,
 }: ComparisonInputDropdownProps) {
   return (
     <section className="rounded-2xl border border-border bg-bg-card shadow-sm">
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full flex-col gap-3 px-5 py-4 text-left md:flex-row md:items-start md:justify-between"
+        className={`flex w-full gap-3 px-5 py-4 text-left ${wrapped ? 'flex-col' : 'flex-col md:flex-row'} md:items-start md:justify-between`}
         aria-expanded={isOpen}
       >
         <div className="min-w-0 flex-1 space-y-1">

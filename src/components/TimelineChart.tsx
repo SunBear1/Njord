@@ -24,7 +24,6 @@ interface TimelineChartProps {
 function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate, isDark }: TimelineChartProps) {
   const gridColor = isDark ? '#334155' : '#F1F5F9';
   const tickColor = isDark ? '#A9B5BF' : '#475569';
-  const labelColor = isDark ? '#A9B5BF' : '#475569';
   const chartData = useMemo(() =>
     inflationRate > 0
       ? data.map((point) => ({
@@ -50,7 +49,6 @@ function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate, i
             dataKey="month"
             tickFormatter={(v) => `${v}m`}
             tick={{ fontSize: 12, fill: tickColor }}
-            label={{ value: 'Miesiące', position: 'insideBottomRight', offset: 0, fontSize: 11, fill: labelColor }}
           />
           <YAxis tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 12, fill: tickColor }} />
           <Tooltip
