@@ -48,11 +48,9 @@ export function ComparisonScenarioCard({
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">Scenariusz {label.toLowerCase()}</p>
-          <h3 className="text-lg font-semibold text-text-primary">{winnerText}</h3>
-          <p className="text-sm text-text-secondary">
-            Przewaga: <strong className="text-text-primary">{fmtPLN(Math.abs(result.differencePLN))}</strong>
-            {' '}({Math.abs(result.differencePercent).toFixed(1)}%).
-          </p>
+          <h3 className="text-lg font-semibold text-text-primary">
+            {winnerText} z przewagą {fmtPLN(Math.abs(result.differencePLN))} ({Math.abs(result.differencePercent).toFixed(1)}%).
+          </h3>
         </div>
         <button
           type="button"

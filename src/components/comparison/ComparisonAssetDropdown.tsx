@@ -131,13 +131,14 @@ export function ComparisonAssetDropdown({
 
   return (
     <ComparisonInputDropdown
-      title="Akcje i pozycja"
+      title="Twój portfel akcji"
       summary={summary}
       detail={detail}
       isOpen={isOpen}
       isComplete={isComplete}
       onToggle={onToggle}
       onDone={onToggle}
+      wrapped
     >
       <div className="space-y-5">
         <div className="space-y-1">
@@ -329,16 +330,15 @@ export function ComparisonAssetDropdown({
           <Tooltip content="Po zaznaczeniu koszt nabycia jest traktowany jako 0 USD, więc pole ceny zakupu zostaje zablokowane." />
         </label>
 
-        <div className="rounded-xl border border-border bg-bg-muted/40 px-4 py-3 text-sm text-text-secondary space-y-1">
-          <div className="flex items-start gap-1.5 text-xs text-accent-primary">
-            <Info size={12} className="mt-0.5 shrink-0" aria-hidden="true" />
-            <p>
-              Aktualny kurs sprzedaży USD z Alior Kantor:{' '}
-              <strong className="text-text-primary">{aliorRate ? `${fmtNum(aliorRate)} PLN/USD` : 'brak danych'}</strong>.
-              {' '}Podatek Belki nadal liczymy po kursie NBP:{' '}
-              <strong className="text-text-primary">{nbpMidRate ? `${fmtNum(nbpMidRate)} PLN/USD` : 'brak danych'}</strong>.
-            </p>
-          </div>
+        <div className="space-y-1 rounded-xl border border-border bg-bg-muted/40 px-4 py-3 text-xs text-text-secondary">
+          <p>
+            Kurs sprzedaży akcji (Alior Kantor) -{' '}
+            <strong className="text-text-primary">{aliorRate ? fmtNum(aliorRate) : 'brak danych'}</strong>
+          </p>
+          <p>
+            Kurs kalkulacji podatku belki (NBP) -{' '}
+            <strong className="text-text-primary">{nbpMidRate ? fmtNum(nbpMidRate) : 'brak danych'}</strong>
+          </p>
         </div>
 
         {avgCostUSD > 0 && currentPriceUSD > 0 && !isRSU && (

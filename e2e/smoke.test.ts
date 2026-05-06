@@ -17,7 +17,7 @@ test.describe('Njord smoke tests', () => {
     await page.waitForSelector('main', { timeout: 10_000 });
 
     await expect(page.getByRole('heading', { name: /Sprzedać czy trzymać akcje/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Akcje i pozycja/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Twój portfel akcji/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /Reinwestycja i horyzont/i })).toBeVisible();
   });
 
@@ -84,7 +84,7 @@ test.describe('Njord smoke tests', () => {
     await page.getByRole('button', { name: /^Konto oszczędnościowe$/ }).click();
     await page.locator('#comparison-savings-rate').fill('5,82');
 
-    await expect(page.getByRole('button', { name: /Akcje i pozycja/i })).toContainText('AAPL');
+    await expect(page.getByRole('button', { name: /Twój portfel akcji/i })).toContainText('AAPL');
     await expect(page.getByRole('button', { name: /Reinwestycja i horyzont/i })).toContainText('5,82');
     await expect(page.getByRole('button', { name: /Reinwestycja i horyzont/i })).toContainText('Zapisane dane');
   });
@@ -93,13 +93,14 @@ test.describe('Njord smoke tests', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    const assetBadge = page.getByRole('button', { name: /Akcje i pozycja/i }).locator('span').filter({ hasText: 'Do uzupełnienia' }).first();
-    const decisionChip = page.getByTestId('comparison-decision-chip-text');
+    const assetBadge = page.getByRole('button', { name: /Twój portfel akcji/i }).locator('span').filter({ hasText: 'Do uzupełnienia' }).first();
+    const decisionChip = page.locator('[data-testid="comparison-decision-chip"]');
 
     await expect(assetBadge).toBeVisible();
     await expect(assetBadge.locator('svg')).toBeVisible();
     await expect(assetBadge).toHaveCSS('color', 'rgb(180, 83, 9)');
-    await expect(decisionChip).toHaveCSS('flex-direction', 'column');
+    await expect(decisionChip).toContainText('Decyzja sprzedaży');
+    await expect(decisionChip.locator('svg')).toHaveCount(0);
   });
 
   test('savings input accepts both dot and comma and dropdown closes with Gotowe', async ({ page }) => {
