@@ -3,7 +3,7 @@ import { BELKA_RATE } from '../types/accumulation';
 
 const BELKA_TAX = BELKA_RATE;
 
-interface CalcInputs {
+export interface CalcInputs {
   shares: number;
   currentPriceUSD: number;
   currentFxRate: number; // Kantor rate for actual PLN conversion

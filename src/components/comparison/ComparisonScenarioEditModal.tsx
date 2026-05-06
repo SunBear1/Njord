@@ -42,6 +42,12 @@ export function ComparisonScenarioEditModal({
   const stockPrice = parseDecimal(stockPriceInput);
   const fxRate = parseDecimal(fxRateInput);
   const canSave = stockPrice > 0 && fxRate > 0;
+  const isBear = scenarioLabel === 'Bear';
+  const toneBorderClass = isBear ? 'border-danger/25 bg-danger/5' : 'border-success/25 bg-success/5';
+  const toneLabelClass = isBear ? 'text-danger' : 'text-success';
+  const toneInputClass = isBear
+    ? 'border-danger/35 bg-danger/5 focus:ring-danger/30'
+    : 'border-success/35 bg-success/5 focus:ring-success/30';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
@@ -52,7 +58,7 @@ export function ComparisonScenarioEditModal({
         aria-label={`Edytuj scenariusz ${scenarioLabel}`}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="border-b border-border px-5 py-4">
+        <div className={`border-b px-5 py-4 ${toneBorderClass}`}>
           <h2 className="text-lg font-semibold text-text-primary">Edytuj scenariusz {scenarioLabel.toLowerCase()}</h2>
           <p className="mt-1 text-sm text-text-secondary">
             Podaj własne założenia dla ceny akcji i kursu USD/PLN.
@@ -61,7 +67,7 @@ export function ComparisonScenarioEditModal({
 
         <div className="px-5 py-5 space-y-4">
           <div className="space-y-1">
-            <label htmlFor="scenario-stock-price" className="text-sm font-medium text-text-secondary">
+            <label htmlFor="scenario-stock-price" className={`text-sm font-medium ${toneLabelClass}`}>
               Cena akcji (USD)
             </label>
             <input
@@ -70,12 +76,12 @@ export function ComparisonScenarioEditModal({
               inputMode="decimal"
               value={stockPriceInput}
               onChange={(event) => setStockPriceInput(event.target.value)}
-              className="w-full border border-border rounded-lg bg-bg-card px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
+              className={`w-full rounded-lg border px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 ${toneInputClass}`}
             />
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="scenario-fx-rate" className="text-sm font-medium text-text-secondary">
+            <label htmlFor="scenario-fx-rate" className={`text-sm font-medium ${toneLabelClass}`}>
               Kurs USD/PLN
             </label>
             <input
@@ -84,7 +90,7 @@ export function ComparisonScenarioEditModal({
               inputMode="decimal"
               value={fxRateInput}
               onChange={(event) => setFxRateInput(event.target.value)}
-              className="w-full border border-border rounded-lg bg-bg-card px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
+              className={`w-full rounded-lg border px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 ${toneInputClass}`}
             />
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { BondPreset, BondSettings, BenchmarkType } from '../../types/scenario';
 import type { InflationData } from '../../hooks/useInflationData';
 import { ComparisonInputDropdown } from './ComparisonInputDropdown';
@@ -92,7 +92,22 @@ export function ComparisonBenchmarkDropdown({
   onEtfTickerChange,
   onFetchEtf,
 }: ComparisonBenchmarkDropdownProps) {
+  const [savingsRateInput, setSavingsRateInput] = useState(
+    () => (wibor3m > 0 ? String(wibor3m) : ''),
+  );
   const hasSavedInput = benchmarkType !== 'savings' || wibor3m > 0 || horizonMonths > 0 || Boolean(etfTicker);
+  const previousBenchmarkTypeRef = useRef(benchmarkType);
+
+  useEffect(() => {
+    const switchedToSavings = previousBenchmarkTypeRef.current !== 'savings' && benchmarkType === 'savings';
+    const clearedFromOutside = benchmarkType === 'savings' && wibor3m === 0 && savingsRateInput !== '';
+
+    if (switchedToSavings || clearedFromOutside) {
+      setSavingsRateInput(wibor3m > 0 ? String(wibor3m) : '');
+    }
+
+    previousBenchmarkTypeRef.current = benchmarkType;
+  }, [benchmarkType, savingsRateInput, wibor3m]);
 
   const summary = useMemo(() => {
     if (benchmarkType === 'savings') {
@@ -141,6 +156,7 @@ export function ComparisonBenchmarkDropdown({
       isOpen={isOpen}
       hasSavedInput={hasSavedInput}
       onToggle={onToggle}
+      onDone={onToggle}
     >
       <div className="space-y-5">
         <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
@@ -189,9 +205,17 @@ export function ComparisonBenchmarkDropdown({
               id="comparison-savings-rate"
               type="text"
               inputMode="decimal"
-              value={wibor3m > 0 ? String(wibor3m).replace('.', ',') : ''}
+              value={savingsRateInput}
               onChange={(event) => {
-                onWiborChange(parseDecimal(event.target.value));
+                const nextValue = event.target.value;
+                setSavingsRateInput(nextValue);
+
+                if (!nextValue.trim()) {
+                  onWiborChange(0);
+                  return;
+                }
+
+                onWiborChange(parseDecimal(nextValue));
               }}
               placeholder="np. 5,82"
               className="w-full border border-border rounded-lg bg-bg-card px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
