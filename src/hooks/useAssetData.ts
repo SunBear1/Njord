@@ -15,6 +15,7 @@ interface UseAssetDataReturn {
   isLoading: boolean;
   error: string | null;
   fetchData: (ticker: string) => Promise<AssetData | null>;
+  resetData: () => void;
 }
 
 export function useAssetData(): UseAssetDataReturn {
@@ -52,6 +53,13 @@ export function useAssetData(): UseAssetDataReturn {
     }
   }, []);
 
-  return { assetData, proxyFxData, isLoading, error, fetchData };
-}
+  const resetData = useCallback(() => {
+    abortRef.current?.abort();
+    setAssetData(null);
+    setProxyFxData(null);
+    setError(null);
+    setIsLoading(false);
+  }, []);
 
+  return { assetData, proxyFxData, isLoading, error, fetchData, resetData };
+}

@@ -95,7 +95,6 @@ export function InputPanel({
   brokerFeeUSD,
   dividendYieldPercent,
   etfAnnualReturnPercent,
-  etfTerPercent,
   etfTicker,
   etfLoading,
   etfError,
@@ -119,8 +118,6 @@ export function InputPanel({
   onBrokerFeeUSDChange,
   onDividendYieldChange,
   onEtfAnnualReturnChange,
-  onEtfTerChange,
-  onEtfTickerChange,
   onFetchEtf,
   onInflationRateChange,
   onNbpRefRateChange,
@@ -685,16 +682,13 @@ export function InputPanel({
         </div>
       ) : benchmarkType === 'etf' ? (
         <EtfBenchmarkSection
-          localEtfTicker={localEtfTicker}
-          onLocalEtfTickerChange={setLocalEtfTicker}
+          etfTicker={localEtfTicker}
           etfLoading={etfLoading}
           etfError={etfError}
           etfName={etfName}
           etfAnnualReturnPercent={etfAnnualReturnPercent}
-          etfTerPercent={etfTerPercent}
           onEtfAnnualReturnChange={onEtfAnnualReturnChange}
-          onEtfTerChange={onEtfTerChange}
-          onEtfTickerChange={onEtfTickerChange}
+          onEtfTickerChange={setLocalEtfTicker}
           onFetchEtf={onFetchEtf}
         />
       ) : (

@@ -18,9 +18,9 @@ test.describe('Njord smoke tests', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    // The ticker input should be on screen
-    const tickerInput = page.locator('input[placeholder*="AAPL"], input[placeholder*="np."], input[id*="ticker"]').first();
-    await expect(tickerInput).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Sprzedać czy trzymać akcje/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Akcje i pozycja/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Reinwestycja i horyzont/i })).toBeVisible();
   });
 
   test('navigation to tax calculator works', async ({ page }) => {
@@ -43,15 +43,17 @@ test.describe('Njord smoke tests', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    // The benchmark selector has buttons for savings/bonds options
-    const buttons = page.locator('button').filter({ hasText: /konto|obligacj|kont|ETF/i });
-    await expect(buttons.first()).toBeVisible({ timeout: 5_000 });
+    await page.getByRole('button', { name: /Reinwestycja i horyzont/i }).click();
+    await expect(page.getByRole('button', { name: /^Konto oszczędnościowe$/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Obligacje skarbowe$/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /^ETF$/ })).toBeVisible();
   });
 
   test('horizon slider is present on comparison page', async ({ page }) => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
+    await page.getByRole('button', { name: /Reinwestycja i horyzont/i }).click();
     const slider = page.locator('input[type="range"]').first();
     await expect(slider).toBeVisible();
   });
@@ -75,9 +77,24 @@ test.describe('Njord smoke tests', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    const inputs = page.locator('input[type="text"], input:not([type])').first();
-    await inputs.fill('AAPL');
-    await expect(inputs).toHaveValue('AAPL');
+    const tickerInput = page.locator('#comparison-ticker');
+    await tickerInput.fill('AAPL');
+    await expect(tickerInput).toHaveValue('AAPL');
+  });
+
+  test('comparison dropdowns show saved input summaries', async ({ page }) => {
+    await page.goto('/comparison');
+    await page.waitForSelector('main', { timeout: 10_000 });
+
+    await page.locator('#comparison-ticker').fill('AAPL');
+    await page.locator('#comparison-shares').fill('12');
+
+    await page.getByRole('button', { name: /Reinwestycja i horyzont/i }).click();
+    await page.getByRole('button', { name: /^Konto oszczędnościowe$/ }).click();
+    await page.locator('#comparison-savings-rate').fill('5,82');
+
+    await expect(page.getByRole('button', { name: /Akcje i pozycja/i })).toContainText('AAPL');
+    await expect(page.getByRole('button', { name: /Reinwestycja i horyzont/i })).toContainText('5,82');
   });
 
   test('price forecast page loads with ticker input', async ({ page }) => {

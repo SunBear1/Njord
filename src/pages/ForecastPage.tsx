@@ -1,5 +1,6 @@
-import { useState, useCallback, lazy, Suspense } from 'react';
+import { useState, useCallback, lazy, Suspense, useEffect, useMemo, useRef } from 'react';
 import { Search, Loader2, AlertTriangle, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useAssetData } from '../hooks/useAssetData';
 import { useSellAnalysis } from '../hooks/useSellAnalysis';
@@ -12,9 +13,15 @@ const SellAnalysisPanel = lazy(() =>
 
 export function ForecastPage() {
   const [isDark] = useDarkMode();
-  const [tickerInput, setTickerInput] = useState('');
-  const [activeTicker, setActiveTicker] = useState('');
+  const [searchParams] = useSearchParams();
+  const prefilledTicker = useMemo(
+    () => searchParams.get('ticker')?.trim().toUpperCase() ?? '',
+    [searchParams],
+  );
+  const [tickerInput, setTickerInput] = useState(prefilledTicker);
+  const [activeTicker, setActiveTicker] = useState(prefilledTicker);
   const [sellHorizonDays, setSellHorizonDays] = useState(63);
+  const hydratedTickerRef = useRef(false);
 
   const { assetData, proxyFxData, isLoading: assetLoading, error: assetError, fetchData } = useAssetData();
 
@@ -34,6 +41,15 @@ export function ForecastPage() {
     setActiveTicker(t);
     await fetchData(t);
   }, [tickerInput, fetchData]);
+
+  useEffect(() => {
+    if (hydratedTickerRef.current) return;
+
+    if (!prefilledTicker) return;
+
+    hydratedTickerRef.current = true;
+    void fetchData(prefilledTicker);
+  }, [fetchData, prefilledTicker]);
 
   return (
     <div className="space-y-6">
