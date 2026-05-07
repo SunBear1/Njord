@@ -103,6 +103,17 @@ test.describe('Njord smoke tests', () => {
     await expect(decisionChip.locator('svg')).toHaveCount(0);
   });
 
+  test('asset dropdown is visually wrapped on first load', async ({ page }) => {
+    await page.goto('/comparison');
+    await page.waitForSelector('main', { timeout: 10_000 });
+
+    const assetButton = page.getByRole('button', { name: /Twój portfel akcji/i });
+    const headingRow = assetButton.locator('[data-testid="comparison-input-heading-row"]').first();
+
+    await expect(assetButton).toHaveCSS('flex-direction', 'column');
+    await expect(headingRow).toHaveCSS('flex-direction', 'column');
+  });
+
   test('savings input accepts both dot and comma and dropdown closes with Gotowe', async ({ page }) => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });

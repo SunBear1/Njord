@@ -29,11 +29,16 @@ export function ComparisonInputDropdown({
       <button
         type="button"
         onClick={onToggle}
-        className={`flex w-full gap-3 px-5 py-4 text-left ${wrapped ? 'flex-col' : 'flex-col md:flex-row'} md:items-start md:justify-between`}
+        className={wrapped
+          ? 'flex w-full flex-col items-start gap-3 px-5 py-4 text-left'
+          : 'flex w-full flex-col gap-3 px-5 py-4 text-left md:flex-row md:items-start md:justify-between'}
         aria-expanded={isOpen}
       >
         <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div
+            data-testid="comparison-input-heading-row"
+            className={wrapped ? 'flex flex-col items-start gap-1' : 'flex flex-wrap items-center gap-2'}
+          >
             <h2 className="text-base font-semibold text-text-primary">{title}</h2>
             <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${
               isComplete
@@ -48,7 +53,9 @@ export function ComparisonInputDropdown({
           <p className="text-xs text-text-secondary">{detail}</p>
         </div>
 
-        <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-text-secondary shrink-0">
+        <span className={wrapped
+          ? 'inline-flex items-center gap-1 text-xs font-medium text-text-secondary'
+          : 'mt-1 inline-flex shrink-0 items-center gap-1 text-xs font-medium text-text-secondary'}>
           {isOpen ? 'Zwiń' : 'Rozwiń'}
           {isOpen ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
         </span>
