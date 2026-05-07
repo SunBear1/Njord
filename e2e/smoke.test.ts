@@ -1,5 +1,19 @@
 import { test, expect } from '@playwright/test';
 
+async function openComparisonAssetDropdown(page: Parameters<typeof test>[0]['page']) {
+  const assetButton = page.getByRole('button', { name: /Twój portfel akcji/i });
+  if ((await assetButton.getAttribute('aria-expanded')) !== 'true') {
+    await assetButton.click();
+  }
+}
+
+async function openComparisonBenchmarkDropdown(page: Parameters<typeof test>[0]['page']) {
+  const benchmarkButton = page.getByRole('button', { name: /Reinwestycja i horyzont/i });
+  if ((await benchmarkButton.getAttribute('aria-expanded')) !== 'true') {
+    await benchmarkButton.click();
+  }
+}
+
 test.describe('Njord smoke tests', () => {
   test('forecast page loads as default route', async ({ page }) => {
     await page.goto('/');
@@ -12,13 +26,20 @@ test.describe('Njord smoke tests', () => {
     await expect(page).toHaveTitle(/Njord/i);
   });
 
-  test('navigation to investment comparison works', async ({ page }) => {
+  test('comparison page loads with both top inputs collapsed', async ({ page }) => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
+    const assetButton = page.getByRole('button', { name: /Twój portfel akcji/i });
+    const benchmarkButton = page.getByRole('button', { name: /Reinwestycja i horyzont/i });
+
     await expect(page.getByRole('heading', { name: /Sprzedać czy trzymać akcje/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Twój portfel akcji/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Reinwestycja i horyzont/i })).toBeVisible();
+    await expect(assetButton).toBeVisible();
+    await expect(benchmarkButton).toBeVisible();
+    await expect(assetButton).toHaveAttribute('aria-expanded', 'false');
+    await expect(benchmarkButton).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.locator('#comparison-ticker')).not.toBeVisible();
+    await expect(page.locator('#comparison-savings-rate')).not.toBeVisible();
   });
 
   test('navigation to tax calculator works', async ({ page }) => {
@@ -37,7 +58,7 @@ test.describe('Njord smoke tests', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    await page.getByRole('button', { name: /Reinwestycja i horyzont/i }).click();
+    await openComparisonBenchmarkDropdown(page);
     await expect(page.getByRole('button', { name: /^Konto oszczędnościowe$/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /^Obligacje skarbowe$/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /^ETF$/ })).toBeVisible();
@@ -47,7 +68,7 @@ test.describe('Njord smoke tests', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    await page.getByRole('button', { name: /Reinwestycja i horyzont/i }).click();
+    await openComparisonBenchmarkDropdown(page);
     await expect(page.locator('input[type="range"]').first()).toBeVisible();
   });
 
@@ -67,6 +88,7 @@ test.describe('Njord smoke tests', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
+    await openComparisonAssetDropdown(page);
     const tickerInput = page.locator('#comparison-ticker');
     await tickerInput.fill('AAPL');
     await expect(tickerInput).toHaveValue('AAPL');
@@ -76,17 +98,29 @@ test.describe('Njord smoke tests', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
+    const assetButton = page.getByRole('button', { name: /Twój portfel akcji/i });
+    const benchmarkButton = page.getByRole('button', { name: /Reinwestycja i horyzont/i });
+
+    await openComparisonAssetDropdown(page);
     await page.locator('#comparison-ticker').fill('AAPL');
     await page.locator('#comparison-shares').fill('12');
     await page.locator('#comparison-avg-cost').fill('80');
 
-    await page.getByRole('button', { name: /Reinwestycja i horyzont/i }).click();
+    await openComparisonBenchmarkDropdown(page);
     await page.getByRole('button', { name: /^Konto oszczędnościowe$/ }).click();
     await page.locator('#comparison-savings-rate').fill('5,82');
 
-    await expect(page.getByRole('button', { name: /Twój portfel akcji/i })).toContainText('AAPL');
-    await expect(page.getByRole('button', { name: /Reinwestycja i horyzont/i })).toContainText('5,82');
-    await expect(page.getByRole('button', { name: /Reinwestycja i horyzont/i })).toContainText('Zapisane dane');
+    await expect(assetButton).toContainText('AAPL');
+    await expect(benchmarkButton).toContainText('5,82');
+    await expect(benchmarkButton).toContainText('Zapisane dane');
+
+    page.once('dialog', (dialog) => dialog.accept());
+    await page.getByRole('button', { name: /Wyczyść dane porównania/i }).click();
+
+    await expect(assetButton).toHaveAttribute('aria-expanded', 'false');
+    await expect(benchmarkButton).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.locator('#comparison-ticker')).not.toBeVisible();
+    await expect(page.locator('#comparison-savings-rate')).not.toBeVisible();
   });
 
   test('comparison shows yellow warning badges before required fields are completed', async ({ page }) => {
@@ -107,7 +141,7 @@ test.describe('Njord smoke tests', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
-    await page.getByRole('button', { name: /Reinwestycja i horyzont/i }).click();
+    await openComparisonBenchmarkDropdown(page);
 
     const savingsInput = page.locator('#comparison-savings-rate');
     await savingsInput.fill('3.85');
