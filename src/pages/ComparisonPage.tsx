@@ -110,7 +110,7 @@ export function ComparisonPage() {
     handleBenchmarkTypeChange,
   } = portfolio;
 
-  const [openSection, setOpenSection] = useState<'asset' | 'benchmark' | null>('asset');
+  const [openSection, setOpenSection] = useState<'asset' | 'benchmark' | null>(null);
   const [analysis, setAnalysis] = useState<AnalysisSnapshot | null>(() => loadComparisonAnalysis());
   const [editingScenario, setEditingScenario] = useState<ScenarioKey | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -294,7 +294,7 @@ export function ComparisonPage() {
     resetComparisonState();
     resetAssetData();
     resetEtf();
-    setOpenSection('asset');
+    setOpenSection(null);
   }, [persistAnalysis, resetAssetData, resetComparisonState, resetEtf]);
 
   const handleScenarioSave = useCallback((scenarioKey: ScenarioKey, stockPrice: number, fxRate: number) => {

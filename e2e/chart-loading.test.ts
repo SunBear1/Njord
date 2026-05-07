@@ -35,6 +35,20 @@ const VALID_INFLATION_RESPONSE = {
   ],
 };
 
+async function openComparisonAssetDropdown(page: Parameters<typeof test>[0]['page']) {
+  const assetButton = page.getByRole('button', { name: /Twój portfel akcji/i });
+  if ((await assetButton.getAttribute('aria-expanded')) !== 'true') {
+    await assetButton.click();
+  }
+}
+
+async function openComparisonBenchmarkDropdown(page: Parameters<typeof test>[0]['page']) {
+  const benchmarkButton = page.getByRole('button', { name: /Reinwestycja i horyzont/i });
+  if ((await benchmarkButton.getAttribute('aria-expanded')) !== 'true') {
+    await benchmarkButton.click();
+  }
+}
+
 async function configureComparisonForAnalysis(page: Parameters<typeof test>[0]['page']) {
   await page.route(MARKET_DATA_URL, (route) =>
     route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
@@ -49,13 +63,14 @@ async function configureComparisonForAnalysis(page: Parameters<typeof test>[0]['
   await page.goto('/comparison');
   await page.waitForSelector('main', { timeout: 10_000 });
 
+  await openComparisonAssetDropdown(page);
   await page.locator('#comparison-ticker').fill('AAPL');
   await page.getByRole('button', { name: /Odśwież dane giełdowe/i }).click();
   await expect(page.getByText(/Apple Inc\./)).toBeVisible({ timeout: 8_000 });
 
   await page.locator('#comparison-shares').fill('10');
   await page.locator('#comparison-avg-cost').fill('100');
-  await page.getByRole('button', { name: /Reinwestycja i horyzont/i }).click();
+  await openComparisonBenchmarkDropdown(page);
   await page.getByRole('button', { name: /^ETF$/ }).click();
   await page.getByRole('button', { name: /Analizuj scenariusze/i }).click();
 }
@@ -69,6 +84,7 @@ test.describe('Comparison page — API error handling', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
+    await openComparisonAssetDropdown(page);
     await page.locator('#comparison-ticker').fill('AAPL');
     await page.getByRole('button', { name: /Odśwież dane giełdowe/i }).click();
 
@@ -87,6 +103,7 @@ test.describe('Comparison page — API error handling', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
+    await openComparisonAssetDropdown(page);
     await page.locator('#comparison-ticker').fill('FAKEXYZ');
     await page.getByRole('button', { name: /Odśwież dane giełdowe/i }).click();
 
@@ -100,6 +117,7 @@ test.describe('Comparison page — API error handling', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
+    await openComparisonAssetDropdown(page);
     await page.locator('#comparison-ticker').fill('AAPL');
     await page.getByRole('button', { name: /Odśwież dane giełdowe/i }).click();
 
@@ -187,6 +205,7 @@ test.describe('Comparison page — loading states', () => {
     await page.goto('/comparison');
     await page.waitForSelector('main', { timeout: 10_000 });
 
+    await openComparisonAssetDropdown(page);
     await page.locator('#comparison-ticker').fill('AAPL');
     await page.getByRole('button', { name: /Odśwież dane giełdowe/i }).click();
 
@@ -210,6 +229,7 @@ test.describe('Comparison page — loading states', () => {
     const analyzeButton = page.getByRole('button', { name: /Analizuj scenariusze/i });
     await expect(analyzeButton).toBeDisabled();
 
+    await openComparisonAssetDropdown(page);
     await page.locator('#comparison-ticker').fill('AAPL');
     await page.getByRole('button', { name: /Odśwież dane giełdowe/i }).click();
     await expect(page.getByText(/Apple Inc\./)).toBeVisible({ timeout: 8_000 });
@@ -219,7 +239,7 @@ test.describe('Comparison page — loading states', () => {
     await page.locator('#comparison-avg-cost').fill('100');
     await expect(analyzeButton).toBeDisabled();
 
-    await page.getByRole('button', { name: /Reinwestycja i horyzont/i }).click();
+    await openComparisonBenchmarkDropdown(page);
     await page.locator('#comparison-savings-rate').fill('5,5');
     await expect(analyzeButton).toBeEnabled();
 
