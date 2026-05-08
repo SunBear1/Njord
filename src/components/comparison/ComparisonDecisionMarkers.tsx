@@ -41,7 +41,7 @@ export function ComparisonDecisionMarkers({
       label: 'Przewaga zwycięzcy',
       value: fmtPLN(summary.winnerDiffPLN),
       tone: 'success',
-      helper: `W bazowym scenariuszu (${summary.winnerDiffPct.toFixed(1)}%)`,
+      helper: `W bazowym scenariuszu (${summary.winnerDiffPct.toLocaleString('pl-PL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%)`,
     },
       {
         label: 'Spójność werdyktu',
@@ -56,7 +56,7 @@ export function ComparisonDecisionMarkers({
     {
       label: 'Inflacja w tle',
       value: baseResult.inflationTotalPercent > 0
-        ? `-${baseResult.inflationTotalPercent.toFixed(1)}%`
+        ? `-${baseResult.inflationTotalPercent.toLocaleString('pl-PL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
         : 'Nominalnie',
       tone: baseResult.inflationTotalPercent > 0 ? 'danger' : 'default',
       helper: baseResult.inflationTotalPercent > 0

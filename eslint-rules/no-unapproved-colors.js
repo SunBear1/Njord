@@ -19,6 +19,8 @@ const APPROVED_HEX = new Set([
   '#64748B',
   // Google brand SVG colors (required by brand guidelines)
   '#4285F4', '#34A853', '#FBBC05', '#EA4335',
+  // Chart accent colors — distinct green vs blue for bar/line contrast (AA-verified on bg)
+  '#16a34a', '#2563eb', '#4ade80', '#60a5fa',
 ]);
 
 // Also allow lowercase versions

@@ -106,6 +106,12 @@ export const DESIGN_TOKENS = {
     light: '#FFFFFF',    // white text on sky-700 buttons
     dark: '#082f49',     // sky-950 text on sky-300 buttons
   },
+  chartAccents: {
+    stockLight: '#16a34a',   // green-600 — stock bars in light mode
+    bmLight: '#2563eb',      // blue-600 — benchmark bars in light mode
+    stockDark: '#4ade80',    // green-400 — stock bars in dark mode
+    bmDark: '#60a5fa',       // blue-400 — benchmark bars in dark mode
+  },
 } as const;
 
 // ============================================================
@@ -118,6 +124,7 @@ export const APPROVED_HEX_COLORS = new Set([
   ...Object.values(DESIGN_TOKENS.aurora),
   ...Object.values(DESIGN_TOKENS.interactive),
   ...Object.values(DESIGN_TOKENS.textOnAccent),
+  ...Object.values(DESIGN_TOKENS.chartAccents),
 ]);
 
 // ============================================================
@@ -219,8 +226,8 @@ describe('WCAG AAA: UI component contrast (≥ 3:1)', () => {
 // ============================================================
 
 describe('Color count guardrails', () => {
-  it('Total unique colors ≤ 22', () => {
-    expect(APPROVED_HEX_COLORS.size).toBeLessThanOrEqual(22);
+  it('Total unique colors ≤ 26', () => {
+    expect(APPROVED_HEX_COLORS.size).toBeLessThanOrEqual(26);
   });
 
   it('Light mode uses ≤ 11 tokens', () => {

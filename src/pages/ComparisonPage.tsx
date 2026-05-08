@@ -38,12 +38,6 @@ const DEFAULT_SCENARIOS: Scenarios = {
 
 type AnalysisSnapshot = PersistedComparisonAnalysis;
 
-function benchmarkFullLabel(label: string): string {
-  if (label === 'Konto') return 'Konto oszczędnościowe';
-  if (label === 'Obligacje') return 'Obligacje skarbowe';
-  return label;
-}
-
 function toTraitStats(stats: VolatilityStats | null): PersistedComparisonTraitStats | null {
   if (!stats) return null;
 
@@ -284,7 +278,6 @@ export function ComparisonPage() {
   const shouldShowResults = analysis !== null && !isAnalysisStale;
   const bearResult = analysisResults?.find((result) => result.key === 'bear') ?? null;
   const bullResult = analysisResults?.find((result) => result.key === 'bull') ?? null;
-  const benchmarkLabel = analysisResults?.[0]?.benchmarkLabel ? benchmarkFullLabel(analysisResults[0].benchmarkLabel) : '';
 
   const handleClearData = useCallback(() => {
     const shouldClear = window.confirm('Wyczyścić zapisane dane porównania i zacząć od nowa?');
@@ -316,12 +309,6 @@ export function ComparisonPage() {
     <div className="space-y-6">
       <section className="rounded-2xl border border-border bg-bg-card shadow-sm p-6 space-y-4">
         <div className="space-y-3">
-          <span
-            data-testid="comparison-decision-chip"
-            className="inline-flex rounded-full border border-accent-primary/30 bg-accent-primary/5 px-3 py-1 text-xs font-semibold text-accent-primary"
-          >
-            Decyzja sprzedaży
-          </span>
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-text-primary">Sprzedać czy trzymać akcje?</h1>
             <p className="max-w-3xl text-sm text-text-secondary">
@@ -453,7 +440,8 @@ export function ComparisonPage() {
               result={bearResult}
               currentPriceUSD={analysis.inputs.currentPriceUSD}
               currentFxRate={analysis.inputs.currentFxRate}
-              benchmarkLabel={benchmarkLabel}
+              horizonMonths={analysis.inputs.horizonMonths}
+              calcInputs={analysis.inputs}
               onEdit={() => setEditingScenario('bear')}
             />
             <ComparisonScenarioCard
@@ -462,7 +450,8 @@ export function ComparisonPage() {
               result={bullResult}
               currentPriceUSD={analysis.inputs.currentPriceUSD}
               currentFxRate={analysis.inputs.currentFxRate}
-              benchmarkLabel={benchmarkLabel}
+              horizonMonths={analysis.inputs.horizonMonths}
+              calcInputs={analysis.inputs}
               onEdit={() => setEditingScenario('bull')}
             />
           </div>

@@ -8,6 +8,17 @@ interface ComparisonDecisionSummaryProps {
   horizonLabel: string;
 }
 
+function winnerDisplayLabel(label: string): string {
+  if (label === 'Konto') return 'Konto oszczędnościowe';
+  if (label === 'Obligacje') return 'Obligacje skarbowe';
+  return label;
+}
+
+interface ComparisonDecisionSummaryProps {
+  results: ScenarioResult[];
+  horizonLabel: string;
+}
+
 export function ComparisonDecisionSummary({
   results,
   horizonLabel,
@@ -41,11 +52,11 @@ export function ComparisonDecisionSummary({
         <div className="rounded-xl border border-border bg-bg-muted/40 p-4 space-y-1">
           <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">Scenariusz bazowy</p>
           <p className="text-base font-semibold text-text-primary">
-            {summary.winnerLabel} {summary.winnerVerb}
+            {winnerDisplayLabel(summary.winnerLabel)} {summary.winnerVerb}
           </p>
           <p className="text-sm text-text-secondary">
             o <strong className="text-text-primary tabular-nums">{fmtPLN(summary.winnerDiffPLN)}</strong>
-            {' '}({summary.winnerDiffPct.toFixed(1)}%)
+            {' '}({summary.winnerDiffPct.toLocaleString('pl-PL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%)
           </p>
         </div>
 

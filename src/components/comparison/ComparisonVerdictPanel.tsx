@@ -1,5 +1,5 @@
 import type { ScenarioResult } from '../../types/scenario';
-import { fmtPLN } from '../../utils/formatting';
+import { fmtPLN, fmtPercent } from '../../utils/formatting';
 import { getDecisionSummary } from '../../utils/comparisonDecision';
 
 interface ComparisonVerdictPanelProps {
@@ -30,10 +30,6 @@ function horizonSummary(value: number): string {
     return `${years} ${years === 1 ? 'roku' : 'latach'}`;
   }
   return `${Math.floor(value / 12)} l. ${value % 12} mies.`;
-}
-
-function formatPercent(value: number): string {
-  return new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 0, maximumFractionDigits: 1 }).format(value);
 }
 
 export function ComparisonVerdictPanel({
@@ -77,7 +73,7 @@ export function ComparisonVerdictPanel({
           )}{' '}
           wynosi{' '}
           <strong className="text-text-primary">{fmtPLN(Math.abs(baseResult.differencePLN))}</strong>
-          {' '}({Math.abs(baseResult.differencePercent).toFixed(1)}%).
+          {' '}({fmtPercent(Math.abs(baseResult.differencePercent))}).
         </p>
       </div>
 
@@ -97,7 +93,7 @@ export function ComparisonVerdictPanel({
 
       {inflationRate > 0 && (
         <p className="text-xs text-text-muted">
-          <span className="font-semibold text-text-secondary">Inflacja w tle {formatPercent(inflationRate)}%</span>
+          <span className="font-semibold text-text-secondary">Inflacja w tle {fmtPercent(inflationRate, 1)}</span>
         </p>
       )}
     </section>

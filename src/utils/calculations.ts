@@ -400,3 +400,44 @@ export function calcHeatmap(inputs: CalcInputs, range = 20, step = 4): HeatmapCe
   }
   return cells;
 }
+
+/**
+ * Algebraically compute the minimum stock price (USD) required at the horizon so that
+ * holding the stock equals or beats the benchmark, given a fixed FX delta.
+ *
+ * Two cases:
+ *  1. No taxable capital gain: netValue = shares × P × kantorRate
+ *     → P = benchmarkEnd / (shares × kantorRate)
+ *  2. Taxable capital gain: netValue = shares × P × kantorRate − 0.19 × (shares × P × nbpRate − costBasis)
+ *     → P = (benchmarkEnd − 0.19 × costBasis) / (shares × (kantorRate − 0.19 × nbpRate))
+ *
+ * We pick case 2 first; if the resulting price implies no taxable gain we fall back to case 1.
+ * Returns null when the calculation is infeasible (zero denominator or negative result).
+ */
+export function calcBreakevenStockPrice(inputs: CalcInputs, benchmarkEndValuePLN: number, deltaFx: number): number | null {
+  const { costPerShareUSD } = resolveCostBasisUSD(inputs);
+  const nbpRate = inputs.nbpMidRate ?? inputs.currentFxRate;
+
+  const projectedKantorRate = inputs.currentFxRate * (1 + deltaFx / 100);
+  const projectedNbpRate = nbpRate * (1 + deltaFx / 100);
+  const costBasisNbp = inputs.shares * costPerShareUSD * nbpRate;
+
+  // Case 2: assume taxable gain
+  const denominator = inputs.shares * (projectedKantorRate - BELKA_TAX * projectedNbpRate);
+  if (Math.abs(denominator) < 1e-9) return null;
+
+  const candidate = (benchmarkEndValuePLN - BELKA_TAX * costBasisNbp) / denominator;
+  if (candidate <= 0) return null;
+
+  // Verify assumption: check whether this price actually produces a taxable gain
+  const endValueNbp = inputs.shares * candidate * projectedNbpRate;
+  if (endValueNbp > costBasisNbp) {
+    // Case 2 assumption holds
+    return candidate;
+  }
+
+  // Case 1: no taxable gain
+  if (projectedKantorRate <= 0) return null;
+  const noTaxCandidate = benchmarkEndValuePLN / (inputs.shares * projectedKantorRate);
+  return noTaxCandidate > 0 ? noTaxCandidate : null;
+}

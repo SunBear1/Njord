@@ -122,7 +122,7 @@ export function BondBenchmarkSection({
             {bondSettings.firstYearRate > 0 && (
               <div className="flex justify-between gap-4">
                 <span className="text-text-secondary">Oprocentowanie w 1. roku:</span>
-                <span className="font-semibold text-text-primary">{bondSettings.firstYearRate.toFixed(2)}%</span>
+                <span className="font-semibold text-text-primary">{new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(bondSettings.firstYearRate)}%</span>
               </div>
             )}
 
@@ -130,7 +130,7 @@ export function BondBenchmarkSection({
               <>
                 <div className="flex justify-between gap-4">
                   <span className="text-text-secondary">Marża:</span>
-                  <span className="font-medium text-text-primary">{bondSettings.margin.toFixed(2)}%</span>
+                  <span className="font-medium text-text-primary">{new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(bondSettings.margin)}%</span>
                 </div>
                 <div className="flex justify-between items-center gap-4">
                   <span className="text-text-secondary flex items-center gap-1">
@@ -161,7 +161,7 @@ export function BondBenchmarkSection({
                 </div>
                 <div className="flex justify-between gap-4 border-t border-border pt-1.5">
                   <span className="text-text-secondary font-medium">Stopa efektywna (od 2. roku):</span>
-                  <span className="font-bold text-text-primary">{bondEffectiveRate.toFixed(2)}%</span>
+                  <span className="font-bold text-text-primary">{new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(bondEffectiveRate)}%</span>
                 </div>
               </>
             )}
@@ -170,7 +170,7 @@ export function BondBenchmarkSection({
               <>
                 <div className="flex justify-between gap-4">
                   <span className="text-text-secondary">Marża:</span>
-                  <span className="font-medium text-text-primary">{bondSettings.margin.toFixed(2)}%</span>
+                  <span className="font-medium text-text-primary">{new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(bondSettings.margin)}%</span>
                 </div>
                 <div className="flex justify-between items-center gap-4">
                   <span className="text-text-secondary flex items-center gap-1">
@@ -199,7 +199,7 @@ export function BondBenchmarkSection({
                 </div>
                 <div className="flex justify-between gap-4 border-t border-border pt-1.5">
                   <span className="text-text-secondary font-medium">Stopa efektywna (od 2. okresu):</span>
-                  <span className="font-bold text-text-primary">{bondEffectiveRate.toFixed(2)}%</span>
+                  <span className="font-bold text-text-primary">{new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(bondEffectiveRate)}%</span>
                 </div>
               </>
             )}
@@ -210,25 +210,15 @@ export function BondBenchmarkSection({
                 <span className="font-medium text-text-primary">Stałe przez cały okres</span>
               </div>
             )}
-          </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-text-secondary">
-                Kara za wcześniejszy wykup
-              </label>
-              <div className="w-full border border-border rounded-lg bg-bg-card px-3 py-2 text-sm text-text-primary">
-                {bondSettings.penalty.toFixed(2)}%
-              </div>
+            <div className="flex justify-between gap-4 border-t border-border pt-1.5">
+              <span className="text-text-secondary">Zapadalność:</span>
+              <span className="font-medium text-text-primary">{preset.maturityMonths} mies.</span>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-text-secondary">
-                Zapadalność
-              </label>
-              <div className="rounded-lg border border-border bg-bg-card px-3 py-2 text-sm text-text-primary">
-                {preset.maturityMonths} mies.
-              </div>
+            <div className="flex justify-between gap-4">
+              <span className="text-text-secondary">Kara za wcześniejszy wykup:</span>
+              <span className="font-medium text-text-primary">{new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(bondSettings.penalty)}%</span>
             </div>
           </div>
 

@@ -128,13 +128,11 @@ test.describe('Njord smoke tests', () => {
     await page.waitForSelector('main', { timeout: 10_000 });
 
     const assetBadge = page.getByRole('button', { name: /Twój portfel akcji/i }).locator('span').filter({ hasText: 'Do uzupełnienia' }).first();
-    const decisionChip = page.locator('[data-testid="comparison-decision-chip"]');
 
     await expect(assetBadge).toBeVisible();
     await expect(assetBadge.locator('svg')).toBeVisible();
     await expect(assetBadge).toHaveCSS('color', 'rgb(180, 83, 9)');
-    await expect(decisionChip).toContainText('Decyzja sprzedaży');
-    await expect(decisionChip.locator('svg')).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Sprzedać czy trzymać akcje?' })).toBeVisible();
   });
 
   test('savings input accepts both dot and comma and dropdown closes with Gotowe', async ({ page }) => {

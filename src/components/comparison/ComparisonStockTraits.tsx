@@ -13,15 +13,46 @@ interface TraitCardProps {
   title: string;
   value: string;
   helper: string;
+  level: 'low' | 'medium' | 'high';
   icon: ReactNode;
 }
 
-function TraitCard({ title, value, helper, icon }: TraitCardProps) {
+function volatilityLevel(sigma: number): 'low' | 'medium' | 'high' {
+  if (sigma < 20) return 'low';
+  if (sigma <= 40) return 'medium';
+  return 'high';
+}
+
+function correlationLevel(r: number): 'low' | 'medium' | 'high' {
+  const abs = Math.abs(r);
+  if (abs < 0.3) return 'low';
+  if (abs <= 0.7) return 'medium';
+  return 'high';
+}
+
+const LEVEL_LABEL: Record<'low' | 'medium' | 'high', string> = {
+  low: 'Niska',
+  medium: 'Średnia',
+  high: 'Wysoka',
+};
+
+const LEVEL_CLASS: Record<'low' | 'medium' | 'high', string> = {
+  low: 'bg-success/10 text-success',
+  medium: 'bg-warning/10 text-warning',
+  high: 'bg-danger/10 text-danger',
+};
+
+function TraitCard({ title, value, helper, level, icon }: TraitCardProps) {
   return (
     <article className="rounded-2xl border border-border bg-bg-card p-4 shadow-sm space-y-3">
-      <div className="flex items-center gap-2 text-text-primary">
-        {icon}
-        <h3 className="text-sm font-semibold">{title}</h3>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 text-text-primary">
+          {icon}
+          <h3 className="text-sm font-semibold">{title}</h3>
+        </div>
+        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${LEVEL_CLASS[level]}`}>
+          {LEVEL_LABEL[level]}
+        </span>
       </div>
       <p className="text-2xl font-bold text-text-primary">{value}</p>
       <p className="text-sm text-text-secondary">{helper}</p>
@@ -50,20 +81,23 @@ export function ComparisonStockTraits({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <TraitCard
           title="Zmienność akcji"
-          value={`${stats.stockSigmaAnnual.toFixed(1)}%`}
+          value={`${new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(stats.stockSigmaAnnual)}%`}
           helper="Roczna zmienność historyczna kursu akcji."
+          level={volatilityLevel(stats.stockSigmaAnnual)}
           icon={<CandlestickChart size={18} aria-hidden="true" />}
         />
         <TraitCard
           title="Zmienność USD/PLN"
-          value={`${stats.fxSigmaAnnual.toFixed(1)}%`}
+          value={`${new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(stats.fxSigmaAnnual)}%`}
           helper="Roczna zmienność kursu dolara wobec złotego."
+          level={volatilityLevel(stats.fxSigmaAnnual)}
           icon={<ChartColumnIncreasing size={18} aria-hidden="true" />}
         />
         <TraitCard
           title="Korelacja z USD"
-          value={stats.correlation.toFixed(2)}
+          value={new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(stats.correlation)}
           helper="Zależność między ruchem akcji i USD/PLN."
+          level={correlationLevel(stats.correlation)}
           icon={<Scale size={18} aria-hidden="true" />}
         />
 
