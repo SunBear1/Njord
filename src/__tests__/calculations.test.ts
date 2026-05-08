@@ -9,6 +9,7 @@ import {
   calcAllScenarios,
   calcTimeline,
   calcHeatmap,
+  calcBreakevenStockPrice,
 } from '../utils/calculations';
 import type { Scenarios } from '../types/scenario';
 import { computeCAGR } from '../hooks/useEtfData';
@@ -1141,5 +1142,79 @@ describe('FIN-002 — benchmark switching-cost symmetry', () => {
     const atLossSavings = calcAllScenarios({ ...atLoss, benchmarkType: 'savings' as const }, NEUTRAL_SCENARIOS);
     // At a loss: switching cost = 0, so benchmark is HIGHER than the with-gain case
     expect(atLossSavings[0].benchmarkEndValuePLN).toBeGreaterThan(withGainSavings[0].benchmarkEndValuePLN);
+  });
+});
+
+
+// ---------------------------------------------------------------------------
+// calcBreakevenStockPrice
+// ---------------------------------------------------------------------------
+describe('calcBreakevenStockPrice', () => {
+  it('returns a price that when used produces netEndValue ≈ benchmarkEndValue (no-gain case)', () => {
+    // avgCostUSD=100 matches currentPriceUSD=100 → cost basis = current price → no unrealized gain
+    const inputs = baseInputs({ avgCostUSD: 100, isRSU: false });
+    const results = calcAllScenarios({ ...inputs, benchmarkType: 'savings' as const }, NEUTRAL_SCENARIOS);
+    const bmEnd = results[0].benchmarkEndValuePLN;
+
+    const breakevenPrice = calcBreakevenStockPrice(inputs, bmEnd, 0);
+    expect(breakevenPrice).not.toBeNull();
+
+    // Verify: manually compute stock net end at breakeven price with ORIGINAL cost basis
+    const nbpRate = inputs.nbpMidRate ?? inputs.currentFxRate;
+    const costBasisNbp = inputs.shares * inputs.avgCostUSD * nbpRate;
+    const rawEndPLN = inputs.shares * breakevenPrice! * inputs.currentFxRate;
+    const endValueNbp = inputs.shares * breakevenPrice! * nbpRate;
+    const taxableGain = Math.max(0, endValueNbp - costBasisNbp);
+    const netEndValue = rawEndPLN - taxableGain * 0.19;
+    expect(Math.abs(netEndValue - bmEnd)).toBeLessThan(1);
+  });
+
+  it('returns a price that when used produces netEndValue ≈ benchmarkEndValue (with capital gain)', () => {
+    const inputs = baseInputs({ avgCostUSD: 50, isRSU: false }); // cost basis = 50 USD, current = 100
+    const results = calcAllScenarios({ ...inputs, benchmarkType: 'savings' as const }, NEUTRAL_SCENARIOS);
+    const bmEnd = results[0].benchmarkEndValuePLN;
+
+    const breakevenPrice = calcBreakevenStockPrice(inputs, bmEnd, 0);
+    expect(breakevenPrice).not.toBeNull();
+
+    // Verify: manually compute stock net end at breakeven price with ORIGINAL cost basis
+    const nbpRate = inputs.nbpMidRate ?? inputs.currentFxRate;
+    const costBasisNbp = inputs.shares * inputs.avgCostUSD * nbpRate;
+    const rawEndPLN = inputs.shares * breakevenPrice! * inputs.currentFxRate;
+    const endValueNbp = inputs.shares * breakevenPrice! * nbpRate;
+    const taxableGain = Math.max(0, endValueNbp - costBasisNbp);
+    const netEndValue = rawEndPLN - taxableGain * 0.19;
+    expect(Math.abs(netEndValue - bmEnd)).toBeLessThan(1);
+  });
+
+  it('returns a price that when used produces netEndValue ≈ benchmarkEndValue (RSU, all gains taxable)', () => {
+    const inputs = baseInputs({ isRSU: true, avgCostUSD: 0 });
+    const results = calcAllScenarios({ ...inputs, benchmarkType: 'savings' as const }, NEUTRAL_SCENARIOS);
+    const bmEnd = results[0].benchmarkEndValuePLN;
+
+    const breakevenPrice = calcBreakevenStockPrice(inputs, bmEnd, 0);
+    expect(breakevenPrice).not.toBeNull();
+
+    // Verify: RSU has zero cost basis — full proceeds are taxable
+    const nbpRate = inputs.nbpMidRate ?? inputs.currentFxRate;
+    const rawEndPLN = inputs.shares * breakevenPrice! * inputs.currentFxRate;
+    const endValueNbp = inputs.shares * breakevenPrice! * nbpRate;
+    const taxableGain = endValueNbp; // cost basis = 0 for RSU
+    const netEndValue = rawEndPLN - taxableGain * 0.19;
+    expect(Math.abs(netEndValue - bmEnd)).toBeLessThan(1);
+  });
+
+  it('breakeven price adjusts with non-zero FX delta', () => {
+    const inputs = baseInputs({ avgCostUSD: 50 });
+    const results = calcAllScenarios({ ...inputs, benchmarkType: 'savings' as const }, NEUTRAL_SCENARIOS);
+    const bmEnd = results[0].benchmarkEndValuePLN;
+
+    const breakevenZero = calcBreakevenStockPrice(inputs, bmEnd, 0);
+    const breakevenPositiveFx = calcBreakevenStockPrice(inputs, bmEnd, 10); // FX up 10%
+
+    expect(breakevenZero).not.toBeNull();
+    expect(breakevenPositiveFx).not.toBeNull();
+    // Higher FX rate → same PLN value achieved at lower USD price
+    expect(breakevenPositiveFx!).toBeLessThan(breakevenZero!);
   });
 });

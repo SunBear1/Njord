@@ -9,6 +9,10 @@ export const fmtPLNGrosze = (v: number) => PLN_GROSZE.format(v);
 export const fmtUSD = (v: number) => USD.format(v);
 export const fmtNum = (v: number) => NUM.format(v);
 
+/** Format a percentage value with Polish decimal separator (comma). */
+export const fmtPercent = (v: number, decimals = 1): string =>
+  new Intl.NumberFormat('pl-PL', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(v) + '%';
+
 export const fmtDiff = (v: number): string => {
   const sign = v >= 0 ? '+' : '';
   return `${sign}${fmtPLN(v)}`;

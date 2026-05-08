@@ -33,7 +33,7 @@ function formatPercent(value: number): string {
 }
 
 function formatShares(value: number): string {
-  return new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 0, maximumFractionDigits: 4 }).format(value);
+  return new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value);
 }
 
 function parseDecimal(raw: string): number {
@@ -42,8 +42,8 @@ function parseDecimal(raw: string): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function roundShares(value: number): number {
-  return Number.parseFloat(value.toFixed(4));
+function ceilShares(value: number): number {
+  return Math.ceil(value * 100) / 100;
 }
 
 export function ComparisonAssetDropdown({
@@ -71,7 +71,7 @@ export function ComparisonAssetDropdown({
   const isFirstRender = useRef(true);
 
   const setRoundedShares = useCallback((value: number) => {
-    onSharesChange(roundShares(value));
+    onSharesChange(ceilShares(value));
   }, [onSharesChange]);
 
   useEffect(() => {
@@ -258,9 +258,14 @@ export function ComparisonAssetDropdown({
                       setRoundedShares(0);
                     }
                   }}
-                  placeholder="np. 5000,50"
+                  placeholder="np. 5000.50"
                   className="w-full border border-border rounded-lg bg-bg-card px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/30"
                 />
+                {parseDecimal(valueInput) > 0 && (
+                  <p className="text-xs text-text-muted pl-1">
+                    = {new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(parseDecimal(valueInput))} USD
+                  </p>
+                )}
               </div>
             )}
 

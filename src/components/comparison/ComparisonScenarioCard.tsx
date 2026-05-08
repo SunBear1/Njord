@@ -1,5 +1,7 @@
 import { Pencil } from 'lucide-react';
 import type { ScenarioParams, ScenarioResult } from '../../types/scenario';
+import type { CalcInputs } from '../../utils/calculations';
+import { calcBreakevenStockPrice } from '../../utils/calculations';
 import { fmtPLN, fmtUSD } from '../../utils/formatting';
 
 interface ComparisonScenarioCardProps {
@@ -8,7 +10,8 @@ interface ComparisonScenarioCardProps {
   result: ScenarioResult;
   currentPriceUSD: number;
   currentFxRate: number;
-  benchmarkLabel: string;
+  horizonMonths: number;
+  calcInputs: CalcInputs;
   onEdit: () => void;
 }
 
@@ -16,10 +19,27 @@ function formatFx(value: number): string {
   return new Intl.NumberFormat('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 4 }).format(value);
 }
 
-function benchmarkDisplayLabel(label: string): string {
-  if (label === 'Konto') return 'Konto oszczędnościowe';
-  if (label === 'Obligacje') return 'Obligacje skarbowe';
+function winnerShortText(stockBeats: boolean, benchmarkLabel: string, differencePLN: number): string {
+  const formatted = new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(Math.abs(differencePLN));
+  if (stockBeats) return `🏆 Akcje lepsze o ${formatted}`;
+  if (benchmarkLabel === 'Konto') return `🏆 Konto oszczędnościowe lepsze o ${formatted}`;
+  if (benchmarkLabel === 'Obligacje') return `🏆 Obligacje skarbowe lepsze o ${formatted}`;
+  return `🏆 ETF lepszy o ${formatted}`;
+}
+
+function benchmarkFullName(label: string): string {
+  if (label === 'Konto') return 'Konto oszcz.';
+  if (label === 'Obligacje') return 'Obligacje';
   return label;
+}
+
+function horizonSummary(months: number): string {
+  if (months % 12 === 0) {
+    const years = months / 12;
+    return `${years} ${years === 1 ? 'roku' : 'latach'}`;
+  }
+  if (months <= 11) return `${months} mies.`;
+  return `${Math.floor(months / 12)} l. ${months % 12} mies.`;
 }
 
 export function ComparisonScenarioCard({
@@ -28,14 +48,14 @@ export function ComparisonScenarioCard({
   result,
   currentPriceUSD,
   currentFxRate,
-  benchmarkLabel,
+  horizonMonths,
+  calcInputs,
   onEdit,
 }: ComparisonScenarioCardProps) {
   const projectedPriceUSD = currentPriceUSD * (1 + scenario.deltaStock / 100);
   const projectedFxRate = currentFxRate * (1 + scenario.deltaFx / 100);
-  const winnerText = result.stockBeatsBenchmark
-    ? 'Akcje wygrywają'
-    : `${benchmarkDisplayLabel(benchmarkLabel)} wygrywa`;
+  const winnerText = winnerShortText(result.stockBeatsBenchmark, result.benchmarkLabel, result.differencePLN);
+  const breakevenPrice = calcBreakevenStockPrice(calcInputs, result.benchmarkEndValuePLN, scenario.deltaFx);
   const toneClass = label === 'Bear'
     ? 'border-danger/30 bg-danger/5'
     : 'border-success/30 bg-success/5';
@@ -49,7 +69,7 @@ export function ComparisonScenarioCard({
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">Scenariusz {label.toLowerCase()}</p>
           <h3 className="text-lg font-semibold text-text-primary">
-            {winnerText} z przewagą {fmtPLN(Math.abs(result.differencePLN))} ({Math.abs(result.differencePercent).toFixed(1)}%).
+            {winnerText} ({Math.abs(result.differencePercent).toLocaleString('pl-PL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%)
           </h3>
         </div>
         <button
@@ -72,7 +92,28 @@ export function ComparisonScenarioCard({
           <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">USD/PLN</p>
           <p className="mt-1 text-base font-semibold text-text-primary">{formatFx(projectedFxRate)}</p>
         </div>
+        <div className="rounded-xl border border-border/70 bg-bg-card/70 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+            Wartość akcji po {horizonSummary(horizonMonths)}
+          </p>
+          <p className="mt-1 text-base font-semibold text-text-primary">{fmtPLN(result.stockNetEndValuePLN)}</p>
+        </div>
+        <div className="rounded-xl border border-border/70 bg-bg-card/70 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+            Wartość {benchmarkFullName(result.benchmarkLabel)} po {horizonSummary(horizonMonths)}
+          </p>
+          <p className="mt-1 text-base font-semibold text-text-primary">{fmtPLN(result.benchmarkEndValuePLN)}</p>
+        </div>
       </div>
+
+      {breakevenPrice !== null && (
+        <div className="rounded-xl border border-border/50 bg-bg-muted/30 px-3 py-2 text-xs text-text-secondary">
+          <span className="font-medium text-text-primary">Próg rentowności: </span>
+          akcje muszą kosztować co najmniej{' '}
+          <span className="font-semibold text-text-primary">{fmtUSD(breakevenPrice)}</span>
+          {' '}po {horizonSummary(horizonMonths)}, aby trzymanie ich opłacało się bardziej niż reinwestycja.
+        </div>
+      )}
     </article>
   );
 }
