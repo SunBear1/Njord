@@ -15,7 +15,6 @@ import { useInflationData } from '../hooks/useInflationData';
 import type { VolatilityStats } from '../hooks/useHistoricalVolatility';
 import { useHistoricalVolatility } from '../hooks/useHistoricalVolatility';
 import { useCurrencyRates } from '../hooks/useCurrencyRates';
-import { useDarkMode } from '../hooks/useDarkMode';
 import { useBondPresets } from '../hooks/useBondPresets';
 import { usePortfolioState } from '../hooks/usePortfolioState';
 import { calcAllScenarios, calcBreakevenStockPrice, calcTimeline } from '../utils/calculations';
@@ -53,7 +52,6 @@ function hasNumericValue(value: number): boolean {
 }
 
 export function ComparisonPage() {
-  const [isDark] = useDarkMode();
   const { assetData, proxyFxData, isLoading: assetLoading, error: assetError, fetchData: fetchAsset, resetData: resetAssetData } = useAssetData();
   const { etfData, etfAnnualizedReturn, isLoading: etfLoading, error: etfError, fetchEtf, resetEtf } = useEtfData();
   const { presets: bondPresets, isLoading: bondPresetsLoading } = useBondPresets();
@@ -479,7 +477,6 @@ export function ComparisonPage() {
               currentValuePLN={analysisResults?.[0]?.currentValuePLN ?? 0}
               benchmarkLabel={analysisResults?.[0]?.benchmarkLabel ?? 'Konto'}
               inflationRate={analysis.inputs.inflationRate}
-              isDark={isDark}
             />
           </Suspense>
         </ErrorBoundary>

@@ -111,6 +111,16 @@ export const DESIGN_TOKENS = {
     bmLight: '#2563eb',      // blue-600 — benchmark bars in light mode
     stockDark: '#4ade80',    // green-400 — stock bars in dark mode
     bmDark: '#60a5fa',       // blue-400 — benchmark bars in dark mode
+    comparisonBenchmarkLight: '#2563eb',     // blue-600
+    comparisonBearLight: '#991B1B',          // red-800
+    comparisonBaseLight: '#115E59',          // teal-800
+    comparisonBullLight: '#065F46',          // emerald-800
+    comparisonPowerLight: '#475569',         // slate-600
+    comparisonBenchmarkDark: '#60a5fa',      // blue-400
+    comparisonBearDark: '#FCA5A5',           // red-300
+    comparisonBaseDark: '#67E8F9',           // cyan-300
+    comparisonBullDark: '#6EE7B7',           // emerald-300
+    comparisonPowerDark: '#A9B5BF',          // gray
   },
 } as const;
 
