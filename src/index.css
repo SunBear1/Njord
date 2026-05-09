@@ -39,6 +39,13 @@
   --color-danger: #991B1B;
   --color-warning: #B45309;
 
+  /* --- Comparison chart --- */
+  --color-chart-comparison-benchmark: #2563eb;
+  --color-chart-comparison-bear: #991B1B;
+  --color-chart-comparison-base: #115E59;
+  --color-chart-comparison-bull: #065F46;
+  --color-chart-comparison-purchasing-power: #475569;
+
   /* --- Border --- */
   --color-border: #CBD5E1;
 }
@@ -63,6 +70,12 @@ html.dark {
   --color-success: #6EE7B7;
   --color-danger: #FCA5A5;
   --color-warning: #FCD34D;
+
+  --color-chart-comparison-benchmark: #60a5fa;
+  --color-chart-comparison-bear: #FCA5A5;
+  --color-chart-comparison-base: #67E8F9;
+  --color-chart-comparison-bull: #6EE7B7;
+  --color-chart-comparison-purchasing-power: #A9B5BF;
 
   --color-border: #334155;
 }

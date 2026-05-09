@@ -9,20 +9,18 @@ import { APPROVED_HEX_COLORS } from './color-contract.test';
 
 export const CHART_PALETTE = {
   light: {
-    primary: '#0369a1',     // sky-700
-    secondary: '#115E59',   // teal
-    positive: '#065F46',    // emerald
-    negative: '#991B1B',    // red
-    neutral: '#475569',     // slate
-    band: '#F1F5F9',        // very light — confidence intervals
+    benchmark: '#2563eb',        // blue-600
+    bear: '#991B1B',             // red-800
+    base: '#115E59',             // teal-800 (reuse from accentSecondary)
+    bull: '#065F46',             // emerald-800
+    purchasingPower: '#475569',  // slate-600
   },
   dark: {
-    primary: '#38bdf8',     // sky-400
-    secondary: '#67E8F9',   // cyan
-    positive: '#6EE7B7',    // emerald
-    negative: '#FCA5A5',    // red
-    neutral: '#A9B5BF',     // gray
-    band: '#334155',        // dark — confidence intervals
+    benchmark: '#60a5fa',        // blue-400
+    bear: '#FCA5A5',             // red-300
+    base: '#67E8F9',             // cyan-300 (reuse from dark accentSecondary)
+    bull: '#6EE7B7',             // emerald-300
+    purchasingPower: '#A9B5BF',  // gray
   },
 } as const;
 

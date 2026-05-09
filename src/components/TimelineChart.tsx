@@ -8,7 +8,6 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  ReferenceLine,
 } from 'recharts';
 import type { TimelinePoint } from '../utils/calculations';
 import { fmtTooltipPLN } from '../utils/formatting';
@@ -18,12 +17,22 @@ interface TimelineChartProps {
   currentValuePLN: number;
   benchmarkLabel: string;
   inflationRate: number;
-  isDark?: boolean;
 }
 
-function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate, isDark }: TimelineChartProps) {
-  const gridColor = isDark ? '#334155' : '#F1F5F9';
-  const tickColor = isDark ? '#A9B5BF' : '#475569';
+const chartColors = {
+  grid: 'var(--color-border)',
+  tick: 'var(--color-text-muted)',
+  tooltipBackground: 'var(--color-bg-card)',
+  tooltipBorder: 'var(--color-border)',
+  tooltipText: 'var(--color-text-primary)',
+  benchmark: 'var(--color-chart-comparison-benchmark)',
+  bear: 'var(--color-chart-comparison-bear)',
+  base: 'var(--color-chart-comparison-base)',
+  bull: 'var(--color-chart-comparison-bull)',
+  purchasingPower: 'var(--color-chart-comparison-purchasing-power)',
+} as const;
+
+function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate }: TimelineChartProps) {
   const chartData = useMemo(() =>
     inflationRate > 0
       ? data.map((point) => ({
@@ -31,7 +40,7 @@ function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate, i
           purchasingPower: currentValuePLN / Math.pow(1 + inflationRate / 100, point.month / 12),
         }))
       : data,
-    [data, inflationRate, currentValuePLN],
+    [currentValuePLN, data, inflationRate],
   );
 
   return (
@@ -44,31 +53,41 @@ function TimelineChart({ data, currentValuePLN, benchmarkLabel, inflationRate, i
       )}
       <ResponsiveContainer width="100%" height={420} debounce={32}>
         <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 24, left: 10 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+          <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
           <XAxis
             dataKey="month"
             tickFormatter={(v) => `${v}m`}
-            tick={{ fontSize: 12, fill: tickColor }}
+            tick={{ fontSize: 12, fill: chartColors.tick }}
           />
-          <YAxis tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 12, fill: tickColor }} />
+          <YAxis
+            tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`}
+            tick={{ fontSize: 12, fill: chartColors.tick }}
+          />
           <Tooltip
             formatter={fmtTooltipPLN}
             labelFormatter={(v) => `Miesiąc ${v}`}
             contentStyle={{
-              backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
-              borderColor: isDark ? '#334155' : '#CBD5E1',
+              backgroundColor: chartColors.tooltipBackground,
+              borderColor: chartColors.tooltipBorder,
               borderRadius: '8px',
-              color: isDark ? '#F1F5F9' : '#0F172A',
+              color: chartColors.tooltipText,
             }}
           />
           <Legend />
-          <ReferenceLine y={currentValuePLN} stroke={isDark ? '#A9B5BF' : '#475569'} strokeDasharray="4 4" />
-          <Line type="monotone" dataKey="benchmark" name={benchmarkLabel}  stroke={isDark ? '#60a5fa' : '#2563eb'} strokeWidth={2} dot={false} />
-          <Line type="monotone" dataKey="bear"      name="Bear"  stroke={isDark ? '#FCA5A5' : '#991B1B'} strokeWidth={2} dot={false} strokeDasharray="5 3" />
-          <Line type="monotone" dataKey="base"      name="Base"  stroke={isDark ? '#67E8F9' : '#115E59'} strokeWidth={2} dot={false} />
-          <Line type="monotone" dataKey="bull"      name="Bull"  stroke={isDark ? '#6EE7B7' : '#065F46'} strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="benchmark" name={benchmarkLabel} stroke={chartColors.benchmark} strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="bear" name="Bear" stroke={chartColors.bear} strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="base" name="Base" stroke={chartColors.base} strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="bull" name="Bull" stroke={chartColors.bull} strokeWidth={2} dot={false} />
           {inflationRate > 0 && (
-            <Line type="monotone" dataKey="purchasingPower" name="Siła nabywcza" stroke={isDark ? '#A9B5BF' : '#475569'} strokeWidth={1.5} dot={false} strokeDasharray="3 3" />
+            <Line
+              type="monotone"
+              dataKey="purchasingPower"
+              name="Siła nabywcza"
+              stroke={chartColors.purchasingPower}
+              strokeWidth={1.5}
+              dot={false}
+              strokeDasharray="6 3"
+            />
           )}
         </LineChart>
       </ResponsiveContainer>
