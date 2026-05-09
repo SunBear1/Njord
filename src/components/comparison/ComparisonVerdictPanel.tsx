@@ -1,5 +1,5 @@
 import type { ScenarioResult } from '../../types/scenario';
-import { fmtPLN, fmtPercent } from '../../utils/formatting';
+import { fmtPLN, fmtPercent, fmtUSD } from '../../utils/formatting';
 import { getDecisionSummary } from '../../utils/comparisonDecision';
 
 interface ComparisonVerdictPanelProps {
@@ -7,6 +7,9 @@ interface ComparisonVerdictPanelProps {
   assetLabel: string;
   horizonMonths: number;
   inflationRate: number;
+  benchmarkLabel: string | null;
+  benchmarkEndValuePLN: number | null;
+  breakevenPriceUSD: number | null;
 }
 
 function benchmarkDisplayLabel(label: string): string {
@@ -19,6 +22,12 @@ function benchmarkInstrumentLabel(label: string): string {
   if (label === 'Konto') return 'konto oszczędnościowe';
   if (label === 'Obligacje') return 'obligacje skarbowe';
   return 'ETF';
+}
+
+function benchmarkReinvestmentContext(label: string): string {
+  if (label === 'Konto') return 'na koncie oszczędnościowym';
+  if (label === 'Obligacje') return 'w obligacjach skarbowych';
+  return 'w ETF-ie';
 }
 
 function horizonSummary(value: number): string {
@@ -37,6 +46,9 @@ export function ComparisonVerdictPanel({
   assetLabel,
   horizonMonths,
   inflationRate,
+  benchmarkLabel,
+  benchmarkEndValuePLN,
+  breakevenPriceUSD,
 }: ComparisonVerdictPanelProps) {
   const summary = getDecisionSummary(results);
   if (!summary) return null;
@@ -89,6 +101,21 @@ export function ComparisonVerdictPanel({
           </p>
           <p className="mt-2 text-base font-semibold text-text-primary">{fmtPLN(decisionCapital)}</p>
         </article>
+        {benchmarkLabel && benchmarkEndValuePLN !== null && breakevenPriceUSD !== null && (
+          <article
+            data-testid="comparison-reinvestment-breakeven"
+            className="rounded-xl border border-border/70 bg-bg-muted/20 p-4"
+          >
+            <p className="text-sm font-medium text-text-secondary">Próg rentowności względem reinwestycji</p>
+            <p className="mt-2 text-base font-semibold text-text-primary">{fmtUSD(breakevenPriceUSD)}</p>
+            <p className="mt-2 text-xs text-text-secondary">
+              To cena akcji po {horizonSummary(horizonMonths)}, która zrówna wynik z reinwestycją
+              {' '}{benchmarkReinvestmentContext(benchmarkLabel)} o wartości{' '}
+              <span className="font-semibold text-text-primary">{fmtPLN(benchmarkEndValuePLN)}</span>
+              {' '}przy dzisiejszym kursie USD/PLN.
+            </p>
+          </article>
+        )}
       </div>
 
       {inflationRate > 0 && (

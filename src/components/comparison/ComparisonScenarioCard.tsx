@@ -1,7 +1,5 @@
 import { Pencil } from 'lucide-react';
 import type { ScenarioParams, ScenarioResult } from '../../types/scenario';
-import type { CalcInputs } from '../../utils/calculations';
-import { calcBreakevenStockPrice } from '../../utils/calculations';
 import { fmtPLN, fmtUSD } from '../../utils/formatting';
 
 interface ComparisonScenarioCardProps {
@@ -11,7 +9,6 @@ interface ComparisonScenarioCardProps {
   currentPriceUSD: number;
   currentFxRate: number;
   horizonMonths: number;
-  calcInputs: CalcInputs;
   onEdit: () => void;
 }
 
@@ -49,13 +46,12 @@ export function ComparisonScenarioCard({
   currentPriceUSD,
   currentFxRate,
   horizonMonths,
-  calcInputs,
   onEdit,
 }: ComparisonScenarioCardProps) {
   const projectedPriceUSD = currentPriceUSD * (1 + scenario.deltaStock / 100);
   const projectedFxRate = currentFxRate * (1 + scenario.deltaFx / 100);
   const winnerText = winnerShortText(result.stockBeatsBenchmark, result.benchmarkLabel, result.differencePLN);
-  const breakevenPrice = calcBreakevenStockPrice(calcInputs, result.benchmarkEndValuePLN, scenario.deltaFx);
+  const showBenchmarkMetric = result.benchmarkLabel !== 'Konto';
   const toneClass = label === 'Bear'
     ? 'border-danger/30 bg-danger/5'
     : 'border-success/30 bg-success/5';
@@ -92,28 +88,21 @@ export function ComparisonScenarioCard({
           <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">USD/PLN</p>
           <p className="mt-1 text-base font-semibold text-text-primary">{formatFx(projectedFxRate)}</p>
         </div>
-        <div className="rounded-xl border border-border/70 bg-bg-card/70 p-3">
+        <div className={`rounded-xl border border-border/70 bg-bg-card/70 p-3 ${showBenchmarkMetric ? '' : 'sm:col-span-2'}`}>
           <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
             Wartość akcji po {horizonSummary(horizonMonths)}
           </p>
           <p className="mt-1 text-base font-semibold text-text-primary">{fmtPLN(result.stockNetEndValuePLN)}</p>
         </div>
-        <div className="rounded-xl border border-border/70 bg-bg-card/70 p-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
-            Wartość {benchmarkFullName(result.benchmarkLabel)} po {horizonSummary(horizonMonths)}
-          </p>
-          <p className="mt-1 text-base font-semibold text-text-primary">{fmtPLN(result.benchmarkEndValuePLN)}</p>
-        </div>
+        {showBenchmarkMetric && (
+          <div className="rounded-xl border border-border/70 bg-bg-card/70 p-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+              Wartość {benchmarkFullName(result.benchmarkLabel)} po {horizonSummary(horizonMonths)}
+            </p>
+            <p className="mt-1 text-base font-semibold text-text-primary">{fmtPLN(result.benchmarkEndValuePLN)}</p>
+          </div>
+        )}
       </div>
-
-      {breakevenPrice !== null && (
-        <div className="rounded-xl border border-border/50 bg-bg-muted/30 px-3 py-2 text-xs text-text-secondary">
-          <span className="font-medium text-text-primary">Próg rentowności: </span>
-          akcje muszą kosztować co najmniej{' '}
-          <span className="font-semibold text-text-primary">{fmtUSD(breakevenPrice)}</span>
-          {' '}po {horizonSummary(horizonMonths)}, aby trzymanie ich opłacało się bardziej niż reinwestycja.
-        </div>
-      )}
     </article>
   );
 }
