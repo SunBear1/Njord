@@ -18,7 +18,7 @@ import { useCurrencyRates } from '../hooks/useCurrencyRates';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { useBondPresets } from '../hooks/useBondPresets';
 import { usePortfolioState } from '../hooks/usePortfolioState';
-import { calcAllScenarios, calcTimeline } from '../utils/calculations';
+import { calcAllScenarios, calcBreakevenStockPrice, calcTimeline } from '../utils/calculations';
 import { blendedInflationRate, blendedSavingsRate } from '../utils/inflationProjection';
 import {
   clearComparisonAnalysis,
@@ -276,8 +276,12 @@ export function ComparisonPage() {
 
   const isAnalysisStale = analysis !== null && analysis.signature !== draftSignature;
   const shouldShowResults = analysis !== null && !isAnalysisStale;
+  const baseResult = analysisResults?.find((result) => result.key === 'base') ?? null;
   const bearResult = analysisResults?.find((result) => result.key === 'bear') ?? null;
   const bullResult = analysisResults?.find((result) => result.key === 'bull') ?? null;
+  const breakevenPriceUSD = analysis && baseResult
+    ? calcBreakevenStockPrice(analysis.inputs, baseResult.benchmarkEndValuePLN, 0)
+    : null;
 
   const handleClearData = useCallback(() => {
     const shouldClear = window.confirm('Wyczyścić zapisane dane porównania i zacząć od nowa?');
@@ -422,6 +426,9 @@ export function ComparisonPage() {
           assetLabel={analysis.assetLabel}
           horizonMonths={analysis.inputs.horizonMonths}
           inflationRate={analysis.inputs.inflationRate}
+          benchmarkLabel={baseResult?.benchmarkLabel ?? null}
+          benchmarkEndValuePLN={baseResult?.benchmarkEndValuePLN ?? null}
+          breakevenPriceUSD={breakevenPriceUSD}
         />
       )}
 
@@ -441,7 +448,6 @@ export function ComparisonPage() {
               currentPriceUSD={analysis.inputs.currentPriceUSD}
               currentFxRate={analysis.inputs.currentFxRate}
               horizonMonths={analysis.inputs.horizonMonths}
-              calcInputs={analysis.inputs}
               onEdit={() => setEditingScenario('bear')}
             />
             <ComparisonScenarioCard
@@ -451,7 +457,6 @@ export function ComparisonPage() {
               currentPriceUSD={analysis.inputs.currentPriceUSD}
               currentFxRate={analysis.inputs.currentFxRate}
               horizonMonths={analysis.inputs.horizonMonths}
-              calcInputs={analysis.inputs}
               onEdit={() => setEditingScenario('bull')}
             />
           </div>

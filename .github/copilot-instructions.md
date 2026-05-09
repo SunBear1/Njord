@@ -107,6 +107,8 @@ Critical validation before commiting changes:
 npx tsc --noEmit --skipLibCheck -p functions/tsconfig.json && npm run lint && npm test && npm run build && npx playwright test
 ```
 
+Important: `npx playwright test` runs against `npm run preview` on `dist/`, so rebuild with `npm run build` after frontend changes before running Playwright.
+
 No exceptions. Fix failures before proceeding. Context-specific checks in `.github/instructions/` files per domain.
 
 ## Delivering Work

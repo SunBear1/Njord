@@ -75,6 +75,32 @@ async function configureComparisonForAnalysis(page: Parameters<typeof test>[0]['
   await page.getByRole('button', { name: /Analizuj scenariusze/i }).click();
 }
 
+async function configureComparisonForSavingsAnalysis(page: Parameters<typeof test>[0]['page']) {
+  await page.route(MARKET_DATA_URL, (route) =>
+    route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
+  );
+  await page.route(NBP_URL, (route) =>
+    route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
+  );
+  await page.route(INFLATION_URL, (route) =>
+    route.fulfill({ status: 200, json: VALID_INFLATION_RESPONSE }),
+  );
+
+  await page.goto('/comparison');
+  await page.waitForSelector('main', { timeout: 10_000 });
+
+  await openComparisonAssetDropdown(page);
+  await page.locator('#comparison-ticker').fill('AAPL');
+  await page.getByRole('button', { name: /Odśwież dane giełdowe/i }).click();
+  await expect(page.getByText(/Apple Inc\./)).toBeVisible({ timeout: 8_000 });
+
+  await page.locator('#comparison-shares').fill('10');
+  await page.locator('#comparison-avg-cost').fill('100');
+  await openComparisonBenchmarkDropdown(page);
+  await page.locator('#comparison-savings-rate').fill('5,5');
+  await page.getByRole('button', { name: /Analizuj scenariusze/i }).click();
+}
+
 test.describe('Comparison page — API error handling', () => {
   test('API 500 shows an inline error without crashing the page', async ({ page }) => {
     await page.route(MARKET_DATA_URL, (route) =>
@@ -158,6 +184,21 @@ test.describe('Comparison page — successful analysis flow', () => {
     await expect(bearCard).toContainText('4,3');
     await expect(bearCard.getByText(/Akcje netto/i)).not.toBeVisible();
     await expect(bearCard.getByTestId('comparison-scenario-bear-metric')).toHaveCount(2);
+  });
+
+  test('savings reinvestment value is shown once and break-even is shared outside bear and bull cards', async ({ page }) => {
+    await configureComparisonForSavingsAnalysis(page);
+
+    const bearCard = page.getByTestId('comparison-scenario-bear');
+    const bullCard = page.getByTestId('comparison-scenario-bull');
+
+    await expect(page.getByText(/Wartość inwestycji w konto oszczędnościowe po /i)).toHaveCount(1);
+    await expect(page.getByTestId('comparison-reinvestment-breakeven')).toHaveCount(1);
+    await expect(page.getByText(/Próg rentowności względem reinwestycji/i)).toHaveCount(1);
+    await expect(bearCard).not.toContainText('Wartość Konto oszcz.');
+    await expect(bullCard).not.toContainText('Wartość Konto oszcz.');
+    await expect(bearCard).not.toContainText('Próg rentowności');
+    await expect(bullCard).not.toContainText('Próg rentowności');
   });
 
   test('stock traits link opens forecast page with the selected ticker', async ({ page }) => {
