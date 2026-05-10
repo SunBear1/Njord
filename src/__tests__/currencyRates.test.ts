@@ -160,6 +160,7 @@ function makeFullEntry(
     currency,
     alior: { buy, sell, mid: (buy + sell) / 2, ts },
     nbp: { buy: nbpBuy, sell: nbpSell, mid: (nbpBuy + nbpSell) / 2, date },
+    walutomat: null,
   };
 }
 
@@ -172,6 +173,8 @@ describe('computeChanges', () => {
       aliorSell: null,
       nbpBuy: null,
       nbpSell: null,
+      walutomatBuy: null,
+      walutomatSell: null,
     });
   });
 
@@ -202,12 +205,13 @@ describe('computeChanges', () => {
   it('returns all null on first load (empty prev)', () => {
     const curr = makeFullEntry('USD', 4.0, 4.1, 'ts1', 3.98, 4.05, '2026-05-02');
     const result = computeChanges([], [curr]);
-    // No prev entry → all directions null (prev value is undefined)
     expect(result.USD).toEqual({
       aliorBuy: null,
       aliorSell: null,
       nbpBuy: null,
       nbpSell: null,
+      walutomatBuy: null,
+      walutomatSell: null,
     });
   });
 
@@ -226,11 +230,13 @@ describe('computeChanges', () => {
       currency: 'GBP',
       alior: { buy: 5.0, sell: 5.1, mid: 5.05, ts: 'ts1' },
       nbp: null,
+      walutomat: null,
     };
     const curr: CurrencyRateEntry = {
       currency: 'GBP',
       alior: null,
       nbp: null,
+      walutomat: null,
     };
     // Shouldn't throw
     const result = computeChanges([prev], [curr]);
@@ -275,16 +281,19 @@ describe('adaptRates', () => {
         currency: 'USD',
         alior: { buy: 4.0, sell: 4.1, mid: 4.05, ts: '2026-05-02T10:00:00Z' },
         nbp: { buy: 3.98, sell: 4.02, mid: 4.0, date: '2026-05-02' },
+        walutomat: null,
       },
       {
         currency: 'EUR',
         alior: { buy: 4.2, sell: 4.3, mid: 4.25, ts: '2026-05-02T10:00:00Z' },
         nbp: null,
+        walutomat: null,
       },
       {
         currency: 'GBP',
         alior: null,
         nbp: { buy: 4.9, sell: 5.0, mid: 4.95, date: '2026-05-02' },
+        walutomat: null,
       },
     ]);
   });

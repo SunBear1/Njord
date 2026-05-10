@@ -83,6 +83,26 @@ export interface PortfolioState {
   handleApplyModelScenarios: (scenarios: Scenarios) => void;
 }
 
+interface SavedAutofillSnapshot {
+  currentFxRate?: number;
+  inflationRate?: number;
+  etfAnnualReturnPercent?: number;
+}
+
+interface SavedAutofillState {
+  fxRate: boolean;
+  inflationRate: boolean;
+  etfAnnualReturnPercent: boolean;
+}
+
+export function deriveSavedAutofillState(saved: SavedAutofillSnapshot | null): SavedAutofillState {
+  return {
+    fxRate: Boolean(saved?.currentFxRate),
+    inflationRate: Boolean(saved?.inflationRate),
+    etfAnnualReturnPercent: Boolean(saved?.etfAnnualReturnPercent),
+  };
+}
+
 export function usePortfolioState(autofill: AutofillSources): PortfolioState {
   const [saved] = useState(loadState);
 
@@ -112,9 +132,10 @@ export function usePortfolioState(autofill: AutofillSources): PortfolioState {
   const aliorAutoFilledRef = useRef(false);
   const inflationAutoFilledRef = useRef(false);
   const etfReturnAutoFilledRef = useRef(false);
+  const savedAutofillRef = useRef(deriveSavedAutofillState(saved));
 
   useEffect(() => {
-    if (autofill.aliorBuyRate && !aliorAutoFilledRef.current) {
+    if (autofill.aliorBuyRate && !aliorAutoFilledRef.current && !savedAutofillRef.current.fxRate) {
       aliorAutoFilledRef.current = true;
       fxAutoFilledRef.current = true;
       setCurrentFxRate(autofill.aliorBuyRate);
@@ -122,21 +143,21 @@ export function usePortfolioState(autofill: AutofillSources): PortfolioState {
   }, [autofill.aliorBuyRate]);
 
   useEffect(() => {
-    if (autofill.proxyFxRate && !fxAutoFilledRef.current) {
+    if (autofill.proxyFxRate && !fxAutoFilledRef.current && !savedAutofillRef.current.fxRate) {
       fxAutoFilledRef.current = true;
       setCurrentFxRate(autofill.proxyFxRate);
     }
   }, [autofill.proxyFxRate]);
 
   useEffect(() => {
-    if (autofill.inflationCurrentRate && !inflationAutoFilledRef.current) {
+    if (autofill.inflationCurrentRate && !inflationAutoFilledRef.current && !savedAutofillRef.current.inflationRate) {
       inflationAutoFilledRef.current = true;
       setInflationRate(autofill.inflationCurrentRate);
     }
   }, [autofill.inflationCurrentRate]);
 
   useEffect(() => {
-    if (autofill.etfAnnualizedReturn !== null && !etfReturnAutoFilledRef.current) {
+    if (autofill.etfAnnualizedReturn !== null && !etfReturnAutoFilledRef.current && !savedAutofillRef.current.etfAnnualReturnPercent) {
       etfReturnAutoFilledRef.current = true;
       setEtfAnnualReturnPercent(parseFloat(autofill.etfAnnualizedReturn.toFixed(2)));
     }
@@ -192,17 +213,21 @@ export function usePortfolioState(autofill: AutofillSources): PortfolioState {
   ]);
 
   const resetForNewTicker = useCallback(() => {
+    savedAutofillRef.current.fxRate = false;
     fxAutoFilledRef.current = false;
+    aliorAutoFilledRef.current = false;
     setUserScenarios(null);
     setScenarioEditKey((value) => value + 1);
   }, []);
 
   const resetEtfAutofill = useCallback(() => {
+    savedAutofillRef.current.etfAnnualReturnPercent = false;
     etfReturnAutoFilledRef.current = false;
   }, []);
 
   const resetComparisonState = useCallback(() => {
     clearState();
+    savedAutofillRef.current = deriveSavedAutofillState(null);
     fxAutoFilledRef.current = false;
     aliorAutoFilledRef.current = false;
     inflationAutoFilledRef.current = false;

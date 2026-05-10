@@ -1,8 +1,9 @@
 // Shared URL patterns
 export const MARKET_DATA_URL = '**/api/v1/finance/stocks/**';
-export const NBP_URL = 'https://api.nbp.pl/**';
+export const NBP_HISTORY_URL = '**/api/v1/finance/currency/history**';
+export const NBP_RATE_URL = '**/api/v1/finance/currency/rate**';
 export const INFLATION_URL = '**/api/v1/finance/inflation**';
-export const CURRENCY_URL = '**/api/v1/finance/currency**';
+export const CURRENCY_URL = /\/api\/v1\/finance\/currency\?/;
 
 // 252 trading days of synthetic AAPL-like data
 export const VALID_ASSET_RESPONSE = {
@@ -23,17 +24,22 @@ export const VALID_ASSET_RESPONSE = {
   },
 };
 
-// 252 days of USD/PLN rates oscillating around 4.0
+// 252 days of USD/PLN rates oscillating around 4.0 (via backend proxy)
 export const VALID_NBP_HISTORICAL_RESPONSE = {
-  rates: Array.from({ length: 252 }, (_, index) => ({
-    effectiveDate: new Date(Date.now() - index * 86_400_000).toISOString().slice(0, 10),
-    mid: 4.0 * (1 + Math.sin(index * 0.05) * 0.02),
-  })),
+  ok: true,
+  data: {
+    currency: 'USD',
+    rates: Array.from({ length: 252 }, (_, index) => ({
+      date: new Date(Date.now() - index * 86_400_000).toISOString().slice(0, 10),
+      mid: 4.0 * (1 + Math.sin(index * 0.05) * 0.02),
+    })),
+  },
 };
 
-// Single NBP rate for a specific date (used by tax calculator tests)
+// Single NBP rate for a specific date (used by tax calculator tests, via backend proxy)
 export const NBP_RATE_RESPONSE = {
-  rates: [{ mid: 4.00, effectiveDate: '2024-06-13' }],
+  ok: true,
+  data: { rate: 4.00, effectiveDate: '2024-06-13' },
 };
 
 export const VALID_CURRENCY_RESPONSE = {

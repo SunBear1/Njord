@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import {
   MARKET_DATA_URL,
-  NBP_URL,
+  NBP_HISTORY_URL,
   INFLATION_URL,
   VALID_ASSET_RESPONSE,
   VALID_NBP_HISTORICAL_RESPONSE,
@@ -26,7 +26,7 @@ async function setupApiMocks(page: Page) {
   await page.route(MARKET_DATA_URL, (route) =>
     route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
   );
-  await page.route(NBP_URL, (route) =>
+  await page.route(NBP_HISTORY_URL, (route) =>
     route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
   );
   await page.route(INFLATION_URL, (route) =>
@@ -313,7 +313,7 @@ test.describe('/comparison — successful analysis flow', () => {
 
 test.describe('/comparison — loading states', () => {
   test('ticker row shows a spinner while market data is loading', async ({ page }) => {
-    await page.route(NBP_URL, (route) =>
+    await page.route(NBP_HISTORY_URL, (route) =>
       route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
     );
     await page.route(INFLATION_URL, (route) =>

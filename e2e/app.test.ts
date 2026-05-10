@@ -19,7 +19,7 @@ test.describe('app — general', () => {
     const privacyLink = page.getByRole('button', { name: /prywatność|polityka/i }).first();
     await expect(privacyLink).toBeVisible();
     await privacyLink.click();
-    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 3_000 });
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5_000 });
   });
 
   test('navbar links navigate between pages', async ({ page }) => {

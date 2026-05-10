@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import {
   MARKET_DATA_URL,
-  NBP_URL,
+  NBP_HISTORY_URL,
   VALID_ASSET_RESPONSE,
   VALID_NBP_HISTORICAL_RESPONSE,
 } from './fixtures';
@@ -25,7 +25,7 @@ test.describe('/forecast — price forecast', () => {
     await page.route(MARKET_DATA_URL, (route) =>
       route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
     );
-    await page.route(NBP_URL, (route) =>
+    await page.route(NBP_HISTORY_URL, (route) =>
       route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
     );
 
@@ -61,7 +61,7 @@ test.describe('/forecast — price forecast', () => {
     await page.route(MARKET_DATA_URL, (route) =>
       route.fulfill({ status: 200, json: VALID_ASSET_RESPONSE }),
     );
-    await page.route(NBP_URL, (route) =>
+    await page.route(NBP_HISTORY_URL, (route) =>
       route.fulfill({ status: 200, json: VALID_NBP_HISTORICAL_RESPONSE }),
     );
 

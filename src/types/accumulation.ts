@@ -16,8 +16,14 @@ export type PitBracket = 12 | 32;
 /** IKE annual contribution limit for 2026 (3× average monthly salary). */
 export const IKE_LIMIT_2026 = 24_204;
 
-/** IKZE annual contribution limit for 2026 (1.2× average monthly salary). */
-export const IKZE_LIMIT_2026 = 10_081;
+/** IKZE annual contribution limit for employees in 2026 (1.2× average monthly salary). */
+export const IKZE_LIMIT_EMPLOYEE_2026 = 10_081;
+
+/** IKZE annual contribution limit for self-employed in 2026 (1.5× employee limit). */
+export const IKZE_LIMIT_SELF_EMPLOYED_2026 = 15_121.50;
+
+/** @deprecated Use IKZE_LIMIT_EMPLOYEE_2026 */
+export const IKZE_LIMIT_2026 = IKZE_LIMIT_EMPLOYEE_2026;
 
 /** Belka capital gains tax rate. */
 export const BELKA_RATE = 0.19;

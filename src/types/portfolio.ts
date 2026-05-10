@@ -1,6 +1,6 @@
 /** Types and constants for the "Kreator portfela" (Portfolio Creator) wizard. */
 
-import { IKE_LIMIT_2026 } from './accumulation';
+import { IKE_LIMIT_2026, IKZE_LIMIT_EMPLOYEE_2026, IKZE_LIMIT_SELF_EMPLOYED_2026 } from './accumulation';
 
 // ─── Wizard Navigation ────────────────────────────────────────────────────────
 
@@ -38,7 +38,8 @@ export interface Broker {
   ikze: boolean;
   instruments: PortfolioInstrumentType[];
   commissionEtf: string;
-  fxSpread: string;
+  fxSpread: string;         // human-readable string (display only)
+  fxSpreadNumeric: number;  // numeric percent for calculations (0 = no FX conversion needed)
   notes: string;
 }
 
@@ -51,6 +52,7 @@ export const BROKERS: readonly Broker[] = [
     instruments: ['etf', 'stocks_pl', 'stocks_foreign'],
     commissionEtf: '0% do 100k EUR obrotu/mies.',
     fxSpread: '0.5%',
+    fxSpreadNumeric: 0.5,
     notes: 'Brak IKZE. Najpopularniejszy wybór dla IKE z ETF-ami.',
   },
   {
@@ -61,6 +63,7 @@ export const BROKERS: readonly Broker[] = [
     instruments: ['etf', 'stocks_pl', 'stocks_foreign'],
     commissionEtf: '0.29% (min 29 PLN)',
     fxSpread: '~0.5%',
+    fxSpreadNumeric: 0.5,
     notes: 'Wygodna platforma do tradingu ETF-ami i akcjami.',
   },
   {
@@ -71,6 +74,7 @@ export const BROKERS: readonly Broker[] = [
     instruments: ['etf', 'stocks_pl', 'stocks_foreign'],
     commissionEtf: '0.29% (min 19 PLN) GPW',
     fxSpread: '~0.6%',
+    fxSpreadNumeric: 0.6,
     notes: 'Ograniczony dostęp do giełd zagranicznych.',
   },
   {
@@ -81,6 +85,7 @@ export const BROKERS: readonly Broker[] = [
     instruments: ['etf', 'stocks_pl', 'stocks_foreign'],
     commissionEtf: '0.29% (min 19 PLN)',
     fxSpread: '~0.5%',
+    fxSpreadNumeric: 0.5,
     notes: 'Integracja z eMakler mBank. Konto maklerskie powiązane z kontem bankowym.',
   },
   {
@@ -91,6 +96,7 @@ export const BROKERS: readonly Broker[] = [
     instruments: ['bonds'],
     commissionEtf: 'brak — obligacje kupowane bez prowizji',
     fxSpread: 'nie dotyczy',
+    fxSpreadNumeric: 0,
     notes:
       'JEDYNY broker umożliwiający zakup obligacji detalicznych w IKE/IKZE. Nie można tu kupić ETF-ów ani akcji.',
   },
@@ -173,6 +179,12 @@ export interface WrapperPortfolioConfig {
   /** Broker id; null for 'regular' wrapper. */
   brokerId: string | null;
   allocations: PortfolioAllocation[];
+  /**
+   * FX spread applied to foreign instruments (ETF, stocks_foreign) for this wrapper.
+   * Derived from the selected broker's fxSpreadNumeric at calc time — not persisted.
+   * 0 for PLN-only instruments (stocks_pl, bonds, savings) and when no broker is set.
+   */
+  fxSpreadPercent: number;
 }
 
 // ─── Wizard State ─────────────────────────────────────────────────────────────
@@ -214,15 +226,15 @@ export const IKZE_LIMIT_SELF_EMPLOYED_2025 = 15_611.40;
 /** Current default IKE limit (2026). */
 export const IKE_DEFAULT_LIMIT = IKE_LIMIT_2026;
 
-/** Current default IKZE limit for employees (2025). */
-export const IKZE_DEFAULT_LIMIT_EMPLOYEE = IKZE_LIMIT_EMPLOYEE_2025;
+/** Current default IKZE limit for employees (2026). */
+export const IKZE_DEFAULT_LIMIT_EMPLOYEE = IKZE_LIMIT_EMPLOYEE_2026;
 
-/** Current default IKZE limit for self-employed (2025). */
-export const IKZE_DEFAULT_LIMIT_SELF_EMPLOYED = IKZE_LIMIT_SELF_EMPLOYED_2025;
+/** Current default IKZE limit for self-employed (2026). */
+export const IKZE_DEFAULT_LIMIT_SELF_EMPLOYED = IKZE_LIMIT_SELF_EMPLOYED_2026;
 
 /** Get IKZE limit based on employment status. */
 export function getIkzeLimit(isSelfEmployed: boolean): number {
-  return isSelfEmployed ? IKZE_LIMIT_SELF_EMPLOYED_2025 : IKZE_LIMIT_EMPLOYEE_2025;
+  return isSelfEmployed ? IKZE_LIMIT_SELF_EMPLOYED_2026 : IKZE_LIMIT_EMPLOYEE_2026;
 }
 
 // ─── Defaults ─────────────────────────────────────────────────────────────────

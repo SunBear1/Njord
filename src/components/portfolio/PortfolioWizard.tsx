@@ -10,6 +10,8 @@ import { calcPortfolioResult } from '../../utils/accumulationCalculator';
 import { blendedInflationRate } from '../../utils/inflationProjection';
 import type { PortfolioCalcInputs } from '../../utils/accumulationCalculator';
 import type { BondPreset } from '../../types/scenario';
+import { BROKERS } from '../../types/portfolio';
+import type { WrapperPortfolioConfig } from '../../types/portfolio';
 
 interface PortfolioWizardProps {
   bondPresets: BondPreset[];
@@ -21,6 +23,12 @@ export function PortfolioWizard({ bondPresets, isDark }: PortfolioWizardProps) {
 
   const portfolioResult = useMemo(() => {
     if (wizard.currentStep < 4) return null;
+
+    // Derive fxSpreadPercent from broker at calc time — not persisted in state.
+    const wrapperConfigsWithFx = wizard.state.wrapperConfigs.map((wc) => {
+      const broker = wc.brokerId ? BROKERS.find((b) => b.id === wc.brokerId) : null;
+      return { ...wc, fxSpreadPercent: broker?.fxSpreadNumeric ?? 0.5 };
+    }) as [WrapperPortfolioConfig, WrapperPortfolioConfig, WrapperPortfolioConfig];
 
     const inputs: PortfolioCalcInputs = {
       totalMonthlyPLN: wizard.state.personalData.totalMonthlyPLN,
@@ -35,7 +43,7 @@ export function PortfolioWizard({ bondPresets, isDark }: PortfolioWizardProps) {
       ikzeAnnualLimit: wizard.ikzeAnnualLimit,
       savingsRate: wizard.state.savingsRatePercent,
       reinvestIkzeDeduction: wizard.state.reinvestIkzeDeduction,
-      wrapperConfigs: wizard.state.wrapperConfigs,
+      wrapperConfigs: wrapperConfigsWithFx,
       bondPresets,
     };
 

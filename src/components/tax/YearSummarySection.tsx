@@ -62,19 +62,19 @@ function SummaryRow({
 function PitZgSection({ entries }: { entries: PitZgCurrencyEntry[] }) {
   if (entries.length === 0) return null;
   return (
-    <div className="rounded-xl border border-danger/30 overflow-hidden">
+    <div className="rounded-xl border border-accent-primary/30 overflow-hidden">
       {/* Header — merged banner + table title */}
-      <div className="bg-danger/5 px-4 py-3 flex items-start gap-2 border-b border-danger/30">
-        <Globe size={15} className="text-danger flex-shrink-0 mt-0.5" aria-hidden="true" />
-        <div className="text-xs text-danger space-y-0.5">
-          <p className="font-semibold uppercase tracking-wide">PIT/ZG (v8) — Sekcja C.3 — Dochody zagraniczne (per kraj)</p>
-          <p className="text-danger/80 font-normal normal-case tracking-normal">
+      <div className="bg-accent-primary/5 px-4 py-3 flex items-start gap-2 border-b border-accent-primary/30">
+        <Globe size={15} className="text-accent-primary flex-shrink-0 mt-0.5" aria-hidden="true" />
+        <div className="text-xs text-accent-primary space-y-0.5">
+          <p className="font-semibold uppercase tracking-wide">PIT/ZG — Sekcja C.3 — Dochody zagraniczne (per kraj)</p>
+          <p className="text-accent-primary/80 font-normal normal-case tracking-normal">
             Transakcje w walutach obcych to dochody zagraniczne. Do PIT-38 musisz dołączyć załącznik PIT/ZG — jeden na kraj.
           </p>
         </div>
       </div>
 
-      <div className="divide-y divide-danger/20">
+      <div className="divide-y divide-accent-primary/20">
         {/* Column headers */}
         <div className="grid grid-cols-4 gap-2 px-3 py-1.5 text-[10px] font-semibold text-text-muted uppercase tracking-wide">
           <span>Kraj (waluta)</span>
@@ -90,13 +90,13 @@ function PitZgSection({ entries }: { entries: PitZgCurrencyEntry[] }) {
           return (
             <div key={currency} className="grid grid-cols-4 gap-2 px-3 py-2.5 text-xs items-center">
               <div className="flex items-center gap-1.5">
-                <span className="bg-danger/10 text-danger px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide flex-shrink-0">
+                <span className="bg-accent-primary/10 text-accent-primary px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wide flex-shrink-0">
                   {pitZgFields?.countryCode || currency}
                 </span>
                 {country ? (
                   <span className="text-text-secondary truncate">{country}</span>
                 ) : isEurAmbiguous ? (
-                  <span className="flex items-center gap-1 text-danger">
+                  <span className="flex items-center gap-1 text-accent-primary">
                     <AlertTriangle size={11} aria-hidden="true" />
                     <span className="truncate">określ kraj</span>
                   </span>
@@ -119,7 +119,7 @@ function PitZgSection({ entries }: { entries: PitZgCurrencyEntry[] }) {
       </div>
 
       {/* Footer note */}
-      <div className="bg-danger/5 px-3 py-2 text-[10px] text-danger/70 border-t border-danger/20">
+      <div className="bg-accent-primary/5 px-3 py-2 text-[10px] text-accent-primary/70 border-t border-accent-primary/20">
         Podatek zapłacony za granicą (Poz. 30): <strong>0 zł</strong> — sprzedaż akcji nie podlega podatkowi u źródła w USA ani UE
         (umowa o unikaniu podwójnego opodatkowania). Belka 19% pobierana wyłącznie w Polsce.
       </div>

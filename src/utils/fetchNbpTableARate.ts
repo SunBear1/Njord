@@ -1,13 +1,3 @@
-/**
- * Fetches the NBP Table A (average) exchange rate for a given currency,
- * using the last business day BEFORE the provided date.
- *
- * Per Polish tax law: to convert USD gains/costs to PLN, use the NBP mid rate
- * from the last business day preceding the transaction date.
- */
-
-import { fetchWithTimeout } from './fetchWithTimeout';
-
 export interface NbpRateResult {
   /** Mid rate from NBP Table A. */
   rate: number;
@@ -15,19 +5,15 @@ export interface NbpRateResult {
   effectiveDate: string;
 }
 
-const NBP_BASE = 'https://api.nbp.pl/api/exchangerates/rates/a';
-const NBP_TIMEOUT_MS = 8_000;
+interface CurrencyRateResponse {
+  ok: boolean;
+  data?: {
+    rate: number;
+    effectiveDate: string;
+  };
+  error?: string;
+}
 
-/**
- * Returns the NBP Table A mid rate for `currency` as of the last business day
- * strictly before `date` (YYYY-MM-DD).
- *
- * For PLN, returns rate = 1 without making an API call.
- * Throws a Polish-language error string on failure.
- *
- * @param signal - Optional AbortSignal to cancel the request (e.g. when the
- *   user changes the date before the previous fetch resolves).
- */
 export async function fetchNbpTableARate(
   date: string,
   currency = 'USD',
@@ -35,7 +21,6 @@ export async function fetchNbpTableARate(
 ): Promise<NbpRateResult> {
   if (!date) throw new Error('Brak daty transakcji.');
 
-  // PLN → no conversion needed
   if (currency.toUpperCase() === 'PLN') {
     return { rate: 1, effectiveDate: date };
   }
@@ -45,64 +30,42 @@ export async function fetchNbpTableARate(
     throw new Error('Nieprawidłowy format daty.');
   }
 
-  // Query a 14-day window ending the day before the transaction date.
-  // The last entry in the result is the most recent business day before `date`.
-  const endDate = subtractDays(transactionDate, 1);
-  const startDate = subtractDays(transactionDate, 14);
-
-  const url =
-    `${NBP_BASE}/${currency.toLowerCase()}/${formatDate(startDate)}/${formatDate(endDate)}/?format=json`;
+  const url = `/api/v1/finance/currency/rate?date=${encodeURIComponent(date)}&currency=${encodeURIComponent(currency.toUpperCase())}`;
 
   let res: Response;
   try {
-    res = await fetchWithTimeout(url, signal, NBP_TIMEOUT_MS);
+    res = await fetch(url, { signal });
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') throw err;
     throw new Error('Błąd sieci — sprawdź połączenie z internetem.');
   }
 
-  if (res.status === 404) {
-    throw new Error(
-      `Brak kursu NBP dla waluty ${currency.toUpperCase()} w okolicach daty ${date}. ` +
-        'Wprowadź kurs ręcznie.',
-    );
+  let json: CurrencyRateResponse;
+  try {
+    json = (await res.json()) as CurrencyRateResponse;
+  } catch {
+    throw new Error('Błąd odpowiedzi serwera kursów walut. Spróbuj ponownie.');
   }
 
   if (!res.ok) {
-    throw new Error(`Błąd NBP (HTTP ${res.status}). Wprowadź kurs ręcznie.`);
+    throw new Error(json.error || `Błąd pobierania kursu waluty (HTTP ${res.status}).`);
   }
 
-  interface NbpResponse {
-    rates: Array<{ mid: number; effectiveDate: string }>;
+  if (!json.ok || !json.data) {
+    throw new Error(json.error || `Nie udało się pobrać kursu ${currency.toUpperCase()} dla daty ${date}.`);
   }
 
-  const data = (await res.json()) as NbpResponse;
-
-  if (!data?.rates?.length) {
-    throw new Error(
-      `NBP nie zwróciło kursów dla ${currency.toUpperCase()} w tym okresie. Wprowadź kurs ręcznie.`,
-    );
+  if (
+    typeof json.data.rate !== 'number' ||
+    !isFinite(json.data.rate) ||
+    json.data.rate <= 0 ||
+    !json.data.effectiveDate
+  ) {
+    throw new Error('Serwer zwrócił nieprawidłowy kurs waluty.');
   }
 
-  // Last entry = most recent business day before the transaction date.
-  const last = data.rates[data.rates.length - 1];
-  if (typeof last.mid !== 'number' || !isFinite(last.mid) || last.mid <= 0) {
-    throw new Error('NBP zwróciło nieprawidłowy kurs. Wprowadź kurs ręcznie.');
-  }
-  return { rate: last.mid, effectiveDate: last.effectiveDate };
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function subtractDays(date: Date, days: number): Date {
-  const d = new Date(date);
-  d.setDate(d.getDate() - days);
-  return d;
-}
-
-function formatDate(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+  return {
+    rate: json.data.rate,
+    effectiveDate: json.data.effectiveDate,
+  };
 }

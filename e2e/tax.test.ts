@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import {
   MARKET_DATA_URL,
-  NBP_URL,
+  NBP_RATE_URL,
   CURRENCY_URL,
   NBP_RATE_RESPONSE,
   VALID_CURRENCY_RESPONSE,
@@ -9,7 +9,7 @@ import {
 
 test.describe('/tax — Belka tax calculator', () => {
   test.beforeEach(async ({ page }) => {
-    await page.route(NBP_URL, (route) =>
+    await page.route(NBP_RATE_URL, (route) =>
       route.fulfill({ status: 200, json: NBP_RATE_RESPONSE }),
     );
     await page.route(CURRENCY_URL, (route) =>

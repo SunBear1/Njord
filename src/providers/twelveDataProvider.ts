@@ -3,6 +3,17 @@ import type { FxRate } from './nbpProvider';
 import type { ProxyResponse } from '../types/marketData';
 import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 
+interface CurrencyHistoryResponse {
+  ok: boolean;
+  data?: {
+    currency: string;
+    rates: Array<{
+      date: string;
+      mid: number;
+    }>;
+  };
+}
+
 interface StockBar {
   timestamp: number;
   close: number;
@@ -26,32 +37,26 @@ function translateError(message: string, ticker?: string): string {
 }
 
 async function fetchNbpFxHistory(signal?: AbortSignal): Promise<{ currentRate: number; historicalRates: FxRate[] }> {
-  const now = new Date();
-  const oneYearAgo = new Date();
-  oneYearAgo.setFullYear(now.getFullYear() - 1);
-  const twoYearsAgo = new Date();
-  twoYearsAgo.setFullYear(now.getFullYear() - 2);
-  const fmt = (date: Date) => date.toISOString().slice(0, 10);
-  const NBP = 'https://api.nbp.pl/api/exchangerates/rates/A/USD';
+  try {
+    const response = await fetch('/api/v1/finance/currency/history?currency=USD&days=90', { signal });
+    if (!response.ok) {
+      return { currentRate: 0, historicalRates: [] };
+    }
 
-  const [currentRes, hist1Res, hist2Res] = await Promise.all([
-    fetchWithTimeout(`${NBP}/?format=json`, signal),
-    fetchWithTimeout(`${NBP}/${fmt(twoYearsAgo)}/${fmt(oneYearAgo)}/?format=json`, signal),
-    fetchWithTimeout(`${NBP}/${fmt(oneYearAgo)}/${fmt(now)}/?format=json`, signal),
-  ]);
+    const json = await response.json() as CurrencyHistoryResponse;
+    if (!json.ok || !json.data?.rates?.length) {
+      return { currentRate: 0, historicalRates: [] };
+    }
 
-  const parseRates = async (response: Response): Promise<FxRate[]> => {
-    if (!response.ok) return [];
-    const data = await response.json() as { rates?: Array<{ effectiveDate: string; mid: number }> };
-    return (data.rates ?? []).map((rate) => ({ date: rate.effectiveDate, rate: rate.mid }));
-  };
+    const historicalRates = json.data.rates
+      .filter((rate) => typeof rate.mid === 'number' && isFinite(rate.mid) && rate.mid > 0)
+      .map((rate) => ({ date: rate.date, rate: rate.mid }));
 
-  if (!currentRes.ok) throw new Error('Błąd pobierania kursu USD/PLN z NBP');
-  const currentData = await currentRes.json() as { rates?: Array<{ mid: number }> };
-  if (!currentData.rates?.length) throw new Error('NBP zwróciło pusty kurs');
-
-  const [hist1, hist2] = await Promise.all([parseRates(hist1Res), parseRates(hist2Res)]);
-  return { currentRate: currentData.rates[0].mid, historicalRates: [...hist1, ...hist2] };
+    const currentRate = historicalRates[historicalRates.length - 1]?.rate ?? 0;
+    return { currentRate, historicalRates };
+  } catch {
+    return { currentRate: 0, historicalRates: [] };
+  }
 }
 
 export async function fetchAssetData(ticker: string, signal?: AbortSignal): Promise<ProxyResponse> {

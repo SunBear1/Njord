@@ -555,8 +555,9 @@ describe('calcPortfolioResult', () => {
     enabled: boolean,
     allocs: PortfolioAllocation[],
     brokerId: string | null = 'xtb',
+    fxSpreadPercent = 0,
   ): WrapperPortfolioConfig {
-    return { wrapper, enabled, brokerId, allocations: allocs };
+    return { wrapper, enabled, brokerId, allocations: allocs, fxSpreadPercent };
   }
 
   const etfAlloc: PortfolioAllocation[] = [
@@ -821,5 +822,217 @@ describe('calcPortfolioResult', () => {
     const lowIke = lowInflation.buckets.find(b => b.wrapper === 'ike')!;
 
     expect(highIke.terminalGrossValue).toBeGreaterThan(lowIke.terminalGrossValue);
+  });
+
+  // ── FX spread tests ────────────────────────────────────────────────────────
+
+  test('ETF with FX spread produces lower terminal value than ETF without spread', () => {
+    const noSpread = calcPortfolioResult({
+      ...defaultInputs,
+      horizonYears: 20,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, etfAlloc, 'xtb', 0),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+
+    const withSpread = calcPortfolioResult({
+      ...defaultInputs,
+      horizonYears: 20,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, etfAlloc, 'xtb', 0.5),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+
+    const ikeNoSpread = noSpread.buckets.find(b => b.wrapper === 'ike')!;
+    const ikeWithSpread = withSpread.buckets.find(b => b.wrapper === 'ike')!;
+
+    // FX spread should reduce terminal value
+    expect(ikeWithSpread.terminalGrossValue).toBeLessThan(ikeNoSpread.terminalGrossValue);
+  });
+
+  test('Polish stock (stocks_pl) not affected by broker FX spread', () => {
+    const plAlloc: PortfolioAllocation[] = [
+      { instrumentId: 'wig20', instrumentType: 'stocks_pl', allocationPercent: 100, expectedReturnPercent: 6 },
+    ];
+
+    const noSpread = calcPortfolioResult({
+      ...defaultInputs,
+      horizonYears: 10,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, plAlloc, 'xtb', 0),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+
+    const withSpread = calcPortfolioResult({
+      ...defaultInputs,
+      horizonYears: 10,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, plAlloc, 'xtb', 0.5),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+
+    const ikeNoSpread = noSpread.buckets.find(b => b.wrapper === 'ike')!;
+    const ikeWithSpread = withSpread.buckets.find(b => b.wrapper === 'ike')!;
+
+    // Polish stocks do not incur FX costs — results must be identical
+    expect(ikeWithSpread.terminalGrossValue).toBeCloseTo(ikeNoSpread.terminalGrossValue, 2);
+  });
+
+  test('foreign stock (stocks_foreign) affected by FX spread', () => {
+    const foreignAlloc: PortfolioAllocation[] = [
+      { instrumentId: 'us_stock', instrumentType: 'stocks_foreign', allocationPercent: 100, expectedReturnPercent: 8 },
+    ];
+
+    const noSpread = calcPortfolioResult({
+      ...defaultInputs,
+      horizonYears: 15,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, foreignAlloc, 'xtb', 0),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+
+    const withSpread = calcPortfolioResult({
+      ...defaultInputs,
+      horizonYears: 15,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, foreignAlloc, 'xtb', 0.5),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+
+    const ikeNoSpread = noSpread.buckets.find(b => b.wrapper === 'ike')!;
+    const ikeWithSpread = withSpread.buckets.find(b => b.wrapper === 'ike')!;
+
+    expect(ikeWithSpread.terminalGrossValue).toBeLessThan(ikeNoSpread.terminalGrossValue);
+  });
+
+  test('Santander (0.6% spread) produces lower returns than mBank (0.5% spread) for ETF', () => {
+    const santanderResult = calcPortfolioResult({
+      ...defaultInputs,
+      horizonYears: 20,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, etfAlloc, 'santander', 0.6),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+
+    const mbankResult = calcPortfolioResult({
+      ...defaultInputs,
+      horizonYears: 20,
+      wrapperConfigs: [
+        makeWrapperConfig('ike', true, etfAlloc, 'mbank', 0.5),
+        makeWrapperConfig('ikze', false, [], null),
+        makeWrapperConfig('regular', false, [], null),
+      ],
+    });
+
+    const ikeSantander = santanderResult.buckets.find(b => b.wrapper === 'ike')!;
+    const ikeMbank = mbankResult.buckets.find(b => b.wrapper === 'ike')!;
+
+    expect(ikeSantander.terminalGrossValue).toBeLessThan(ikeMbank.terminalGrossValue);
+  });
+});
+
+// ─── Bond Coupon Frequency Tests ──────────────────────────────────────────────
+
+describe('bond coupon frequency compounding', () => {
+  /**
+   * Helper: run a single IKE bonds bucket simulation with given settings.
+   * IKZE and regular are disabled so 100% of monthlyPLN goes to IKE bonds.
+   */
+  function runBondBucket(opts: {
+    couponFrequency: number;
+    rate: number;
+    horizonYears: number;
+    monthlyPLN?: number;
+  }) {
+    const { couponFrequency, rate, horizonYears, monthlyPLN = 1000 } = opts;
+    const baseBond: BucketConfig = {
+      wrapper: 'ike',
+      instrument: 'bonds',
+      enabled: true,
+      stockReturnPercent: 0,
+      dividendYieldPercent: 0,
+      fxSpreadPercent: 0,
+      bondPresetId: 'TEST',
+      bondFirstYearRate: rate,
+      bondEffectiveRate: rate,
+      bondRateType: 'fixed',
+      bondMargin: 0,
+      bondCouponFrequency: couponFrequency,
+      bondMaturityMonths: undefined, // no maturity events during test
+    };
+    const inputs = makeInputs({
+      totalMonthlyPLN: monthlyPLN,
+      horizonYears,
+      buckets: [
+        baseBond,
+        { ...makeBondsBucket('ikze', false) },
+        { ...makeBondsBucket('regular', false) },
+      ],
+    });
+    const result = calcAccumulationResult(inputs);
+    return result.buckets.find(b => b.wrapper === 'ike')!;
+  }
+
+  test('monthly coupon (couponFrequency=12): 1yr at 6% compounds each month', () => {
+    // 12 monthly contributions of 1000 PLN, each compounded monthly:
+    // cohort from month k receives (13-k) monthly compoundings → value = 1000*(1.005)^k
+    // total = Σ_{k=1}^{12} 1000*(1.005)^k = 1000 * 1.005 * (1.005^12 - 1) / 0.005
+    const expected = 1000 * 1.005 * (Math.pow(1.005, 12) - 1) / 0.005;
+    const bucket = runBondBucket({ couponFrequency: 12, rate: 6, horizonYears: 1 });
+    expect(bucket.terminalGrossValue).toBeCloseTo(expected, 1);
+  });
+
+  test('annual coupon (couponFrequency=1): 1yr at 6% compounds entire portfolio at year-end', () => {
+    // All 12 monthly cohorts of 1000 PLN each receive exactly one ×1.06 at month 12
+    const expected = 12 * 1000 * 1.06;
+    const bucket = runBondBucket({ couponFrequency: 1, rate: 6, horizonYears: 1 });
+    expect(bucket.terminalGrossValue).toBeCloseTo(expected, 1);
+  });
+
+  test('capitalised at maturity (couponFrequency=0): same compounding as annual coupon', () => {
+    // couponFrequency=0 is treated same as couponFrequency=1 (compound annually)
+    const expectedAnnual = 12 * 1000 * 1.06;
+    const bucket = runBondBucket({ couponFrequency: 0, rate: 6, horizonYears: 1 });
+    expect(bucket.terminalGrossValue).toBeCloseTo(expectedAnnual, 1);
+  });
+
+  test('annual vs monthly coupon: same rate produces different terminal values', () => {
+    const annual = runBondBucket({ couponFrequency: 1, rate: 6, horizonYears: 5 });
+    const monthly = runBondBucket({ couponFrequency: 12, rate: 6, horizonYears: 5 });
+    // Both must grow more than zero-rate baseline; they must differ from each other
+    const zeroRate = runBondBucket({ couponFrequency: 12, rate: 0, horizonYears: 5 });
+    expect(annual.terminalGrossValue).toBeGreaterThan(zeroRate.terminalGrossValue);
+    expect(monthly.terminalGrossValue).toBeGreaterThan(zeroRate.terminalGrossValue);
+    expect(annual.terminalGrossValue).not.toBeCloseTo(monthly.terminalGrossValue, 0);
+  });
+
+  test('annual coupon over 2 years: year-2 value reflects double annual compounding for year-1 cohorts', () => {
+    // Year-1 cohorts (12 × 1000): compounded at m=12 and m=24 → each = 1000 * 1.06^2
+    // Year-2 cohorts (12 × 1000): compounded at m=24 only → each = 1000 * 1.06
+    const expected = 12 * 1000 * Math.pow(1.06, 2) + 12 * 1000 * 1.06;
+    const bucket = runBondBucket({ couponFrequency: 1, rate: 6, horizonYears: 2 });
+    expect(bucket.terminalGrossValue).toBeCloseTo(expected, 1);
+  });
+
+  test('zero-rate bond: terminal value equals total contributions regardless of coupon frequency', () => {
+    const monthly = runBondBucket({ couponFrequency: 12, rate: 0, horizonYears: 3 });
+    const annual = runBondBucket({ couponFrequency: 1, rate: 0, horizonYears: 3 });
+    const contributed = 1000 * 12 * 3;
+    expect(monthly.terminalGrossValue).toBeCloseTo(contributed, 1);
+    expect(annual.terminalGrossValue).toBeCloseTo(contributed, 1);
   });
 });

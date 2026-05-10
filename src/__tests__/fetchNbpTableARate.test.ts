@@ -1,14 +1,11 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { fetchNbpTableARate } from '../utils/fetchNbpTableARate';
 
-// Mock fetchWithTimeout so tests never hit the real NBP API.
-vi.mock('../utils/fetchWithTimeout', () => ({
-  fetchWithTimeout: vi.fn(),
-}));
+const mockedFetch = vi.fn<typeof fetch>();
 
-import { fetchWithTimeout } from '../utils/fetchWithTimeout';
-
-const mockedFetch = vi.mocked(fetchWithTimeout);
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 /** Helper: build a mock Response with JSON body. */
 function okResponse(body: unknown): Response {
@@ -28,7 +25,8 @@ function errorResponse(status: number): Response {
 }
 
 beforeEach(() => {
-  vi.resetAllMocks();
+  mockedFetch.mockReset();
+  vi.stubGlobal('fetch', mockedFetch);
 });
 
 // ─── PLN passthrough ──────────────────────────────────────────────────────────
@@ -47,68 +45,41 @@ describe('PLN passthrough', () => {
   });
 });
 
-// ─── URL construction (date window) ──────────────────────────────────────────
+// ─── Proxy request URL ────────────────────────────────────────────────────────
 
-describe('date window in request URL', () => {
-  it('queries day before transaction date as endDate (weekday)', async () => {
-    // 2025-04-10 is Thursday → endDate should be 2025-04-09 (Wednesday)
+describe('proxy request URL', () => {
+  it('calls backend rate endpoint with date and currency params', async () => {
     mockedFetch.mockResolvedValueOnce(
-      okResponse({ rates: [{ mid: 4.0215, effectiveDate: '2025-04-09' }] }),
+      okResponse({ ok: true, data: { rate: 4.0215, effectiveDate: '2025-04-09' } }),
     );
 
     await fetchNbpTableARate('2025-04-10', 'USD');
 
-    const url = mockedFetch.mock.calls[0][0];
-    expect(url).toContain('/usd/');
-    expect(url).toContain('/2025-04-09/'); // endDate = day before tx
-    expect(url).toContain('format=json');
+    expect(mockedFetch).toHaveBeenCalledWith(
+      '/api/v1/finance/currency/rate?date=2025-04-10&currency=USD',
+      { signal: undefined },
+    );
   });
 
-  it('queries 14-day lookback window for Monday transaction', async () => {
-    // 2025-04-14 is Monday → endDate 2025-04-13 (Sunday), startDate 2025-03-31
-    // NBP API returns only business days, so last entry will be Friday 2025-04-11
+  it('uses uppercase currency code in URL', async () => {
     mockedFetch.mockResolvedValueOnce(
-      okResponse({
-        rates: [
-          { mid: 4.0100, effectiveDate: '2025-04-07' },
-          { mid: 4.0150, effectiveDate: '2025-04-08' },
-          { mid: 4.0200, effectiveDate: '2025-04-09' },
-          { mid: 4.0250, effectiveDate: '2025-04-10' },
-          { mid: 4.0300, effectiveDate: '2025-04-11' },
-        ],
-      }),
+      okResponse({ ok: true, data: { rate: 4.5, effectiveDate: '2025-04-09' } }),
     );
 
-    const result = await fetchNbpTableARate('2025-04-14', 'USD');
+    await fetchNbpTableARate('2025-04-10', 'eur');
 
-    // Should pick the last entry (Friday's rate) as the most recent business day
-    expect(result.rate).toBe(4.03);
-    expect(result.effectiveDate).toBe('2025-04-11');
-  });
-
-  it('uses lowercase currency code in URL', async () => {
-    mockedFetch.mockResolvedValueOnce(
-      okResponse({ rates: [{ mid: 4.50, effectiveDate: '2025-04-09' }] }),
+    expect(mockedFetch.mock.calls[0][0]).toBe(
+      '/api/v1/finance/currency/rate?date=2025-04-10&currency=EUR',
     );
-
-    await fetchNbpTableARate('2025-04-10', 'EUR');
-
-    const url = mockedFetch.mock.calls[0][0];
-    expect(url).toContain('/eur/');
   });
 });
 
 // ─── Successful rate extraction ──────────────────────────────────────────────
 
 describe('successful rate extraction', () => {
-  it('returns last rate entry from NBP response', async () => {
+  it('returns rate and effectiveDate from backend response', async () => {
     mockedFetch.mockResolvedValueOnce(
-      okResponse({
-        rates: [
-          { mid: 4.0100, effectiveDate: '2025-04-07' },
-          { mid: 4.0215, effectiveDate: '2025-04-09' },
-        ],
-      }),
+      okResponse({ ok: true, data: { rate: 4.0215, effectiveDate: '2025-04-09' } }),
     );
 
     const result = await fetchNbpTableARate('2025-04-10', 'USD');
@@ -117,9 +88,9 @@ describe('successful rate extraction', () => {
     expect(result.effectiveDate).toBe('2025-04-09');
   });
 
-  it('returns single-entry rate', async () => {
+  it('returns single rate entry', async () => {
     mockedFetch.mockResolvedValueOnce(
-      okResponse({ rates: [{ mid: 3.9785, effectiveDate: '2025-04-09' }] }),
+      okResponse({ ok: true, data: { rate: 3.9785, effectiveDate: '2025-04-09' } }),
     );
 
     const result = await fetchNbpTableARate('2025-04-10', 'CHF');
@@ -128,13 +99,14 @@ describe('successful rate extraction', () => {
 
   it('defaults currency to USD when omitted', async () => {
     mockedFetch.mockResolvedValueOnce(
-      okResponse({ rates: [{ mid: 4.05, effectiveDate: '2025-04-09' }] }),
+      okResponse({ ok: true, data: { rate: 4.05, effectiveDate: '2025-04-09' } }),
     );
 
     await fetchNbpTableARate('2025-04-10');
 
-    const url = mockedFetch.mock.calls[0][0];
-    expect(url).toContain('/usd/');
+    expect(mockedFetch.mock.calls[0][0]).toBe(
+      '/api/v1/finance/currency/rate?date=2025-04-10&currency=USD',
+    );
   });
 });
 
@@ -157,19 +129,23 @@ describe('input validation', () => {
 // ─── Error handling ───────────────────────────────────────────────────────────
 
 describe('error handling', () => {
-  it('throws Polish error on 404 (currency not found)', async () => {
-    mockedFetch.mockResolvedValueOnce(errorResponse(404));
-
-    await expect(fetchNbpTableARate('2025-04-10', 'XYZ')).rejects.toThrow(
-      'Brak kursu NBP dla waluty XYZ',
+  it('throws backend error on non-2xx response', async () => {
+    mockedFetch.mockResolvedValueOnce(
+      errorResponse(404),
     );
+
+    await expect(fetchNbpTableARate('2025-04-10', 'XYZ')).rejects.toThrow('mocked');
   });
 
-  it('throws HTTP error for non-404 failures', async () => {
-    mockedFetch.mockResolvedValueOnce(errorResponse(500));
+  it('throws HTTP fallback error for non-2xx failures without backend message', async () => {
+    mockedFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      json: () => Promise.resolve({}),
+    } as Response);
 
     await expect(fetchNbpTableARate('2025-04-10', 'USD')).rejects.toThrow(
-      'Błąd NBP (HTTP 500)',
+      'Błąd pobierania kursu waluty (HTTP 500).',
     );
   });
 
@@ -188,59 +164,71 @@ describe('error handling', () => {
     await expect(fetchNbpTableARate('2025-04-10', 'USD')).rejects.toThrow(abortError);
   });
 
-  it('throws on empty rates array', async () => {
-    mockedFetch.mockResolvedValueOnce(okResponse({ rates: [] }));
+  it('throws on backend response with ok=false', async () => {
+    mockedFetch.mockResolvedValueOnce(okResponse({ ok: false, error: 'Brak kursu dla tej daty.' }));
 
     await expect(fetchNbpTableARate('2025-04-10', 'USD')).rejects.toThrow(
-      'NBP nie zwróciło kursów',
+      'Brak kursu dla tej daty.',
     );
   });
 
-  it('throws on missing rates field', async () => {
-    mockedFetch.mockResolvedValueOnce(okResponse({}));
+  it('throws fallback error on missing data payload', async () => {
+    mockedFetch.mockResolvedValueOnce(okResponse({ ok: true }));
 
     await expect(fetchNbpTableARate('2025-04-10', 'USD')).rejects.toThrow(
-      'NBP nie zwróciło kursów',
+      'Nie udało się pobrać kursu USD dla daty 2025-04-10.',
     );
   });
 
-  it('throws on NaN mid rate', async () => {
+  it('throws on NaN rate', async () => {
     mockedFetch.mockResolvedValueOnce(
-      okResponse({ rates: [{ mid: NaN, effectiveDate: '2025-04-09' }] }),
+      okResponse({ ok: true, data: { rate: NaN, effectiveDate: '2025-04-09' } }),
     );
 
     await expect(fetchNbpTableARate('2025-04-10', 'USD')).rejects.toThrow(
-      'NBP zwróciło nieprawidłowy kurs',
+      'Serwer zwrócił nieprawidłowy kurs waluty.',
     );
   });
 
-  it('throws on zero mid rate', async () => {
+  it('throws on zero rate', async () => {
     mockedFetch.mockResolvedValueOnce(
-      okResponse({ rates: [{ mid: 0, effectiveDate: '2025-04-09' }] }),
+      okResponse({ ok: true, data: { rate: 0, effectiveDate: '2025-04-09' } }),
     );
 
     await expect(fetchNbpTableARate('2025-04-10', 'USD')).rejects.toThrow(
-      'NBP zwróciło nieprawidłowy kurs',
+      'Serwer zwrócił nieprawidłowy kurs waluty.',
     );
   });
 
-  it('throws on negative mid rate', async () => {
+  it('throws on negative rate', async () => {
     mockedFetch.mockResolvedValueOnce(
-      okResponse({ rates: [{ mid: -3.5, effectiveDate: '2025-04-09' }] }),
+      okResponse({ ok: true, data: { rate: -3.5, effectiveDate: '2025-04-09' } }),
     );
 
     await expect(fetchNbpTableARate('2025-04-10', 'USD')).rejects.toThrow(
-      'NBP zwróciło nieprawidłowy kurs',
+      'Serwer zwrócił nieprawidłowy kurs waluty.',
     );
   });
 
-  it('throws on Infinity mid rate', async () => {
+  it('throws on Infinity rate', async () => {
     mockedFetch.mockResolvedValueOnce(
-      okResponse({ rates: [{ mid: Infinity, effectiveDate: '2025-04-09' }] }),
+      okResponse({ ok: true, data: { rate: Infinity, effectiveDate: '2025-04-09' } }),
     );
 
     await expect(fetchNbpTableARate('2025-04-10', 'USD')).rejects.toThrow(
-      'NBP zwróciło nieprawidłowy kurs',
+      'Serwer zwrócił nieprawidłowy kurs waluty.',
+    );
+  });
+
+  it('throws on invalid JSON body', async () => {
+    mockedFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: () => Promise.reject(new Error('invalid json')),
+    } as Response);
+
+    await expect(fetchNbpTableARate('2025-04-10', 'USD')).rejects.toThrow(
+      'Błąd odpowiedzi serwera kursów walut. Spróbuj ponownie.',
     );
   });
 });
@@ -248,24 +236,14 @@ describe('error handling', () => {
 // ─── AbortSignal propagation ──────────────────────────────────────────────────
 
 describe('AbortSignal propagation', () => {
-  it('passes signal to fetchWithTimeout', async () => {
+  it('passes signal to fetch', async () => {
     const controller = new AbortController();
     mockedFetch.mockResolvedValueOnce(
-      okResponse({ rates: [{ mid: 4.0, effectiveDate: '2025-04-09' }] }),
+      okResponse({ ok: true, data: { rate: 4.0, effectiveDate: '2025-04-09' } }),
     );
 
     await fetchNbpTableARate('2025-04-10', 'USD', controller.signal);
 
-    expect(mockedFetch.mock.calls[0][1]).toBe(controller.signal);
-  });
-
-  it('uses 8-second timeout', async () => {
-    mockedFetch.mockResolvedValueOnce(
-      okResponse({ rates: [{ mid: 4.0, effectiveDate: '2025-04-09' }] }),
-    );
-
-    await fetchNbpTableARate('2025-04-10', 'USD');
-
-    expect(mockedFetch.mock.calls[0][2]).toBe(8_000);
+    expect(mockedFetch.mock.calls[0][1]).toEqual({ signal: controller.signal });
   });
 });

@@ -79,9 +79,9 @@ function createDefaultState(): WizardState {
     ikeEnabled: true,
     ikzeEnabled: true,
     wrapperConfigs: [
-      { wrapper: 'ike', enabled: true, brokerId: null, allocations: [] },
-      { wrapper: 'ikze', enabled: true, brokerId: null, allocations: [] },
-      { wrapper: 'regular', enabled: true, brokerId: null, allocations: defaultRegularAllocations() },
+      { wrapper: 'ike', enabled: true, brokerId: null, allocations: [], fxSpreadPercent: 0 },
+      { wrapper: 'ikze', enabled: true, brokerId: null, allocations: [], fxSpreadPercent: 0 },
+      { wrapper: 'regular', enabled: true, brokerId: null, allocations: defaultRegularAllocations(), fxSpreadPercent: 0 },
     ],
     reinvestIkzeDeduction: true,
     savingsRatePercent: 5.0,
