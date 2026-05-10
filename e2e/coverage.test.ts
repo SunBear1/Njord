@@ -187,7 +187,7 @@ test.describe('/tax — Belka tax calculator', () => {
     await page.getByLabel(/Kwota sprzedaży brutto/i).fill('1500');
 
     await page.getByLabel(/Data nabycia/i).fill('07/06/2024');
-    await page.getByLabel(/Koszt nabycia/i).fill('1000');
+    await page.getByRole('spinbutton', { name: /Koszt nabycia/i }).fill('1000');
 
     // Wait for both NBP rates to auto-fetch (debounce 500ms each + network)
     // Revenue: 1500×4.00=6000 PLN, cost: 1000×4.00=4000 PLN, profit: 2000 PLN
@@ -214,7 +214,7 @@ test.describe('/tax — Belka tax calculator', () => {
     await page.getByLabel(/Kwota sprzedaży brutto/i).fill('1000');
 
     await page.getByLabel(/Data nabycia/i).fill('07/06/2024');
-    await page.getByLabel(/Koszt nabycia/i).fill('1500');
+    await page.getByRole('spinbutton', { name: /Koszt nabycia/i }).fill('1500');
 
     // Loss: 1000×4.00 - 1500×4.00 = -2000 PLN → tax = 0
     await expect(page.getByText(/Strata/i)).toBeVisible({ timeout: 8_000 });
