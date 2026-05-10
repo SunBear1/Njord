@@ -148,12 +148,28 @@ function simulateBondsBucket(params: BucketSimParams): {
     // Determine the annual rate for compounding
     const year = Math.ceil(m / 12);
     const annualRate = year === 1 ? config.bondFirstYearRate : config.bondEffectiveRate;
-    const monthlyRate = annualRate / 100 / 12;
 
-    // Compound all cohorts
-    for (const c of cohorts) {
-      c.value *= 1 + monthlyRate;
-      c.ageMonths++;
+    // Frequency-aware compounding:
+    //   couponFrequency=12 → compound every month (monthly-coupon bonds: ROR, OTS)
+    //   couponFrequency=1  → compound once per year (annual-coupon bonds: COI, EDO)
+    //   couponFrequency=0  → capitalised at maturity; treat same as annual compounding
+    const couponFrequency = config.bondCouponFrequency ?? 12;
+    const compoundMonthly = couponFrequency === 12;
+    const shouldCompound = compoundMonthly || m % 12 === 0;
+
+    if (shouldCompound) {
+      const periodsPerYear = compoundMonthly ? 12 : 1;
+      const periodicRate = annualRate / 100 / periodsPerYear;
+      // Compound all cohorts
+      for (const c of cohorts) {
+        c.value *= 1 + periodicRate;
+        c.ageMonths++;
+      }
+    } else {
+      // Still age cohorts each month; interest accrues at year-boundary only
+      for (const c of cohorts) {
+        c.ageMonths++;
+      }
     }
 
     // Check for maturity events (only if maturity period is set)
@@ -696,14 +712,14 @@ function mergeSubSimulations(
 }
 
 /** Create a BucketConfig for a stock-like allocation. */
-function makeStockConfig(wrapper: string, returnPercent: number): BucketConfig {
+function makeStockConfig(wrapper: string, returnPercent: number, fxSpreadPercent = 0): BucketConfig {
   return {
     wrapper: wrapper as BucketConfig['wrapper'],
     instrument: 'stocks',
     enabled: true,
     stockReturnPercent: returnPercent,
     dividendYieldPercent: 0,
-    fxSpreadPercent: 0,
+    fxSpreadPercent,
     bondPresetId: '',
     bondFirstYearRate: 0,
     bondEffectiveRate: 0,
@@ -800,7 +816,11 @@ function simulateWrapperAllocations(
     if (subMonthly <= 0) continue;
 
     if (STOCK_LIKE_TYPES.has(alloc.instrumentType)) {
-      const config = makeStockConfig(wc.wrapper, alloc.expectedReturnPercent);
+      // Apply FX spread only for foreign instruments (ETF, stocks_foreign).
+      // Polish stocks (stocks_pl) trade in PLN — no currency conversion cost.
+      const isForeign = alloc.instrumentType === 'etf' || alloc.instrumentType === 'stocks_foreign';
+      const fxSpread = isForeign ? (wc.fxSpreadPercent ?? 0) : 0;
+      const config = makeStockConfig(wc.wrapper, alloc.expectedReturnPercent, fxSpread);
       const sim = simulateStocksBucket({ monthlyPLN: subMonthly, horizonMonths, config });
       subSims.push({ snapshots: sim.snapshots, dividendTaxPaid: sim.dividendTaxPaid, monthlyPLN: subMonthly });
     } else if (alloc.instrumentType === 'bonds') {

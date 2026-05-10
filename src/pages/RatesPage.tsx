@@ -23,7 +23,7 @@ function DirectionIcon({ dir, animKey }: { dir: RateDirection; animKey: number }
     <TrendingUp
       key={animKey}
       size={12}
-      className="inline-block ml-1 text-success"
+      className="text-success"
       style={{ animation: 'flash-fade 1.5s ease-out' }}
       aria-label="wzrost"
     />
@@ -32,7 +32,7 @@ function DirectionIcon({ dir, animKey }: { dir: RateDirection; animKey: number }
     <TrendingDown
       key={animKey}
       size={12}
-      className="inline-block ml-1 text-danger"
+      className="text-danger"
       style={{ animation: 'flash-fade 1.5s ease-out' }}
       aria-label="spadek"
     />
@@ -43,14 +43,18 @@ function DirectionIcon({ dir, animKey }: { dir: RateDirection; animKey: number }
 function RateCell({ value, dir, colorClass, animKey }: { value: number; dir: RateDirection; colorClass: string; animKey: number }) {
   return (
     <td className="px-3 py-3 text-right font-mono tabular-nums">
-      <span
-        key={dir !== null ? animKey : 0}
-        className={`font-semibold ${colorClass}`}
-        style={dir !== null ? { animation: 'value-pop 1.5s ease-out' } : undefined}
-      >
-        {value.toFixed(4)}
+      <span className="relative inline-flex items-center">
+        <span
+          key={dir !== null ? animKey : 0}
+          className={`font-semibold ${colorClass}`}
+          style={dir !== null ? { animation: 'value-pop 1.5s ease-out' } : undefined}
+        >
+          {value.toFixed(4)}
+        </span>
+        <span className="w-5 inline-flex justify-center">
+          <DirectionIcon dir={dir} animKey={animKey} />
+        </span>
       </span>
-      <DirectionIcon dir={dir} animKey={animKey} />
     </td>
   );
 }
@@ -162,7 +166,7 @@ export function RatesPage() {
 
       {hasData && (
         <>
-          <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid gap-5 lg:grid-cols-3">
             <SourceTable
               title="Alior Kantor"
               href="https://kantor.aliorbank.pl"
@@ -179,6 +183,15 @@ export function RatesPage() {
               changes={changes}
               getRate={r => r.nbp ? { buy: r.nbp.buy, sell: r.nbp.sell } : null}
               getDir={c => ({ buy: c.nbpBuy, sell: c.nbpSell })}
+              animKey={animKey}
+            />
+            <SourceTable
+              title="Walutomat"
+              href="https://www.walutomat.pl"
+              rates={rates}
+              changes={changes}
+              getRate={r => r.walutomat ? { buy: r.walutomat.buy, sell: r.walutomat.sell } : null}
+              getDir={c => ({ buy: c.walutomatBuy, sell: c.walutomatSell })}
               animKey={animKey}
             />
           </div>

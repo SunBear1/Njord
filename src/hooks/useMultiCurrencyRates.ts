@@ -11,6 +11,7 @@ export interface CurrencyRateEntry {
   currency: string;
   alior: (RateData & { ts: string }) | null;
   nbp: (RateData & { date: string }) | null;
+  walutomat: (RateData & { ts: string }) | null;
 }
 
 /** Direction a rate moved since last refresh */
@@ -21,6 +22,8 @@ export interface RateChangeInfo {
   aliorSell: RateDirection;
   nbpBuy: RateDirection;
   nbpSell: RateDirection;
+  walutomatBuy: RateDirection;
+  walutomatSell: RateDirection;
 }
 
 export interface MultiCurrencyRates {
@@ -40,6 +43,7 @@ export function adaptRates(rates: CurrencyRate[]): CurrencyRateEntry[] {
     const pair = `${currency}/PLN`;
     const aliorRate = rates.find((rate) => rate.source === 'alior' && rate.pair === pair);
     const nbpRate = rates.find((rate) => rate.source === 'nbp' && rate.pair === pair);
+    const walutomatRate = rates.find((rate) => rate.source === 'walutomat' && rate.pair === pair);
 
     return {
       currency,
@@ -57,6 +61,14 @@ export function adaptRates(rates: CurrencyRate[]): CurrencyRateEntry[] {
             sell: nbpRate.ask,
             mid: nbpRate.mid ?? (nbpRate.bid + nbpRate.ask) / 2,
             date: nbpRate.timestamp.slice(0, 10),
+          }
+        : null,
+      walutomat: walutomatRate
+        ? {
+            buy: walutomatRate.bid,
+            sell: walutomatRate.ask,
+            mid: walutomatRate.mid ?? (walutomatRate.bid + walutomatRate.ask) / 2,
+            ts: walutomatRate.timestamp,
           }
         : null,
     };
@@ -86,7 +98,7 @@ export function computeChanges(
   // No previous data → initial load, no directional arrows
   if (prev.length === 0) {
     for (const entry of curr) {
-      result[entry.currency] = { aliorBuy: null, aliorSell: null, nbpBuy: null, nbpSell: null };
+      result[entry.currency] = { aliorBuy: null, aliorSell: null, nbpBuy: null, nbpSell: null, walutomatBuy: null, walutomatSell: null };
     }
     return result;
   }
@@ -97,6 +109,8 @@ export function computeChanges(
       aliorSell: direction(old?.alior?.sell, entry.alior?.sell ?? 0),
       nbpBuy: direction(old?.nbp?.buy, entry.nbp?.buy ?? 0),
       nbpSell: direction(old?.nbp?.sell, entry.nbp?.sell ?? 0),
+      walutomatBuy: direction(old?.walutomat?.buy, entry.walutomat?.buy ?? 0),
+      walutomatSell: direction(old?.walutomat?.sell, entry.walutomat?.sell ?? 0),
     };
   }
   return result;
@@ -113,6 +127,7 @@ export function hasDataChanged(prev: CurrencyRateEntry[], curr: CurrencyRateEntr
     if (prev[i].currency !== curr[i].currency) return true;
     if (prev[i].alior?.ts !== curr[i].alior?.ts) return true;
     if (prev[i].nbp?.date !== curr[i].nbp?.date) return true;
+    if (prev[i].walutomat?.ts !== curr[i].walutomat?.ts) return true;
   }
   return false;
 }
