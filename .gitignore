@@ -56,9 +56,8 @@ Aurora Borealis Animation.jsx:Zone.Identifier
 # ICM (persistent memory) - local session state
 .copilot/
 
-# AI/IDE tool configs - local only
-.aider.conventions.md
-.windsurfrules
+# GitHub hooks (if using local hooks instead of repo-based hooks)
+.github/hooks/rtk-rewrite.js
 
 # Local documentation/reference (non-repo guidance)
 AGENTS.md
