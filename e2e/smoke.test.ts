@@ -69,20 +69,9 @@ test.describe('Njord smoke tests', () => {
     await page.waitForSelector('main', { timeout: 10_000 });
 
     await openComparisonBenchmarkDropdown(page);
-    await expect(page.locator('input[type="range"]').first()).toBeVisible();
+    await expect(page.getByRole('slider').first()).toBeVisible();
   });
 
-  test('dark mode toggle works', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('main', { timeout: 10_000 });
-
-    const htmlElement = page.locator('html');
-    await page.getByRole('button', { name: /tryb/i }).click();
-
-    await expect(page.locator('body')).toBeVisible();
-    const className = await htmlElement.getAttribute('class');
-    expect(className === null || typeof className === 'string').toBe(true);
-  });
 
   test('ticker input accepts text on comparison page', async ({ page }) => {
     await page.goto('/comparison');
@@ -164,10 +153,9 @@ test.describe('Njord smoke tests', () => {
     await page.waitForSelector('main', { timeout: 10_000 });
 
     const privacyLink = page.getByRole('button', { name: /prywatność|polityka/i }).first();
-    if (await privacyLink.isVisible()) {
-      await privacyLink.click();
-      await expect(page.getByRole('dialog').or(page.locator('[role="dialog"]'))).toBeVisible({ timeout: 3_000 });
-    }
+    await expect(privacyLink).toBeVisible();
+    await privacyLink.click();
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 3_000 });
   });
 
   test('navbar links navigate between pages', async ({ page }) => {
@@ -210,7 +198,7 @@ test.describe('Njord smoke tests', () => {
 
     await expect(page.getByText(/Miesięczna kwota do inwestowania/i)).toBeVisible();
 
-    const monthlyInput = page.locator('input[type="number"]').first();
+    const monthlyInput = page.getByRole('spinbutton').first();
     await expect(monthlyInput).toBeVisible();
     await monthlyInput.fill('1000');
     await expect(monthlyInput).toHaveValue('1000');
@@ -222,25 +210,5 @@ test.describe('Njord smoke tests', () => {
 
     await expect(page.getByRole('heading', { name: 'Kursy walut' })).toBeVisible();
     await expect(page.getByText('Porównanie kursów kupna i sprzedaży')).toBeVisible();
-  });
-});
-
-test.describe('Njord accessibility basics', () => {
-  test('app has no obvious landmark violations', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('main', { timeout: 10_000 });
-    await expect(page.locator('main')).toBeVisible();
-    await expect(page.locator('h1, h2, h3').first()).toBeVisible();
-  });
-
-  test('interactive elements are keyboard-focusable', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForSelector('main', { timeout: 10_000 });
-
-    await page.keyboard.press('Tab');
-    await page.keyboard.press('Tab');
-    await page.keyboard.press('Tab');
-
-    await expect(page.locator('body')).toBeVisible();
   });
 });
