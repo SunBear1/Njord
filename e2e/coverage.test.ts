@@ -192,7 +192,7 @@ test.describe('/tax — Belka tax calculator', () => {
     // Wait for both NBP rates to auto-fetch (debounce 500ms each + network)
     // Revenue: 1500×4.00=6000 PLN, cost: 1000×4.00=4000 PLN, profit: 2000 PLN
     // Belka 19%: 2000×0.19 = 380.00 PLN
-    await expect(page.getByText(/380,00 zł/)).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText(/380,00[\s\u00a0]zł/).first()).toBeVisible({ timeout: 8_000 });
   });
 
   test('loss transaction shows zero tax', async ({ page }) => {
@@ -217,8 +217,8 @@ test.describe('/tax — Belka tax calculator', () => {
     await page.getByRole('spinbutton', { name: /Koszt nabycia/i }).fill('1500');
 
     // Loss: 1000×4.00 - 1500×4.00 = -2000 PLN → tax = 0
-    await expect(page.getByText(/Strata/i)).toBeVisible({ timeout: 8_000 });
-    await expect(page.getByText(/0,00 zł/)).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText('Strata', { exact: true })).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText('brak (strata)')).toBeVisible({ timeout: 5_000 });
   });
 
   test('removing all transactions shows empty state', async ({ page }) => {
