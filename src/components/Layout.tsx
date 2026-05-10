@@ -6,10 +6,10 @@ import { useAuth } from '../hooks/useAuth';
 import { UserMenu } from '../components/UserMenu';
 import { AuroraCanvas } from '../components/AuroraCanvas';
 import { saveLastRoute } from '../utils/routePersistence';
+import { PrivacyPolicy } from '../components/PrivacyPolicy';
 
 const AuthModalLazy = lazy(() => import('../components/AuthModal').then(m => ({ default: m.AuthModal })));
 const AccountPanelLazy = lazy(() => import('../components/AccountPanel').then(m => ({ default: m.AccountPanel })));
-const PrivacyPolicyLazy = lazy(() => import('../components/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
 
 const NAV_ITEMS = [
   { to: '/forecast', icon: TrendingUp, label: 'Prognoza' },
@@ -165,9 +165,7 @@ export function Layout() {
       </footer>
 
       {showPrivacy && (
-        <Suspense fallback={null}>
-          <PrivacyPolicyLazy onClose={() => setShowPrivacy(false)} />
-        </Suspense>
+        <PrivacyPolicy onClose={() => setShowPrivacy(false)} />
       )}
       {showAuthModal && (
         <Suspense fallback={null}>
