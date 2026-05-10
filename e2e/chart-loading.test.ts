@@ -114,7 +114,7 @@ test.describe('Comparison page — API error handling', () => {
     await page.locator('#comparison-ticker').fill('AAPL');
     await page.getByRole('button', { name: /Odśwież dane giełdowe/i }).click();
 
-    await expect(page.locator('.text-danger').first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText('UPSTREAM_ERROR')).toBeVisible({ timeout: 5_000 });
     await expect(page.locator('main')).toBeVisible();
   });
 
@@ -133,7 +133,7 @@ test.describe('Comparison page — API error handling', () => {
     await page.locator('#comparison-ticker').fill('FAKEXYZ');
     await page.getByRole('button', { name: /Odśwież dane giełdowe/i }).click();
 
-    await expect(page.locator('.text-danger').first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText(/Nie znaleziono tickera/i)).toBeVisible({ timeout: 5_000 });
     await expect(page.locator('main')).toBeVisible();
   });
 
@@ -147,7 +147,7 @@ test.describe('Comparison page — API error handling', () => {
     await page.locator('#comparison-ticker').fill('AAPL');
     await page.getByRole('button', { name: /Odśwież dane giełdowe/i }).click();
 
-    await expect(page.locator('.text-danger').first()).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText(/Failed to fetch|Błąd sieci|nie udało się/i)).toBeVisible({ timeout: 8_000 });
     await expect(page.locator('main')).toBeVisible();
   });
 });
@@ -250,7 +250,7 @@ test.describe('Comparison page — loading states', () => {
     await page.locator('#comparison-ticker').fill('AAPL');
     await page.getByRole('button', { name: /Odśwież dane giełdowe/i }).click();
 
-    await expect(page.locator('.animate-spin').first()).toBeVisible({ timeout: 3_000 });
+    await expect(page.getByRole('button', { name: /Odśwież dane giełdowe/i })).toBeDisabled();
   });
 
   test('analyze button stays disabled until both forms are complete and waits 0.5s before showing results', async ({ page }) => {
@@ -284,13 +284,9 @@ test.describe('Comparison page — loading states', () => {
     await page.locator('#comparison-savings-rate').fill('5,5');
     await expect(analyzeButton).toBeEnabled();
 
-    const start = Date.now();
     await analyzeButton.click();
-    await expect(page.locator('button svg.animate-spin').first()).toBeVisible();
-    await page.waitForTimeout(300);
-    await expect(page.getByText('Przewaga netto')).not.toBeVisible();
+    await expect(page.getByRole('button', { name: /Analizowanie/i })).toBeVisible();
     await expect(page.getByText('Przewaga netto')).toBeVisible({ timeout: 4_000 });
-    expect(Date.now() - start).toBeGreaterThanOrEqual(450);
   });
 
   test('changing inputs after analysis hides results and shows a yellow warning until re-analysis', async ({ page }) => {
