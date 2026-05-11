@@ -12,7 +12,7 @@ export interface UserPerspectiveRate {
 
 export type RateDirection = 'up' | 'down' | null;
 
-export const RATE_CHANGE_ANIMATION = '1s ease-out';
+export const RATE_CHANGE_ANIMATION = '2s ease-out forwards';
 
 type RateAnimationStyle = CSSProperties & {
   '--rate-flash-color': string;
