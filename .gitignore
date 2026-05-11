@@ -62,3 +62,8 @@ Aurora Borealis Animation.jsx:Zone.Identifier
 # Local documentation/reference (non-repo guidance)
 AGENTS.md
 CLAUDE.md
+.agents/
+.claude/
+
+# BMAD user-scoped config
+_bmad/**/*.user.toml
