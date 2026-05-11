@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown } from 'lucide-react';
-import { useMultiCurrencyRates, type CurrencyRateEntry, type RateDirection, type RateChangeInfo } from '../hooks/useMultiCurrencyRates';
-import { formatSpreadPct, toUserPerspectiveRate } from '../components/rates/ratePerspective';
+import { ArrowDown, ArrowUp } from 'lucide-react';
+import { useMultiCurrencyRates, type CurrencyRateEntry, type RateChangeInfo } from '../hooks/useMultiCurrencyRates';
+import { formatSpreadPct, getRateAnimationStyle, type RateDirection, toUserPerspectiveRate } from '../components/rates/ratePerspective';
 
 const CURRENCY_META: Record<string, { symbol: string }> = {
   USD: { symbol: '$' },
@@ -13,41 +13,41 @@ function fmtTime(d: Date): string {
   return d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
-function DirectionIcon({ dir, animKey, colorClass }: { dir: RateDirection; animKey: number; colorClass: string }) {
+function DirectionIcon({ dir, animKey }: { dir: RateDirection; animKey: number }) {
   if (dir === 'up') return (
-    <TrendingUp
+    <ArrowUp
       key={animKey}
       size={12}
-      className={colorClass}
-      style={{ animation: 'flash-fade 1.5s ease-out' }}
+      className="text-text-primary"
+      style={getRateAnimationStyle(dir, 'flash-fade')}
       aria-label="wzrost"
     />
   );
   if (dir === 'down') return (
-    <TrendingDown
+    <ArrowDown
       key={animKey}
       size={12}
-      className={colorClass}
-      style={{ animation: 'flash-fade 1.5s ease-out' }}
+      className="text-text-primary"
+      style={getRateAnimationStyle(dir, 'flash-fade')}
       aria-label="spadek"
     />
   );
   return null;
 }
 
-function RateCell({ value, dir, colorClass, animKey }: { value: number; dir: RateDirection; colorClass: string; animKey: number }) {
+function RateCell({ value, dir, animKey }: { value: number; dir: RateDirection; animKey: number }) {
   return (
     <td className="px-3 py-3 text-right font-mono tabular-nums">
       <span className="relative inline-flex items-center">
         <span
           key={dir !== null ? animKey : 0}
-          className={`font-semibold ${colorClass}`}
-          style={dir !== null ? { animation: 'value-pop 1.5s ease-out' } : undefined}
+          className="font-semibold text-text-primary"
+          style={getRateAnimationStyle(dir, 'value-pop')}
         >
           {value.toFixed(4)}
         </span>
         <span className="w-5 inline-flex justify-center">
-          <DirectionIcon dir={dir} animKey={animKey} colorClass={colorClass} />
+          <DirectionIcon dir={dir} animKey={animKey} />
         </span>
       </span>
     </td>
@@ -103,8 +103,8 @@ function SourceTable({ title, href, rates, changes, getRate, getDir, animKey }: 
                       <span className="text-text-muted mr-1">{meta?.symbol}</span>{entry.currency}
                     </span>
                   </td>
-                  <RateCell value={userRate.buyingRate} dir={bankDirs.sell} colorClass="text-danger" animKey={animKey} />
-                  <RateCell value={userRate.sellingRate} dir={bankDirs.buy} colorClass="text-success" animKey={animKey} />
+                  <RateCell value={userRate.buyingRate} dir={bankDirs.sell} animKey={animKey} />
+                  <RateCell value={userRate.sellingRate} dir={bankDirs.buy} animKey={animKey} />
                   <td className="px-3 py-3 text-right font-mono tabular-nums text-text-muted text-xs">
                     {formatSpreadPct(userRate.buyingRate, userRate.sellingRate)}%
                   </td>
@@ -193,8 +193,8 @@ export function RatesPage() {
           </div>
 
           <p className="text-xs text-text-muted px-1">
-            <strong className="text-danger">Kupujesz</strong> — kupujesz walutę i płacisz więcej PLN, więc kurs jest wyższy.{' '}
-            <strong className="text-success">Sprzedajesz</strong> — sprzedajesz walutę i dostajesz mniej PLN, więc kurs jest niższy.
+            <strong className="text-text-primary">Kupujesz</strong> — kupujesz walutę i płacisz więcej PLN, więc kurs jest wyższy.{' '}
+            <strong className="text-text-primary">Sprzedajesz</strong> — sprzedajesz walutę i dostajesz mniej PLN, więc kurs jest niższy.
           </p>
         </>
       )}
