@@ -88,6 +88,16 @@ describe('successful rate extraction', () => {
     expect(result.effectiveDate).toBe('2025-04-09');
   });
 
+  it('preserves earlier effectiveDate for next-business-day transactions', async () => {
+    mockedFetch.mockResolvedValueOnce(
+      okResponse({ ok: true, data: { rate: 4.0111, effectiveDate: '2025-04-11' } }),
+    );
+
+    const result = await fetchNbpTableARate('2025-04-14', 'USD');
+
+    expect(result).toEqual({ rate: 4.0111, effectiveDate: '2025-04-11' });
+  });
+
   it('returns single rate entry', async () => {
     mockedFetch.mockResolvedValueOnce(
       okResponse({ ok: true, data: { rate: 3.9785, effectiveDate: '2025-04-09' } }),

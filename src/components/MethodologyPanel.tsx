@@ -25,11 +25,11 @@ export function MethodologyPanel() {
           <section className="space-y-1">
             <h3 className="font-semibold text-text-primary">1. Wartość bieżąca portfela</h3>
             <div className="bg-bg-card border border-border rounded-lg p-3 font-mono text-xs">
-              Wartość<sub>PLN</sub> = Liczba akcji × Cena akcji<sub>USD</sub> × Kurs kantor<sub>kupno</sub>
+              Wartość<sub>PLN</sub> = Liczba akcji × Cena akcji<sub>USD</sub> × Kurs kantor<sub>sprzedajesz</sub>
             </div>
             <p className="text-xs text-text-secondary">
               Punkt startowy obu scenariuszy — kwota, którą masz dziś w akcjach,
-              wyrażona w PLN po przeliczeniu po <strong>kursie kantorowym (kupno)</strong>, czyli
+              wyrażona w PLN po przeliczeniu po <strong>kursie kantorowym "Sprzedajesz"</strong>, czyli
               ile faktycznie dostaniesz, sprzedając dolary.
             </p>
           </section>
@@ -104,7 +104,7 @@ export function MethodologyPanel() {
             <div className="bg-bg-card border border-border rounded px-2 py-1.5 text-xs text-text-secondary flex items-start gap-2">
               <span className="text-text-primary mt-0.5 shrink-0">💱</span>
               <span>
-                <strong>Dwa kursy:</strong> Wycena portfela w PLN używa kursu <strong>Alior Kantor (kupno)</strong> — tyle
+                <strong>Dwa kursy:</strong> Wycena portfela w PLN używa kursu <strong>Alior Kantor ("Sprzedajesz")</strong> — tyle
                 faktycznie dostaniesz, sprzedając USD. Podatek Belki obliczany jest po kursie <strong>NBP (tabela A, kurs średni)</strong>,
                 zgodnie z polskim prawem podatkowym (PIT-38).
               </span>
@@ -189,7 +189,7 @@ export function MethodologyPanel() {
                 <strong>Podatek Belki (19%)</strong> od zysku zarówno z akcji, jak i z odsetek
               </li>
               <li>
-                <strong>Dwa kursy walutowe:</strong> wycena portfela po kursie kantorowym (Alior, kupno);
+                <strong>Dwa kursy walutowe:</strong> wycena portfela po kursie kantorowym (Alior, "Sprzedajesz");
                 podstawa podatku Belki po kursie NBP (tabela A, średni) — zgodnie z PIT-38
               </li>
               <li>

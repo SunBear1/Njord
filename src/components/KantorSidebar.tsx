@@ -1,14 +1,9 @@
 import { ArrowDownUp } from 'lucide-react';
 import type { CurrencyRates } from '../hooks/useCurrencyRates';
+import { formatSpreadPct, toUserPerspectiveRate } from './rates/ratePerspective';
 
 interface KantorSidebarProps {
   rates: CurrencyRates;
-}
-
-function spreadPct(buy: number, sell: number): string {
-  const avg = (sell + buy) / 2;
-  if (!avg || !isFinite(avg)) return '—';
-  return ((sell - buy) / avg * 100).toFixed(2);
 }
 
 function fmtTime(d: Date): string {
@@ -16,6 +11,8 @@ function fmtTime(d: Date): string {
 }
 
 function RateBlock({ label, href, buy, sell }: { label: string; href: string; buy: number; sell: number }) {
+  const userRate = toUserPerspectiveRate({ buy, sell });
+
   return (
     <div className="space-y-1.5">
       <a
@@ -28,16 +25,16 @@ function RateBlock({ label, href, buy, sell }: { label: string; href: string; bu
       </a>
       <div className="space-y-0.5">
         <div className="flex justify-between items-baseline gap-1.5 text-xs">
-          <span className="text-text-muted">Kupno</span>
-          <span className="font-mono font-medium text-success">{buy.toFixed(4)}</span>
+          <span className="text-text-muted">Kupujesz</span>
+          <span className="font-mono font-medium text-danger">{userRate.buyingRate.toFixed(4)}</span>
         </div>
         <div className="flex justify-between items-baseline gap-1.5 text-xs">
-          <span className="text-text-muted">Sprzedaż</span>
-          <span className="font-mono font-medium text-danger">{sell.toFixed(4)}</span>
+          <span className="text-text-muted">Sprzedajesz</span>
+          <span className="font-mono font-medium text-success">{userRate.sellingRate.toFixed(4)}</span>
         </div>
         <div className="flex justify-between items-baseline gap-1.5 text-xs">
           <span className="text-text-muted">Spread</span>
-          <span className="font-mono text-text-muted">{spreadPct(buy, sell)}%</span>
+          <span className="font-mono text-text-muted">{formatSpreadPct(userRate.buyingRate, userRate.sellingRate)}%</span>
         </div>
       </div>
     </div>
@@ -63,9 +60,8 @@ export function KantorSidebar({ rates }: KantorSidebarProps) {
         )}
       </div>
 
-      {/* Bank perspective note */}
       <p className="text-[10px] text-text-muted leading-snug">
-        Kupno/Sprzedaż z perspektywy banku.
+        Perspektywa użytkownika: kupujesz walutę po wyższym kursie, sprzedajesz po niższym.
       </p>
 
       {isLoading && !alior && !nbp ? (
