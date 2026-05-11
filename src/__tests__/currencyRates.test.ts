@@ -13,6 +13,7 @@ import {
   hasDataChanged,
   type CurrencyRateEntry,
 } from '../hooks/useMultiCurrencyRates';
+import { formatSpreadPct, toUserPerspectiveRate } from '../components/rates/ratePerspective';
 import type { CurrencyRate } from '../types/financeApi';
 
 // ---------------------------------------------------------------------------
@@ -296,6 +297,23 @@ describe('adaptRates', () => {
         walutomat: null,
       },
     ]);
+  });
+});
+
+describe('user-facing rate presentation', () => {
+  it('maps raw bank buy/sell into user-facing buy/sell perspective', () => {
+    expect(toUserPerspectiveRate({ buy: 4.0, sell: 4.1 })).toEqual({
+      buyingRate: 4.1,
+      sellingRate: 4.0,
+    });
+  });
+
+  it('keeps spread positive after switching to user perspective order', () => {
+    expect(formatSpreadPct(4.1, 4.0)).toBe('2.47');
+  });
+
+  it('returns em dash spread for invalid data', () => {
+    expect(formatSpreadPct(0, 0)).toBe('—');
   });
 });
 

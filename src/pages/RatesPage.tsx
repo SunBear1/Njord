@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { useMultiCurrencyRates, type CurrencyRateEntry, type RateDirection, type RateChangeInfo } from '../hooks/useMultiCurrencyRates';
+import { formatSpreadPct, toUserPerspectiveRate } from '../components/rates/ratePerspective';
 
 const CURRENCY_META: Record<string, { symbol: string }> = {
   USD: { symbol: '$' },
@@ -8,22 +9,16 @@ const CURRENCY_META: Record<string, { symbol: string }> = {
   GBP: { symbol: '£' },
 };
 
-function spreadPct(buy: number, sell: number): string {
-  const avg = (sell + buy) / 2;
-  if (!avg || !isFinite(avg)) return '—';
-  return ((sell - buy) / avg * 100).toFixed(2);
-}
-
 function fmtTime(d: Date): string {
   return d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
-function DirectionIcon({ dir, animKey }: { dir: RateDirection; animKey: number }) {
+function DirectionIcon({ dir, animKey, colorClass }: { dir: RateDirection; animKey: number; colorClass: string }) {
   if (dir === 'up') return (
     <TrendingUp
       key={animKey}
       size={12}
-      className="text-success"
+      className={colorClass}
       style={{ animation: 'flash-fade 1.5s ease-out' }}
       aria-label="wzrost"
     />
@@ -32,7 +27,7 @@ function DirectionIcon({ dir, animKey }: { dir: RateDirection; animKey: number }
     <TrendingDown
       key={animKey}
       size={12}
-      className="text-danger"
+      className={colorClass}
       style={{ animation: 'flash-fade 1.5s ease-out' }}
       aria-label="spadek"
     />
@@ -52,7 +47,7 @@ function RateCell({ value, dir, colorClass, animKey }: { value: number; dir: Rat
           {value.toFixed(4)}
         </span>
         <span className="w-5 inline-flex justify-center">
-          <DirectionIcon dir={dir} animKey={animKey} />
+          <DirectionIcon dir={dir} animKey={animKey} colorClass={colorClass} />
         </span>
       </span>
     </td>
@@ -89,17 +84,18 @@ function SourceTable({ title, href, rates, changes, getRate, getDir, animKey }: 
           <thead>
             <tr className="text-text-muted text-xs uppercase tracking-wider">
               <th className="px-5 py-2.5 text-left font-medium">Waluta</th>
-              <th className="px-3 py-2.5 text-right font-medium">Kupno</th>
-              <th className="px-3 py-2.5 text-right font-medium">Sprzedaż</th>
+              <th className="px-3 py-2.5 text-right font-medium">Kupujesz</th>
+              <th className="px-3 py-2.5 text-right font-medium">Sprzedajesz</th>
               <th className="px-3 py-2.5 text-right font-medium">Spread</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {rates.map(entry => {
-              const data = getRate(entry);
-              if (!data) return null;
+              const bankRate = getRate(entry);
+              if (!bankRate) return null;
               const meta = CURRENCY_META[entry.currency];
-              const dirs = changes[entry.currency] ? getDir(changes[entry.currency]) : { buy: null as RateDirection, sell: null as RateDirection };
+              const userRate = toUserPerspectiveRate(bankRate);
+              const bankDirs = changes[entry.currency] ? getDir(changes[entry.currency]) : { buy: null as RateDirection, sell: null as RateDirection };
               return (
                 <tr key={entry.currency} className="hover:bg-bg-hover/50 transition-colors">
                   <td className="px-5 py-3">
@@ -107,10 +103,10 @@ function SourceTable({ title, href, rates, changes, getRate, getDir, animKey }: 
                       <span className="text-text-muted mr-1">{meta?.symbol}</span>{entry.currency}
                     </span>
                   </td>
-                  <RateCell value={data.buy} dir={dirs.buy} colorClass="text-success" animKey={animKey} />
-                  <RateCell value={data.sell} dir={dirs.sell} colorClass="text-danger" animKey={animKey} />
+                  <RateCell value={userRate.buyingRate} dir={bankDirs.sell} colorClass="text-danger" animKey={animKey} />
+                  <RateCell value={userRate.sellingRate} dir={bankDirs.buy} colorClass="text-success" animKey={animKey} />
                   <td className="px-3 py-3 text-right font-mono tabular-nums text-text-muted text-xs">
-                    {spreadPct(data.buy, data.sell)}%
+                    {formatSpreadPct(userRate.buyingRate, userRate.sellingRate)}%
                   </td>
                 </tr>
               );
@@ -139,7 +135,7 @@ export function RatesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">Kursy walut</h1>
-          <p className="text-sm text-text-muted mt-1">Porównanie kursów kupna i sprzedaży</p>
+          <p className="text-sm text-text-muted mt-1">Porównanie kursów z perspektywy użytkownika</p>
         </div>
         {hasData && (
           <div className="flex items-center gap-2 text-xs text-text-muted bg-bg-hover/60 rounded-lg px-3 py-1.5 border border-border">
@@ -197,8 +193,8 @@ export function RatesPage() {
           </div>
 
           <p className="text-xs text-text-muted px-1">
-            <strong className="text-success">Kupno</strong> — bank kupuje walutę od Ciebie (dostajesz mniej PLN, niższy kurs).{' '}
-            <strong className="text-danger">Sprzedaż</strong> — bank sprzedaje Ci walutę (płacisz więcej PLN, wyższy kurs).
+            <strong className="text-danger">Kupujesz</strong> — kupujesz walutę i płacisz więcej PLN, więc kurs jest wyższy.{' '}
+            <strong className="text-success">Sprzedajesz</strong> — sprzedajesz walutę i dostajesz mniej PLN, więc kurs jest niższy.
           </p>
         </>
       )}

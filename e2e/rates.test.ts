@@ -10,7 +10,9 @@ test.describe('/rates — currency exchange', () => {
     await page.waitForSelector('main', { timeout: 10_000 });
 
     await expect(page.getByRole('heading', { name: 'Kursy walut' })).toBeVisible();
-    await expect(page.getByText('Porównanie kursów kupna i sprzedaży')).toBeVisible();
+    await expect(page.getByText('Porównanie kursów z perspektywy użytkownika')).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Kupujesz' }).first()).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Sprzedajesz' }).first()).toBeVisible();
   });
 
   test('shows Alior and NBP buy/sell rates after API loads', async ({ page }) => {
