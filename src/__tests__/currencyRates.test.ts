@@ -13,7 +13,12 @@ import {
   hasDataChanged,
   type CurrencyRateEntry,
 } from '../hooks/useMultiCurrencyRates';
-import { formatSpreadPct, toUserPerspectiveRate } from '../components/rates/ratePerspective';
+import {
+  RATE_CHANGE_ANIMATION,
+  formatSpreadPct,
+  getRateAnimationStyle,
+  toUserPerspectiveRate,
+} from '../components/rates/ratePerspective';
 import type { CurrencyRate } from '../types/financeApi';
 
 // ---------------------------------------------------------------------------
@@ -314,6 +319,24 @@ describe('user-facing rate presentation', () => {
 
   it('returns em dash spread for invalid data', () => {
     expect(formatSpreadPct(0, 0)).toBe('—');
+  });
+
+  it('returns 1-second success flash styling for upward move', () => {
+    expect(getRateAnimationStyle('up', 'value-pop')).toEqual({
+      animation: `value-pop ${RATE_CHANGE_ANIMATION}`,
+      '--rate-flash-color': 'var(--color-success)',
+    });
+  });
+
+  it('returns 1-second danger flash styling for downward move', () => {
+    expect(getRateAnimationStyle('down', 'flash-fade')).toEqual({
+      animation: `flash-fade ${RATE_CHANGE_ANIMATION}`,
+      '--rate-flash-color': 'var(--color-danger)',
+    });
+  });
+
+  it('skips flash styling when rate is unchanged', () => {
+    expect(getRateAnimationStyle(null, 'value-pop')).toBeUndefined();
   });
 });
 

@@ -26,11 +26,11 @@ function RateBlock({ label, href, buy, sell }: { label: string; href: string; bu
       <div className="space-y-0.5">
         <div className="flex justify-between items-baseline gap-1.5 text-xs">
           <span className="text-text-muted">Kupujesz</span>
-          <span className="font-mono font-medium text-danger">{userRate.buyingRate.toFixed(4)}</span>
+          <span className="font-mono font-medium text-text-primary">{userRate.buyingRate.toFixed(4)}</span>
         </div>
         <div className="flex justify-between items-baseline gap-1.5 text-xs">
           <span className="text-text-muted">Sprzedajesz</span>
-          <span className="font-mono font-medium text-success">{userRate.sellingRate.toFixed(4)}</span>
+          <span className="font-mono font-medium text-text-primary">{userRate.sellingRate.toFixed(4)}</span>
         </div>
         <div className="flex justify-between items-baseline gap-1.5 text-xs">
           <span className="text-text-muted">Spread</span>

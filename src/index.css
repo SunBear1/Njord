@@ -112,15 +112,15 @@ body {
 }
 
 @keyframes flash-fade {
-  0%   { filter: brightness(2) scale(1.15); }
-  40%  { filter: brightness(1.4); }
-  100% { filter: brightness(1); }
+  0%   { color: var(--rate-flash-color); opacity: 0.2; transform: translateY(2px); }
+  25%  { color: var(--rate-flash-color); opacity: 1; transform: translateY(0); }
+  100% { color: var(--color-text-primary); opacity: 1; transform: translateY(0); }
 }
 
 @keyframes value-pop {
-  0%   { filter: brightness(2); }
-  40%  { filter: brightness(1.5); }
-  100% { filter: brightness(1); }
+  0%   { color: var(--rate-flash-color); filter: brightness(1.2); }
+  25%  { color: var(--rate-flash-color); filter: brightness(1.1); }
+  100% { color: var(--color-text-primary); filter: brightness(1); }
 }
 
 /* Form input accent styling */
