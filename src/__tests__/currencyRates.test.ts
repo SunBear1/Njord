@@ -338,6 +338,10 @@ describe('user-facing rate presentation', () => {
   it('skips flash styling when rate is unchanged', () => {
     expect(getRateAnimationStyle(null, 'value-pop')).toBeUndefined();
   });
+
+  it('uses 2-second animation with forwards fill mode', () => {
+    expect(RATE_CHANGE_ANIMATION).toBe('2s ease-out forwards');
+  });
 });
 
 describe('NBP Table C response parsing', () => {
