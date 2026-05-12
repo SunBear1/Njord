@@ -1,4 +1,7 @@
 ---
+workflowType: 'prd'
+workflow: 'edit'
+date: '2026-05-11'
 stepsCompleted:
   - step-01-init
   - step-02-discovery
@@ -13,10 +16,12 @@ stepsCompleted:
   - step-09-functional
   - step-10-nonfunctional
   - step-11-polish
+  - step-e-01-discovery
+  - step-e-02-review
+  - step-e-03-edit
 inputDocuments:
   - docs/backtest-methodology.md
   - docs/financial-methodology.md
-workflowType: 'prd'
 documentCounts:
   productBriefs: 0
   research: 0
@@ -28,6 +33,10 @@ classification:
   complexity: high
   projectContext: brownfield
 releaseMode: phased
+lastEdited: '2026-05-11'
+editHistory:
+  - date: '2026-05-11'
+    changes: 'Added compliance control frame, recurring and abuse journeys, measurable NFRs, phase anchors, and frontmatter cleanup.'
 ---
 
 # Dokument wymagan produktowych - Njord
@@ -68,11 +77,11 @@ Sukces uzytkownika oznacza takze zaufanie do wyniku. Produkt nie moze byc tylko 
 
 ### Sukces biznesowy
 
-W krotkim horyzoncie sukces oznacza, ze Njord przestaje byc narzedziem jednorazowym i zaczyna pelnic role miejsca, do ktorego uzytkownik wraca regularnie. Docelowy sygnal na tym etapie to 30% miesiecznego powrotu aktywowanych uzytkownikow do monitoringu lub kolejnej decyzji inwestycyjnej.
+W krotkim horyzoncie sukces oznacza, ze Njord przestaje byc narzedziem jednorazowym i zaczyna pelnic role miejsca, do ktorego uzytkownik wraca regularnie. Docelowy sygnal na tym etapie to 30% miesiecznego powrotu aktywowanych uzytkownikow do kolejnej sesji decyzyjnej, a po wdrozeniu warstwy monitoringu takze do flow monitoringu i weryfikacji poprzedniej decyzji.
 
 W srednim horyzoncie produkt wygrywa wtedy, gdy uzytkownik po pierwszym trafnym lub uzytecznym doswiadczeniu wraca do Njorda przy kolejnych decyzjach, zamiast ponownie rozpraszac sie miedzy wieloma zrodlami. Dodatkowym sygnalem biznesowym jest to, ze 60% aktywowanych uzytkownikow ufa rekomendacji na tyle, aby dzialac zgodnie z nia.
 
-Monetyzacja jest wtorna wobec zaufania. Produkt nie powinien probowac sprzedawac sie obietnica potencjalnego zysku, lecz udowodniona oszczednoscia czasu, wiekszym spokojem decyzyjnym oraz dodatkowymi funkcjami premium, gdy rdzen okaze sie wiarygodny.
+Monetyzacja jest wtorna wobec zaufania. Produkt nie powinien probowac sprzedawac sie obietnica potencjalnego zysku, lecz udowodniona oszczednoscia czasu, wiekszym spokojem decyzyjnym oraz dodatkowymi funkcjami premium, gdy rdzen okaze sie wiarygodny. Zaufanie i gotowosc do platnosci pozostaja hipotezami walidacyjnymi do mierzenia na bazie zachowan uzytkownika, a nie samodzielna obietnica MVP.
 
 ### Sukces techniczny
 
@@ -83,10 +92,16 @@ Techniczny sukces oznacza wiec: poprawne i audytowalne obliczenia, wiarygodne po
 ### Wymierne rezultaty
 
 - Czas od wejscia do uzyskania rekomendacji: < 5 min
-- Miesieczny powrot aktywowanych uzytkownikow: 30%
-- Odsetek aktywowanych uzytkownikow dzialajacych zgodnie z rekomendacja: 60%
+- Miesieczny powrot aktywowanych uzytkownikow do kolejnej sesji decyzyjnej lub monitoringu (Journey 5): 30%
+- Odsetek aktywowanych uzytkownikow dzialajacych zgodnie z rekomendacja mozliwa do wykonania: 60%
 - Krytyczne bledy w rdzeniu rekomendacji / podatkow: 0
 - Kazda rekomendacja zawiera uzasadnienie oraz wplyw podatku i FX
+
+### Definicje pomiaru
+
+- **Aktywowany uzytkownik:** uzytkownik, ktory zakonczyl pierwsza pelna sesje decyzyjna z widoczna rekomendacja albo wynikiem typu no-action / conditional outcome oraz uzasadnieniem wyniku.
+- **Powrot:** wejscie w kolejna sesje decyzyjna albo recurring-user / monitoring journey w ciagu 30 dni od aktywacji.
+- **Dzialanie zgodnie z rekomendacja:** jawne potwierdzenie, zapis decyzji albo przejscie do wykonania rekomendowanej opcji w przeplywie, w ktorym rekomendacja nie byla oznaczona jako warunkowa lub poza zakresem.
 
 ## Product Scope
 
@@ -160,6 +175,34 @@ Jesli problem wynika z niepelnych danych lub bledu importu, Ewa moze poprowadzic
 **Resolution:**  
 Uzytkownik nie zostaje z poczuciem, ze "algorytm cos wymyslil". Zamiast tego odzyskuje zaufanie albo przynajmniej dostaje transparentne wyjasnienie, dlaczego produkt zachowal sie w okreslony sposob.
 
+### 5. Returning User - Monitoring Path: Michal wraca do Njorda, by sprawdzic czy poprzednia decyzja nadal ma sens
+
+**Opening Scene:**  
+Minelo kilka tygodni od ostatniej decyzji. Michal ma juz zapisany punkt odniesienia, ale rynek, FX albo jego portfel zdazyly sie zmienic. Nie chce zaczynac analizy od zera; chce szybko zobaczyc, czy powinien utrzymac kurs, cos skorygowac albo przygotowac kolejny ruch.
+
+**Rising Action:**  
+Po wejsciu do Njorda widzi monitoring poprzedniej decyzji: co zmienilo sie od ostatniej sesji, czy rekomendacja nadal wyglada sensownie, jakie alerty sie pojawily i ktore zalozenia przestaly byc aktualne. Moze wejsc w historie rekomendacji, porownac obecny stan z poprzednim baseline'em i przejsc z monitoringu do kolejnej decyzji bez recznego skladania kontekstu od nowa.
+
+**Climax:**  
+Njord pokazuje, czy poprzednia decyzja pozostaje zasadna, czy pojawil sie powod do zmiany: np. istotna zmiana FX, relacji ryzyka do wyniku netto, nowa gotowka albo zmiana jakosci rekomendacji. Jesli sygnal jest zbyt slaby, produkt nie wymusza ruchu; pokazuje monitoruj dalej zamiast sztucznej akcji.
+
+**Resolution:**  
+Michal w kilka chwil rozumie, czy ma utrzymac poprzedni plan, wejsc w nowa decyzje czy po prostu obserwowac sytuacje. To jest moment, w ktorym Njord przestaje byc jednorazowym kalkulatorem i staje sie narzedziem, do ktorego warto wracac regularnie.
+
+### 6. Risk / Abuse Operations User: Marta wykrywa naduzycie i chroni wiarygodnosc produktu
+
+**Opening Scene:**  
+Marta odpowiada za ryzyko operacyjne, bezpieczenstwo i granice uzycia produktu. Wie, ze w decision-support fintech zagrozeniem nie jest tylko blad modelu, ale tez naduzycie: nietypowe wzorce dostepu, proby wymuszenia zbyt pewnej rekomendacji, masowe odpytania albo dzialania, ktore moga naruszyc dane lub wiarygodnosc wyniku.
+
+**Rising Action:**  
+System pokazuje sygnaly ostrzegawcze: podejrzanie wysoka liczbe prob, nietypowe sekwencje zmian danych, wzorce wskazujace na scraping, probing albo obchodzenie guardrailow. Marta widzi, ktore konto, sesja albo mechanizm zachowuje sie poza norma i ma dostep do sladu zdarzen potrzebnego do szybkiej oceny ryzyka.
+
+**Climax:**  
+Gdy ryzyko rosnie, Marta moze ograniczyc problematyczny przeplyw: obnizyc poziom zaufania, wstrzymac generowanie rekomendacji, oznaczyc przypadek do review, zawezc dostep albo czasowo zablokowac fragment funkcji. Produkt ma preferowac brak rekomendacji i ochrone danych nad obsluge podejrzanego ruchu za wszelka cene.
+
+**Resolution:**  
+Njord pozostaje wiarygodny, bo umie bronic nie tylko poprawnosci logiki, ale tez granic swojego uzycia. Marta nie walczy o metryki vanity; chroni zaufanie, dane i operacyjna integralnosc produktu.
+
 ### Podsumowanie wymaganych zdolnosci
 
 Te journeys ujawniaja potrzebe kilku kluczowych capability areas:
@@ -169,36 +212,61 @@ Te journeys ujawniaja potrzebe kilku kluczowych capability areas:
 - wynik po podatku i FX,
 - sygnalizowanie poziomu pewnosci i brakow danych,
 - obsluga edge case'ow bez utraty zaufania,
+- monitoring zmian, alerty i historia rekomendacji / scenariuszy,
+- podtrzymanie kontekstu miedzy sesjami oraz plynne przejscie z monitoringu do kolejnej decyzji,
 - operacyjny monitoring jakosci rekomendacji,
-- traceability dla supportu i audytu decyzji.
+- wykrywanie naduzyc, ograniczanie ryzyka i ochrona danych / wiarygodnosci,
+- traceability dla supportu, audytu i wyjasnienia wyniku.
 
 ## Domain-Specific Requirements
 
-### Zgodnosc i regulacje
+### Granice prawne i jurysdykcyjne
 
-- Produkt musi pozostac po stronie decision support, a nie formalnej porady inwestycyjnej. Njord nie moze komunikowac sie w trybie "zrob to", lecz powinien pokazywac porownywalne wyniki, scenariusze, zysk netto, wplyw podatku, FX i zalozenia, pozostawiajac ostateczny wybor uzytkownikowi.
-- Warstwa rekomendacyjna musi byc wsparta wyraznym framingiem produktu, transparentnoscia metodologii oraz guardrailami jezykowymi ograniczajacymi ryzyko interpretacji jako bezposredniej porady finansowej.
-- Ze wzgledu na ryzyko roszczen zwiazanych ze strata finansowa, produkt musi posiadac jasne zastrzezenia odpowiedzialnosci, slad decyzyjny oraz mozliwosc odtworzenia, na jakich danych i zalozeniach powstal wynik.
+- Njord jest produktem **wsparcia decyzji**: dostarcza porownan, estymacji, symulacji i objasnien. Nie stanowi doradztwa inwestycyjnego, rekomendacji indywidualnej, zarzadzania portfelem, posrednictwa w zawieraniu transakcji ani obietnicy wyniku.
+- Domyslny zakres merytoryczny dotyczy uzytkownika dzialajacego w **polskim kontekscie podatkowym i produktowym**. Kazdy wynik wykraczajacy poza ten zakres musi byc jednoznacznie oznaczony jako poza zakresem, warunkowy albo niedostepny.
+- Produkt nie moze sugerowac, ze zastepuje licencjonowana porade prawna, podatkowa lub inwestycyjna. Komunikacja musi utrzymywac rozroznienie miedzy **informacja**, **symulacja** i **rekomendacja regulowana**.
+- Jezeli zakres prawny, kompletnosc danych wejsciowych lub wiarygodnosc danych sa niewystarczajace, system ma **ograniczac pewnosc wnioskow**, eksponowac zastrzezenia i powstrzymywac sie od prezentowania wynikow jako pelnych lub definitywnych.
 
-### Ograniczenia techniczne
+### Matryca zgodnosci
 
-- Produkt bedzie przechowywal wrazliwe dane portfelowe i transakcyjne, wiec musi spelniac wysoki standard bezpieczenstwa danych: kontrola dostepu, bezpieczne przechowywanie, minimalizacja zakresu danych i wysoka czytelnosc granic prywatnosci.
-- Kazda rekomendacja musi miec pelny audit trail: dane wejsciowe, zrodla cen i kursow, zalozenia, wplyw podatku, poziom pewnosci i powod wygenerowania wyniku.
-- Nie ma pola na krytyczne bledy w rekomendacji ani podatkach; system musi preferowac brak rekomendacji lub obnizenie pewnosci zamiast pokazania wyniku, ktorego nie da sie obronic.
-- Produkt musi jasno odrozniac dane potwierdzone od niepelnych albo recznie wprowadzonych oraz komunikowac, jak to wplywa na pewnosc wyniku.
+| Wymog | Kontrola / oczekiwany rezultat | Wlasciciel | Dowod | Weryfikacja |
+|---|---|---|---|---|
+| Granica prawna produktu | Kazdy kluczowy przeplyw i wynik utrzymuje pozycjonowanie "wsparcie decyzji, nie porada regulowana" | Product + Legal/Compliance | Aktualne tresci graniczne, rejestr akceptacji, przeglad copy | Przeglad przed wydaniem i cykliczny |
+| Zakres jurysdykcyjny | Wyniki sa prezentowane wylacznie w ramach jawnie okreslonego zakresu Polski; wyjatki sa oznaczane lub blokowane | Product + Legal/Compliance | Rejestr zakresow, lista wyjatkow, decyzje akceptacyjne | Przeglad zmian zakresu i testy akceptacyjne |
+| Bezpieczenstwo i prywatnosc | Dane uzytkownika, uprawnienia i dzialania uprzywilejowane podlegaja minimalizacji, kontroli dostepu i rozliczalnosci | Security/Privacy | Rejestr kontroli, oceny ryzyka, potwierdzenia przegladow dostepu | Przeglad okresowy i po incydencie |
+| Audit i rozliczalnosc | Kazdy istotny wynik mozna odtworzyc z danych wejsciowych, zrodel, wersji regul, poziomu pewnosci i ostrzezen | Product + Risk/Operations | Slad audytowy, historia zmian, rejestr wyjatkow | Probkowanie cykliczne i przeglad sporow / incydentow |
+| Ograniczenie naduzyc | Naduzycia, manipulacje i proby obchodzenia granic produktu sa wykrywane, ograniczane i eskalowane | Risk/Fraud | Rejestr zdarzen, decyzje eskalacyjne, historia blokad / wyjatkow | Monitoring operacyjny i przeglad trendow |
+| Integralnosc danych finansowych | Kazda dana finansowa ma pochodzenie, czas obowiazywania, status jakosci i proces korekty wplywu | Data Governance + Product | Katalog zrodel, rejestr korekt, komunikaty o wplywie | Uzgodnienia okresowe i przeglad korekt materialowych |
 
-### Wymagania integracyjne
+### Baseline bezpieczenstwa i ochrony danych
 
-- Integracje z brokerami moga byc ograniczone lub niemozliwe z powodu braku API, wiec produkt musi dzialac rowniez w modelu manual-first albo manual-plus-import, bez uzaleznienia wartosci MVP od pelnej automatyzacji.
-- Konieczne sa wiarygodne integracje z danymi rynkowymi i referencyjnymi: kursy walut, ceny akcji, ETF-ow, krypto i obligacji.
-- Import danych uzytkownika powinien wspierac stopniowe budowanie obrazu portfela: od recznego wprowadzania, przez polautomatyczny import, po szersze integracje tam, gdzie sa mozliwe.
+- Zakres danych osobowych i finansowych przetwarzanych przez produkt musi byc ograniczony do **minimum niezbednego** dla dzialania, wsparcia uzytkownika i rozliczalnosci.
+- Dane wprowadzone recznie przez uzytkownika sa dopuszczalne, ale musza pozostawac **odroznialne od danych potwierdzonych** oraz nie moga uzyskiwac domyslnego statusu "zweryfikowane".
+- Dostep do funkcji uprzywilejowanych, zmian tresci granicznych, regul biznesowych i danych referencyjnych musi byc ograniczony do uprawnionych rol oraz podlegac udokumentowanemu przegladowi.
+- Produkt musi zapewniac ochrone poufnosci, integralnosci i dostepnosci danych adekwatna do ryzyka oraz posiadac zdefiniowana sciezke obslugi incydentow bezpieczenstwa i prywatnosci.
+- Komunikacja z uzytkownikiem ma jasno rozrozniac dane zrodlowe, dane deklaratywne, wyniki obliczen i poziom pewnosci.
 
-### Ograniczanie ryzyka
+### Wymagania auditowe i dowodowe
 
-- **Zla rekomendacja:** guardraile, explainability, confidence signaling, mozliwosc wstrzymania rekomendacji przy slabych danych.
-- **Bledny podatek:** pelna sciezka audytu, testowalna logika podatkowa, jawne zalozenia i mozliwosc weryfikacji przez uzytkownika.
-- **Brak API brokerow / bankow:** manual entry jako sciezka pierwszej klasy, a nie awaryjny dodatek.
-- **Odpowiedzialnosc za strate finansowa:** komunikacja decision-support, nie direct advice; transparentnosc metodologii i ograniczen systemu.
+- Kazdy istotny wynik, porownanie lub ostrzezenie musi posiadac **slad dowodowy** obejmujacy co najmniej: uzyte dane wejsciowe, zrodla danych, moment obowiazywania danych, wersje regul / zalozen, poziom pewnosci, zastrzezenia oraz istotne dzialania uzytkownika.
+- Zmiany majace wplyw na interpretacje wynikow - w szczegolnosci reguly finansowe, tresci graniczne, klasyfikacje jakosci danych i logike pewnosci - musza posiadac wlasciciela biznesowego, date obowiazywania i dowod zatwierdzenia.
+- Produkt musi wspierac **odtwarzalnosc** wyniku dla celow przegladu wewnetrznego, obslugi reklamacji, analizy incydentu oraz obrony przed bledna interpretacja dzialania produktu.
+- Gdy poziom pewnosci spada ponizej ustalonego progu, wynik musi byc odpowiednio ograniczony, oznaczony lub wstrzymany; decyzja ta rowniez podlega udokumentowaniu.
+
+### Zapobieganie fraudom i naduzyciom
+
+- Produkt musi ograniczac ryzyko wykorzystania go do tworzenia **mylacych twierdzen inwestycyjnych**, falszywego wrazenia gwarancji wyniku albo obchodzenia granicy miedzy informacja a porada regulowana.
+- Nietypowe, sprzeczne lub niewiarygodne dane wejsciowe oraz wzorce uzycia wskazujace na manipulacje, masowe naduzycie lub probe obejscia ograniczen musza skutkowac adekwatna reakcja: ograniczeniem funkcji, dodatkowymi ostrzezeniami, eskalacja lub blokada.
+- Nadpisania, wyjatki i korekty o istotnym wplywie nie moga byc anonimowe; musza byc przypisane do wlasciciela i zabezpieczone dowodowo.
+- Produkt nie moze prezentowac danych deklaratywnych uzytkownika jako niezaleznie potwierdzonych ani ukrywac wplywu brakow danych na wynik.
+
+### Integralnosc danych finansowych i governance korekt
+
+- Kazda materialna dana finansowa uzyta w produkcie musi posiadac **udokumentowane pochodzenie**, zakres zastosowania, date / czas obowiazywania, status jakosci i wlasciciela odpowiedzialnego za jej uzycie.
+- W przypadku konfliktu, nieaktualnosci lub niekompletnosci danych produkt ma zachowywac sie **bezpiecznie**: ujawniac ograniczenie, obnizac pewnosc, wstrzymywac wynik lub oznaczac go jako wymagajacy ostroznosci; nie moze ukrywac niepewnosci.
+- Korekty danych, regul lub klasyfikacji jakosci musza byc zarzadzane formalnie: z okresleniem przyczyny, zakresu wplywu, wlasciciela, daty obowiazywania i decyzji o komunikacji do uzytkownika.
+- Materialne korekty wplywajace na wczesniejsze wyniki musza uruchamiac ponowna ocene wplywu, odpowiednia aktualizacje wynikow / ostrzezen oraz zachowanie historii przed korekta dla celow audytu.
+- Governance danych finansowych musi obejmowac okresowy przeglad zrodel, jakosci, kompletnosci i zgodnosci zakresu danych z deklarowanym zastosowaniem produktu.
 
 ## Innowacja i nowe wzorce
 
@@ -318,6 +386,28 @@ To oznacza bardzo konserwatywne podejscie do scope'u. MVP musi unikac zaleznosci
 - glebsza personalizacja
 - bardziej ciagla optymalizacja portfela i momentow decyzyjnych
 
+### Macierz traceability i faz
+
+| Cel / sygnal produktu | Journey | Faza | Kluczowe FR / NFR |
+| --- | --- | --- | --- |
+| Szybka, zaufana decyzja dla nowej gotowki | 1. Michal - nowa wplata | Faza 1 | FR1-FR19, FR22-FR33 |
+| Ochrona zaufania przy niepelnych lub konfliktowych danych | 2. Anna - edge case | Faza 1 | FR5-FR8, FR24-FR25, FR28-FR33, FR42 |
+| Operacyjna wiarygodnosc rekomendacji | 3. Kamil - jakosc rekomendacji | Faza 1 | FR39-FR40, NFR Bezpieczenstwo |
+| Wyjasnialnosc i audit trail dla supportu | 4. Ewa - troubleshooting | Faza 1 | FR32, FR41-FR42, NFR Bezpieczenstwo |
+| Retencja: powrot do monitoringu lub kolejnej decyzji | 5. Michal - recurring monitoring | Faza 2 | FR34-FR37 |
+| Ochrona przed naduzyciem, manipulacja i utrata integralnosci | 6. Marta - abuse / fraud ops | Faza 1-2 | FR39-FR40, NFR Bezpieczenstwo, NFR Niezawodnosc |
+| Szerszy lokalny kontekst i guidance po MVP | 1 + 5 | Faza 2 | FR20, FR26 |
+| Proaktywny investment copilot | 5 | Faza 3 | FR38 |
+
+### Zakotwiczenie roadmap FR
+
+| FR | Faza | Zakotwiczenie w journey | Dlaczego tutaj |
+| --- | --- | --- | --- |
+| FR20 | Faza 2 | 1 + 5 | Rozszerza MVP-owy wynik po podatku do workflow Belka / PIT przy kolejnych decyzjach i rozliczeniach. |
+| FR26 | Faza 2 | 1 + 5 | Rozszerza podstawowe preferencje z MVP do guidance pod cel przy kolejnych decyzjach. |
+| FR34-FR37 | Faza 2 | 5 | To rdzen recurring-user journey: monitoring, alerty, historia rekomendacji i historia scenariuszy. |
+| FR38 | Faza 3 | 5 | Proaktywny next-best-action ma sens dopiero po zbudowaniu monitoringu, historii i sygnalow powrotu. |
+
 ### Strategia ograniczania ryzyka
 
 **Technical Risks:**  
@@ -333,7 +423,7 @@ Poniewaz produkt rozwija solo founder, plan musi zakladac minimalizacje operacyj
 
 ### Zrodlo prawdy o portfelu
 
-- **FR1:** Investor can create and maintain a consolidated portfolio view across multiple holdings sources.
+- **FR1:** Investor can create and maintain a consolidated portfolio view across supported manual and imported holdings sources.
 - **FR2:** Investor can add, edit, and remove holdings manually.
 - **FR3:** Investor can import portfolio or transaction data from supported external sources when integrations are available.
 - **FR4:** Investor can use the product even when holdings data is provided manually rather than through broker integrations.
@@ -346,7 +436,7 @@ Poniewaz produkt rozwija solo founder, plan musi zakladac minimalizacje operacyj
 
 - **FR9:** Investor can request a recommendation for how to allocate new cash or a new contribution.
 - **FR10:** Investor can evaluate what to do with expiring cash products, such as a maturing deposit.
-- **FR11:** Investor can compare multiple allocation options, including maintaining the status quo or deferring action.
+- **FR11:** Investor can compare at least two allocation options, including maintaining the status quo or deferring action.
 - **FR12:** Investor can receive a primary recommended next action, a ranked set of alternatives, or a no-action outcome depending on available confidence.
 - **FR13:** Investor can understand why the recommended next action is preferred over alternatives.
 - **FR14:** Investor can adjust decision assumptions or inputs and see how the outcome changes.
@@ -358,16 +448,16 @@ Poniewaz produkt rozwija solo founder, plan musi zakladac minimalizacje operacyj
 - **FR17:** Investor can see the impact of FX on compared options.
 - **FR18:** Investor can compare global market instruments with relevant Polish alternatives.
 - **FR19:** Investor can review tax, FX, and cost assumptions used in a comparison.
-- **FR20:** Investor can use product support for Belka and PIT-related workflows in later phases.
+- **FR20 [Phase 2]:** Investor can complete supported Belka and PIT-related workflows for decision follow-up and tax context review.
 - **FR21:** Investor can review the baseline, horizon, and net outcome attached to each scenario or alternative.
 
 ### Preferencje, dopasowanie i granice
 
 - **FR22:** Investor can define decision preferences such as horizon, liquidity needs, risk tolerance, account preferences, and simplicity-versus-optimization trade-offs.
 - **FR23:** Investor can set constraints that exclude unsuitable options from recommendation outputs.
-- **FR24:** Investor can understand the boundaries of what the product is and is not claiming.
+- **FR24:** Investor can see a visible scope disclaimer and a limitations panel describing what the product covers, what it does not cover, and when no recommendation can be treated as reliable.
 - **FR25:** Investor can see when a recommendation is outside supported scope or based on unsupported conditions.
-- **FR26:** Investor can use goal-based decision guidance in post-MVP phases.
+- **FR26 [Phase 2]:** Investor can define a savings or allocation goal with amount and time horizon and receive decision guidance aligned to that goal.
 - **FR27:** Investor can override a recommendation and preserve that decision context for future sessions.
 
 ### Wyjasnialnosc, pewnosc i bramki decyzyjne
@@ -375,17 +465,17 @@ Poniewaz produkt rozwija solo founder, plan musi zakladac minimalizacje operacyj
 - **FR28:** Investor can see the confidence or uncertainty level attached to a recommendation.
 - **FR29:** Investor can see the main factors that could change or reverse a recommendation.
 - **FR30:** Investor can see when incomplete, stale, or conflicting data limits recommendation strength.
-- **FR31:** Investor can receive a no-recommendation or conditional-recommendation outcome when available information is insufficient for a trustworthy answer.
+- **FR31:** Investor can receive a no-recommendation or conditional-recommendation outcome when available information is insufficient for a defensible answer based on available data and declared assumptions.
 - **FR32:** Investor can review the rationale, source data context, assumptions, and blockers behind a recommendation.
 - **FR33:** Investor can distinguish between strong, conditional, and informational guidance.
 
 ### Monitoring, historia i dalsze kroki
 
-- **FR34:** Investor can monitor changes that may affect prior decisions.
-- **FR35:** Investor can receive alerts when relevant conditions, recommendation quality, or portfolio context change.
-- **FR36:** Investor can review the history of recommendations, decisions, and what changed between decision moments.
-- **FR37:** Investor can review historical scenarios and prior decision baselines.
-- **FR38:** Investor can receive proactive next-best-action guidance in future phases.
+- **FR34 [Phase 2]:** Investor can monitor defined changes in portfolio, FX, tax assumptions, or recommendation quality that may invalidate a prior decision.
+- **FR35 [Phase 2]:** Investor can receive alerts when a tracked threshold, assumption, or recommendation-confidence change is crossed.
+- **FR36 [Phase 2]:** Investor can review the history of recommendations, recorded decisions, and the specific changes that caused a different outcome.
+- **FR37 [Phase 2]:** Investor can review historical scenarios, prior decision baselines, and the assumptions attached to each decision moment.
+- **FR38 [Phase 3]:** Investor can receive proactive next-best-action guidance when defined portfolio or market triggers are met.
 
 ### Wsparcie i bezpieczniki rekomendacji
 
@@ -396,40 +486,56 @@ Poniewaz produkt rozwija solo founder, plan musi zakladac minimalizacje operacyj
 
 ## Non-Functional Requirements
 
+Kazdy NFR ponizej ma charakter pass/fail na poziomie wydania. Niespelnienie progu blokuje release flow decyzyjnego.
+
+### Tabela pomiaru NFR
+
+| Obszar | Metryka | Cel | Metoda / dowod | Wlasciciel |
+|---|---|---|---|---|
+| Wydajnosc | Gotowosc glownego widoku; czas do rekomendacji | <= 2,5 s p95; <= 3 s p95 | pomiar produkcyjny + test syntetyczny przed release | Engineering |
+| Bezpieczenstwo | Ekspozycja danych; audit zmian; prawa uzytkownika do danych | 0 nieautoryzowanych ekspozycji; 100% zmian audytowalnych; obsluga zadan danych <= 30 dni | testy dostepu, przeglad sladu audytowego, rejestr compliance | Engineering + Product |
+| Skalowalnosc | Utrzymanie jakosci przy skali startowej | spelnienie NFR wydajnosci i 0 krytycznych bledow przy >= 60 aktywnych uzytkownikach | test obciazeniowy przed release | Engineering |
+| Dostepnosc | Dostepnosc kluczowych flow | WCAG 2.2 AA; 0 blockerow klawiaturowych | audit automatyczny i manualny | Design + QA |
+| Integracje | Kompletnosc i jawnosc danych zewnetrznych | 100% wynikow z oznaczonym zrodlem, swiezoscia i statusem kompletnosci | testy akceptacyjne + checklist release | Product + Engineering |
+| Niezawodnosc | Dostepnosc flow; zachowanie przy awarii | >= 99,5% miesiecznie; 100% awarii krytycznych konczy sie stanem jawnym albo brakiem rekomendacji | monitoring, testy awarii, przeglad incydentow | Engineering |
+
 ### Wydajnosc
 
-- Glowny widok produktu musi byc gotowy do uzycia w czasie <= 2.5 s w typowym scenariuszu uzytkownika.
-- Rekomendacja po podaniu danych wejsciowych musi byc prezentowana w czasie <= 3 s w typowym flow decyzyjnym.
-- Spadek wydajnosci nie moze prowadzic do ukrycia stanu systemu; jesli odpowiedz trwa dluzej, uzytkownik musi widziec czytelny stan oczekiwania, odswiezania lub niepewnosci.
+- Glowny widok produktu musi byc gotowy do uzycia w czasie <= 2,5 s dla p95 sesji w typowym scenariuszu MVP; dowod: pomiar produkcyjny i test syntetyczny przed release.
+- Rekomendacja po podaniu kompletnych danych wejsciowych musi byc prezentowana w czasie <= 3 s dla p95 prob; dowod: test E2E na danych referencyjnych i pomiar release candidate.
+- Jezeli obliczenie lub odswiezenie danych trwa dluzej niz prog, uzytkownik w czasie <= 1 s od startu akcji musi zobaczyc jawny stan oczekiwania, odswiezania albo niepewnosci; brak takiego stanu = fail.
+- Jezeli po 10 s wynik nadal nie moze zostac obroniony z powodu opoznienia lub brakow danych, produkt nie pokazuje domyslnej rekomendacji; pokazuje opoznienie wyniku albo brak rekomendacji.
 
 ### Bezpieczenstwo
 
-- Integralnosc danych jest priorytetem krytycznym: system nie moze cicho zmieniac, gubic ani nadpisywac danych portfelowych, transakcyjnych ani podatkowych.
-- Wrazliwe dane portfelowe i transakcyjne musza byc chronione zarowno w transmisji, jak i w przechowywaniu.
-- Dostep do danych uzytkownika i sladow rekomendacji musi byc ograniczony zgodnie z rola oraz zakresem niezbednym do dzialania produktu lub wsparcia.
-- System musi zachowywac audit trail zmian danych i rekomendacji tam, gdzie wplywa to na zaufanie, rozliczenia lub wyjasnienie wyniku.
-- GDPR i prywatnosc danych traktujemy jako twardy wymog projektowy.
+- Dane portfelowe, transakcyjne, podatkowe i slad rekomendacji nie moga zostac ujawnione osobie nieuprawnionej; prog pass/fail = 0 nieautoryzowanych ekspozycji w testach dostepu i regresji bezpieczenstwa.
+- Kazda zmiana danych wejsciowych wplywajacych na rekomendacje albo rozliczenie musi byc odtwarzalna: kto lub co zmienilo dane, kiedy, jaki byl zakres zmiany i jaki wynik powstal po zmianie; dowod: przeglad sladu audytowego na scenariuszach referencyjnych.
+- Produkt musi umozliwiac obsluge zadania eksportu lub usuniecia danych uzytkownika w czasie <= 30 dni kalendarzowych; dowod: procedura operacyjna i test zgodnosci.
+- Produkt nie moze cicho zmieniac, gubic ani nadpisywac danych uzytkownika; odsetek niewyjasnionych rozbieznosci danych w scenariuszach krytycznych = 0.
 
 ### Skalowalnosc
 
-- Produkt musi stabilnie obslugiwac obecna skale startowa oraz wzrost co najmniej do 60 aktywnych uzytkownikow bez utraty podstawowych parametrow core flow.
-- Wzrost liczby uzytkownikow nie moze obnizac poprawnosci rekomendacji, integralnosci danych ani czytelnosci stanu integracji.
-- Architektura powinna umozliwiac stopniowy wzrost bez wymuszania natychmiastowej przebudowy calego produktu.
+- Produkt musi utrzymac wszystkie progi wydajnosci oraz 0 krytycznych bledow w rekomendacji i warstwie podatkowej przy skali co najmniej 60 aktywnych uzytkownikow i obciazeniu odpowiadajacym tej skali; dowod: test obciazeniowy przed release.
+- Wzrost ruchu nie moze obnizac poprawnosci wyniku; odsetek niespojnych, niekompletnych albo blednie policzonych rekomendacji w tescie obciazeniowym = 0.
+- Jezeli obciazenie przekracza bezpieczny zakres, produkt moze opoznic nowe obliczenia lub ograniczyc ich uruchamianie, ale nie moze obnizyc jakosci wyniku ani pokazac mylacej rekomendacji; 100% takich sytuacji musi konczyc sie jawnym komunikatem.
 
 ### Dostepnosc
 
-- Produkt musi spelniac poziom strong WCAG AA jako wymog zaufania i uzytecznosci.
-- Kluczowe flow decyzyjne, porownania, komunikaty bledow, stany niepewnosci i dane tabelaryczne musza pozostac dostepne dla uzytkownikow korzystajacych z klawiatury i technologii wspierajacych.
-- Dostepnosc nie moze byc ograniczona tylko do warstwy marketingowej; obejmuje rowniez rdzen doswiadczenia produktowego.
+- Wszystkie kluczowe flow produktu - wprowadzenie danych, porownanie opcji, odczyt uzasadnienia, komunikaty bledow, stany niepewnosci i brak rekomendacji - musza spelniac poziom WCAG 2.2 AA; dowod: audit automatyczny i manualny przed release.
+- Core flow musi byc w pelni obslugiwalny z klawiatury; prog pass/fail = 0 blockerow klawiaturowych w scenariuszach referencyjnych.
+- Dane tabelaryczne, uzasadnienia rekomendacji, ostrzezenia i stany degradacji musza byc dostepne dla technologii wspierajacych; komunikacja nie moze opierac sie wylacznie na kolorze, ikonie albo animacji.
+- Dostepnosc obejmuje rdzen doswiadczenia produktowego, nie tylko warstwe informacyjna lub marketingowa.
 
 ### Integracje
 
-- Produkt musi dzialac poprawnie takze wtedy, gdy pelne integracje brokerow nie sa dostepne; manual-first nie moze byc sciezka gorszej kategorii.
-- Integracje rynkowe i referencyjne musza jasno komunikowac swiezosc danych, niepowodzenia pobrania oraz zakres brakujacych informacji.
-- Blad lub limit po stronie zewnetrznego zrodla nie moze prowadzic do cichego wygenerowania mylacej rekomendacji.
+- Produkt musi pozwolic uzytkownikowi przejsc pelny core flow w modelu manual-first, nawet bez integracji z brokerem; prog pass/fail = mozliwosc dojscia do wyniku albo jawnego braku rekomendacji w scenariuszu referencyjnym bez automatycznej integracji.
+- Kazde zewnetrzne zrodlo uzyte do wyniku musi pokazywac zrodlo, czas ostatniego odswiezenia i status kompletnosci zanim uzytkownik oprze na nim decyzje; dowod: testy akceptacyjne i checklist release.
+- Blad, limit albo brak odpowiedzi po stronie zrodla zewnetrznego nie moze prowadzic do cichego wygenerowania mylacej rekomendacji; prog pass/fail = 0 takich przypadkow w testach scenariuszy brzegowych.
+- Jezeli brakuje krytycznego wejscia, takiego jak kurs FX, cena instrumentu, dane podatkowe albo komplet pozycji, produkt nie pokazuje jednoznacznej rekomendacji; pokazuje brak rekomendacji albo wynik warunkowy z opisem brakow i nastepnym krokiem.
 
 ### Niezawodnosc
 
-- Jesli dane rynkowe, kursy, import lub silnik rekomendacji sa chwilowo niedostepne, uzytkownik musi dostac jasna informacje o problemie oraz status, ze trwaja dzialania naprawcze.
-- System powinien preferowac brak rekomendacji, wynik warunkowy albo opoznienie wyniku nad pokazanie odpowiedzi, ktorej nie mozna obronic.
-- Produkt musi zachowywac spojnosc doswiadczenia nawet przy czesciowych awariach: uzytkownik ma wiedziec, co dziala, co nie dziala i jak wplywa to na zaufanie do wyniku.
+- Dostepnosc miesieczna glownego flow decyzyjnego musi wynosic >= 99,5%, liczona jako mozliwosc otwarcia widoku, wprowadzenia danych oraz uzyskania wyniku albo jawnego braku rekomendacji; dowod: monitoring produkcyjny.
+- Kazda czesciowa awaria danych rynkowych, kursow, importu albo silnika rekomendacji musi w czasie <= 5 s zakonczyc sie jawnym stanem: co dziala, co nie dziala, jaki jest wplyw na wynik i co uzytkownik moze zrobic dalej.
+- Produkt musi preferowac brak rekomendacji nad wynik, ktorego nie mozna obronic; odsetek blednie pokazanych jednoznacznych rekomendacji przy niespojnych, nieaktualnych albo niekompletnych danych = 0 w zestawie scenariuszy krytycznych.
+- W trybie degradacji uzytkownik musi zachowac orientacje w stanie produktu: widzi status, zakres wplywu, ostatni wiarygodny moment danych oraz czy moze kontynuowac manualnie, czy powinien wstrzymac decyzje.

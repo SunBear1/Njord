@@ -1,0 +1,816 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Njord - UX Design Directions</title>
+    <style>
+      :root {
+        --bg: #f4f7fb;
+        --bg-card: #ffffff;
+        --bg-muted: #eef3f9;
+        --text: #102033;
+        --text-muted: #526277;
+        --border: #d8e0ea;
+        --border-strong: #b8c5d6;
+        --brand: #275dad;
+        --brand-soft: #e7effc;
+        --profit: #0f8a4b;
+        --loss: #b63b3b;
+        --warning: #b77717;
+        --neutral: #3664b8;
+        --shadow: 0 10px 30px rgba(16, 32, 51, 0.08);
+        --radius: 16px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .page {
+        max-width: 1480px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+
+      .hero,
+      .card,
+      .direction {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+
+      .hero {
+        padding: 24px;
+        margin-bottom: 24px;
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--brand);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+      }
+
+      p {
+        margin: 0;
+      }
+
+      .hero-grid,
+      .summary-grid,
+      .meta-grid,
+      .preview-grid,
+      .section-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .hero-grid {
+        grid-template-columns: 2fr 1fr;
+        margin-top: 20px;
+      }
+
+      .card {
+        padding: 16px;
+      }
+
+      .summary-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin: 24px 0;
+      }
+
+      .section-title {
+        margin: 32px 0 16px;
+        font-size: 22px;
+      }
+
+      .direction {
+        margin-bottom: 24px;
+        overflow: hidden;
+      }
+
+      .direction-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 20px 20px 16px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .direction-body {
+        padding: 20px;
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: var(--bg-muted);
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .pill.brand {
+        background: var(--brand-soft);
+        color: var(--brand);
+      }
+
+      .meta-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        margin: 20px 0;
+      }
+
+      .meta-grid strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 13px;
+      }
+
+      .preview-grid {
+        grid-template-columns: 2fr 1fr;
+        align-items: start;
+      }
+
+      .mock-desktop,
+      .mock-mobile {
+        background: linear-gradient(180deg, #fbfdff 0%, #f3f7fb 100%);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        overflow: hidden;
+      }
+
+      .mock-mobile {
+        max-width: 360px;
+        justify-self: end;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.88);
+      }
+
+      .brand-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .brand-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--brand);
+      }
+
+      .workspace {
+        padding: 16px;
+      }
+
+      .workspace-grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .workspace-grid.two-col {
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+
+      .workspace-grid.three-col {
+        grid-template-columns: 1fr 1fr 0.8fr;
+      }
+
+      .panel {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 14px;
+      }
+
+      .panel h4 {
+        margin: 0 0 10px;
+        font-size: 15px;
+      }
+
+      .verdict {
+        padding: 14px;
+        border-radius: 14px;
+        border: 1px solid #cfe0fb;
+        background: #f5f9ff;
+      }
+
+      .verdict.warning {
+        border-color: #f3dfbe;
+        background: #fff9ef;
+      }
+
+      .verdict h4 {
+        margin-bottom: 6px;
+      }
+
+      .list {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--text-muted);
+        font-size: 14px;
+      }
+
+      .kv,
+      .bar-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .kv-row,
+      .bar-row {
+        display: grid;
+        gap: 8px;
+      }
+
+      .kv-row {
+        grid-template-columns: 1fr auto;
+      }
+
+      .bar {
+        height: 8px;
+        border-radius: 999px;
+        background: #dce5f1;
+        overflow: hidden;
+      }
+
+      .bar > span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--brand);
+      }
+
+      .bar > span.warning {
+        background: var(--warning);
+      }
+
+      .bar > span.profit {
+        background: var(--profit);
+      }
+
+      .bar > span.loss {
+        background: var(--loss);
+      }
+
+      .table {
+        display: grid;
+        gap: 8px;
+      }
+
+      .table-row {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 1fr 0.8fr;
+        gap: 8px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #fcfdff;
+        font-size: 13px;
+      }
+
+      .table-row.header {
+        background: var(--bg-muted);
+        color: var(--text-muted);
+        font-weight: 700;
+      }
+
+      .action-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 14px;
+        border: 1px solid var(--border-strong);
+        border-radius: 12px;
+        background: #fff;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .btn.primary {
+        border-color: var(--brand);
+        background: var(--brand);
+        color: #fff;
+      }
+
+      .mini-stack {
+        display: grid;
+        gap: 10px;
+      }
+
+      .subtle {
+        color: var(--text-muted);
+      }
+
+      .footer-note {
+        margin-top: 24px;
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+
+      @media (max-width: 1100px) {
+        .hero-grid,
+        .summary-grid,
+        .meta-grid,
+        .preview-grid,
+        .workspace-grid.two-col,
+        .workspace-grid.three-col {
+          grid-template-columns: 1fr;
+        }
+
+        .mock-mobile {
+          justify-self: stretch;
+          max-width: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <section class="hero">
+        <p class="eyebrow">Njord UX Showcase</p>
+        <h1>Design Direction Explorations</h1>
+        <p class="subtle" style="margin-top: 10px;">
+          6 kierunkow wizualnych dla trust-first productu decision-support. Kazdy wariant pokazuje
+          inny balans miedzy werdyktem, dowodami, porownaniem i warstwa zaufania.
+        </p>
+
+        <div class="hero-grid">
+          <div class="card">
+            <h3>Jak oceniac kierunki</h3>
+            <div class="section-grid" style="margin-top: 12px;">
+              <div>
+                <strong>1. Layout intuitiveness</strong>
+                <p class="subtle">Czy verdict i trust cues sa tam, gdzie instynktownie ich szukasz?</p>
+              </div>
+              <div>
+                <strong>2. Interaction style</strong>
+                <p class="subtle">Czy flow wspiera decyzje, a nie eksploracje dla samej eksploracji?</p>
+              </div>
+              <div>
+                <strong>3. Visual weight</strong>
+                <p class="subtle">Czy gestosc danych jest profesjonalna, ale nadal spokojna?</p>
+              </div>
+              <div>
+                <strong>4. Trust readability</strong>
+                <p class="subtle">Czy freshness, assumptions i no-recommendation sa first-class?</p>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Quick map</h3>
+            <div class="mini-stack" style="margin-top: 12px;">
+              <a href="#direction-1">01. Verdict First Stack</a>
+              <a href="#direction-2">02. Split Evidence Desk</a>
+              <a href="#direction-3">03. Guided Decision Rail</a>
+              <a href="#direction-4">04. Analytical Ledger</a>
+              <a href="#direction-5">05. Scenario Canvas</a>
+              <a href="#direction-6">06. Trust Console</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="summary-grid">
+        <div class="card">
+          <h3>Trust-first constraint</h3>
+          <p class="subtle" style="margin-top: 8px;">Brak hype, brak tradingowej dramaturgii, brak CTA pchajacych do ruchu.</p>
+        </div>
+        <div class="card">
+          <h3>Core interaction</h3>
+          <p class="subtle" style="margin-top: 8px;">Portfel + nowa gotowka -> readiness gate -> verdict -> proof -> what could change.</p>
+        </div>
+        <div class="card">
+          <h3>Visual baseline</h3>
+          <p class="subtle" style="margin-top: 8px;">Current Njord brand, neutral surfaces, system fonts, hybrid 4/8 spacing, very high readability.</p>
+        </div>
+      </section>
+
+      <h2 class="section-title">Explored Directions</h2>
+
+      <section class="direction" id="direction-1">
+        <div class="direction-header">
+          <div>
+            <p class="eyebrow">Direction 01</p>
+            <h2>Verdict First Stack</h2>
+            <p class="subtle" style="margin-top: 8px;">Najbardziej bezposredni: verdict na gorze, powod, trust cues, potem dopiero porownanie i drill-down.</p>
+            <div class="pill-row">
+              <span class="pill brand">best for clarity</span>
+              <span class="pill">mobile-safe</span>
+              <span class="pill">low cognitive load</span>
+            </div>
+          </div>
+          <div class="card" style="min-width: 220px;">
+            <strong>Design thesis</strong>
+            <p class="subtle" style="margin-top: 6px;">Jedno centrum ciezkosci: co wygrywa, dlaczego, i na ile mozna temu ufac.</p>
+          </div>
+        </div>
+        <div class="direction-body">
+          <div class="meta-grid">
+            <div class="card"><strong>Mocna strona</strong><span class="subtle">Najlatwiej domyka decyzje bez chaosu.</span></div>
+            <div class="card"><strong>Ryzyko</strong><span class="subtle">Moze byc zbyt „jednoliniowy”, jesli dowody beda za plytkie.</span></div>
+            <div class="card"><strong>Idealny dla</strong><span class="subtle">Nowa gotowka i szybkie check-iny.</span></div>
+          </div>
+          <div class="preview-grid">
+            <div class="mock-desktop">
+              <div class="topbar"><span class="brand-chip"><span class="brand-dot"></span>Njord</span><span class="subtle">Nowa gotowka / decyzja</span></div>
+              <div class="workspace">
+                <div class="workspace-grid">
+                  <div class="verdict">
+                    <h4>Dzisiejsza wiodaca opcja: ETF szerokiego rynku</h4>
+                    <p class="subtle">Prowadzi po podatku i FX. Przewaga jest umiarkowana, ale obroniona przy aktualnych danych.</p>
+                    <div class="action-row">
+                      <span class="btn primary">Zobacz dlaczego</span>
+                      <span class="btn">Co moze zmienic wynik?</span>
+                    </div>
+                  </div>
+                  <div class="workspace-grid two-col">
+                    <div class="panel">
+                      <h4>Top powody</h4>
+                      <ul class="list">
+                        <li>Lepszy wynik netto po podatku w horyzoncie 24 mies.</li>
+                        <li>Nizszy koszt alternatywny niz konto oszczednosciowe.</li>
+                        <li>Obecny portfel jest niedowazony w tej ekspozycji.</li>
+                      </ul>
+                    </div>
+                    <div class="panel">
+                      <h4>Trust cues</h4>
+                      <div class="kv">
+                        <div class="kv-row"><span>Confidence</span><strong>umiarkowana</strong></div>
+                        <div class="kv-row"><span>Freshness</span><strong>kurs FX 2h temu</strong></div>
+                        <div class="kv-row"><span>Gotowosc danych</span><strong>pelna</strong></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="panel">
+                    <h4>Porownanie opcji</h4>
+                    <div class="table">
+                      <div class="table-row header"><span>Opcja</span><span>Wynik netto</span><span>Confidence</span><span>Status</span></div>
+                      <div class="table-row"><span>ETF globalny</span><span>+12.4%</span><span>Umiark.</span><span>Lead</span></div>
+                      <div class="table-row"><span>Konto oszcz.</span><span>+7.1%</span><span>Wysoka</span><span>Stable</span></div>
+                      <div class="table-row"><span>Obligacje</span><span>+8.3%</span><span>Wysoka</span><span>Safe</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mock-mobile">
+              <div class="topbar"><span class="brand-chip"><span class="brand-dot"></span>Njord</span><span class="subtle">Mobile</span></div>
+              <div class="workspace mini-stack">
+                <div class="verdict">
+                  <h4>ETF prowadzi</h4>
+                  <p class="subtle">Podatkowo + FX korzystniejsze dzisiaj.</p>
+                </div>
+                <div class="panel">
+                  <h4>Dlaczego</h4>
+                  <ul class="list"><li>Wygrana po podatku</li><li>Lepszy fit do portfela</li></ul>
+                </div>
+                <div class="panel">
+                  <h4>Zaufanie</h4>
+                  <div class="kv">
+                    <div class="kv-row"><span>Confidence</span><strong>Umiark.</strong></div>
+                    <div class="kv-row"><span>Freshness</span><strong>2h</strong></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="direction" id="direction-2">
+        <div class="direction-header">
+          <div>
+            <p class="eyebrow">Direction 02</p>
+            <h2>Split Evidence Desk</h2>
+            <p class="subtle" style="margin-top: 8px;">Verdict po lewej, dowody i parametry po prawej. Bardziej „biurko analityczne” niz karta decyzji.</p>
+            <div class="pill-row">
+              <span class="pill brand">desktop-strong</span>
+              <span class="pill">high trust</span>
+              <span class="pill">evidence-forward</span>
+            </div>
+          </div>
+          <div class="card" style="min-width: 220px;">
+            <strong>Design thesis</strong>
+            <p class="subtle" style="margin-top: 6px;">Uzytkownik widzi decyzje i dowody jednoczesnie, bez przechodzenia do ukrytej warstwy eksperckiej.</p>
+          </div>
+        </div>
+        <div class="direction-body">
+          <div class="meta-grid">
+            <div class="card"><strong>Mocna strona</strong><span class="subtle">Najlepsza audytowalnosc i najwiekszy spokój dla ostroznych users.</span></div>
+            <div class="card"><strong>Ryzyko</strong><span class="subtle">Moze byc zbyt ciezkie na mobile, jesli nie zrobi sie dobrego collapse.</span></div>
+            <div class="card"><strong>Idealny dla</strong><span class="subtle">Desktop i users low-error-tolerance.</span></div>
+          </div>
+          <div class="preview-grid">
+            <div class="mock-desktop">
+              <div class="topbar"><span class="brand-chip"><span class="brand-dot"></span>Njord</span><span class="subtle">Evidence desk</span></div>
+              <div class="workspace">
+                <div class="workspace-grid two-col">
+                  <div class="mini-stack">
+                    <div class="verdict warning">
+                      <h4>Wiodaca opcja: obligacje 2-letnie</h4>
+                      <p class="subtle">Przewaga niewielka. ETF traci przez koszt wejscia i slabsze confidence.</p>
+                    </div>
+                    <div class="panel">
+                      <h4>Co moze odwrocic wynik</h4>
+                      <ul class="list">
+                        <li>Zmiana kursu USD/PLN o ponad 6%</li>
+                        <li>Nizsza kwota wejscia netto po podatku</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="panel">
+                    <h4>Panel dowodowy</h4>
+                    <div class="kv">
+                      <div class="kv-row"><span>NBP FX</span><strong>wczoraj 17:15</strong></div>
+                      <div class="kv-row"><span>Podatek</span><strong>Belka 19%</strong></div>
+                      <div class="kv-row"><span>Portfolio fit</span><strong>wysoki</strong></div>
+                      <div class="kv-row"><span>Brakujace dane</span><strong>0 krytycznych</strong></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mock-mobile">
+              <div class="topbar"><span class="brand-chip"><span class="brand-dot"></span>Njord</span><span class="subtle">Evidence</span></div>
+              <div class="workspace mini-stack">
+                <div class="verdict warning">
+                  <h4>Obligacje prowadza</h4>
+                  <p class="subtle">Przewaga mala, ale stabilniejsza.</p>
+                </div>
+                <div class="panel">
+                  <h4>Dowody</h4>
+                  <div class="kv">
+                    <div class="kv-row"><span>FX</span><strong>wczoraj</strong></div>
+                    <div class="kv-row"><span>Braki</span><strong>0 kryt.</strong></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="direction" id="direction-3">
+        <div class="direction-header">
+          <div>
+            <p class="eyebrow">Direction 03</p>
+            <h2>Guided Decision Rail</h2>
+            <p class="subtle" style="margin-top: 8px;">Bardziej sekwencyjny flow: dane -> gotowosc -> verdict -> next action. Bliski wizardowi, ale bez ciezaru formularza.</p>
+            <div class="pill-row">
+              <span class="pill brand">best onboarding</span>
+              <span class="pill">guided</span>
+              <span class="pill">low anxiety</span>
+            </div>
+          </div>
+          <div class="card" style="min-width: 220px;">
+            <strong>Design thesis</strong>
+            <p class="subtle" style="margin-top: 6px;">Najpierw orientacja i gotowosc danych, potem dopiero werdykt.</p>
+          </div>
+        </div>
+        <div class="direction-body">
+          <div class="meta-grid">
+            <div class="card"><strong>Mocna strona</strong><span class="subtle">Najmniej stresujacy dla nowych users.</span></div>
+            <div class="card"><strong>Ryzyko</strong><span class="subtle">Moze wydluzyc flow dla returning users.</span></div>
+            <div class="card"><strong>Idealny dla</strong><span class="subtle">Onboarding, partial data, corrections.</span></div>
+          </div>
+          <div class="preview-grid">
+            <div class="mock-desktop">
+              <div class="topbar"><span class="brand-chip"><span class="brand-dot"></span>Njord</span><span class="subtle">Guided rail</span></div>
+              <div class="workspace">
+                <div class="workspace-grid three-col">
+                  <div class="panel"><h4>Krok 1: Portfel</h4><p class="subtle">3 pozycje, 1 brakujacy koszt zakupu.</p></div>
+                  <div class="panel"><h4>Krok 2: Nowa gotowka</h4><p class="subtle">25 000 PLN do alokacji.</p></div>
+                  <div class="panel"><h4>Krok 3: Gotowosc</h4><p class="subtle">Kierunek warunkowy, brak ceny wejscia dla 1 pozycji.</p></div>
+                </div>
+                <div class="verdict" style="margin-top: 16px;">
+                  <h4>Wstepny werdykt: ETF prowadzi, ale upewnij sie co do kosztu zakupu akcji AAPL</h4>
+                  <p class="subtle">Uzupelnij 1 dane i sprawdz, czy wynik sie utrzyma.</p>
+                </div>
+              </div>
+            </div>
+            <div class="mock-mobile">
+              <div class="topbar"><span class="brand-chip"><span class="brand-dot"></span>Njord</span><span class="subtle">Guided</span></div>
+              <div class="workspace mini-stack">
+                <div class="panel"><h4>1. Portfel</h4><p class="subtle">1 brak</p></div>
+                <div class="panel"><h4>2. Gotowosc</h4><p class="subtle">Warunkowa</p></div>
+                <div class="verdict"><h4>ETF prowadzi</h4><p class="subtle">Uzupelnij koszt AAPL</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="direction" id="direction-4">
+        <div class="direction-header">
+          <div>
+            <p class="eyebrow">Direction 04</p>
+            <h2>Analytical Ledger</h2>
+            <p class="subtle" style="margin-top: 8px;">Najbardziej data-dense: ledger i tabelaryczne porownanie jako glowny ekran, verdict jako nadbudowa.</p>
+            <div class="pill-row">
+              <span class="pill brand">power-user</span>
+              <span class="pill">table-first</span>
+              <span class="pill">dense</span>
+            </div>
+          </div>
+          <div class="card" style="min-width: 220px;">
+            <strong>Design thesis</strong>
+            <p class="subtle" style="margin-top: 6px;">Najpierw struktura danych i liczby, potem interpretacja.</p>
+          </div>
+        </div>
+        <div class="direction-body">
+          <div class="meta-grid">
+            <div class="card"><strong>Mocna strona</strong><span class="subtle">Silne poczucie kontroli dla analitycznych users.</span></div>
+            <div class="card"><strong>Ryzyko</strong><span class="subtle">Latwo wpasc w terminal, nie decision-support.</span></div>
+            <div class="card"><strong>Idealny dla</strong><span class="subtle">Eksperci i review mode, niekoniecznie MVP default.</span></div>
+          </div>
+          <div class="preview-grid">
+            <div class="mock-desktop">
+              <div class="topbar"><span class="brand-chip"><span class="brand-dot"></span>Njord</span><span class="subtle">Ledger</span></div>
+              <div class="workspace">
+                <div class="panel">
+                  <h4>Macierz porownawcza</h4>
+                  <div class="table">
+                    <div class="table-row header"><span>Metryka</span><span>ETF</span><span>Obligacje</span><span>Konto</span></div>
+                    <div class="table-row"><span>Net outcome</span><span>12.4%</span><span>8.3%</span><span>7.1%</span></div>
+                    <div class="table-row"><span>Confidence</span><span>68%</span><span>82%</span><span>93%</span></div>
+                    <div class="table-row"><span>Freshness</span><span>2h</span><span>1d</span><span>1d</span></div>
+                  </div>
+                </div>
+                <div class="verdict" style="margin-top: 16px;"><h4>Interpretacja: ETF prowadzi, ale z wyzsza kruchoscia wyniku.</h4></div>
+              </div>
+            </div>
+            <div class="mock-mobile">
+              <div class="topbar"><span class="brand-chip"><span class="brand-dot"></span>Njord</span><span class="subtle">Ledger</span></div>
+              <div class="workspace mini-stack">
+                <div class="panel"><h4>ETF</h4><p class="subtle">Net 12.4%, confidence 68%</p></div>
+                <div class="panel"><h4>Obligacje</h4><p class="subtle">Net 8.3%, confidence 82%</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="direction" id="direction-5">
+        <div class="direction-header">
+          <div>
+            <p class="eyebrow">Direction 05</p>
+            <h2>Scenario Canvas</h2>
+            <p class="subtle" style="margin-top: 8px;">Verdict nadal na pierwszym planie, ale „what could change the answer” dostaje mocny wizualny status.</p>
+            <div class="pill-row">
+              <span class="pill brand">best for trust nuance</span>
+              <span class="pill">scenario-aware</span>
+              <span class="pill">educational</span>
+            </div>
+          </div>
+          <div class="card" style="min-width: 220px;">
+            <strong>Design thesis</strong>
+            <p class="subtle" style="margin-top: 6px;">Najmocniejszy element Njord to nie ranking, tylko granica zaufania wyniku.</p>
+          </div>
+        </div>
+        <div class="direction-body">
+          <div class="meta-grid">
+            <div class="card"><strong>Mocna strona</strong><span class="subtle">Najlepiej komunikuje kruchosc / stabilnosc werdyktu.</span></div>
+            <div class="card"><strong>Ryzyko</strong><span class="subtle">Moze byc zbyt „teoretyczny”, jesli zabraknie prostego CTA.</span></div>
+            <div class="card"><strong>Idealny dla</strong><span class="subtle">Trust-first angle i recurring users.</span></div>
+          </div>
+          <div class="preview-grid">
+            <div class="mock-desktop">
+              <div class="topbar"><span class="brand-chip"><span class="brand-dot"></span>Njord</span><span class="subtle">Scenario canvas</span></div>
+              <div class="workspace workspace-grid two-col">
+                <div class="verdict">
+                  <h4>Dzisiejszy lider: ETF</h4>
+                  <p class="subtle">Lider utrzymuje sie dopoki USD nie oslabnie mocniej niz 6% i koszt wejscia pozostaje bez zmian.</p>
+                </div>
+                <div class="panel">
+                  <h4>Punkt przelamania</h4>
+                  <div class="bar-list">
+                    <div class="bar-row"><span class="subtle">USD/PLN -6%</span><div class="bar"><span class="warning" style="width: 62%"></span></div></div>
+                    <div class="bar-row"><span class="subtle">Koszt wejscia +2%</span><div class="bar"><span class="profit" style="width: 48%"></span></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mock-mobile">
+              <div class="topbar"><span class="brand-chip"><span class="brand-dot"></span>Njord</span><span class="subtle">Scenario</span></div>
+              <div class="workspace mini-stack">
+                <div class="verdict"><h4>ETF prowadzi</h4><p class="subtle">Kruchy przy slabym USD.</p></div>
+                <div class="panel"><h4>Co zmieni wynik</h4><p class="subtle">USD/PLN -6%</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="direction" id="direction-6">
+        <div class="direction-header">
+          <div>
+            <p class="eyebrow">Direction 06</p>
+            <h2>Trust Console</h2>
+            <p class="subtle" style="margin-top: 8px;">Najbardziej explicit trust architecture: verdict, trust panel, source status i reasons w jednym ekranie.</p>
+            <div class="pill-row">
+              <span class="pill brand">high-trust</span>
+              <span class="pill">ops-friendly</span>
+              <span class="pill">governance visible</span>
+            </div>
+          </div>
+          <div class="card" style="min-width: 220px;">
+            <strong>Design thesis</strong>
+            <p class="subtle" style="margin-top: 6px;">Njord wygrywa tym, ze umie powiedziec nie tylko „co”, ale tez „na ile i dlaczego”.</p>
+          </div>
+        </div>
+        <div class="direction-body">
+          <div class="meta-grid">
+            <div class="card"><strong>Mocna strona</strong><span class="subtle">Najbardziej zgodny z trust contractem i support traceability.</span></div>
+            <div class="card"><strong>Ryzyko</strong><span class="subtle">Moze byc zbyt „compliance forward”, jesli zabraknie ciepla i prostoty.</span></div>
+            <div class="card"><strong>Idealny dla</strong><span class="subtle">Trust-first MVP z mocnym no-recommendation state.</span></div>
+          </div>
+          <div class="preview-grid">
+            <div class="mock-desktop">
+              <div class="topbar"><span class="brand-chip"><span class="brand-dot"></span>Njord</span><span class="subtle">Trust console</span></div>
+              <div class="workspace workspace-grid three-col">
+                <div class="verdict">
+                  <h4>No recommendation</h4>
+                  <p class="subtle">Brakuje ceny wejscia dla 2 pozycji. Wydanie werdyktu byloby nieuczciwe.</p>
+                </div>
+                <div class="panel">
+                  <h4>Co odblokuje wynik</h4>
+                  <ul class="list"><li>Uzupelnij koszt zakupu TSLA</li><li>Potwierdz walute pozycji</li></ul>
+                </div>
+                <div class="panel">
+                  <h4>Status zaufania</h4>
+                  <div class="kv">
+                    <div class="kv-row"><span>Confidence</span><strong>niska</strong></div>
+                    <div class="kv-row"><span>Freshness</span><strong>OK</strong></div>
+                    <div class="kv-row"><span>Braki krytyczne</span><strong>2</strong></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mock-mobile">
+              <div class="topbar"><span class="brand-chip"><span class="brand-dot"></span>Njord</span><span class="subtle">Trust</span></div>
+              <div class="workspace mini-stack">
+                <div class="verdict warning"><h4>Brak rekomendacji</h4><p class="subtle">2 braki krytyczne</p></div>
+                <div class="panel"><h4>Odblokuj wynik</h4><p class="subtle">Uzupelnij 2 pola</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <p class="footer-note">
+        Tip: najlepszy kierunek nie musi byc wybrany "as-is". Celem jest wskazanie bazowej architektury
+        widoku oraz elementow, ktore warto polaczyc hybrydowo.
+      </p>
+    </div>
+  </body>
+  </html>
