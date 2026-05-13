@@ -22,3 +22,4 @@ date,coverage_pct,above_bull_pct,below_bear_pct,bias_ratio,base_mae_pp,stocks,ov
 2026-05-10,38.1,41.2,20.6,2,60.4,97,PASS,bull,energy,0
 2026-05-11,41.2,37.1,21.6,1.71,54.8,97,PASS,bull,cloud-saas,0
 2026-05-12,35.4,41.7,22.9,1.82,68.9,96,PASS,bull,etf,0
+2026-05-13,33,41.2,25.8,1.6,61.5,97,FAIL,bull,networking,0
