@@ -39,3 +39,4 @@ date,coverage_pct,above_bull_pct,below_bear_pct,bias_ratio,base_mae_pp,stocks,ov
 2026-05-27,28.4,47.4,24.2,1.96,57.8,95,FAIL,bull,energy,0
 2026-05-28,40.4,36.2,23.4,1.55,64.2,94,PASS,bull,media,0
 2026-05-29,43.2,35.8,21.1,1.7,59.4,95,PASS,bull,etf,0
+2026-05-30,38,42.4,19.6,2.17,51.1,92,PASS,bull,networking,0
