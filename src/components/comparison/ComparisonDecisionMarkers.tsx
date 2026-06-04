@@ -44,7 +44,7 @@ export function ComparisonDecisionMarkers({
       helper: `W bazowym scenariuszu (${summary.winnerDiffPct.toLocaleString('pl-PL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%)`,
     },
       {
-        label: 'Spójność werdyktu',
+        label: 'Spójność scenariuszy',
         value: `${summary.supportingScenarioCount}/${results.length}`,
         tone: summary.conflictingScenarioCount === 0 ? 'success' : 'default',
         helper: getScenarioConsistencyText(
@@ -69,9 +69,9 @@ export function ComparisonDecisionMarkers({
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h2 className="text-lg font-semibold text-text-primary">Dlaczego taki werdykt?</h2>
+          <h2 className="text-lg font-semibold text-text-primary">Dlaczego taki wynik?</h2>
           <p className="text-sm text-text-secondary">
-            Najważniejsze markery, które prowadzą do rekomendacji.
+            Najważniejsze markery, które kształtują porównanie.
           </p>
         </div>
       </div>

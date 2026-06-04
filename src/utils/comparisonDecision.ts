@@ -45,8 +45,8 @@ export function getScenarioConsistencyText(
     return `Ten sam kierunek pokazują scenariusze ${formatScenarioList(supportingScenarioLabels)}.`;
   }
 
-  const supportPrefix = supportingScenarioLabels.length === 1 ? 'Werdykt wspiera scenariusz' : 'Werdykt wspierają scenariusze';
-  const conflictPrefix = conflictingScenarioLabels.length === 1 ? 'Inny kierunek pokazuje scenariusz' : 'Inny kierunek pokazują scenariusze';
+  const supportPrefix = supportingScenarioLabels.length === 1 ? 'Zgodny kierunek: scenariusz' : 'Zgodny kierunek: scenariusze';
+  const conflictPrefix = conflictingScenarioLabels.length === 1 ? 'Odmienny wynik: scenariusz' : 'Odmienny wynik: scenariusze';
 
   return `${supportPrefix} ${formatScenarioList(supportingScenarioLabels)}. ${conflictPrefix} ${formatScenarioList(conflictingScenarioLabels)}.`;
 }
@@ -80,11 +80,11 @@ export function getDecisionSummary(results: ScenarioResult[]): DecisionSummary |
     winnerLabel,
     winnerVerb,
     actionTitle: baseResult.stockBeatsBenchmark
-      ? 'Na ten moment lepiej trzymać akcje'
-      : `Na ten moment lepiej sprzedać i przenieść środki ${winnerLabel === 'Konto' ? 'na' : winnerLabel === 'Obligacje' ? 'w' : 'do'} ${getReinvestmentTarget(baseResult.benchmarkLabel)}`,
+      ? 'Scenariusz bazowy: akcje dają wyższy wynik netto'
+      : `Scenariusz bazowy: ${getReinvestmentTarget(baseResult.benchmarkLabel)} daje wyższy wynik netto`,
     actionSubtitle: baseResult.stockBeatsBenchmark
-      ? 'Scenariusz bazowy pokazuje, że trzymanie pozycji daje wyższy wynik netto niż natychmiastowa rotacja kapitału.'
-      : `Scenariusz bazowy pokazuje, że ${getReinvestmentTarget(baseResult.benchmarkLabel)} daje wyższy wynik netto niż dalsze trzymanie akcji.`,
+      ? 'Przy tych założeniach, utrzymanie pozycji generuje wyższy szacowany wynik netto po podatku i FX.'
+      : `Przy tych założeniach, ${getReinvestmentTarget(baseResult.benchmarkLabel)} generuje wyższy szacowany wynik netto po podatku.`,
     supportingScenarioCount,
     conflictingScenarioCount,
     supportingScenarioLabels,
