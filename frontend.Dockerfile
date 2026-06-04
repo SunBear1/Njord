@@ -20,7 +20,7 @@ COPY frontend ./frontend
 RUN npm run build
 
 # ---- runtime stage -------------------------------------------------
-FROM nginxinc/nginx-unprivileged:1.27-alpine
+FROM nginxinc/nginx-unprivileged:1.27-alpine-slim
 
 # nginx-unprivileged listens on 8080 by default; rewrite to 80 to match
 # the Service / IngressRoute used by njord-frontend chart.
