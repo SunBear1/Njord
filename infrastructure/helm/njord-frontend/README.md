@@ -18,7 +18,7 @@ pushed to any registry in Epic 0. Build it locally and import it into k3d:
 
 ```bash
 SHA=$(git rev-parse --short HEAD)
-docker build -f frontend.Dockerfile -t njord-frontend:dev-$SHA .
+docker build -f frontend/Dockerfile -t njord-frontend:dev-$SHA .
 docker tag njord-frontend:dev-$SHA njord-frontend:latest
 k3d image import njord-frontend:dev-$SHA njord-frontend:latest \
   -c njord-dev-cluster
