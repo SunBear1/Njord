@@ -1,0 +1,64 @@
+# Default values for njord-postgres.
+# Story 0.3 — single-replica Postgres on local-path PVC.
+
+postgres:
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+
+  # Single replica StatefulSet — multi-replica replication is out of scope (Epic 0).
+  replicaCount: 1
+
+  service:
+    port: 5432
+
+  persistence:
+    enabled: true
+    storageClassName: local-path
+    size: 10Gi
+    accessModes:
+      - ReadWriteOnce
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # Pin Postgres to the db-control node (mirrors planned OCI A1.Flex topology).
+  nodeSelector:
+    role: db-control
+
+  tolerations: []
+  affinity: {}
+
+  # Credentials. Password is auto-generated on first install via `lookup` +
+  # `randAlphaNum 32`; on subsequent upgrades the existing Secret is re-used so
+  # the value is stable. Override `auth.password` to provide a fixed value
+  # (e.g. when restoring from backup).
+  auth:
+    username: njord
+    database: njord
+    password: ""
+
+  # postgresql.conf overrides injected via ConfigMap.
+  # Tuned for a 16GB db-control node hosting only Postgres.
+  config:
+    maxConnections: 50
+    sharedBuffers: 128MB
+
+  # Liveness / readiness use pg_isready against the local socket.
+  probes:
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 6
+    readiness:
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 6

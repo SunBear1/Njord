@@ -1,0 +1,16 @@
+apiVersion: v2
+name: njord-postgres
+description: Single-replica Postgres for Njord (cache, sessions, portfolio data).
+type: application
+version: 0.1.0
+appVersion: "16"
+kubeVersion: ">=1.30.0-0"
+keywords:
+  - njord
+  - postgres
+  - database
+home: https://github.com/SunBear1/Njord
+sources:
+  - https://github.com/SunBear1/Njord/tree/main/infrastructure/helm/njord-postgres
+maintainers:
+  - name: SunBear1

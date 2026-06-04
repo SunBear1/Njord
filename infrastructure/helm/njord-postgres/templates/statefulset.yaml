@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  labels:
+    {{- include "njord-postgres.labels" . | nindent 4 }}
+spec:
+  serviceName: postgres
+  replicas: {{ .Values.postgres.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "njord-postgres.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "njord-postgres.labels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+    spec:
+      {{- with .Values.postgres.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.postgres.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.postgres.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        fsGroup: 70  # postgres group in alpine image
+      containers:
+        - name: postgres
+          image: "{{ .Values.postgres.image.repository }}:{{ .Values.postgres.image.tag }}"
+          imagePullPolicy: {{ .Values.postgres.image.pullPolicy }}
+          ports:
+            - name: postgres
+              containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+            # postgres:16-alpine stores data under /var/lib/postgresql/data, but
+            # mounting a PVC there overlays the default data; use a subdirectory
+            # so initdb can run cleanly on first start.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: config
+              mountPath: /etc/postgresql/postgresql.conf
+              subPath: postgresql.conf
+              readOnly: true
+          args:
+            - "-c"
+            - "config_file=/etc/postgresql/postgresql.conf"
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - {{ .Values.postgres.auth.username | quote }}
+                - -d
+                - {{ .Values.postgres.auth.database | quote }}
+            initialDelaySeconds: {{ .Values.postgres.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.postgres.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.postgres.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.postgres.probes.liveness.failureThreshold }}
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - {{ .Values.postgres.auth.username | quote }}
+                - -d
+                - {{ .Values.postgres.auth.database | quote }}
+            initialDelaySeconds: {{ .Values.postgres.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.postgres.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.postgres.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.postgres.probes.readiness.failureThreshold }}
+          resources:
+            {{- toYaml .Values.postgres.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: postgres-config
+            items:
+              - key: postgresql.conf
+                path: postgresql.conf
+  {{- if .Values.postgres.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          {{- include "njord-postgres.labels" . | nindent 10 }}
+      spec:
+        accessModes:
+          {{- toYaml .Values.postgres.persistence.accessModes | nindent 10 }}
+        storageClassName: {{ .Values.postgres.persistence.storageClassName | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.postgres.persistence.size | quote }}
+  {{- end }}
