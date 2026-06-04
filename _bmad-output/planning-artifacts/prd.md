@@ -33,8 +33,10 @@ classification:
   complexity: high
   projectContext: brownfield
 releaseMode: phased
-lastEdited: '2026-05-11'
+lastEdited: '2026-05-18'
 editHistory:
+  - date: '2026-05-18'
+    changes: 'Merged duplicate scope sections, sharpened FR20/FR38 acceptance criteria, added per-item testability to borderline NFRs (accessibility assistive tech, degradation mode).'
   - date: '2026-05-11'
     changes: 'Added compliance control frame, recurring and abuse journeys, measurable NFRs, phase anchors, and frontmatter cleanup.'
 ---
@@ -105,17 +107,11 @@ Techniczny sukces oznacza wiec: poprawne i audytowalne obliczenia, wiarygodne po
 
 ## Product Scope
 
-### Faza 1 - Platform MVP
+Szczegolowe fazowanie, zakres capability, traceability i strategia ryzyka sa opisane w sekcji "Scoping projektu i fazowanie" ponizej. Ponizej jedynie kierunkowe podsumowanie faz:
 
-MVP musi udowodnic, ze Njord potrafi doprowadzic uzytkownika do zaufanej decyzji. Dlatego zakres MVP powinien obejmowac agregacje portfela i pozycji, reczne lub importowane wprowadzenie holdings, rekomendacje decyzji alokacyjnej, wyjasnienie dlaczego taka rekomendacja zostala pokazana oraz wynik uwzgledniajacy podatek i FX.
-
-### Faza 2 - Funkcje po MVP
-
-Po MVP produkt powinien zyskac warstwe, ktora wzmacnia retencje i przewage konkurencyjna: monitoring dashboard, alerty i zmiany rekomendacji, automatyzacje Belki i PIT, historie scenariuszy, rekomendacje pod cele uzytkownika oraz szersze integracje z wieloma brokerami.
-
-### Faza 3 - Wizja docelowa
-
-Docelowa wersja produktu to osobisty investment copilot dla polskiego inwestora, ktory nie tylko odpowiada na pytania zadane recznie, ale tez proaktywnie podpowiada, kiedy decyzja powinna sie zmienic i co warto zrobic dalej.
+- **Faza 1 (Platform MVP):** Agregacja portfela, manual-first holdings, recommendation engine z explainability, wynik po podatku i FX, confidence basics, audit trail.
+- **Faza 2 (Post-MVP):** Monitoring dashboard, alerty, Belka/PIT automation, scenario history, goal-based recommendations, integracje brokerow.
+- **Faza 3 (Wizja):** Proaktywny investment copilot — event-driven guidance, glebsza personalizacja, ciagla optymalizacja momentow decyzyjnych.
 
 ## User Journeys
 
@@ -448,7 +444,7 @@ Poniewaz produkt rozwija solo founder, plan musi zakladac minimalizacje operacyj
 - **FR17:** Investor can see the impact of FX on compared options.
 - **FR18:** Investor can compare global market instruments with relevant Polish alternatives.
 - **FR19:** Investor can review tax, FX, and cost assumptions used in a comparison.
-- **FR20 [Phase 2]:** Investor can complete supported Belka and PIT-related workflows for decision follow-up and tax context review.
+- **FR20 [Phase 2]:** Investor can generate a Belka tax summary for a given tax year from recorded transactions and review the PIT-38 line items derived from FIFO-matched lots, applicable NBP rates, and calculated gains/losses.
 - **FR21:** Investor can review the baseline, horizon, and net outcome attached to each scenario or alternative.
 
 ### Preferencje, dopasowanie i granice
@@ -475,7 +471,7 @@ Poniewaz produkt rozwija solo founder, plan musi zakladac minimalizacje operacyj
 - **FR35 [Phase 2]:** Investor can receive alerts when a tracked threshold, assumption, or recommendation-confidence change is crossed.
 - **FR36 [Phase 2]:** Investor can review the history of recommendations, recorded decisions, and the specific changes that caused a different outcome.
 - **FR37 [Phase 2]:** Investor can review historical scenarios, prior decision baselines, and the assumptions attached to each decision moment.
-- **FR38 [Phase 3]:** Investor can receive proactive next-best-action guidance when defined portfolio or market triggers are met.
+- **FR38 [Phase 3]:** Investor can receive proactive next-best-action guidance when at least one of the following triggers fires: FX rate delta exceeds a user-defined threshold, a monitored instrument drops below or above a set price level, a bond maturity date falls within 30 days, or portfolio allocation drifts beyond a declared tolerance band.
 
 ### Wsparcie i bezpieczniki rekomendacji
 
@@ -523,7 +519,7 @@ Kazdy NFR ponizej ma charakter pass/fail na poziomie wydania. Niespelnienie prog
 
 - Wszystkie kluczowe flow produktu - wprowadzenie danych, porownanie opcji, odczyt uzasadnienia, komunikaty bledow, stany niepewnosci i brak rekomendacji - musza spelniac poziom WCAG 2.2 AA; dowod: audit automatyczny i manualny przed release.
 - Core flow musi byc w pelni obslugiwalny z klawiatury; prog pass/fail = 0 blockerow klawiaturowych w scenariuszach referencyjnych.
-- Dane tabelaryczne, uzasadnienia rekomendacji, ostrzezenia i stany degradacji musza byc dostepne dla technologii wspierajacych; komunikacja nie moze opierac sie wylacznie na kolorze, ikonie albo animacji.
+- Dane tabelaryczne, uzasadnienia rekomendacji, ostrzezenia i stany degradacji musza byc dostepne dla technologii wspierajacych; komunikacja nie moze opierac sie wylacznie na kolorze, ikonie albo animacji. Prog pass/fail: (a) kazda tabela posiada opis lub naglowki zrozumiale bez kontekstu wizualnego, (b) kazde ostrzezenie posiada tekst alternatywny poza ikona, (c) stan degradacji ma jawny komunikat tekstowy poza zmiana koloru; dowod: scenariusze referencyjne w trybie screen reader i high-contrast.
 - Dostepnosc obejmuje rdzen doswiadczenia produktowego, nie tylko warstwe informacyjna lub marketingowa.
 
 ### Integracje
@@ -538,4 +534,4 @@ Kazdy NFR ponizej ma charakter pass/fail na poziomie wydania. Niespelnienie prog
 - Dostepnosc miesieczna glownego flow decyzyjnego musi wynosic >= 99,5%, liczona jako mozliwosc otwarcia widoku, wprowadzenia danych oraz uzyskania wyniku albo jawnego braku rekomendacji; dowod: monitoring produkcyjny.
 - Kazda czesciowa awaria danych rynkowych, kursow, importu albo silnika rekomendacji musi w czasie <= 5 s zakonczyc sie jawnym stanem: co dziala, co nie dziala, jaki jest wplyw na wynik i co uzytkownik moze zrobic dalej.
 - Produkt musi preferowac brak rekomendacji nad wynik, ktorego nie mozna obronic; odsetek blednie pokazanych jednoznacznych rekomendacji przy niespojnych, nieaktualnych albo niekompletnych danych = 0 w zestawie scenariuszy krytycznych.
-- W trybie degradacji uzytkownik musi zachowac orientacje w stanie produktu: widzi status, zakres wplywu, ostatni wiarygodny moment danych oraz czy moze kontynuowac manualnie, czy powinien wstrzymac decyzje.
+- W trybie degradacji uzytkownik musi zachowac orientacje w stanie produktu: widzi status, zakres wplywu, ostatni wiarygodny moment danych oraz czy moze kontynuowac manualnie, czy powinien wstrzymac decyzje. Prog pass/fail: w kazdym scenariuszu degradacji uzytkownik widzi (a) nazwe uslugi lub komponentu z problemem, (b) timestamp ostatnich wiarygodnych danych, (c) opis wplywu na wynik, (d) jasna rekomendacje dzialania (kontynuuj/wstrzymaj); brak dowolnego z tych elementow = fail; dowod: testy scenariuszy degradacji z symulowanymi awariami.

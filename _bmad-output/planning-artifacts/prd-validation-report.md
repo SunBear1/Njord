@@ -1,6 +1,6 @@
 ---
-validationTarget: '/Users/lukasz.niedzwiadek/Library/CloudStorage/OneDrive-Dynatrace/Documents/Private/projects/Njord/_bmad-output/planning-artifacts/prd.md'
-validationDate: '2026-05-11'
+validationTarget: '_bmad-output/planning-artifacts/prd.md'
+validationDate: '2026-05-18'
 inputDocuments:
   - docs/backtest-methodology.md
   - docs/financial-methodology.md
@@ -18,14 +18,14 @@ validationStepsCompleted:
   - step-v-11-holistic-quality-validation
   - step-v-12-completeness-validation
 validationStatus: COMPLETE
-holisticQualityRating: '3/5 - Adequate'
-overallStatus: 'Critical'
+holisticQualityRating: '4/5 - Good'
+overallStatus: 'Pass'
 ---
 
 # PRD Validation Report
 
-**PRD Being Validated:** /Users/lukasz.niedzwiadek/Library/CloudStorage/OneDrive-Dynatrace/Documents/Private/projects/Njord/_bmad-output/planning-artifacts/prd.md
-**Validation Date:** 2026-05-11
+**PRD Being Validated:** _bmad-output/planning-artifacts/prd.md
+**Validation Date:** 2026-05-18
 
 ## Input Documents
 
@@ -33,53 +33,11 @@ overallStatus: 'Critical'
 - docs/backtest-methodology.md
 - docs/financial-methodology.md
 
-## Validation Focus
-
-Walidacja PRD ocenia nie tylko zgodnosc sekcji z BMAD, ale tez spojnosc zaleznosci miedzy obietnica produktu, mierzalnoscia sukcesu, kontraktem capability, granicami prawno-domenowymi oraz wiarygodnoscia MVP w realiach brownfield Njord.
-
-Szczegolny nacisk:
-
-- traceability od vision do success criteria, journeys, FR i NFR,
-- zgodnosc obietnicy zaufania z mechanizmami confidence, explainability i no-recommendation outcomes,
-- zgodnosc jezyka i framingu z granica decision support vs formal advice,
-- wiarygodnosc scope i phased MVP w kontekscie solo-founder oraz aktualnej architektury produktu.
-
-### High-Risk Validation Hotspots
-
-- mierzalnosc i obserwowalnosc success criteria na poziomie MVP,
-- domkniecie kluczowego journey dla nowej gotowki / nowej wplaty,
-- pokrycie recommendation gating, provenance, reconciliation i no-recommendation outcomes,
-- testowalnosc NFR wspierajacych zaufanie, integralnosc i reliability,
-- wiarygodnosc scope wobec brownfield constraints,
-- bezpieczny framing jezykowy wzgledem investment advice risk.
-
-### End-to-End Validation Slice
-
-Walidacja ma objac jeden pionowy slice dla use case'u "nowa gotowka / nowa wplata":
-
-- wejscia i ich source of truth,
-- obliczenia oraz dane referencyjne,
-- recommendation gating i granice prawne,
-- provenance i reconciliation przy konfliktach danych,
-- wynik: rekomendacja, rekomendacja warunkowa albo brak rekomendacji,
-- komunikat dla uzytkownika, explainability i confidence,
-- metryka sukcesu, fallback oraz oczekiwany slad audytowy.
-
-### Evidence Expectations
-
-Walidacja powinna sprawdzac nie tylko logiczna traceability, ale tez traceability dowodowa:
-
-- jaka obietnica produktu jest walidowana,
-- jaki artefakt lub zachowanie potwierdza te obietnice,
-- po czym uznajemy dana teze za obalona,
-- kto jest beneficjentem i kto ponosi ryzyko bledu,
-- jakie Given/When/Then nalezaloby zapisac dla najwyzszych ryzyk MVP.
-
 ## Validation Findings
 
 ## Format Detection
 
-**PRD Structure:**
+**PRD Structure (## Level 2 headers):**
 - Executive Summary
 - Klasyfikacja projektu
 - Success Criteria
@@ -97,6 +55,7 @@ Walidacja powinna sprawdzac nie tylko logiczna traceability, ale tez traceabilit
 - classification.projectType: web_app
 - projectContext: brownfield
 - releaseMode: phased
+- lastEdited: 2026-05-11
 
 **BMAD Core Sections Present:**
 - Executive Summary: Present
@@ -108,6 +67,7 @@ Walidacja powinna sprawdzac nie tylko logiczna traceability, ale tez traceabilit
 
 **Format Classification:** BMAD Standard
 **Core Sections Present:** 6/6
+
 
 ## Information Density Validation
 
@@ -124,7 +84,7 @@ Walidacja powinna sprawdzac nie tylko logiczna traceability, ale tez traceabilit
 **Severity Assessment:** Pass
 
 **Recommendation:**
-PRD demonstrates good information density with minimal violations.
+PRD demonstrates excellent information density with zero violations. Text is concise, direct, and every sentence carries informational weight.
 
 ## Product Brief Coverage
 
@@ -137,121 +97,105 @@ PRD demonstrates good information density with minimal violations.
 **Total FRs Analyzed:** 42
 
 **Format Violations:** 0
+All FRs follow "[Actor] can [capability]" format consistently.
 
-**Subjective Adjectives Found:** 1
-- L378: **FR31:** Investor can receive a no-recommendation or conditional-recommendation outcome when available information is insufficient for a trustworthy answer.
+**Subjective Adjectives Found:** 0
 
-**Vague Quantifiers Found:** 2
-- L336: **FR1:** Investor can create and maintain a consolidated portfolio view across multiple holdings sources.
-- L349: **FR11:** Investor can compare multiple allocation options, including maintaining the status quo or deferring action.
+**Vague Quantifiers Found:** 0
+(Previous issues with "multiple" in FR1 and FR11 have been resolved — FR1 now uses "supported manual and imported holdings sources", FR11 specifies "at least two".)
 
 **Implementation Leakage:** 0
 
-**FR Violations Total:** 3
+**FR Violations Total:** 0
 
 ### Non-Functional Requirements
 
 **Total NFRs Analyzed:** 20
 
-**Missing Metrics:** 16
-- L403: Spadek wydajnosci nie moze prowadzic do ukrycia stanu systemu; jesli odpowiedz trwa dluzej, uzytkownik musi widziec czytelny stan oczekiwania, odswiezania lub niepewnosci.
-- L407: Integralnosc danych jest priorytetem krytycznym: system nie moze cicho zmieniac, gubic ani nadpisywac danych portfelowych, transakcyjnych ani podatkowych.
-- L408: Wrazliwe dane portfelowe i transakcyjne musza byc chronione zarowno w transmisji, jak i w przechowywaniu.
-- L409: Dostep do danych uzytkownika i sladow rekomendacji musi byc ograniczony zgodnie z rola oraz zakresem niezbednym do dzialania produktu lub wsparcia.
-- L410: System musi zachowywac audit trail zmian danych i rekomendacji tam, gdzie wplywa to na zaufanie, rozliczenia lub wyjasnienie wyniku.
-- L411: GDPR i prywatnosc danych traktujemy jako twardy wymog projektowy.
-- L416: Wzrost liczby uzytkownikow nie moze obnizac poprawnosci rekomendacji, integralnosci danych ani czytelnosci stanu integracji.
-- L417: Architektura powinna umozliwiac stopniowy wzrost bez wymuszania natychmiastowej przebudowy calego produktu.
-- L422: Kluczowe flow decyzyjne, porownania, komunikaty bledow, stany niepewnosci i dane tabelaryczne musza pozostac dostepne dla uzytkownikow korzystajacych z klawiatury i technologii wspierajacych.
-- L423: Dostepnosc nie moze byc ograniczona tylko do warstwy marketingowej; obejmuje rowniez rdzen doswiadczenia produktowego.
-- L427: Produkt musi dzialac poprawnie takze wtedy, gdy pelne integracje brokerow nie sa dostepne; manual-first nie moze byc sciezka gorszej kategorii.
-- L428: Integracje rynkowe i referencyjne musza jasno komunikowac swiezosc danych, niepowodzenia pobrania oraz zakres brakujacych informacji.
-- L429: Blad lub limit po stronie zewnetrznego zrodla nie moze prowadzic do cichego wygenerowania mylacej rekomendacji.
-- L433: Jesli dane rynkowe, kursy, import lub silnik rekomendacji sa chwilowo niedostepne, uzytkownik musi dostac jasna informacje o problemie oraz status, ze trwaja dzialania naprawcze.
-- L434: System powinien preferowac brak rekomendacji, wynik warunkowy albo opoznienie wyniku nad pokazanie odpowiedzi, ktorej nie mozna obronic.
-- L435: Produkt musi zachowywac spojnosc doswiadczenia nawet przy czesciowych awariach: uzytkownik ma wiedziec, co dziala, co nie dziala i jak wplywa to na zaufanie do wyniku.
+**NFR Table Structure:** Present with Metric, Target, Method/Evidence, and Owner columns ✓
 
-**Incomplete Template:** 20
-- L401: Glowny widok produktu musi byc gotowy do uzycia w czasie <= 2.5 s w typowym scenariuszu uzytkownika.
-- L402: Rekomendacja po podaniu danych wejsciowych musi byc prezentowana w czasie <= 3 s w typowym flow decyzyjnym.
-- L403: Spadek wydajnosci nie moze prowadzic do ukrycia stanu systemu; jesli odpowiedz trwa dluzej, uzytkownik musi widziec czytelny stan oczekiwania, odswiezania lub niepewnosci.
-- L407: Integralnosc danych jest priorytetem krytycznym: system nie moze cicho zmieniac, gubic ani nadpisywac danych portfelowych, transakcyjnych ani podatkowych.
-- L408: Wrazliwe dane portfelowe i transakcyjne musza byc chronione zarowno w transmisji, jak i w przechowywaniu.
-- L409: Dostep do danych uzytkownika i sladow rekomendacji musi byc ograniczony zgodnie z rola oraz zakresem niezbednym do dzialania produktu lub wsparcia.
-- L410: System musi zachowywac audit trail zmian danych i rekomendacji tam, gdzie wplywa to na zaufanie, rozliczenia lub wyjasnienie wyniku.
-- L411: GDPR i prywatnosc danych traktujemy jako twardy wymog projektowy.
-- L415: Produkt musi stabilnie obslugiwac obecna skale startowa oraz wzrost co najmniej do 60 aktywnych uzytkownikow bez utraty podstawowych parametrow core flow.
-- L416: Wzrost liczby uzytkownikow nie moze obnizac poprawnosci rekomendacji, integralnosci danych ani czytelnosci stanu integracji.
-- L417: Architektura powinna umozliwiac stopniowy wzrost bez wymuszania natychmiastowej przebudowy calego produktu.
-- L421: Produkt musi spelniac poziom strong WCAG AA jako wymog zaufania i uzytecznosci.
-- L422: Kluczowe flow decyzyjne, porownania, komunikaty bledow, stany niepewnosci i dane tabelaryczne musza pozostac dostepne dla uzytkownikow korzystajacych z klawiatury i technologii wspierajacych.
-- L423: Dostepnosc nie moze byc ograniczona tylko do warstwy marketingowej; obejmuje rowniez rdzen doswiadczenia produktowego.
-- L427: Produkt musi dzialac poprawnie takze wtedy, gdy pelne integracje brokerow nie sa dostepne; manual-first nie moze byc sciezka gorszej kategorii.
-- L428: Integracje rynkowe i referencyjne musza jasno komunikowac swiezosc danych, niepowodzenia pobrania oraz zakres brakujacych informacji.
-- L429: Blad lub limit po stronie zewnetrznego zrodla nie moze prowadzic do cichego wygenerowania mylacej rekomendacji.
-- L433: Jesli dane rynkowe, kursy, import lub silnik rekomendacji sa chwilowo niedostepne, uzytkownik musi dostac jasna informacje o problemie oraz status, ze trwaja dzialania naprawcze.
-- L434: System powinien preferowac brak rekomendacji, wynik warunkowy albo opoznienie wyniku nad pokazanie odpowiedzi, ktorej nie mozna obronic.
-- L435: Produkt musi zachowywac spojnosc doswiadczenia nawet przy czesciowych awariach: uzytkownik ma wiedziec, co dziala, co nie dziala i jak wplywa to na zaufanie do wyniku.
+**Missing Metrics:** 0
+All NFR areas now include explicit pass/fail thresholds.
 
-**Missing Context:** 6
-- L401: Glowny widok produktu musi byc gotowy do uzycia w czasie <= 2.5 s w typowym scenariuszu uzytkownika.
-- L402: Rekomendacja po podaniu danych wejsciowych musi byc prezentowana w czasie <= 3 s w typowym flow decyzyjnym.
-- L407: Integralnosc danych jest priorytetem krytycznym: system nie moze cicho zmieniac, gubic ani nadpisywac danych portfelowych, transakcyjnych ani podatkowych.
-- L408: Wrazliwe dane portfelowe i transakcyjne musza byc chronione zarowno w transmisji, jak i w przechowywaniu.
-- L411: GDPR i prywatnosc danych traktujemy jako twardy wymog projektowy.
-- L417: Architektura powinna umozliwiac stopniowy wzrost bez wymuszania natychmiastowej przebudowy calego produktu.
+**Incomplete Template:** 2 (borderline)
+- L527: Accessibility assistive tech requirement — relies on WCAG 2.2 AA standard reference rather than explicit per-item test criteria (acceptable given standard reference).
+- L541: Degradation mode orientation — lists required UI elements but lacks explicit metric beyond presence/absence check.
 
-**NFR Violations Total:** 42
+**Missing Context:** 0
+All NFRs include measurement method, evidence, and owner.
+
+**NFR Violations Total:** 2 (borderline, not hard violations)
 
 ### Overall Assessment
 
 **Total Requirements:** 62
-**Total Violations:** 45
+**Total Violations:** 2 (borderline)
 
-**Severity:** Critical
+**Severity:** Pass
 
 **Recommendation:**
-Many requirements are not measurable or testable. Requirements must be revised to be testable for downstream work.
+Requirements demonstrate strong measurability. All FRs follow correct format. NFRs now include pass/fail criteria with explicit thresholds, measurement methods, and owners. Two borderline NFR items rely on standard references rather than per-item criteria but are still testable. Massive improvement from prior validation (was 45 violations, now 2 borderline).
 
 ## Traceability Validation
 
 ### Chain Validation
 
-**Executive Summary -> Success Criteria:** Intact
+**Executive Summary → Success Criteria:** Intact
+Vision ("cockpit decyzyjny", zaufanie, <5 min do decyzji, wynik po podatku i FX) maps directly to measurable success criteria (<5 min, 30% return, 60% acting on recommendation, 0 critical errors).
 
-**Success Criteria -> User Journeys:** Gaps Identified
-- Success criterion "30% monthly return of activated users to monitoring or another decision" has no explicit recurring-user journey; current journeys cover first decision, trust recovery, ops, and support.
+**Success Criteria → User Journeys:** Intact
+- <5 min decision → Journey 1 (Michal - new contribution)
+- Trust under incomplete data → Journey 2 (Anna - edge case)
+- 30% monthly return → Journey 5 (Michal - recurring monitoring) ✓ (added since last validation)
+- 60% acting on recommendation → Journey 1 outcome
+- 0 critical errors → Journey 3 (Kamil - quality ops)
+- Explainability → Journey 4 (Ewa - support)
+- Abuse/fraud protection → Journey 6 (Marta - risk ops) ✓ (added since last validation)
 
-**User Journeys -> Functional Requirements:** Gaps Identified
-- FR20, FR26, FR34, FR35, FR36, FR37, FR38 trace to roadmap/business goals, but not to any explicit user journey in the PRD.
+**User Journeys → Functional Requirements:** Intact
+PRD contains explicit traceability matrix ("Macierz traceability i faz"):
+- Journey 1 → FR1-FR19, FR22-FR33
+- Journey 2 → FR5-FR8, FR24-FR25, FR28-FR33, FR42
+- Journey 3 → FR39-FR40
+- Journey 4 → FR32, FR41-FR42
+- Journey 5 → FR34-FR37 (Phase 2)
+- Journey 6 → FR39-FR40
+Plus roadmap anchor table mapping FR20, FR26, FR34-FR37, FR38 to journeys and phases.
 
-**Scope -> FR Alignment:** Misaligned
-- Post-MVP scope items appear in core FRs without phase labeling: FR20 (Belka/PIT), FR26 (goal-based guidance), FR35-FR37 (alerts/history/scenario history), FR38 (proactive guidance).
+**Scope → FR Alignment:** Intact
+All post-MVP FRs are explicitly phase-labeled: FR20 [Phase 2], FR26 [Phase 2], FR34-FR37 [Phase 2], FR38 [Phase 3]. No unlabeled Phase 2/3 content in core FRs.
 
 ### Orphan Elements
 
 **Orphan Functional Requirements:** 0
+All 42 FRs trace to at least one user journey via traceability matrix.
 
-**Unsupported Success Criteria:** 1
-- 30% monthly return of activated users to monitoring or another decision
+**Unsupported Success Criteria:** 0
+All success criteria have supporting journeys (including 30% return → Journey 5 and trust/fraud → Journey 6).
 
 **User Journeys Without FRs:** 0
+All 6 journeys have mapped FRs.
 
 ### Traceability Matrix
 
-- Fast trusted allocation decision -> user success criteria (<5 min, understandable, tax/FX-aware) -> Journey 1 -> FR1-FR19, FR22-FR25, FR28-FR33
-- Trust under incomplete/conflicting data -> trust / zero-critical-error criteria -> Journey 2 -> FR5-FR8, FR24-FR25, FR28-FR33, FR42
-- Recommendation credibility / safety -> technical success criteria -> Journey 3 -> FR39-FR40
-- Explainability / auditability -> technical + user trust criteria -> Journey 4 -> FR32, FR41-FR42
-- Retention / repeat-use objective -> success criteria -> FR34-FR37, but no dedicated recurring-user journey
-- Future roadmap objectives -> Product Scope phase 2/3 -> FR20, FR26, FR38
+| Success Criterion | Journey | Phase | FRs |
+|---|---|---|---|
+| Szybka zaufana decyzja <5 min | 1 | 1 | FR1-FR19, FR22-FR25, FR28-FR33 |
+| Ochrona zaufania przy niepelnych danych | 2 | 1 | FR5-FR8, FR24-FR25, FR28-FR33, FR42 |
+| Operacyjna wiarygodnosc rekomendacji | 3 | 1 | FR39-FR40 |
+| Wyjasnialnosc i audit trail | 4 | 1 | FR32, FR41-FR42 |
+| 30% powrot do monitoringu/decyzji | 5 | 2 | FR34-FR37 |
+| Ochrona przed naduzyciem | 6 | 1-2 | FR39-FR40 |
+| Belka/PIT context | 1+5 | 2 | FR20 |
+| Goal-based guidance | 1+5 | 2 | FR26 |
+| Proaktywny copilot | 5 | 3 | FR38 |
 
-**Total Traceability Issues:** 3
+**Total Traceability Issues:** 0
 
-**Severity:** Warning
+**Severity:** Pass
 
 **Recommendation:**
-Traceability gaps identified - strengthen chains to ensure all requirements are justified.
+Traceability chain is fully intact. All requirements trace to user needs and business objectives. The explicit traceability matrix and roadmap anchor table provide clear documentation of all chains. Previous gaps (missing recurring-user journey, phase label misalignment) have been resolved.
 
 ## Implementation Leakage Validation
 
@@ -269,19 +213,23 @@ Traceability gaps identified - strengthen chains to ensure all requirements are 
 
 **Libraries:** 0 violations
 
-**Other Implementation Details:** 1 violation
-- L417: "Architektura powinna umozliwiac stopniowy wzrost bez wymuszania natychmiastowej przebudowy calego produktu." — leaks solution design by prescribing architecture-level approach instead of stating only required scalability outcomes.
+**Other Implementation Details:** 0 violations
+
+### Notes
+
+- "SPA" appears only in project classification context (line 68, 307), not in FR/NFR.
+- "polling" appears in architectural notes section (line 315), not in FR/NFR.
+- "API" references in innovation/risk sections refer to external broker APIs as domain constraints.
+- Previous violation ("architektura powinna umozliwiac stopniowy wzrost...") has been resolved — NFR scalability section now uses outcome-focused language only.
 
 ### Summary
 
-**Total Implementation Leakage Violations:** 1
+**Total Implementation Leakage Violations:** 0
 
 **Severity:** Pass
 
 **Recommendation:**
-No significant implementation leakage found. Requirements properly specify WHAT without HOW, except for one architecture-oriented NFR that should be rewritten.
-
-**Note:** API consumers, GraphQL (when required), and other capability-relevant terms are acceptable when they describe WHAT the system must do, not HOW to build it.
+No implementation leakage found. Requirements properly specify WHAT without HOW. All technology mentions are in contextual/classification sections, not in requirement statements. Previous architecture-prescriptive NFR has been rewritten with outcome-focused pass/fail criteria.
 
 ## Domain Compliance Validation
 
@@ -290,37 +238,40 @@ No significant implementation leakage found. Requirements properly specify WHAT 
 
 ### Required Special Sections
 
-**Compliance Matrix:** Missing
-- Legal/compliance intent exists, but no explicit matrix mapping obligations, controls, owners, evidence, or gaps.
+**Compliance Matrix:** Present ✓
+Full "Matryca zgodnosci" (line 230) with 6 rows covering: granica prawna, zakres jurysdykcyjny, bezpieczenstwo/prywatnosc, audit/rozliczalnosc, ograniczenie naduzyc, integralnosc danych. Each row specifies: wymog, kontrola, wlasciciel, dowod, weryfikacja.
 
-**Security Architecture:** Present
-- Security coverage exists in technical constraints and NFRs, but no dedicated architecture for auth, encryption, secrets, trust boundaries, retention, or incident handling.
+**Security Architecture:** Present ✓
+"Baseline bezpieczenstwa i ochrony danych" (line 241) covers: data minimization, data status distinction, privileged access control, confidentiality/integrity/availability, incident handling path. Reinforced by NFR Bezpieczenstwo with explicit pass/fail criteria.
 
-**Audit Requirements:** Present
-- Audit trail and traceability are recurring themes, but no dedicated audit section defining retention, immutability, review workflow, evidence, or access controls.
+**Audit Requirements:** Present ✓
+"Wymagania auditowe i dowodowe" (line 249) covers: evidence trail (inputs, sources, time, rules version, confidence, caveats), change governance (owner, date, approval), reproducibility for review/complaints/incidents, confidence threshold documentation.
 
-**Fraud Prevention:** Missing
-- No dedicated fraud/misuse section; abuse controls, suspicious activity handling, manipulation prevention, and account misuse scenarios are absent.
+**Fraud Prevention:** Present ✓
+"Zapobieganie fraudom i naduzyciom" (line 256) covers: prevention of misleading investment claims, unusual/contradictory input handling, manipulation detection, non-anonymous overrides, transparent data gap communication. Additionally Journey 6 (Marta - risk/abuse ops) provides user-facing coverage.
+
+**Financial Data Integrity (bonus section):** Present ✓
+"Integralnosc danych finansowych i governance korekt" (line 263) covers: provenance, validity scope, quality status, conflict handling (safe behavior), correction governance, impact reassessment, audit history.
 
 ### Compliance Matrix
 
 | Requirement | Status | Notes |
 |-------------|--------|-------|
-| Regional compliance / legal boundary | Partial | PRD distinguishes decision support from investment advice and targets Polish tax context, but lacks jurisdiction scope, legal review gates, regulator mapping, and boundary rules for unsupported regions/users. |
-| Security standards / data protection | Partial | Covers access control, secure storage/transit, privacy, and GDPR, but omits security standard baseline, encryption/key management detail, auth/session model, retention/deletion policy, and incident response. |
-| Audit requirements / traceability | Partial | Requires audit trails, provenance, and recommendation traceability, but lacks retention periods, tamper evidence, access logging, audit export/review process, and ownership. |
-| Fraud prevention / misuse prevention | Missing | No explicit fraud model, abuse cases, anomaly detection, suspicious import handling, manipulation controls, or misuse escalation paths. |
-| Financial transaction handling / financial-data integrity | Partial | Strong focus on portfolio/transaction integrity, provenance, reconciliation, and tax/FX assumptions, but lacks explicit validation controls, exception handling, integrity monitoring thresholds, and financial-data correction governance. |
+| Regional compliance / legal boundary | Met | Polish tax context explicitly scoped; "wsparcie decyzji, nie porada regulowana" boundary; jurisdiction rules documented |
+| Security standards / data protection | Met | Baseline security section + NFR with pass/fail; covers access, encryption intent, privacy, GDPR, incident handling |
+| Audit requirements / traceability | Met | Dedicated audit section with retention, reproducibility, change governance, and evidence requirements |
+| Fraud prevention / misuse prevention | Met | Dedicated section + Journey 6; covers abuse patterns, manipulation, escalation, non-anonymous overrides |
+| Financial data integrity | Met | Dedicated section with provenance, quality status, correction governance, impact reassessment |
 
 ### Summary
 
-**Required Sections Present:** 2/4
-**Compliance Gaps:** 5
+**Required Sections Present:** 4/4 (plus 1 bonus section)
+**Compliance Gaps:** 0
 
-**Severity:** Critical
+**Severity:** Pass
 
 **Recommendation:**
-PRD is missing required domain-specific compliance sections. These are essential for fintech products.
+All required domain compliance sections are present and adequately documented. The PRD covers compliance matrix, security baseline, audit requirements, fraud prevention, and financial data integrity governance. This is a complete resolution of previous Critical findings (compliance matrix and fraud prevention were previously missing).
 
 ## Project-Type Compliance Validation
 
@@ -328,28 +279,25 @@ PRD is missing required domain-specific compliance sections. These are essential
 
 ### Required Sections
 
-**browser_matrix:** Present
-- Documented under "Macierz wsparcia przegladarek" with supported browser scope, desktop/mobile coverage, and cross-browser correctness expectations.
+**browser_matrix:** Present ✓
+"Macierz wsparcia przegladarek" (line 317) — last 2 versions of major browsers, desktop and mobile, correctness guarantee.
 
-**responsive_design:** Present
-- Documented under "Responsywnosc" with mobile/tablet/desktop requirements and readability expectations for key financial flows.
+**responsive_design:** Present ✓
+"Responsywnosc" (line 325) — mobile/tablet/desktop, financial data readability, comparison flow focus.
 
-**performance_targets:** Present
-- Documented under "Cele wydajnosciowe" with explicit timing targets (<= 2.5 s, <= 3 s) plus smoothness expectations.
+**performance_targets:** Present ✓
+"Cele wydajnosciowe" (lines 329-331) — <= 2.5s main view, <= 3s recommendation, smooth feel at scale.
 
-**seo_strategy:** Present
-- Documented under "Strategia SEO" with clear SEO scope, priorities, and limits for internal decision flows.
+**seo_strategy:** Present ✓
+"Strategia SEO" (line 335) — acquisition/education focus, internal flows not indexed.
 
-**accessibility_level:** Present
-- Documented under "Poziom dostepnosci" with target "strong WCAG AA" and key accessibility expectations.
+**accessibility_level:** Present ✓
+"Poziom dostepnosci" (line 339) — strong WCAG AA, keyboard, headings, error messages, data tables.
 
 ### Excluded Sections (Should Not Be Present)
 
 **native_features:** Absent ✓
-- No native/mobile-specific section found.
-
 **cli_commands:** Absent ✓
-- No CLI commands section found.
 
 ### Compliance Summary
 
@@ -360,7 +308,7 @@ PRD is missing required domain-specific compliance sections. These are essential
 **Severity:** Pass
 
 **Recommendation:**
-All required sections for web_app are present. No excluded sections found.
+All required sections for web_app project type are present. No excluded sections found.
 
 ## SMART Requirements Validation
 
@@ -368,78 +316,71 @@ All required sections for web_app are present. No excluded sections found.
 
 ### Scoring Summary
 
-**All scores >= 3:** 88.1% (37/42)
-**All scores >= 4:** 59.5% (25/42)
-**Overall Average Score:** 4.2/5.0
+**All scores >= 3:** 100% (42/42)
+**All scores >= 4:** 85.7% (36/42)
+**Overall Average Score:** 4.4/5.0
 
 ### Scoring Table
 
 | FR # | Specific | Measurable | Attainable | Relevant | Traceable | Average | Flag |
 |------|----------|------------|------------|----------|-----------|---------|------|
-| FR1 | 4 | 3 | 5 | 5 | 5 | 4.4 |  |
-| FR2 | 5 | 5 | 5 | 5 | 5 | 5.0 |  |
-| FR3 | 3 | 3 | 4 | 5 | 4 | 3.8 |  |
-| FR4 | 4 | 4 | 5 | 5 | 5 | 4.6 |  |
-| FR5 | 4 | 3 | 4 | 5 | 5 | 4.2 |  |
-| FR6 | 5 | 4 | 4 | 5 | 5 | 4.6 |  |
-| FR7 | 3 | 3 | 4 | 5 | 4 | 3.8 |  |
-| FR8 | 4 | 3 | 4 | 5 | 5 | 4.2 |  |
-| FR9 | 4 | 4 | 4 | 5 | 5 | 4.4 |  |
-| FR10 | 4 | 3 | 4 | 5 | 5 | 4.2 |  |
-| FR11 | 4 | 4 | 4 | 5 | 5 | 4.4 |  |
-| FR12 | 5 | 4 | 4 | 5 | 5 | 4.6 |  |
-| FR13 | 4 | 3 | 4 | 5 | 5 | 4.2 |  |
-| FR14 | 4 | 4 | 4 | 5 | 5 | 4.4 |  |
-| FR15 | 4 | 4 | 4 | 5 | 5 | 4.4 |  |
-| FR16 | 4 | 4 | 4 | 5 | 5 | 4.4 |  |
-| FR17 | 4 | 4 | 4 | 5 | 5 | 4.4 |  |
-| FR18 | 3 | 3 | 4 | 5 | 5 | 4.0 |  |
-| FR19 | 4 | 4 | 4 | 5 | 5 | 4.4 |  |
-| FR20 | 3 | 2 | 3 | 4 | 3 | 3.0 | X |
-| FR21 | 5 | 4 | 4 | 5 | 5 | 4.6 |  |
-| FR22 | 5 | 4 | 4 | 5 | 5 | 4.6 |  |
-| FR23 | 4 | 4 | 4 | 5 | 5 | 4.4 |  |
-| FR24 | 2 | 2 | 4 | 4 | 3 | 3.0 | X |
-| FR25 | 4 | 4 | 4 | 5 | 5 | 4.4 |  |
-| FR26 | 2 | 2 | 3 | 4 | 3 | 2.8 | X |
-| FR27 | 5 | 4 | 4 | 5 | 5 | 4.6 |  |
-| FR28 | 4 | 4 | 4 | 5 | 5 | 4.4 |  |
-| FR29 | 4 | 3 | 4 | 5 | 5 | 4.2 |  |
-| FR30 | 4 | 4 | 4 | 5 | 5 | 4.4 |  |
-| FR31 | 5 | 5 | 4 | 5 | 5 | 4.8 |  |
-| FR32 | 5 | 4 | 4 | 5 | 5 | 4.6 |  |
-| FR33 | 4 | 4 | 4 | 5 | 5 | 4.4 |  |
-| FR34 | 2 | 2 | 4 | 4 | 3 | 3.0 | X |
-| FR35 | 3 | 3 | 3 | 4 | 4 | 3.4 |  |
-| FR36 | 4 | 4 | 4 | 5 | 5 | 4.4 |  |
-| FR37 | 4 | 4 | 4 | 5 | 5 | 4.4 |  |
-| FR38 | 2 | 2 | 3 | 4 | 3 | 2.8 | X |
-| FR39 | 4 | 3 | 4 | 5 | 5 | 4.2 |  |
-| FR40 | 4 | 4 | 4 | 5 | 5 | 4.4 |  |
-| FR41 | 5 | 4 | 4 | 5 | 5 | 4.6 |  |
-| FR42 | 4 | 3 | 4 | 5 | 5 | 4.2 |  |
+| FR1 | 4 | 4 | 5 | 5 | 5 | 4.6 | |
+| FR2 | 5 | 5 | 5 | 5 | 5 | 5.0 | |
+| FR3 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR4 | 5 | 5 | 5 | 5 | 5 | 5.0 | |
+| FR5 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR6 | 5 | 4 | 4 | 5 | 5 | 4.6 | |
+| FR7 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR8 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR9 | 5 | 5 | 4 | 5 | 5 | 4.8 | |
+| FR10 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR11 | 5 | 5 | 4 | 5 | 5 | 4.8 | |
+| FR12 | 5 | 4 | 4 | 5 | 5 | 4.6 | |
+| FR13 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR14 | 5 | 5 | 4 | 5 | 5 | 4.8 | |
+| FR15 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR16 | 4 | 5 | 4 | 5 | 5 | 4.6 | |
+| FR17 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR18 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR19 | 5 | 5 | 4 | 5 | 5 | 4.8 | |
+| FR20 | 3 | 3 | 4 | 5 | 5 | 4.0 | |
+| FR21 | 5 | 5 | 4 | 5 | 5 | 4.8 | |
+| FR22 | 5 | 4 | 4 | 5 | 5 | 4.6 | |
+| FR23 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR24 | 5 | 5 | 5 | 5 | 5 | 5.0 | |
+| FR25 | 5 | 5 | 4 | 5 | 5 | 4.8 | |
+| FR26 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR27 | 5 | 4 | 4 | 5 | 5 | 4.6 | |
+| FR28 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR29 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR30 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR31 | 5 | 5 | 4 | 5 | 5 | 4.8 | |
+| FR32 | 5 | 5 | 4 | 5 | 5 | 4.8 | |
+| FR33 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR34 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR35 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR36 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR37 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR38 | 3 | 3 | 4 | 5 | 5 | 4.0 | |
+| FR39 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
+| FR40 | 5 | 5 | 4 | 5 | 5 | 4.8 | |
+| FR41 | 5 | 5 | 4 | 5 | 5 | 4.8 | |
+| FR42 | 4 | 4 | 4 | 5 | 5 | 4.4 | |
 
 **Legend:** 1=Poor, 3=Acceptable, 5=Excellent
-**Flag:** X = Score < 3 in one or more categories
 
-### Improvement Suggestions
+### Notes on Lowest-Scoring FRs
 
-**FR-20:** Replace roadmap wording with a testable phase-gated requirement, e.g. define which Belka/PIT workflow is supported, in which phase, and what user outcome proves completion.
+**FR20 (4.0):** "supported Belka and PIT-related workflows" — slightly open-ended but clarified by [Phase 2] label and traceability to tax context. Scope is adequately bounded for a roadmap item.
 
-**FR-24:** Split into concrete UI behaviors, e.g. product displays a visible scope disclaimer and a limitations panel listing unsupported advice areas, asset classes, or jurisdictions.
-
-**FR-26:** Define "goal-based guidance" with explicit inputs and outputs, e.g. user sets target amount and date, then receives recommendations aligned to that goal in a named post-MVP phase.
-
-**FR-34:** Specify what changes are monitored and how shown, e.g. portfolio, rate, price, or tax-input deltas with thresholds and a change summary tied to prior decisions.
-
-**FR-38:** Rewrite as a trigger-based future capability, e.g. proactive guidance appears when defined portfolio or market conditions change and presents a specific next-best action format.
+**FR38 (4.0):** "defined portfolio or market triggers" — the trigger definitions will be refined during Phase 3 elaboration. Adequate for a Phase 3 roadmap item.
 
 ### Overall Assessment
 
-**Severity:** Warning
+**Severity:** Pass
 
 **Recommendation:**
-Some FRs would benefit from SMART refinement. Focus on flagged requirements above.
+All FRs meet SMART criteria at acceptable or better levels. No requirements score below 3 in any category. Previous flagged items (FR20, FR24, FR26, FR34, FR38) have all been improved through the edit workflow. FR24 improved from 3.0 to 5.0, FR26 from 2.8 to 4.4.
 
 ## Holistic Quality Assessment
 
@@ -448,48 +389,50 @@ Some FRs would benefit from SMART refinement. Focus on flagged requirements abov
 **Assessment:** Good
 
 **Strengths:**
-- Clear arc: vision -> success -> scope -> journeys -> domain/web constraints -> phased delivery -> FR/NFR.
-- Journeys reinforce trust-centric fintech narrative, not only happy-path feature list.
-- Functional requirements grouped well by capability domain, making intent easy to follow.
+- Clear narrative arc: vision → success → journeys → domain constraints → phased delivery → requirements.
+- 6 user journeys that tell compelling stories covering primary, edge case, ops, support, recurring, and abuse flows.
+- Explicit traceability matrix and roadmap anchor table connect all layers.
+- Compliance control frame is comprehensive with ownership, evidence, and verification.
+- Trust-centric framing is consistent throughout — product never promises certainty it cannot deliver.
+- Phase boundaries are explicit with FR anchoring and risk mitigation strategy.
 
 **Areas for Improvement:**
-- "Product Scope" and later "Scoping projektu i fazowanie" overlap; tighten or merge.
-- Missing recurring-user journey weakens continuity with retention/monitoring goals.
-- Compliance/risk logic is spread across sections instead of anchored in one clear control frame.
+- "Product Scope" (line 106) and "Scoping projektu i fazowanie" (line 345) have some overlap in phase descriptions — consider merging.
+- Document is substantial (~542 lines) which could make initial review harder for time-constrained stakeholders.
 
 ### Dual Audience Effectiveness
 
 **For Humans:**
-- Executive-friendly: Good
-- Developer clarity: Adequate
-- Designer clarity: Adequate
-- Stakeholder decision-making: Good
+- Executive-friendly: Good — vision clear, success criteria measurable, honest about unknowns
+- Developer clarity: Good — FRs testable, NFRs have pass/fail, domain requirements actionable
+- Designer clarity: Good — journeys provide rich user context, preferences section defines UI needs
+- Stakeholder decision-making: Good — phase boundaries clear, risk assessment honest, tradeoffs explicit
 
 **For LLMs:**
-- Machine-readable structure: Good
-- UX readiness: Adequate
-- Architecture readiness: Adequate
-- Epic/Story readiness: Adequate
+- Machine-readable structure: Good — consistent ## headers, numbered FRs, tables with clear columns
+- UX readiness: Good — journeys + capability FRs + confidence/explainability FRs enable UX spec
+- Architecture readiness: Good — NFR table with metrics/evidence, domain requirements, integration constraints
+- Epic/Story readiness: Good — FR grouping + traceability matrix + phase labels enable decomposition
 
-**Dual Audience Score:** 3/5
+**Dual Audience Score:** 4/5
 
 ### BMAD PRD Principles Compliance
 
 | Principle | Status | Notes |
 |-----------|--------|-------|
-| Information Density | Met | Strong signal-to-noise ratio; mostly concrete, low fluff, high domain relevance. |
-| Measurability | Partial | Top-level KPIs exist, but many NFRs and some FRs still lack crisp pass/fail criteria. |
-| Traceability | Partial | Core MVP traces reasonably well, but recurring-use loop and some roadmap FR links remain weak. |
-| Domain Awareness | Partial | Strong tax/FX/trust framing, but missing fintech compliance matrix and fraud-prevention coverage are major gaps. |
-| Zero Anti-Patterns | Partial | Generally disciplined, but phase leakage and some duplicated scope/risk material reduce sharpness. |
-| Dual Audience | Partial | Readable and structured, but not yet equally handoff-ready for UX, engineering, and story decomposition. |
-| Markdown Format | Met | Clean heading hierarchy, numbered FRs, scannable sections, usable for human and machine parsing. |
+| Information Density | Met | Zero violations. Every sentence carries weight. |
+| Measurability | Met | All FRs testable, NFRs have pass/fail with thresholds and evidence methods. |
+| Traceability | Met | Full chain intact. Explicit traceability matrix + roadmap anchors. |
+| Domain Awareness | Met | All 4 required fintech sections present + financial data integrity governance. |
+| Zero Anti-Patterns | Met | No filler, no implementation leakage, no vague quantifiers, phase labels correct. |
+| Dual Audience | Met | Structured for human review and LLM downstream consumption. |
+| Markdown Format | Met | Clean heading hierarchy, numbered FRs, tables, consistent structure. |
 
-**Principles Met:** 2/7
+**Principles Met:** 7/7
 
 ### Overall Quality Rating
 
-**Rating:** 3/5 - Adequate
+**Rating:** 4/5 - Good
 
 **Scale:**
 - 5/5 - Excellent: Exemplary, ready for production use
@@ -500,20 +443,20 @@ Some FRs would benefit from SMART refinement. Focus on flagged requirements abov
 
 ### Top 3 Improvements
 
-1. **Add compliance + fraud control matrix**
-   Centralize decision-support boundaries, GDPR/data handling, auditability, abuse/fraud scenarios, and response rules.
+1. **Merge overlapping scope sections**
+   "Product Scope" (line 106) and "Scoping projektu i fazowanie" (line 345) partially duplicate phase descriptions. Merge into a single scoping section to eliminate redundancy and improve scanability.
 
-2. **Make requirements testable**
-   Convert soft wording into thresholds, acceptance criteria, telemetry, and explicit fail states.
+2. **Sharpen roadmap FR acceptance criteria**
+   FR20 ("supported Belka/PIT workflows") and FR38 ("defined triggers") are adequate for roadmap items but would benefit from explicit examples of what "supported" and "defined" mean when those phases are elaborated.
 
-3. **Strengthen journey-to-roadmap traceability**
-   Add recurring-user journey and map phases/FRs to journeys, outcomes, and out-of-scope boundaries.
+3. **Add per-item testability to borderline NFRs**
+   Two accessibility/reliability NFRs rely on standard references (WCAG 2.2 AA, degradation mode). Adding specific reference scenarios or checklists would make them independently verifiable without needing to interpret the full standard.
 
 ### Summary
 
-**This PRD is:** strategically strong and well-structured, but not yet fully implementation-ready for a high-trust fintech context.
+**This PRD is:** strategically strong, well-traced, and implementation-ready for a high-trust fintech product — a major improvement from the previous 3/5 assessment.
 
-**To make it great:** Focus on the top 3 improvements above.
+**To make it great:** The 3 improvements above would elevate it from "Good" to "Excellent" but none blocks downstream work (UX, Architecture, Epics).
 
 ## Completeness Validation
 
@@ -525,50 +468,68 @@ No template variables remaining ✓
 ### Content Completeness by Section
 
 **Executive Summary:** Complete
-
-**Success Criteria:** Complete
-
-**Product Scope:** Complete
-
-**User Journeys:** Complete
-
-**Functional Requirements:** Complete
-
-**Non-Functional Requirements:** Incomplete
-- Several NFRs are present but not fully testable: security, integrations, reliability, and parts of scalability remain qualitative without explicit thresholds or acceptance criteria.
+**Success Criteria:** Complete — includes measurable outcomes, definitions, and phased anchoring.
+**Product Scope:** Complete — MVP, Phase 2, Phase 3 with clear boundaries.
+**User Journeys:** Complete — 6 journeys covering all user types (primary, edge, ops, support, recurring, abuse).
+**Functional Requirements:** Complete — 42 FRs, all phase-labeled, all traced.
+**Non-Functional Requirements:** Complete — 6 areas with metrics table, pass/fail criteria, evidence, and owners.
 
 ### Section-Specific Completeness
 
-**Success Criteria Measurability:** Some measurable
-- Time, return-rate, adoption, and zero-critical-error targets are measurable; trust and monetization success statements remain qualitative.
+**Success Criteria Measurability:** Complete
+- Time, return-rate, action-rate, and zero-error targets are all measurable.
+- Definitions of measurement provided (activated user, return, action).
 
-**User Journeys Coverage:** Yes - covers all user types
+**User Journeys Coverage:** Complete — covers all user types including recurring and abuse flows.
 
-**FRs Cover MVP Scope:** Yes
+**FRs Cover MVP Scope:** Yes — all Phase 1 journeys have supporting FRs.
 
-**NFRs Have Specific Criteria:** Some
-- Performance and accessibility are specific; other NFR areas need clearer measurable targets.
+**NFRs Have Specific Criteria:** Yes — all 6 areas have pass/fail criteria with thresholds.
 
 ### Frontmatter Completeness
 
-**stepsCompleted:** Present
-**classification:** Present
-**inputDocuments:** Present
-**date:** Missing
+**stepsCompleted:** Present ✓
+**classification:** Present ✓
+**inputDocuments:** Present ✓
+**date:** Present ✓ (in header: "Data: 2026-05-11")
+**lastEdited:** Present ✓
+**editHistory:** Present ✓
+**releaseMode:** Present ✓
 
-**Frontmatter Completeness:** 3/4
+**Frontmatter Completeness:** 7/7
 
 ### Completeness Summary
 
-**Overall Completeness:** 83% (5/6)
+**Overall Completeness:** 100% (6/6 core sections complete)
 
 **Critical Gaps:** 0
+**Minor Gaps:** 0
 
-**Minor Gaps:** 2
-- Frontmatter missing `date`.
-- Non-Functional Requirements need more measurable acceptance criteria outside performance/accessibility.
-
-**Severity:** Warning
+**Severity:** Pass
 
 **Recommendation:**
-PRD has minor completeness gaps. Address minor gaps for complete documentation.
+PRD is fully complete. All sections present, all requirements documented, all metadata in place. No gaps block downstream work.
+
+---
+
+## Validation Summary — Comparison with Previous Report (2026-05-11)
+
+| Validation Step | Previous (2026-05-11) | Current (2026-05-18) | Change |
+|---|---|---|---|
+| Format Detection | BMAD Standard (6/6) | BMAD Standard (6/6) | = |
+| Information Density | Pass (0 violations) | Pass (0 violations) | = |
+| Product Brief Coverage | N/A | N/A | = |
+| Measurability | **Critical** (45 violations) | **Pass** (2 borderline) | ⬆️⬆️⬆️ |
+| Traceability | Warning (3 issues) | **Pass** (0 issues) | ⬆️⬆️ |
+| Implementation Leakage | Pass (1 violation) | **Pass** (0 violations) | ⬆️ |
+| Domain Compliance | **Critical** (2/4 sections) | **Pass** (4/4 + bonus) | ⬆️⬆️⬆️ |
+| Project-Type Compliance | Pass (5/5) | Pass (5/5) | = |
+| SMART Validation | Warning (5 flagged) | **Pass** (0 flagged) | ⬆️⬆️ |
+| Holistic Quality | 3/5 Adequate (2/7 principles) | **4/5 Good** (7/7 principles) | ⬆️⬆️ |
+| Completeness | Warning (83%) | **Pass** (100%) | ⬆️ |
+
+**Overall Status Change:** Critical → Pass
+**Quality Rating Change:** 3/5 → 4/5
+**BMAD Principles Met:** 2/7 → 7/7
+
+**Conclusion:** PRD edit workflow (2026-05-11) resolved all Critical and Warning findings. Document is now implementation-ready for downstream UX, Architecture, and Epic/Story work.
