@@ -200,6 +200,7 @@ User może poprosić o rekomendację alokacji nowej gotówki, zobaczyć werdykt 
 **Arch:** Full src/recommendation/ pipeline (guard → normalize → calculate → score → decide), Result<T,E>, TraceEntry[] output
 **Cross-cutting:** UX-DR9 (responsive)
 **Dependencies:** Epic 1 (needs portfolio snapshot)
+**GATE:** Story 2.1 (Financial Methodology Audit) must produce verdict GO or PIVOT before Stories 2.2+ start. NO-GO verdict → Epic 2 scope replaced or dropped.
 
 ### Epic 3: Preferences, Adjustments & Session
 User może zdefiniować preferencje decyzyjne (horyzont, płynność, tolerancja ryzyka), wykluczyć nieodpowiednie opcje, dostosować założenia i zobaczyć jak zmienia się wynik, override'ować rekomendację i wrócić do poprzedniej sesji.
@@ -559,3 +560,103 @@ So that I have one accurate picture without duplicates or contradictions.
 **And** data quality score improves after resolution
 
 *Covers: FR1, FR6, FR3*
+
+---
+
+### Epic 2: Decision Engine + Minimal Trust
+
+#### Story 2.1: Financial Methodology Audit & Honest Prediction Boundaries
+
+> **Type:** Research/Validation (no production code) — gate dla pozostałych stories w Epic 2
+> **Output:** Pisemny raport + decyzja go / pivot / no-go dla Decision Engine
+
+As a **product owner skeptical that "stock recommendations" can be honest**,
+I want a rigorous methodology audit of existing prediction models against literature, backtests, and benchmark baselines, plus an explicit map of what we CAN and CANNOT claim,
+So that the Decision Engine (Stories 2.2+) is built on honest foundations — not on overconfident pseudo-science that will mislead users and create regulatory/reputational risk.
+
+**Background / Motivation:**
+
+The product owner expressed strong skepticism: *"Jestem mocno sceptyczny czy rekomendacje będą mówiły prawdę."* This is the most important risk in the entire project. The existing codebase has 3 prediction models (`src/utils/models/gbm.ts`, `bootstrap.ts`, `hmm.ts`) and an automated backtest pipeline (`.github/workflows/backtest.workflow.yaml` producing `backtest-metrics.json`). Before we build user-facing "verdicts" (strong/conditional/none), we must prove:
+
+1. Models perform better than trivial baselines (random walk, "always buy SPY", "always hold cash")
+2. We understand and document the regimes where they fail
+3. The UI translates model output into claims a regulator and an honest financial advisor would defend
+4. We have a stop-rule for when to say "we don't know" instead of fabricating confidence
+
+**Acceptance Criteria:**
+
+**Given** the existing model code in `src/utils/models/` and backtest infrastructure
+**When** the methodology audit is conducted
+**Then** an audit report is produced at `docs/methodology-audit-2026-q2.md` covering all sections below
+**And** the report concludes with one of three explicit verdicts: GO (proceed with Epic 2 as planned), PIVOT (proceed but with specified scope changes), NO-GO (Decision Engine cannot honestly deliver value — recommend dropping it from MVP)
+
+**Required report sections:**
+
+1. **Model inventory & current claims** — Document what each model (GBM calibrated, Block Bootstrap, HMM Monte Carlo) actually produces: input shape, output shape, time horizons, calibration data window, assumptions explicitly baked in (normal returns? stationary regime? constant volatility?).
+
+2. **Backtest results vs baselines** — Run/recompute backtests for SPY, QQQ, EWP (Polish ETF), TLT (bonds), and 2-3 individual stocks (AAPL, KGHM, PKO BP if available). For each model, compare against baselines:
+   - Random walk (drift = historical mean, vol = historical std)
+   - Buy-and-hold (no model — pure benchmark)
+   - "Always cash at NBP savings rate" (the actually-honest alternative)
+   Metrics: MAPE on point estimates, Brier score on probability bands, calibration plot (do 90% bands actually contain 90% of realized outcomes?), max drawdown of model-suggested allocations vs baseline.
+
+3. **Failure mode catalogue** — Where do models break? Concrete examples to test:
+   - 2008 Sep-Nov (regime change)
+   - 2020 Mar (COVID crash)
+   - 2022 Jan-Oct (sustained drawdown + high inflation)
+   - 2024 Polish election (single-country political shock)
+   Document realized vs predicted for each. If model bands fail (realized outside 90% band >20% of time during these periods), this is a calibration failure — must be acknowledged in UI.
+
+4. **Literature reality check** — Brief survey of evidence for retail-facing forecasting:
+   - Fama efficient markets — what does academic consensus actually say about predictability at retail-relevant horizons (1mo–5yr)?
+   - Asset allocation literature (Markowitz, Black-Litterman, risk parity) vs single-asset prediction
+   - Documented failures of retail forecast products (search regulatory enforcement actions: FCA, ESMA, KNF for "misleading forecast" cases)
+   - Specifically: does anyone honestly claim to predict 12-month equity returns better than buy-and-hold? Cite or admit no.
+
+5. **Honest claim boundary** — Explicit list of what we CAN and CANNOT claim in UI:
+   - ❌ "SPY will be 12% higher in 12 months"
+   - ❌ "Buy AAPL now — strong recommendation"
+   - ✅ "If past 5y volatility persists, there is a ~70% probability your portfolio ends within ±18% over 12 months. Models offer no predictive edge over historical mean — they characterize range, not direction."
+   - ✅ "After tax and FX, savings account at 5.5% beats SPY in 47% of historical 12-month windows since 2010. Today's verdict: comparable. Choice depends on liquidity needs, not on prediction."
+   For each FR (FR9-FR13, FR16-FR19, etc.) referenced by Epic 2, mark which side of the boundary it falls on.
+
+6. **Comparison module honesty audit** — Re-examine the recent `comparisonDecision` refactor (commit `dc99c0b`) that softened "rekomendacja/werdykt" → "wynik porównania". Validate this language change is sufficient, OR specify further changes needed (e.g., always show benchmark = "do nothing / hold cash" as a third column).
+
+7. **Stop-rules for the engine** — Define conditions under which the engine MUST refuse to produce a verdict (return "no recommendation" instead of "weak recommendation"):
+   - Data freshness < threshold (e.g., last price >7 days old)
+   - Symbol not in calibration set
+   - User horizon shorter than minimum statistical reliability (probably anything <6mo)
+   - Detected regime change in last N days (HMM probability of regime shift >X)
+   - Macro events flag (manual flag for FOMC week, election week — explicitly out of model assumptions)
+
+8. **Disclosure spec for UI** — Concrete copy (in Polish) for the recommendation surface that satisfies the honest-claim boundary. Will become input for UX-DR1 (Verdict First Stack) and UX-DR6 (no-recommendation state) work in Stories 2.2+.
+
+9. **Verdict: GO / PIVOT / NO-GO** — Final section. If GO: proceed to Story 2.2. If PIVOT: list scope changes (e.g., "drop point-estimate forecasting; engine becomes 'options comparator' only"). If NO-GO: justify and propose Epic 2 replacement (e.g., "skip recommendations; offer scenario simulator + portfolio diagnostics only").
+
+**Given** the report is complete and verdict reached
+**When** the report is reviewed by the product owner
+**Then** any GO verdict requires sign-off — without explicit "GO approved" comment on the story, Stories 2.2+ remain blocked
+**And** the report is committed to `docs/` and linked from `epics.md` Epic 2 description
+**And** if PIVOT, this story spawns follow-up tasks to update Epic 2 scope and FR list in `prd.md` before Story 2.2 starts
+
+**Validation gates:**
+
+- Gate 1 (static): all citations in report have working URLs or DOIs
+- Gate 2 (data): backtests run on at least 5 instruments × 4 stress periods (= 20 data points minimum)
+- Gate 3 (rubber-duck): report reviewed by `rubber-duck` agent specifically for overconfidence — any sentence claiming the model "predicts" or "forecasts" must be flagged unless wrapped in explicit uncertainty qualifier
+- Gate 4 (regression): no production code changed in this story (verify `git diff --stat` shows only `docs/` and `_bmad-output/` paths)
+- Gate 5 (owner sign-off): product owner explicit approval required before story can move to `done`
+
+**Dependencies:** None (can be executed in parallel with Epic 0; ideally completed before Epic 1 stories that touch prediction UX)
+
+**Tools available for execution:**
+
+- `Financial Calculator` custom agent — for technical model audits
+- `rubber-duck` agent — for overconfidence detection
+- `research` agent — for literature review
+- Web fetch — for regulatory and academic source verification
+- Existing `backtest-metrics.json` artifacts from past CI runs in repo history
+
+*Covers: FR (no specific FR — meta-validation), risk mitigation for FR9-FR13*
+
+---
