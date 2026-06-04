@@ -86,15 +86,28 @@ spec:
           readinessProbe:
             exec:
               command:
+                - psql
+                - -U
+                - {{ .Values.postgres.auth.username | quote }}
+                - -d
+                - {{ .Values.postgres.auth.database | quote }}
+                - -c
+                - "SELECT 1"
+            initialDelaySeconds: {{ .Values.postgres.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.postgres.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.postgres.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.postgres.probes.readiness.failureThreshold }}
+          startupProbe:
+            exec:
+              command:
                 - pg_isready
                 - -U
                 - {{ .Values.postgres.auth.username | quote }}
                 - -d
                 - {{ .Values.postgres.auth.database | quote }}
-            initialDelaySeconds: {{ .Values.postgres.probes.readiness.initialDelaySeconds }}
-            periodSeconds: {{ .Values.postgres.probes.readiness.periodSeconds }}
-            timeoutSeconds: {{ .Values.postgres.probes.readiness.timeoutSeconds }}
-            failureThreshold: {{ .Values.postgres.probes.readiness.failureThreshold }}
+            periodSeconds: {{ .Values.postgres.probes.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.postgres.probes.startup.timeoutSeconds }}
+            failureThreshold: {{ .Values.postgres.probes.startup.failureThreshold }}
           resources:
             {{- toYaml .Values.postgres.resources | nindent 12 }}
       volumes:

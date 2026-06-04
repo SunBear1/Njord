@@ -67,5 +67,7 @@ spec:
             {{- toYaml .Values.backend.probes.liveness | nindent 12 }}
           readinessProbe:
             {{- toYaml .Values.backend.probes.readiness | nindent 12 }}
+          startupProbe:
+            {{- toYaml .Values.backend.probes.startup | nindent 12 }}
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}

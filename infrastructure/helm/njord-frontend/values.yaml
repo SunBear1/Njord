@@ -42,19 +42,32 @@ frontend:
   affinity: {}
 
   probes:
+    # Liveness: is the nginx process listening on port 80? tcpSocket is
+    # intentionally cheaper than HTTP — it only fails if nginx crashes.
+    # initialDelaySeconds=0 because startupProbe handles the slow-start window.
     liveness:
-      httpGet:
-        path: /healthz
-        port: http
-      initialDelaySeconds: 5
-      periodSeconds: 10
-      timeoutSeconds: 3
+      tcpSocket:
+        port: 80
+      initialDelaySeconds: 0
+      periodSeconds: 15
+      timeoutSeconds: 2
       failureThreshold: 3
+    # Readiness: can nginx serve an HTTP response? nginx.conf exposes /healthz
+    # with a static 200 — removing the pod from Service endpoints if nginx is
+    # reloading or in a broken state.
     readiness:
       httpGet:
         path: /healthz
         port: http
-      initialDelaySeconds: 2
+      initialDelaySeconds: 0
       periodSeconds: 5
-      timeoutSeconds: 3
+      timeoutSeconds: 2
       failureThreshold: 3
+    # Startup: 6 × 2 s = 12 s budget (nginx starts in < 1 s normally).
+    startup:
+      httpGet:
+        path: /healthz
+        port: http
+      periodSeconds: 2
+      timeoutSeconds: 2
+      failureThreshold: 6
