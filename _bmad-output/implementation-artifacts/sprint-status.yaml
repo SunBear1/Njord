@@ -24,7 +24,7 @@
 #   - done: Retrospective has been completed
 
 generated: 2026-06-04T14:04:59+02:00
-last_updated: 2026-06-04T15:49:51+02:00
+last_updated: 2026-06-04T16:54:00+02:00
 project: Njord
 project_key: NOKEY
 tracking_system: file-system
@@ -36,8 +36,8 @@ development_status:
   0-2-repository-refactor-frontend-move-and-backend-scaffold: done
   0-3-postgres-helm-chart-with-local-path-pvc: done
   0-4-frontend-helm-chart-with-traefik-ingress: done
-  0-5-backend-helm-chart-with-health-endpoint: review
-  0-6-port-finance-stocks-to-go-with-postgres-cache: backlog
+  0-5-backend-helm-chart-with-health-endpoint: done
+  0-6-port-finance-stocks-to-go-with-postgres-cache: review
   0-7-port-remaining-finance-apis-bonds-currency-inflation: backlog
   0-8-port-auth-apis-jwt-oauth-to-go: backlog
   0-9-argocd-installation-app-of-apps: backlog
