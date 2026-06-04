@@ -316,6 +316,38 @@ Agenci AI MUSZĄ:
 
 ## Project Structure & Boundaries
 
+### Kubernetes Naming Conventions (binding — Stories 0.3+)
+
+**Namespaces (4):**
+
+| Namespace | Purpose | Node label affinity |
+|---|---|---|
+| `njord-system` | Shared infra (traefik, cert-manager) | `role=db-control` |
+| `njord-data` | Postgres StatefulSet + PVC | `role=db-control` |
+| `njord-app` | Frontend + backend Deployments | `role=app` |
+| `argocd` | ArgoCD itself + all ArgoCD `Application` CRs | `role=db-control` |
+
+**Helm charts:** `infrastructure/helm/njord-<component>/` (e.g. `njord-frontend`, `njord-backend`, `njord-postgres`, `njord-platform`). Release name = `<component>` (no prefix).
+
+**ArgoCD Applications:** `app-<component>` (e.g. `app-frontend`, `app-backend`, `app-postgres`, `app-platform`). All live in `argocd` namespace.
+
+**Image refs:**
+- Local: `njord-<component>:dev-<git-short-sha>` + `latest`
+- Future GHCR (Epic 99): `ghcr.io/sunbear1/njord-<component>:<semver>`
+
+**Required labels on every manifest:**
+
+```yaml
+app.kubernetes.io/name: <component>          # frontend | backend | postgres | traefik | argocd
+app.kubernetes.io/part-of: njord
+app.kubernetes.io/managed-by: Helm
+app.kubernetes.io/version: <semver>
+```
+
+**ConfigMaps/Secrets:** `<component>-config`, `<component>-secret`.
+
+**Local ingress hosts:** `njord.localhost` (frontend), `api.njord.localhost` (backend). Resolved via developer `/etc/hosts` → `127.0.0.1`.
+
 ### Istniejąca struktura (bez zmian)
 
 ```
