@@ -45,8 +45,8 @@ development_status:
   0-11-local-e2e-smoke-test-on-k3d-cluster: done
   epic-0-retrospective: optional
   epic-1: backlog
-  1-1-manual-position-entry: in-progress
-  1-2-portfolio-overview-and-data-quality-score: backlog
+  1-1-manual-position-entry: done
+  1-2-portfolio-overview-and-data-quality-score: review
   1-3-position-edit-and-delete: backlog
   1-4-incomplete-portfolio-handling: backlog
   1-5-multi-source-consolidation-and-conflict-resolution: backlog
