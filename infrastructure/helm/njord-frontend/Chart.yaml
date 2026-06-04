@@ -1,0 +1,16 @@
+apiVersion: v2
+name: njord-frontend
+description: React SPA (Vite + nginx) served on njord.localhost via Traefik.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.30.0-0"
+keywords:
+  - njord
+  - frontend
+  - react
+home: https://github.com/SunBear1/Njord
+sources:
+  - https://github.com/SunBear1/Njord/tree/main/infrastructure/helm/njord-frontend
+maintainers:
+  - name: SunBear1

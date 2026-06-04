@@ -61,13 +61,17 @@ k3d cluster create "${CLUSTER_NAME}" \
   --servers 1 --agents 1 \
   --servers-memory "${SERVER_MEM}" \
   --agents-memory "${AGENT_MEM}" \
-  --k3s-arg "--disable=traefik@server:0" \
-  --k3s-arg "--disable=servicelb@server:0" \
   --k3s-arg "--node-label=role=db-control@server:0" \
   --k3s-arg "--node-label=role=app@agent:0" \
   --port "80:80@loadbalancer" \
   --port "443:443@loadbalancer" \
   --wait
+
+# Traefik and servicelb (klipper-lb) are intentionally LEFT ENABLED — Story 0.4
+# re-enables both to flip the original Story 0.1 disable. Flow:
+#   host:80 → k3d loadbalancer → node:80 (klipper-lb pod) → traefik:8000 → Ingress
+# Without klipper-lb nothing listens on node port 80 so the k3d loadbalancer
+# can't reach Traefik.
 
 # --- CPU constraints (k3d lacks native flag, apply via docker update) --------
 

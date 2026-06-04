@@ -34,8 +34,8 @@ development_status:
   epic-0: in-progress
   0-1-local-k3d-cluster-bootstrap-script: done
   0-2-repository-refactor-frontend-move-and-backend-scaffold: done
-  0-3-postgres-helm-chart-with-local-path-pvc: review
-  0-4-frontend-helm-chart-with-traefik-ingress: backlog
+  0-3-postgres-helm-chart-with-local-path-pvc: done
+  0-4-frontend-helm-chart-with-traefik-ingress: review
   0-5-backend-helm-chart-with-health-endpoint: backlog
   0-6-port-finance-stocks-to-go-with-postgres-cache: backlog
   0-7-port-remaining-finance-apis-bonds-currency-inflation: backlog
