@@ -7,7 +7,9 @@ import { usePositions } from '../hooks/usePositions';
 import { PositionList } from '../components/portfolio/PositionList';
 import { PositionForm } from '../components/portfolio/PositionForm';
 import { MergePrompt } from '../components/portfolio/MergePrompt';
+import { DeleteConfirmDialog } from '../components/portfolio/DeleteConfirmDialog';
 import { calcPortfolioQuality } from '../utils/portfolioQuality';
+import type { PositionDraft } from '../types/position';
 
 const PortfolioWizardLazy = lazy(() =>
   import('../components/portfolio/PortfolioWizard').then(m => ({ default: m.PortfolioWizard })),
@@ -16,9 +18,34 @@ const PortfolioWizardLazy = lazy(() =>
 export function PortfolioPage() {
   const { presets: bondPresets } = useBondPresets();
   const [isDark] = useDarkMode();
-  const { positions, addPosition, confirmMerge, removePosition, pendingMerge, cancelMerge } = usePositions();
-  const [showForm, setShowForm] = useState(false);
+  const { positions, addPosition, confirmMerge, updatePosition, removePosition, pendingMerge, cancelMerge } = usePositions();
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const quality = useMemo(() => calcPortfolioQuality(positions), [positions]);
+
+  const editingPosition = editingId ? positions.find((p) => p.id === editingId) ?? null : null;
+  const editDraft: PositionDraft | undefined = editingPosition
+    ? {
+        ticker: editingPosition.ticker,
+        quantity: String(editingPosition.quantity),
+        avgPrice: String(editingPosition.avgPrice),
+        currency: editingPosition.currency,
+      }
+    : undefined;
+
+  const pendingDeletePosition = pendingDeleteId
+    ? positions.find((p) => p.id === pendingDeleteId) ?? null
+    : null;
+
+  function handleEdit(id: string) {
+    setShowAddForm(false);
+    setEditingId(id);
+  }
+
+  function handleCancelEdit() {
+    setEditingId(null);
+  }
 
   return (
     <ErrorBoundary>
@@ -29,10 +56,10 @@ export function PortfolioPage() {
             <h2 id="positions-heading" className="text-xl font-bold text-text-primary">
               Mój portfel
             </h2>
-            {!showForm && (
+            {!showAddForm && !editingId && (
               <button
                 type="button"
-                onClick={() => setShowForm(true)}
+                onClick={() => setShowAddForm(true)}
                 className="px-3 py-1.5 text-sm font-medium bg-neutral text-white rounded-lg hover:opacity-90 transition-opacity"
               >
                 + Dodaj pozycję
@@ -40,20 +67,43 @@ export function PortfolioPage() {
             )}
           </div>
 
-          {showForm && (
+          {showAddForm && (
             <div className="bg-bg-card rounded-xl p-4 mb-4 border border-bg-muted">
               <h3 className="text-sm font-semibold text-text-secondary mb-3">Nowa pozycja</h3>
               <PositionForm
                 onSubmit={(draft) => {
                   const result = addPosition(draft);
-                  if (result === 'added') setShowForm(false);
+                  if (result === 'added') setShowAddForm(false);
                 }}
-                onCancel={() => setShowForm(false)}
+                onCancel={() => setShowAddForm(false)}
               />
             </div>
           )}
 
-          <PositionList positions={positions} quality={quality} onRemove={removePosition} />
+          {editingId && editDraft && (
+            <div className="bg-bg-card rounded-xl p-4 mb-4 border border-neutral/30">
+              <h3 className="text-sm font-semibold text-text-secondary mb-3">
+                Edytuj pozycję {editingPosition?.ticker}
+              </h3>
+              <PositionForm
+                initialDraft={editDraft}
+                submitLabel="Zapisz zmiany"
+                onSubmit={(draft) => {
+                  updatePosition(editingId, draft);
+                  setEditingId(null);
+                }}
+                onCancel={handleCancelEdit}
+              />
+            </div>
+          )}
+
+          <PositionList
+            positions={positions}
+            quality={quality}
+            editingId={editingId}
+            onEdit={handleEdit}
+            onDeleteRequest={(id) => setPendingDeleteId(id)}
+          />
         </section>
 
         {/* ── Investment planning wizard ── */}
@@ -67,9 +117,20 @@ export function PortfolioPage() {
           draft={pendingMerge}
           onConfirm={(draft) => {
             confirmMerge(draft);
-            setShowForm(false);
+            setShowAddForm(false);
           }}
           onCancel={cancelMerge}
+        />
+      )}
+
+      {pendingDeletePosition && (
+        <DeleteConfirmDialog
+          position={pendingDeletePosition}
+          onConfirm={() => {
+            removePosition(pendingDeletePosition.id);
+            setPendingDeleteId(null);
+          }}
+          onCancel={() => setPendingDeleteId(null)}
         />
       )}
     </ErrorBoundary>

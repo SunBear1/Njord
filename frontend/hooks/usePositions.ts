@@ -31,6 +31,7 @@ export interface UsePositionsResult {
   positions: Position[];
   addPosition: (draft: PositionDraft) => 'added' | 'duplicate';
   confirmMerge: (draft: PositionDraft) => void;
+  updatePosition: (id: string, draft: PositionDraft) => void;
   removePosition: (id: string) => void;
   pendingMerge: PositionDraft | null;
   cancelMerge: () => void;
@@ -73,9 +74,26 @@ export function usePositions(): UsePositionsResult {
     setPendingMerge(null);
   }, []);
 
+  const updatePosition = useCallback((id: string, draft: PositionDraft) => {
+    const newTicker = draft.ticker.trim().toUpperCase();
+    setPositions((prev) => {
+      const existing = prev.find((p) => p.id === id);
+      if (!existing) return prev;
+      const tickerChanged = existing.ticker !== newTicker;
+      if (tickerChanged) {
+        // Ticker change = delete old + add new (preserve addedAt from original)
+        const updated = draftToPosition(draft, generateId());
+        return prev.filter((p) => p.id !== id).concat({ ...updated, addedAt: existing.addedAt });
+      }
+      return prev.map((p) =>
+        p.id === id ? { ...draftToPosition(draft, p.id), addedAt: p.addedAt } : p,
+      );
+    });
+  }, []);
+
   const removePosition = useCallback((id: string) => {
     setPositions((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
-  return { positions, addPosition, confirmMerge, removePosition, pendingMerge, cancelMerge };
+  return { positions, addPosition, confirmMerge, updatePosition, removePosition, pendingMerge, cancelMerge };
 }

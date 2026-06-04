@@ -4,7 +4,9 @@ import type { PortfolioQuality } from '../../utils/portfolioQuality';
 interface PositionListProps {
   positions: Position[];
   quality: PortfolioQuality;
-  onRemove: (id: string) => void;
+  editingId: string | null;
+  onEdit: (id: string) => void;
+  onDeleteRequest: (id: string) => void;
 }
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -46,7 +48,7 @@ function FreshnessIndicator({ isStale, addedAt }: { isStale: boolean; addedAt: n
   );
 }
 
-export function PositionList({ positions, quality, onRemove }: PositionListProps) {
+export function PositionList({ positions, quality, editingId, onEdit, onDeleteRequest }: PositionListProps) {
   if (positions.length === 0) {
     return (
       <div className="text-center py-12 rounded-xl border border-dashed border-bg-muted">
@@ -86,15 +88,19 @@ export function PositionList({ positions, quality, onRemove }: PositionListProps
               <th className="text-right px-4 py-3 text-text-secondary font-medium">Waluta</th>
               <th className="text-center px-4 py-3 text-text-secondary font-medium">Jakość</th>
               <th className="text-center px-4 py-3 text-text-secondary font-medium">Świeżość</th>
-              <th className="px-4 py-3" aria-label="Usuń" />
+              <th className="px-4 py-3" aria-label="Akcje" />
             </tr>
           </thead>
           <tbody>
             {positions.map((p) => {
               const sym = CURRENCY_SYMBOLS[p.currency] ?? p.currency;
               const q = quality.perPosition.get(p.id);
+              const isEditing = editingId === p.id;
               return (
-                <tr key={p.id} className="border-b border-bg-muted last:border-0 hover:bg-bg-muted/20 transition-colors">
+                <tr
+                  key={p.id}
+                  className={`border-b border-bg-muted last:border-0 transition-colors ${isEditing ? 'bg-neutral/5' : 'hover:bg-bg-muted/20'}`}
+                >
                   <td className="px-4 py-3 font-mono font-semibold text-text-primary">{p.ticker}</td>
                   <td className="px-4 py-3 text-right text-text-primary tabular-nums">
                     {p.quantity.toLocaleString('pl-PL', { maximumFractionDigits: 4 })}
@@ -113,14 +119,24 @@ export function PositionList({ positions, quality, onRemove }: PositionListProps
                     {q ? <FreshnessIndicator isStale={q.isStale} addedAt={p.addedAt} /> : null}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button
-                      type="button"
-                      onClick={() => onRemove(p.id)}
-                      className="text-text-muted hover:text-loss transition-colors text-xs"
-                      aria-label={`Usuń ${p.ticker}`}
-                    >
-                      Usuń
-                    </button>
+                    <div className="flex gap-3 justify-end">
+                      <button
+                        type="button"
+                        onClick={() => onEdit(p.id)}
+                        className="text-text-muted hover:text-neutral transition-colors text-xs"
+                        aria-label={`Edytuj ${p.ticker}`}
+                      >
+                        Edytuj
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onDeleteRequest(p.id)}
+                        className="text-text-muted hover:text-loss transition-colors text-xs"
+                        aria-label={`Usuń ${p.ticker}`}
+                      >
+                        Usuń
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
