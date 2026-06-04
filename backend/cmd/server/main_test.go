@@ -33,7 +33,7 @@ func TestHealthHandler(t *testing.T) {
 }
 
 func TestServerRoutesHealth(t *testing.T) {
-	srv := newServer(":0")
+	srv := newServer(":0", serverDeps{})
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/health", nil)
 	rec := httptest.NewRecorder()
 	srv.Handler.ServeHTTP(rec, req)

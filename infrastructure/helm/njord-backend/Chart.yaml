@@ -2,8 +2,8 @@ apiVersion: v2
 name: njord-backend
 description: Go HTTP backend for Njord; routes /api/v1/* on njord.localhost.
 type: application
-version: 0.1.0
-appVersion: "0.1.0"
+version: 0.2.0
+appVersion: "0.2.0"
 kubeVersion: ">=1.30.0-0"
 keywords:
   - njord
