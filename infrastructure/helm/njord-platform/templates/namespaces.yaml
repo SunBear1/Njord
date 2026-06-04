@@ -1,0 +1,12 @@
+{{- range .Values.platform.namespaces }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ . }}
+  labels:
+    app.kubernetes.io/name: {{ . }}
+    app.kubernetes.io/part-of: njord
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/version: {{ $.Chart.AppVersion | quote }}
+---
+{{- end }}

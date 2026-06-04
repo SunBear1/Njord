@@ -1,0 +1,38 @@
+{{- range .Values.children }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Values.global.argocdNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .syncWave | quote }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/name: {{ .name }}
+    app.kubernetes.io/part-of: njord
+    app.kubernetes.io/managed-by: Helm
+spec:
+  project: default
+  source:
+    repoURL: {{ $.Values.global.repoURL }}
+    targetRevision: {{ $.Values.global.targetRevision }}
+    path: {{ .chartPath }}
+    helm:
+      values: |
+{{ toYaml .values | indent 8 }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .destinationNamespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+{{ toYaml (default (list "CreateNamespace=true" "ServerSideApply=true") .syncOptions) | indent 6 }}
+  {{- with .ignoreDifferences }}
+  ignoreDifferences:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,19 @@
+apiVersion: v2
+name: njord-apps
+description: |
+  ArgoCD app-of-apps for Njord. Templates a root `Application` and the four
+  per-component child `Application`s (app-platform, app-postgres,
+  app-backend, app-frontend), all pointing at this repo's
+  `infrastructure/helm/` directory.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.30.0-0"
+keywords:
+  - njord
+  - argocd
+home: https://github.com/SunBear1/Njord
+sources:
+  - https://github.com/SunBear1/Njord/tree/main/infrastructure/argocd
+maintainers:
+  - name: SunBear1

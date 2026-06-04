@@ -1,0 +1,11 @@
+# njord-platform — cluster-wide bootstrap for Njord.
+#
+# Today the chart only owns the three long-lived namespaces. Future
+# additions (cluster-scoped middlewares, monitoring, network policies)
+# belong here so the per-service charts stay self-contained.
+
+platform:
+  namespaces:
+    - njord-system
+    - njord-data
+    - njord-app
