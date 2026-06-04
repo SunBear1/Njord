@@ -1,0 +1,84 @@
+name: Local Image Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'frontend.Dockerfile'
+      - 'frontend.nginx.conf'
+      - 'backend/Dockerfile'
+      - 'index.html'
+      - 'package*.json'
+      - 'tsconfig*.json'
+      - 'vite.config.ts'
+      - 'public/**'
+      - 'eslint.config.js'
+      - 'eslint-rules/**'
+      - 'VERSION'
+      - 'infrastructure/local/build-images.sh'
+      - '.github/workflows/local-image-validation.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-images:
+    name: Build dev images (no push)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Read VERSION
+        id: version
+        run: echo "value=$(tr -d '[:space:]' < VERSION)" >> "$GITHUB_OUTPUT"
+
+      - name: Build njord-backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: false
+          load: true
+          tags: |
+            njord-backend:${{ steps.version.outputs.value }}
+            njord-backend:latest
+
+      - name: Build njord-frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./frontend.Dockerfile
+          push: false
+          load: true
+          tags: |
+            njord-frontend:${{ steps.version.outputs.value }}
+            njord-frontend:latest
+
+      - name: Enforce image size budgets
+        env:
+          BACKEND_MAX_MB: '20'
+          FRONTEND_MAX_MB: '30'
+        run: |
+          set -euo pipefail
+          check() {
+            local image="$1" max_mb="$2"
+            local bytes mb
+            bytes=$(docker image inspect "$image" --format '{{.Size}}')
+            mb=$(( bytes / 1024 / 1024 ))
+            printf '%-40s %s MiB (budget %s)\n' "$image" "$mb" "$max_mb"
+            if (( mb > max_mb )); then
+              echo "::error::$image exceeds ${max_mb} MiB size budget"
+              return 1
+            fi
+          }
+          check njord-backend:${{ steps.version.outputs.value }} "$BACKEND_MAX_MB"
+          check njord-frontend:${{ steps.version.outputs.value }} "$FRONTEND_MAX_MB"
