@@ -1,0 +1,16 @@
+apiVersion: v2
+name: njord-backend
+description: Go HTTP backend for Njord; routes /api/v1/* on njord.localhost.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.30.0-0"
+keywords:
+  - njord
+  - backend
+  - go
+home: https://github.com/SunBear1/Njord
+sources:
+  - https://github.com/SunBear1/Njord/tree/main/infrastructure/helm/njord-backend
+maintainers:
+  - name: SunBear1

@@ -1,0 +1,72 @@
+# Default values for njord-backend.
+# Story 0.5 — Go HTTP backend exposing /api/v1/* on njord.localhost.
+
+backend:
+  image:
+    repository: njord-backend
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+  replicaCount: 1
+
+  service:
+    type: ClusterIP
+    port: 8080
+
+  ingress:
+    enabled: true
+    className: traefik
+    # /api/v1/* is routed on the SAME hostname as the frontend; Traefik's
+    # longest-path-prefix wins so /api/v1/* hits the backend while / falls
+    # through to the frontend ingress.
+    host: njord.localhost
+    path: /api/v1
+    pathType: Prefix
+    annotations: {}
+    tls: []
+
+  # PRD-prescribed sizing for the backend pod.
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1500m
+      memory: 4Gi
+
+  nodeSelector:
+    role: app
+
+  tolerations: []
+  affinity: {}
+
+  # Postgres connection — DATABASE_URL is composed from the postgres-secret
+  # Secret in the njord-data namespace by default. Override per environment.
+  database:
+    secretName: postgres-secret
+    secretNamespace: njord-data
+    host: postgres.njord-data.svc.cluster.local
+    port: 5432
+    sslMode: disable
+
+  # Version label exposed on /api/v1/health. Operators set this to the git
+  # short SHA at deploy time (e.g. `--set backend.version=dev-abc1234`).
+  version: "dev"
+
+  probes:
+    liveness:
+      httpGet:
+        path: /api/v1/health
+        port: http
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3
+    readiness:
+      httpGet:
+        path: /api/v1/health
+        port: http
+      initialDelaySeconds: 2
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3

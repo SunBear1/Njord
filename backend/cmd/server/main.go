@@ -6,7 +6,7 @@ package main
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -14,10 +14,19 @@ import (
 
 const defaultAddr = ":8080"
 
+// version is exposed via /api/v1/health. Defaults to "dev"; production
+// container builds inject the git short SHA via ldflags or NJORD_VERSION env.
+var version = "dev"
+
+type healthResponse struct {
+	Status  string `json:"status"`
+	Version string `json:"version"`
+}
+
 func healthHandler(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	_ = json.NewEncoder(w).Encode(healthResponse{Status: "ok", Version: version})
 }
 
 func newServer(addr string) *http.Server {
@@ -31,13 +40,21 @@ func newServer(addr string) *http.Server {
 }
 
 func main() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
+	if v := os.Getenv("NJORD_VERSION"); v != "" {
+		version = v
+	}
 	addr := os.Getenv("NJORD_BACKEND_ADDR")
 	if addr == "" {
 		addr = defaultAddr
 	}
+
 	srv := newServer(addr)
-	log.Printf("njord-backend listening on %s", addr)
+	slog.Info("njord-backend starting", "addr", addr, "version", version)
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("server error: %v", err)
+		slog.Error("server terminated", "err", err)
+		os.Exit(1)
 	}
 }
