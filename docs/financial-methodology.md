@@ -730,6 +730,6 @@ For RSU / zero-cost lots: cost = 0, only the sale commission is deductible.
 
 **Caching:** Stock prices are cached at the Cloudflare edge for 1 hour to avoid hitting Yahoo Finance on every page load.
 
-**Yahoo Finance** is the primary data source and requires no API key. If Yahoo Finance rate-limits the server (HTTP 429), a **Twelve Data** fallback is used — this requires an optional API key configured on the server.
+**Yahoo Finance** is the primary data source and requires no API key.
 
 **Bond data** is updated manually from the Polish Treasury's website when rates change. The last update date is shown in the app's bond selector. Rates may be slightly out of date between manual refreshes.

@@ -1,9 +1,9 @@
 /**
- * Parses src/index.css → computes WCAG contrast ratios for all text/surface token pairs
- * → writes src/tokens/colorPairings.ts (auto-generated agent lookup table).
+ * Parses frontend/index.css → computes WCAG contrast ratios for all text/surface token pairs
+ * → writes frontend/tokens/colorPairings.ts (auto-generated agent lookup table).
  *
  * Run: npm run generate:pairings
- * When: after ANY change to color tokens in src/index.css
+ * When: after ANY change to color tokens in frontend/index.css
  */
 import fs from 'fs';
 import path from 'path';
@@ -53,7 +53,7 @@ function extractTokens(block: string): Record<string, string> {
   return tokens;
 }
 
-// Token classification — matches new WCAG AAA palette in src/index.css
+// Token classification — matches new WCAG AAA palette in frontend/index.css
 const SURFACE_TOKENS = [
   'color-bg-primary',
   'color-bg-card',
@@ -126,7 +126,7 @@ function computePairings(
 
 // — Main —
 
-const cssPath = path.resolve(__dirname, '../src/index.css');
+const cssPath = path.resolve(__dirname, '../frontend/index.css');
 const css = fs.readFileSync(cssPath, 'utf-8');
 
 // @theme {} = light mode token definitions
@@ -167,7 +167,7 @@ export const lightMode: Record<string, TokenPairing> = ${JSON.stringify(lightPai
 export const darkMode: Record<string, TokenPairing> = ${JSON.stringify(darkPairings, null, 2)};
 `;
 
-const outPath = path.resolve(__dirname, '../src/tokens/colorPairings.ts');
+const outPath = path.resolve(__dirname, '../frontend/tokens/colorPairings.ts');
 fs.mkdirSync(path.dirname(outPath), { recursive: true });
 fs.writeFileSync(outPath, output);
 

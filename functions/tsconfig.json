@@ -7,12 +7,12 @@
     "noEmit": true,
     "types": ["@cloudflare/workers-types"],
     "paths": {
-      "../../src/*": ["../../src/*"]
+      "../../frontend/*": ["../../frontend/*"]
     }
   },
   "include": [
     "./**/*.ts",
-    "../src/types/**/*.ts",
-    "../src/providers/nbpProvider.ts"
+    "../frontend/types/**/*.ts",
+    "../frontend/providers/nbpProvider.ts"
   ]
 }

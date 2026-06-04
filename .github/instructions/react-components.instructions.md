@@ -1,6 +1,6 @@
 ---
 description: Component design, React patterns, Tailwind, accessibility, colors.
-applyTo: "src/components/**/*.tsx,src/pages/**/*.tsx"
+applyTo: "frontend/components/**/*.tsx,frontend/pages/**/*.tsx"
 ---
 
 # React Components
@@ -27,7 +27,7 @@ Avoid boolean proliferation — each boolean doubles possible states.
 **Spacing:** Standard scale only (1,2,3,4,5,6,8,10,12,16,20,24). No arbitrary (`gap-[13px]`)  
 **Animation:** `animate-spin`, `transition-colors`, `transition-opacity` only (duration-150/200 max). NO bounce/pulse/ping.
 
-## Color Tokens (from src/index.css)
+## Color Tokens (from frontend/index.css)
 
 **Always use semantic tokens:**
 - Backgrounds: `--color-bg-primary`, `--color-bg-card`, `--color-bg-muted`

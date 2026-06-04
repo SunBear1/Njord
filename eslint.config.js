@@ -34,13 +34,13 @@ export default defineConfig([
     },
   },
   {
-    files: ['src/scripts/**/*.ts', 'scripts/**/*.ts'],
+    files: ['frontend/scripts/**/*.ts', 'scripts/**/*.ts'],
     rules: {
       'no-console': 'off',
     },
   },
   {
-    files: ['src/__tests__/**/*.ts', 'src/__tests__/**/*.tsx'],
+    files: ['frontend/__tests__/**/*.ts', 'frontend/__tests__/**/*.tsx'],
     rules: {
       'design-system/no-unapproved-colors': 'off',
     },

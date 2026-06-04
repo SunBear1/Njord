@@ -23,6 +23,6 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"],
-  "exclude": ["src/scripts", "src/__tests__"]
+  "include": ["frontend"],
+  "exclude": ["frontend/scripts", "frontend/__tests__"]
 }

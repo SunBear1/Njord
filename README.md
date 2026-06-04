@@ -22,7 +22,7 @@ Njord provides five tools in a single SPA:
 | **Rates** (`/rates`) | Live exchange rates and interest rates |
 
 **Live data sources:**
-- 📈 Stock prices — [Yahoo Finance](https://finance.yahoo.com) (primary) + Twelve Data (fallback on 429)
+- 📈 Stock prices — [Yahoo Finance](https://finance.yahoo.com)
 - 💱 USD/PLN rate — [NBP API](https://api.nbp.pl) + Alior Kantor
 - 📊 HICP inflation — [ECB API](https://data-api.ecb.europa.eu)
 
@@ -59,7 +59,7 @@ Cloudflare Pages
 │   └── /rates           ← exchange rates & interest rates
 │
 └── Pages Functions (backend)
-    ├── /api/market-data     ← Yahoo Finance (primary) + Twelve Data (fallback) + NBP FX; 1h cache
+    ├── /api/market-data     ← Yahoo Finance + NBP FX; 1h cache
     ├── /api/bonds           ← bond presets from CSV; 24h cache
     ├── /api/currency-rates  ← Alior Kantor + NBP Table C
     ├── /api/inflation       ← HICP inflation from ECB; 24h cache
@@ -105,7 +105,6 @@ npm run dev:full     # Vite + Pages Functions → http://localhost:8788/
 Create `.dev.vars` in the project root (for Wrangler — never commit this file):
 
 ```ini
-TWELVE_DATA_API_KEY=your_key            # optional fallback for Yahoo Finance
 JWT_SECRET=random_string                # required for auth
 GITHUB_CLIENT_ID=...
 GITHUB_CLIENT_SECRET=...

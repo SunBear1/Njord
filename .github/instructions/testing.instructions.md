@@ -1,6 +1,6 @@
 ---
 description: Test patterns, financial test requirements, and Playwright guidelines. Apply when writing or modifying tests.
-applyTo: "src/__tests__/**/*.ts"
+applyTo: "frontend/__tests__/**/*.ts"
 ---
 
 # Testing
@@ -66,7 +66,7 @@ test('ComparisonPage loads and calculates', async ({ page }) => {
 
 ## New Utility → New Test File
 
-Every new utility function in `src/utils/` gets its own test file: `src/__tests__/[utilName].test.ts`. No exceptions.
+Every new utility function in `frontend/utils/` gets its own test file: `frontend/__tests__/[utilName].test.ts`. No exceptions.
 
 ## CI Pipeline
 
