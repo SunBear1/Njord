@@ -1,0 +1,9 @@
+id,name_pl,maturity_months,rate_type,first_year_rate_pct,margin_pct,coupon_frequency,early_redemption_allowed,early_redemption_penalty_pct,is_family
+OTS,OTS (3-mies.),3,fixed,2.00,0,0,false,0.00,false
+ROR,ROR (roczne),12,reference,4.00,0.00,12,true,0.50,false
+DOR,DOR (2-letnie),24,reference,4.15,0.15,12,true,0.70,false
+TOS,TOS (3-letnie),36,fixed,4.40,0,0,true,1.00,false
+COI,COI (4-letnie),48,inflation,4.75,1.50,1,true,2.00,false
+EDO,EDO (10-letnie),120,inflation,5.35,2.00,0,true,3.00,false
+ROS,ROS (6-letnie),72,inflation,5.00,2.00,0,true,2.00,true
+ROD,ROD (12-letnie),144,inflation,5.60,2.50,0,true,3.00,true

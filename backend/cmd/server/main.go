@@ -13,6 +13,7 @@ import (
 
 	"github.com/SunBear1/Njord/backend/internal/cache"
 	"github.com/SunBear1/Njord/backend/internal/finance"
+	"github.com/SunBear1/Njord/backend/internal/seed"
 )
 
 const defaultAddr = ":8080"
@@ -32,24 +33,44 @@ func healthHandler(w http.ResponseWriter, _ *http.Request) {
 	_ = json.NewEncoder(w).Encode(healthResponse{Status: "ok", Version: version})
 }
 
-// serverDeps groups optional collaborators wired by main. newServer accepts
-// nils for tests that only exercise routes that don't need them (health).
+// serverDeps groups optional collaborators wired by main.
 type serverDeps struct {
 	cache  finance.Cacher
+	pool   *pgxpool.Pool
 	client *http.Client
+	nbp    *finance.NBPClient
 }
 
 func newServer(addr string, deps serverDeps) *http.Server {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v1/health", healthHandler)
 
+	client := deps.client
+	if client == nil {
+		client = &http.Client{Timeout: 15 * time.Second}
+	}
+
 	if deps.cache != nil {
-		client := deps.client
-		if client == nil {
-			client = &http.Client{Timeout: 15 * time.Second}
-		}
 		mux.HandleFunc("GET /api/v1/finance/stocks/{ticker}",
 			finance.StocksHandler(deps.cache, client, finance.YahooBaseDefault))
+	}
+	if deps.pool != nil {
+		mux.HandleFunc("GET /api/v1/finance/bonds",
+			finance.BondsHandler(deps.pool))
+		mux.HandleFunc("GET /api/v1/finance/inflation",
+			finance.InflationHandler(deps.pool, deps.cache, client))
+		mux.HandleFunc("GET /api/v1/finance/inflation/forecast",
+			finance.InflationForecastHandler(deps.pool))
+	}
+	if deps.nbp != nil {
+		mux.HandleFunc("GET /api/v1/finance/currency",
+			finance.CurrencyHandler(deps.nbp))
+		if deps.cache != nil {
+			mux.HandleFunc("GET /api/v1/finance/currency/rate",
+				finance.CurrencyRateHandler(deps.nbp, deps.cache))
+			mux.HandleFunc("GET /api/v1/finance/currency/history",
+				finance.CurrencyHistoryHandler(deps.nbp, deps.cache))
+		}
 	}
 
 	return &http.Server{
@@ -72,6 +93,7 @@ func main() {
 	}
 
 	deps := serverDeps{client: &http.Client{Timeout: 15 * time.Second}}
+	deps.nbp = finance.NewNBPClient(deps.client, "", "")
 
 	if dsn := os.Getenv("DATABASE_URL"); dsn != "" {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -86,8 +108,13 @@ func main() {
 			slog.Error("cache init", "err", err)
 			os.Exit(1)
 		}
+		if err := seed.Apply(ctx, pool); err != nil {
+			slog.Error("seed apply", "err", err)
+			os.Exit(1)
+		}
 		deps.cache = c
-		slog.Info("postgres cache ready")
+		deps.pool = pool
+		slog.Info("postgres cache + seed ready")
 	} else {
 		slog.Warn("DATABASE_URL not set — finance endpoints disabled")
 	}
