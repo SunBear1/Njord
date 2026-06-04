@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { PositionDraft, PositionValidationErrors, PositionCurrency } from '../../types/position';
-import { validatePositionDraft, POSITION_CURRENCIES } from '../../types/position';
+import { validatePositionDraft, POSITION_CURRENCIES, POSITION_SOURCES } from '../../types/position';
 
 interface PositionFormProps {
   onSubmit: (draft: PositionDraft) => void;
@@ -14,6 +14,7 @@ const DEFAULT_DRAFT: PositionDraft = {
   quantity: '',
   avgPrice: '',
   currency: 'USD',
+  source: 'manual',
 };
 
 export function PositionForm({ onSubmit, onCancel, initialDraft, submitLabel = 'Dodaj' }: PositionFormProps) {
@@ -140,6 +141,37 @@ export function PositionForm({ onSubmit, onCancel, initialDraft, submitLabel = '
           {errors.avgPrice && touched.avgPrice && (
             <p id="price-error" className="mt-1 text-xs text-loss">{errors.avgPrice}</p>
           )}
+        </div>
+
+        {/* Source */}
+        <div className="md:col-span-2">
+          <label htmlFor="pos-source" className="block text-sm font-medium text-text-secondary mb-1">
+            Źródło danych
+          </label>
+          <div className="flex gap-2">
+            <select
+              id="pos-source"
+              value={POSITION_SOURCES.includes(draft.source as typeof POSITION_SOURCES[number]) ? draft.source : '__custom__'}
+              onChange={(e) => {
+                if (e.target.value !== '__custom__') handleChange('source', e.target.value);
+              }}
+              className="px-3 py-2 rounded-lg border border-bg-muted bg-bg-card text-text-primary focus:outline-none focus:ring-2 focus:ring-neutral/50"
+            >
+              {POSITION_SOURCES.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+              <option value="__custom__">inne…</option>
+            </select>
+            {!POSITION_SOURCES.includes(draft.source as typeof POSITION_SOURCES[number]) && (
+              <input
+                type="text"
+                value={draft.source}
+                onChange={(e) => handleChange('source', e.target.value)}
+                placeholder="Nazwa źródła"
+                className="flex-1 px-3 py-2 rounded-lg border border-bg-muted bg-bg-card text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-neutral/50"
+              />
+            )}
+          </div>
         </div>
       </div>
 

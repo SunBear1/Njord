@@ -12,7 +12,7 @@ describe('validatePositionDraft', () => {
     ticker: 'AAPL',
     quantity: '10',
     avgPrice: '150.50',
-    currency: 'USD',
+    currency: 'USD', source: 'manual',
   };
 
   test('returns no errors for valid draft', () => {
@@ -65,7 +65,7 @@ describe('validatePositionDraft', () => {
   });
 
   test('returns error for all invalid fields simultaneously', () => {
-    const allBad: PositionDraft = { ticker: '', quantity: '0', avgPrice: '-1', currency: 'USD' };
+    const allBad: PositionDraft = { ticker: '', quantity: '0', avgPrice: '-1', currency: 'USD', source: 'manual' };
     const errors = validatePositionDraft(allBad);
     expect(errors.ticker).toBeDefined();
     expect(errors.quantity).toBeDefined();
@@ -80,7 +80,7 @@ describe('draftToPosition', () => {
     ticker: 'iwda.l',
     quantity: '12.5',
     avgPrice: '80.25',
-    currency: 'USD',
+    currency: 'USD', source: 'manual',
   };
 
   test('normalises ticker to uppercase', () => {
@@ -114,8 +114,8 @@ describe('draftToPosition', () => {
 
 describe('draftToPosition for ticker change', () => {
   test('ticker change = new id when position is re-created externally', () => {
-    const orig: PositionDraft = { ticker: 'AAPL', quantity: '10', avgPrice: '150', currency: 'USD' };
-    const updated: PositionDraft = { ticker: 'MSFT', quantity: '10', avgPrice: '150', currency: 'USD' };
+    const orig: PositionDraft = { ticker: 'AAPL', quantity: '10', avgPrice: '150', currency: 'USD', source: 'manual' };
+    const updated: PositionDraft = { ticker: 'MSFT', quantity: '10', avgPrice: '150', currency: 'USD', source: 'manual' };
     const pos1 = draftToPosition(orig, 'id-1');
     const pos2 = draftToPosition(updated, 'id-new');
     expect(pos1.ticker).toBe('AAPL');
