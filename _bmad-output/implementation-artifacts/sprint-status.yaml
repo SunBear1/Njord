@@ -33,7 +33,7 @@ story_location: _bmad-output/implementation-artifacts
 development_status:
   epic-0: in-progress
   0-1-local-k3d-cluster-bootstrap-script: done
-  0-2-repository-refactor-frontend-move-and-backend-scaffold: backlog
+  0-2-repository-refactor-frontend-move-and-backend-scaffold: review
   0-3-postgres-helm-chart-with-local-path-pvc: backlog
   0-4-frontend-helm-chart-with-traefik-ingress: backlog
   0-5-backend-helm-chart-with-health-endpoint: backlog

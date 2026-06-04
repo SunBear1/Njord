@@ -1,6 +1,6 @@
 ---
 description: Financial mathematics, tax law, bond math, prediction models.
-applyTo: "src/utils/**/*.ts,src/workers/**/*.ts"
+applyTo: "frontend/utils/**/*.ts,frontend/workers/**/*.ts"
 ---
 
 # Financial Calculations
@@ -77,7 +77,7 @@ Clamp: annual [-80%, +100%], total [-95%, +1000%]. Bear always < 0, Bull always 
 **Bootstrap:** 21-day blocks, 1000 samples, P10/P50/P90. Min 252 days; fall back to GBM if less.
 
 **HMM:** Confidence capped 0.25, UI label "[Informacyjny]", never drive decisions.  
-Monte Carlo: 10k paths in `src/workers/sellAnalysis.worker.ts`. Progress every 1000 paths, send summary stats only.
+Monte Carlo: 10k paths in `frontend/workers/sellAnalysis.worker.ts`. Progress every 1000 paths, send summary stats only.
 
 ## Sanity Checks
 

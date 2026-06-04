@@ -1,0 +1,195 @@
+import { useState, useEffect, useRef } from 'react';
+import type { ApiResponse, CurrencyRate } from '../types/financeApi';
+
+export interface RateData {
+  buy: number;
+  sell: number;
+  mid: number;
+}
+
+export interface CurrencyRateEntry {
+  currency: string;
+  alior: (RateData & { ts: string }) | null;
+  nbp: (RateData & { date: string }) | null;
+  walutomat: (RateData & { ts: string }) | null;
+}
+
+/** Direction a rate moved since last refresh */
+export type RateDirection = 'up' | 'down' | null;
+
+export interface RateChangeInfo {
+  aliorBuy: RateDirection;
+  aliorSell: RateDirection;
+  nbpBuy: RateDirection;
+  nbpSell: RateDirection;
+  walutomatBuy: RateDirection;
+  walutomatSell: RateDirection;
+}
+
+export interface MultiCurrencyRates {
+  rates: CurrencyRateEntry[];
+  changes: Record<string, RateChangeInfo>;
+  isLoading: boolean;
+  error: string | null;
+  lastUpdated: Date | null;
+}
+
+const REFRESH_INTERVAL_MS = 10_000;
+const CURRENCIES = ['USD', 'EUR', 'GBP'] as const;
+const PAIRS = CURRENCIES.map((currency) => `${currency}/PLN`).join(',');
+
+export function adaptRates(rates: CurrencyRate[]): CurrencyRateEntry[] {
+  return CURRENCIES.map((currency) => {
+    const pair = `${currency}/PLN`;
+    const aliorRate = rates.find((rate) => rate.source === 'alior' && rate.pair === pair);
+    const nbpRate = rates.find((rate) => rate.source === 'nbp' && rate.pair === pair);
+    const walutomatRate = rates.find((rate) => rate.source === 'walutomat' && rate.pair === pair);
+
+    return {
+      currency,
+      alior: aliorRate
+        ? {
+            buy: aliorRate.bid,
+            sell: aliorRate.ask,
+            mid: aliorRate.mid ?? (aliorRate.bid + aliorRate.ask) / 2,
+            ts: aliorRate.timestamp,
+          }
+        : null,
+      nbp: nbpRate
+        ? {
+            buy: nbpRate.bid,
+            sell: nbpRate.ask,
+            mid: nbpRate.mid ?? (nbpRate.bid + nbpRate.ask) / 2,
+            date: nbpRate.timestamp.slice(0, 10),
+          }
+        : null,
+      walutomat: walutomatRate
+        ? {
+            buy: walutomatRate.bid,
+            sell: walutomatRate.ask,
+            mid: walutomatRate.mid ?? (walutomatRate.bid + walutomatRate.ask) / 2,
+            ts: walutomatRate.timestamp,
+          }
+        : null,
+    };
+  });
+}
+
+async function fetchViaProxy(signal: AbortSignal): Promise<CurrencyRateEntry[]> {
+  const res = await fetch(`/api/v1/finance/currency?pairs=${PAIRS}`, {
+    cache: 'no-store',
+    signal,
+  });
+  if (!res.ok) throw new Error(`Proxy HTTP ${res.status}`);
+  const data = await res.json() as ApiResponse<CurrencyRate[]>;
+  return adaptRates(data.data);
+}
+
+export function direction(prev: number | undefined, curr: number): RateDirection {
+  if (prev === undefined || prev === curr) return null;
+  return curr > prev ? 'up' : 'down';
+}
+
+export function computeChanges(
+  prev: CurrencyRateEntry[],
+  curr: CurrencyRateEntry[],
+): Record<string, RateChangeInfo> {
+  const result: Record<string, RateChangeInfo> = {};
+  // No previous data → initial load, no directional arrows
+  if (prev.length === 0) {
+    for (const entry of curr) {
+      result[entry.currency] = { aliorBuy: null, aliorSell: null, nbpBuy: null, nbpSell: null, walutomatBuy: null, walutomatSell: null };
+    }
+    return result;
+  }
+  for (const entry of curr) {
+    const old = prev.find((rate) => rate.currency === entry.currency);
+    result[entry.currency] = {
+      aliorBuy: direction(old?.alior?.buy, entry.alior?.buy ?? 0),
+      aliorSell: direction(old?.alior?.sell, entry.alior?.sell ?? 0),
+      nbpBuy: direction(old?.nbp?.buy, entry.nbp?.buy ?? 0),
+      nbpSell: direction(old?.nbp?.sell, entry.nbp?.sell ?? 0),
+      walutomatBuy: direction(old?.walutomat?.buy, entry.walutomat?.buy ?? 0),
+      walutomatSell: direction(old?.walutomat?.sell, entry.walutomat?.sell ?? 0),
+    };
+  }
+  return result;
+}
+
+/**
+ * Returns true when any currency's Alior timestamp or NBP date has changed.
+ * Used to skip React re-renders (and flash animations) when the API returns
+ * identical data on consecutive polls.
+ */
+export function hasDataChanged(prev: CurrencyRateEntry[], curr: CurrencyRateEntry[]): boolean {
+  if (prev.length !== curr.length) return true;
+  for (let i = 0; i < curr.length; i++) {
+    if (prev[i].currency !== curr[i].currency) return true;
+    if (prev[i].alior?.ts !== curr[i].alior?.ts) return true;
+    if (prev[i].nbp?.date !== curr[i].nbp?.date) return true;
+    if (prev[i].walutomat?.ts !== curr[i].walutomat?.ts) return true;
+  }
+  return false;
+}
+
+export function useMultiCurrencyRates(): MultiCurrencyRates {
+  const [rates, setRates] = useState<CurrencyRateEntry[]>([]);
+  const [changes, setChanges] = useState<Record<string, RateChangeInfo>>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const prevRatesRef = useRef<CurrencyRateEntry[]>([]);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      // Cancel any in-flight request before starting a new one
+      abortControllerRef.current?.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      try {
+        const data = await fetchViaProxy(controller.signal);
+        if (!mounted || controller.signal.aborted) return;
+
+        if (hasDataChanged(prevRatesRef.current, data)) {
+          setChanges(computeChanges(prevRatesRef.current, data));
+          prevRatesRef.current = data;
+          setRates(data);
+          setLastUpdated(new Date());
+        }
+        setError(null);
+      } catch {
+        if (!mounted || controller.signal.aborted) return;
+        setError('Nie udało się pobrać kursów walut.');
+      } finally {
+        // Only clear initial loading spinner — subsequent polls are silent
+        if (mounted && !controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    function onVisibilityChange() {
+      if (!document.hidden) load();
+    }
+
+    load();
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    const intervalId = setInterval(() => {
+      if (!document.hidden) load();
+    }, REFRESH_INTERVAL_MS);
+
+    return () => {
+      mounted = false;
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
+  return { rates, changes, isLoading, error, lastUpdated };
+}

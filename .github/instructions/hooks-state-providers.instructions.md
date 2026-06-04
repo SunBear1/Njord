@@ -1,6 +1,6 @@
 ---
 description: State management, React hooks, and data providers.
-applyTo: "src/hooks/**/*.ts,src/providers/**/*.ts"
+applyTo: "frontend/hooks/**/*.ts,frontend/providers/**/*.ts"
 ---
 
 # Hooks & State
@@ -61,10 +61,10 @@ Always clear in cleanup. Set `cancelled` BEFORE `clearInterval` (prevents post-u
 
 Use primitive values (`number`, `string`, `boolean`). For arrays/objects, use derived stable values: `const seed = dataSeed(prices); useMemo(() => ({ seed }), [prices])`.
 
-## Providers (src/providers/)
+## Providers (frontend/providers/)
 
 No React imports. Accept `AbortSignal`. Translate errors to Polish user messages.  
-Example: `twelveDataProvider`, `nbpProvider` — thin fetch wrappers.
+Example: `assetDataProvider`, `nbpProvider` — thin fetch wrappers.
 
 ## Network Rules
 

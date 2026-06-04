@@ -36,8 +36,8 @@ export default defineConfig({
     exclude: ['**/node_modules/**', 'e2e/**'],
     coverage: {
       provider: 'v8',
-      include: ['src/utils/**/*.ts'],
-      exclude: ['src/utils/hmm.ts'], // tested indirectly via sellAnalysis
+      include: ['frontend/utils/**/*.ts'],
+      exclude: ['frontend/utils/hmm.ts'], // tested indirectly via sellAnalysis
       thresholds: {
         lines: 40,
         functions: 50,

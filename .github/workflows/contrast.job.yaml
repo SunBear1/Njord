@@ -17,9 +17,9 @@ jobs:
 
       - name: Verify colorPairings.ts is up-to-date
         run: |
-          if ! git diff --exit-code src/tokens/colorPairings.ts; then
+          if ! git diff --exit-code frontend/tokens/colorPairings.ts; then
             echo ""
-            echo "❌ src/tokens/colorPairings.ts is stale."
+            echo "❌ frontend/tokens/colorPairings.ts is stale."
             echo "   Run: npm run generate:pairings"
             echo "   Then commit the updated file."
             exit 1

@@ -1,6 +1,6 @@
 ---
 description: Design token architecture for theming and dark mode preparation. Apply when working with colors, theming, or CSS custom properties.
-applyTo: "src/index.css,src/tokens/**/*.ts"
+applyTo: "frontend/index.css,frontend/tokens/**/*.ts"
 ---
 
 # Design Tokens & Styling
@@ -15,7 +15,7 @@ Semantic (purpose aliases) →  --color-accent-info: var(--color-blue-600)
 Component (component-specific) →  --button-bg: var(--color-accent-info)
 ```
 
-Tokens defined in `src/index.css` via Tailwind v4 `@theme {}`.
+Tokens defined in `frontend/index.css` via Tailwind v4 `@theme {}`.
 
 ## Current Tokens (Njord)
 

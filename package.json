@@ -12,13 +12,13 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
-    "test:backtest": "tsx src/scripts/backtest.ts",
-    "test:backtest:windows": "tsx src/scripts/backtest.ts --windows",
+    "test:backtest": "tsx frontend/scripts/backtest.ts",
+    "test:backtest:windows": "tsx frontend/scripts/backtest.ts --windows",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "generate:pairings": "tsx scripts/generate-pairings.ts",
-    "test:contrast": "vitest run src/__tests__/design-system/",
-    "test:colors": "vitest run src/__tests__/design-system/"
+    "test:contrast": "vitest run frontend/__tests__/design-system/",
+    "test:colors": "vitest run frontend/__tests__/design-system/"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",

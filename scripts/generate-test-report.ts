@@ -73,7 +73,7 @@ function generateReport(a: TestAnalysis): string {
   // --- Coverage by Module ---
   lines.push('## Coverage by Module');
   lines.push('');
-  lines.push('> Coverage is instrumented for `src/utils/**` only (per vitest config).');
+  lines.push('> Coverage is instrumented for `frontend/utils/**` only (per vitest config).');
   lines.push('');
   lines.push('| Module | Files | Statements | Functions | Branches |');
   lines.push('|---|---|---|---|---|');

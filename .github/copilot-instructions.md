@@ -47,14 +47,14 @@ Polish-language investment calculator SPA. Compares USD stock/ETF portfolios aga
 > **Migration in progress (Epic 0):** moving from Cloudflare Pages + Functions to self-hosted k3s + Go backend. Both layouts coexist until Story 0.2 lands. Source of truth: `_bmad-output/planning-artifacts/architecture.md`.
 
 ```
-src/pages/         Page components (own their state, pass via props)
-src/components/    UI (receives props, never fetches data)
-src/hooks/         Data fetching + state management
-src/utils/         Pure calculation functions (ZERO side effects)
-src/utils/models/  GBM, Bootstrap, HMM prediction models
-src/providers/     API adapters (Yahoo Finance, NBP)
-src/workers/       Web Worker for HMM Monte Carlo (browser, NOT CF Worker)
-src/types/         TypeScript interfaces
+frontend/pages/         Page components (own their state, pass via props)
+frontend/components/    UI (receives props, never fetches data)
+frontend/hooks/         Data fetching + state management
+frontend/utils/         Pure calculation functions (ZERO side effects)
+frontend/utils/models/  GBM, Bootstrap, HMM prediction models
+frontend/providers/     API adapters (Yahoo Finance, NBP)
+frontend/workers/       Web Worker for HMM Monte Carlo (browser, NOT CF Worker)
+frontend/types/         TypeScript interfaces
 
 functions/api/     CF Pages Functions — DEPRECATED (replaced by Go backend in Story 0.5+)
 infrastructure/local/  k3d cluster bootstrap (Story 0.1)
@@ -89,7 +89,7 @@ When picking up work: read sprint-status.yaml → find first `ready-for-dev` sto
 2. **FX x stock deltas are multiplicative** — `(1+dS) * (1+dFX)`, never additive.
 3. **NBP rate = last business day BEFORE transaction** — never the transaction date itself.
 4. **No global state** — no Redux, Zustand, Jotai, Context stores. Pages own state.
-5. **Pure financial functions** — no `fetch`, `localStorage`, or DOM in `src/utils/`.
+5. **Pure financial functions** — no `fetch`, `localStorage`, or DOM in `frontend/utils/`.
 6. **UI in Polish, code in English** — no mixing.
 7. **Tailwind tokens only** — no hardcoded hex, no CSS modules, no `@apply`.
 8. **All checks pass before commit** — see `## Validation` section below for the canonical command (single source of truth).

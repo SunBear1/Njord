@@ -12,21 +12,7 @@ applyTo: "functions/**"
 
 ## 1. Data Source Strategy — `/api/market-data`
 
-**Primary:** Yahoo Finance (no API key required).
-**Fallback:** Twelve Data — only activated when Yahoo returns **429 (rate limited)** and
-`TWELVE_DATA_API_KEY` is configured as a CF Pages secret.
-
-```typescript
-// Fallback is rate-limit-only — do NOT fall back on other errors:
-if (yahooError.code === 'RATE_LIMITED' && apiKey) {
-  return fetchFromTwelveData(ticker, apiKey);
-}
-throw yahooError;  // bad ticker, network error, etc. → propagate as-is
-```
-
-`TWELVE_DATA_API_KEY` is **optional**. Without it the app works via Yahoo Finance alone.
-- Local dev works without `.dev.vars`
-- Set the CF Pages secret only for production resilience
+**Primary:** Yahoo Finance (no API key required). The previous Twelve Data fallback has been removed (Story 0.2); errors from Yahoo now propagate as-is.
 
 ---
 
@@ -109,7 +95,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env }) => {
   if (!ticker) return errorResponse('INVALID_TICKER', 'Missing ticker', 400);
 
   try {
-    const data = await fetchMarketData(ticker, env.TWELVE_DATA_API_KEY);
+    const data = await fetchMarketData(ticker);
     return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'max-age=3600' } });
   } catch (err) {
     if (err instanceof ApiError) return errorResponse(err.code, err.message, err.status);
@@ -127,13 +113,12 @@ npm run dev:full   # Runs Wrangler (CF runtime) + Vite together at localhost:878
 npm run dev        # Frontend only at localhost:5173 (no Pages Functions)
 ```
 
-**`.dev.vars` file** (never commit — only needed for Twelve Data fallback):
+**`.dev.vars` file** (never commit — only needed for auth OAuth secrets, not market data):
 ```ini
-TWELVE_DATA_API_KEY=your_api_key_here
+GOOGLE_CLIENT_SECRET=...
 ```
 
-Without `.dev.vars`, `/api/market-data` works via Yahoo Finance. The file is only needed
-if you want to test the Twelve Data fallback path locally.
+`/api/market-data` works without any secret via Yahoo Finance alone.
 
 ---
 
@@ -143,7 +128,7 @@ if you want to test the Twelve Data fallback path locally.
 functions/
 ├── _middleware.ts        # Global CORS + Content-Type for all /api/* routes
 └── api/
-    ├── market-data.ts    # GET /api/market-data?ticker=X — Yahoo Finance (primary), Twelve Data (429 fallback) + NBP FX
+    ├── market-data.ts    # GET /api/market-data?ticker=X — Yahoo Finance + NBP FX
     ├── bonds.ts          # GET /api/bonds — serves bond presets from CSV (max-age=86400)
     ├── currency-rates.ts # GET /api/currency-rates — exchange rates proxy (Alior + NBP Table C)
     └── inflation.ts      # GET /api/inflation — ECB HICP CPI proxy

@@ -1,0 +1,148 @@
+@import "tailwindcss";
+
+/* Enable class-based dark mode: add 'dark' class to <html> element */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Typography */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+
+  /* ===== WCAG AAA PALETTE — 5 Hue Families =====
+   * Slate   — neutral backgrounds, text, borders
+   * Sky     — primary accent
+   * Teal    — secondary accent
+   * Emerald — success/positive
+   * Red     — danger/negative
+   *
+   * BANNED: Yellow, Orange, Pink/Magenta, Blue (pure), Brown
+   * ============================================== */
+
+  /* --- Backgrounds --- */
+  --color-bg-primary: #FFFFFF;
+  --color-bg-card: #F8FAFC;
+  --color-bg-hover: #F1F5F9;
+
+  /* --- Text --- */
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #334155;
+  --color-text-muted: #475569;
+
+  /* --- Accent (sky) --- */
+  --color-accent-primary: #0369a1;
+  --color-accent-secondary: #115E59;
+  --color-accent-interactive: #0369a1;
+  --color-text-on-accent: #FFFFFF;
+
+  /* --- Status --- */
+  --color-success: #065F46;
+  --color-danger: #991B1B;
+  --color-warning: #B45309;
+
+  /* --- Comparison chart --- */
+  --color-chart-comparison-benchmark: #2563eb;
+  --color-chart-comparison-bear: #991B1B;
+  --color-chart-comparison-base: #0891B2;
+  --color-chart-comparison-bull: #065F46;
+  --color-chart-comparison-purchasing-power: #475569;
+
+  /* --- Border --- */
+  --color-border: #CBD5E1;
+}
+
+/* Dark theme — active when <html class="dark"> */
+html.dark {
+  color-scheme: dark;
+
+  --color-bg-primary: #0F172A;
+  --color-bg-card: #1E293B;
+  --color-bg-hover: #334155;
+
+  --color-text-primary: #F1F5F9;
+  --color-text-secondary: #CBD5E1;
+  --color-text-muted: #A9B5BF;
+
+  --color-accent-primary: #38bdf8;
+  --color-accent-secondary: #67E8F9;
+  --color-accent-interactive: #38bdf8;
+  --color-text-on-accent: #082f49;
+
+  --color-success: #6EE7B7;
+  --color-danger: #FCA5A5;
+  --color-warning: #FCD34D;
+
+  --color-chart-comparison-benchmark: #60a5fa;
+  --color-chart-comparison-bear: #FCA5A5;
+  --color-chart-comparison-base: #67E8F9;
+  --color-chart-comparison-bull: #6EE7B7;
+  --color-chart-comparison-purchasing-power: #A9B5BF;
+
+  --color-border: #334155;
+}
+
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-feature-settings: 'cv02', 'cv03', 'cv04'; /* Inter optical variants */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Aurora header — canvas-rendered animation */
+.aurora-header {
+  position: relative;
+  overflow: hidden;
+  height: 120px;
+  --aurora-sky-1: 3, 10, 20;
+  --aurora-sky-2: 7, 24, 40;
+  --aurora-sky-3: 11, 37, 53;
+  --aurora-sky-4: 14, 30, 46;
+  --aurora-mtn-1: 8, 20, 34;
+  --aurora-mtn-2: 12, 28, 48;
+}
+
+.aurora-header > *:not(canvas) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Readable text on busy aurora backgrounds */
+.nav-text-shadow {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+@keyframes flash-fade {
+  0%   { color: var(--rate-flash-color); opacity: 0; transform: translateY(3px); }
+  20%  { color: var(--rate-flash-color); opacity: 1; transform: translateY(0); }
+  70%  { color: var(--rate-flash-color); opacity: 1; transform: translateY(0); }
+  100% { color: var(--color-text-primary); opacity: 0; transform: translateY(-2px); }
+}
+
+@keyframes value-pop {
+  0%   { color: var(--rate-flash-color); filter: brightness(1.18); opacity: 1; }
+  25%  { color: var(--rate-flash-color); filter: brightness(1.1); opacity: 1; }
+  100% { color: var(--color-text-primary); filter: brightness(1); opacity: 1; }
+}
+
+/* Form input accent styling */
+input[type="range"],
+input[type="radio"],
+input[type="checkbox"] {
+  accent-color: var(--color-accent-interactive);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
