@@ -21,7 +21,7 @@
     "test:colors": "vitest run src/__tests__/design-system/"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.2.4",
+    "@tailwindcss/vite": "^4.3.0",
     "@tanstack/react-query": "^5.100.9",
     "lucide-react": "^1.14.0",
     "react": "^19.2.6",
