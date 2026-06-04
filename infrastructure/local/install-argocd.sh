@@ -26,6 +26,34 @@ helm upgrade --install argocd argo/argo-cd \
   --set 'server.extraArgs={--insecure}' \
   --wait --timeout 5m
 
+echo "==> Seeding bootstrap secrets in njord-app (ArgoCD repo-server can't `lookup`)"
+kubectl create namespace njord-app --dry-run=client -o yaml | kubectl apply -f -
+
+# JWT secret: stable across reconciles; only create if missing.
+if ! kubectl -n njord-app get secret njord-auth-secret >/dev/null 2>&1; then
+  JWT=$(openssl rand -base64 48 | tr -d '\n' | head -c 64)
+  kubectl -n njord-app create secret generic njord-auth-secret \
+    --from-literal=JWT_SECRET="${JWT}"
+  echo "    created njord-auth-secret"
+else
+  echo "    njord-auth-secret already exists; left untouched"
+fi
+
+# Postgres mirror: copy from njord-data if it exists.
+if kubectl -n njord-data get secret postgres-secret >/dev/null 2>&1; then
+  PG_USER=$(kubectl -n njord-data get secret postgres-secret -o jsonpath='{.data.POSTGRES_USER}' | base64 -d)
+  PG_PASS=$(kubectl -n njord-data get secret postgres-secret -o jsonpath='{.data.POSTGRES_PASSWORD}' | base64 -d)
+  PG_DB=$(kubectl -n njord-data get secret postgres-secret -o jsonpath='{.data.POSTGRES_DB}' | base64 -d)
+  kubectl -n njord-app create secret generic postgres-secret \
+    --from-literal=POSTGRES_USER="${PG_USER}" \
+    --from-literal=POSTGRES_PASSWORD="${PG_PASS}" \
+    --from-literal=POSTGRES_DB="${PG_DB}" \
+    --dry-run=client -o yaml | kubectl apply -f -
+  echo "    mirrored postgres-secret from njord-data"
+else
+  echo "    njord-data/postgres-secret not yet present; app-postgres will create it, re-run this script after."
+fi
+
 echo "==> Bootstrapping app-of-apps"
 helm template app-of-apps "$(dirname "$0")/../argocd" \
   --set global.repoURL="${REPO_URL:-https://github.com/SunBear1/Njord}" \
