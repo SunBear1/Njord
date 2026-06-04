@@ -8,6 +8,7 @@ import { PositionList } from '../components/portfolio/PositionList';
 import { PositionForm } from '../components/portfolio/PositionForm';
 import { MergePrompt } from '../components/portfolio/MergePrompt';
 import { DeleteConfirmDialog } from '../components/portfolio/DeleteConfirmDialog';
+import { PortfolioReadinessPanel } from '../components/portfolio/PortfolioReadinessPanel';
 import { calcPortfolioQuality } from '../utils/portfolioQuality';
 import type { PositionDraft } from '../types/position';
 
@@ -104,6 +105,8 @@ export function PortfolioPage() {
             onEdit={handleEdit}
             onDeleteRequest={(id) => setPendingDeleteId(id)}
           />
+
+          <PortfolioReadinessPanel quality={quality} />
         </section>
 
         {/* ── Investment planning wizard ── */}

@@ -47,8 +47,8 @@ development_status:
   epic-1: backlog
   1-1-manual-position-entry: done
   1-2-portfolio-overview-and-data-quality-score: done
-  1-3-position-edit-and-delete: review
-  1-4-incomplete-portfolio-handling: backlog
+  1-3-position-edit-and-delete: done
+  1-4-incomplete-portfolio-handling: review
   1-5-multi-source-consolidation-and-conflict-resolution: backlog
   epic-1-retrospective: optional
   epic-2: backlog
