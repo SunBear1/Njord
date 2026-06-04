@@ -28,7 +28,6 @@ rtk proxy <cmd>       # Run raw (no filtering) but track usage
 
 Polish-language investment calculator SPA. Compares USD stock/ETF portfolios against Polish savings instruments (savings accounts, 8 bond types, ETFs). All financial computation client-side.
 
-- **Live:** https://njord.pages.dev
 - **Routes:** `/` `/comparison` `/forecast` `/tax` `/portfolio` `/rates`
 - **UI language:** Polish | **Code/commits/docs:** English
 
@@ -39,12 +38,9 @@ Polish-language investment calculator SPA. Compares USD stock/ETF portfolios aga
 - **Styling:** Tailwind CSS v4 (utility classes only, semantic tokens via `@theme`)
 - **Browser targets:** last 2 versions Chrome, Firefox, Safari
 - **CI:** GitHub Actions (Ubuntu latest)
-- **Deploy (current):** Cloudflare Pages — V8 isolates (NOT Node.js; no `fs`, `path`, `process`)
-- **Deploy (Epic 0, in progress):** self-hosted k3s/k3d cluster + Go backend + Postgres. See `_bmad-output/planning-artifacts/architecture.md`.
+- **Deploy target:** self-hosted k3s/k3d cluster + Go backend + Postgres. See `_bmad-output/planning-artifacts/architecture.md`.
 
 ## Architecture
-
-> **Migration in progress (Epic 0):** moving from Cloudflare Pages + Functions to self-hosted k3s + Go backend. Both layouts coexist until Story 0.2 lands. Source of truth: `_bmad-output/planning-artifacts/architecture.md`.
 
 ```
 frontend/pages/         Page components (own their state, pass via props)
@@ -53,10 +49,10 @@ frontend/hooks/         Data fetching + state management
 frontend/utils/         Pure calculation functions (ZERO side effects)
 frontend/utils/models/  GBM, Bootstrap, HMM prediction models
 frontend/providers/     API adapters (Yahoo Finance, NBP)
-frontend/workers/       Web Worker for HMM Monte Carlo (browser, NOT CF Worker)
+frontend/workers/       Web Worker for HMM Monte Carlo
 frontend/types/         TypeScript interfaces
 
-functions/api/     CF Pages Functions — DEPRECATED (replaced by Go backend in Story 0.5+)
+backend/               Go backend (api server, served from k3s)
 infrastructure/local/  k3d cluster bootstrap (Story 0.1)
 infrastructure/helm/   Helm charts (Stories 0.3-0.5)
 infrastructure/argocd/ ArgoCD Applications (Story 0.9)
@@ -129,7 +125,7 @@ No exceptions. Fix failures before proceeding. Context-specific checks in `.gith
 ## Security
 
 - `.dev.vars` is `.gitignore`d — never stage it.
-- API keys, DB passwords, JWT signing keys — never in code or chat responses. Today: CF Pages secrets. Post-Epic-0: Kubernetes Secrets / sealed-secrets.
+- API keys, DB passwords, JWT signing keys — never in code or chat responses. Kubernetes Secrets / sealed-secrets.
 - If a command is destructive (`rm -rf`, `DROP`, force push, `kubectl delete namespace`) — warn before executing.
 
 ## Delivering Work

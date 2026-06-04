@@ -6,6 +6,10 @@ import {
 
 test.describe('/rates — currency exchange', () => {
   test('rates page loads with heading and description', async ({ page }) => {
+    await page.route(CURRENCY_URL, (route) =>
+      route.fulfill({ status: 200, json: VALID_CURRENCY_RESPONSE }),
+    );
+
     await page.goto('/rates');
     await page.waitForSelector('main', { timeout: 10_000 });
 

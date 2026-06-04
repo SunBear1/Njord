@@ -13,9 +13,6 @@ jobs:
 
       - run: npm run lint
 
-      - name: Type-check functions/
-        run: npx tsc --noEmit --skipLibCheck -p functions/tsconfig.json
-
       - name: Security audit (high+ severity)
         # warn-only for now; tighten to --audit-level=high once SheetJS CVE resolved
         run: npm audit --omit=dev --audit-level=critical || true
