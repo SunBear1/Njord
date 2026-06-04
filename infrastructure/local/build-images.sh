@@ -42,7 +42,7 @@ echo "==> Building njord-frontend ${VERSION}"
 docker buildx build \
   --provenance=false --sbom=false \
   --load \
-  -f "${ROOT_DIR}/frontend.Dockerfile" \
+  -f "${ROOT_DIR}/frontend/Dockerfile" \
   -t "njord-frontend:${VERSION}" \
   -t "njord-frontend:${MAJOR_MINOR}" \
   -t "njord-frontend:latest" \
