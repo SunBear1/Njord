@@ -19,7 +19,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npx wrangler pages dev dist/ --port 4173',
+    command: 'npx vite preview --port 4173 --host 127.0.0.1',
     url: 'http://localhost:4173',
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,

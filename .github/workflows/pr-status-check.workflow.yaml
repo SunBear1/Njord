@@ -26,12 +26,10 @@ jobs:
           filters: |
             src:
               - 'frontend/**'
-              - 'functions/**'
               - 'public/**'
               - 'package*.json'
               - 'tsconfig*.json'
               - 'vite.config.ts'
-              - 'wrangler.toml'
               - 'playwright.config.ts'
               - 'eslint.config.js'
             ci:
@@ -70,26 +68,10 @@ jobs:
     if: needs.check-changes.outputs.ci == 'true'
     uses: ./.github/workflows/actionlint.job.yaml
 
-  terraform:
-    name: Terraform Plan
-    needs: check-changes
-    if: needs.check-changes.outputs.infra == 'true'
-    uses: ./.github/workflows/terraform.job.yaml
-    permissions:
-      contents: read
-      pull-requests: write
-    with:
-      dry_run: true
-    secrets:
-      CLOUDFLARE_R2_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY }}
-      CLOUDFLARE_R2_SECRET_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_KEY }}
-      TF_CF_API_KEY: ${{ secrets.TF_CF_API_KEY }}
-      CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-
   gate:
     name: PR Status Check Gate
     if: always()
-    needs: [lint, test, contrast, build, smoke-tests, actionlint, terraform]
+    needs: [lint, test, contrast, build, smoke-tests, actionlint]
     runs-on: ubuntu-latest
     steps:
       - name: All checks passed or skipped

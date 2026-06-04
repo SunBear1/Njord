@@ -27,7 +27,7 @@ backtest-metrics.json
 .wrangler/
 .dev.vars
 
-# Terraform
+# Terraform (kept for k3s/Helm work; no .tf files committed)
 infrastructure/.terraform/
 infrastructure/*.tfvars
 infrastructure/*.tfstate

@@ -1,27 +1,9 @@
 ---
-description: Rules for Terraform and GitHub Actions configuration. Apply when modifying CI/CD workflows or Terraform (Epic 99 only — no .tf files exist yet).
-applyTo: ".github/workflows/**/*.yml,infrastructure/**/*.tf"
+description: Rules for GitHub Actions configuration. Apply when modifying CI/CD workflows.
+applyTo: ".github/workflows/**/*.yml"
 ---
 
-# Infrastructure & CI/CD
-
-> **Note:** No `.tf` files exist in the repo today. Terraform is deferred to Epic 99 (production OCI deployment). The Terraform section below applies only when those files are introduced. CI/CD rules in this file apply now.
-
-## Terraform Rules (Epic 99 onward)
-
-Before ANY change:
-```bash
-terraform validate    # Syntax check
-terraform plan        # Review ALL changes
-```
-
-**NEVER `terraform apply` without explicit human approval.** No exceptions.
-
-Rules:
-- No unexpected destroys — review `terraform plan` output carefully
-- No resource name changes (they cause destroy + recreate)
-- Pin `source` versions to semantic versions (not `~>` or branches)
-- Sensitive values (API keys, secrets) always use `sensitive = true`
+# CI/CD
 
 ## GitHub Actions Workflows
 
