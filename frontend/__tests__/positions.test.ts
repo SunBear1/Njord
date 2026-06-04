@@ -109,3 +109,17 @@ describe('draftToPosition', () => {
     expect(pos.ticker).toBe('SPY');
   });
 });
+
+// ─── draftToPosition — ticker change preserves addedAt ─────────────────────────
+
+describe('draftToPosition for ticker change', () => {
+  test('ticker change = new id when position is re-created externally', () => {
+    const orig: PositionDraft = { ticker: 'AAPL', quantity: '10', avgPrice: '150', currency: 'USD' };
+    const updated: PositionDraft = { ticker: 'MSFT', quantity: '10', avgPrice: '150', currency: 'USD' };
+    const pos1 = draftToPosition(orig, 'id-1');
+    const pos2 = draftToPosition(updated, 'id-new');
+    expect(pos1.ticker).toBe('AAPL');
+    expect(pos2.ticker).toBe('MSFT');
+    expect(pos1.id).not.toBe(pos2.id);
+  });
+});
