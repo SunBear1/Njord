@@ -1,0 +1,36 @@
+{{/*
+Root Application — bootstraps the four child Applications by syncing this
+chart's own templates directory. Operators apply this manifest once via
+`kubectl apply`; from then on ArgoCD reconciles itself.
+*/}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-of-apps
+  namespace: {{ .Values.global.argocdNamespace }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/part-of: njord
+    app.kubernetes.io/managed-by: Helm
+spec:
+  project: default
+  source:
+    repoURL: {{ .Values.global.repoURL }}
+    targetRevision: {{ .Values.global.targetRevision }}
+    path: infrastructure/argocd
+    helm:
+      values: |
+        global:
+          repoURL: {{ .Values.global.repoURL }}
+          targetRevision: {{ .Values.global.targetRevision }}
+          argocdNamespace: {{ .Values.global.argocdNamespace }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.global.argocdNamespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

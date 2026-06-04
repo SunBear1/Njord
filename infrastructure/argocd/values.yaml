@@ -1,0 +1,34 @@
+# ArgoCD app-of-apps for Njord.
+#
+# Operators normally never edit this directly: it's rendered by a one-shot
+# `helm template ... | kubectl apply` and from then on ArgoCD owns the
+# children via the root Application's selfHeal loop.
+
+global:
+  repoURL: https://github.com/SunBear1/Njord
+  targetRevision: main
+  argocdNamespace: argocd
+
+# Child Applications. Order matters only for the first sync: ArgoCD picks
+# up `sync-wave` annotations so platform → postgres → backend → frontend.
+children:
+  - name: app-platform
+    chartPath: infrastructure/helm/njord-platform
+    destinationNamespace: njord-system
+    syncWave: "0"
+    values: {}
+  - name: app-postgres
+    chartPath: infrastructure/helm/njord-postgres
+    destinationNamespace: njord-data
+    syncWave: "1"
+    values: {}
+  - name: app-backend
+    chartPath: infrastructure/helm/njord-backend
+    destinationNamespace: njord-app
+    syncWave: "2"
+    values: {}
+  - name: app-frontend
+    chartPath: infrastructure/helm/njord-frontend
+    destinationNamespace: njord-app
+    syncWave: "2"
+    values: {}

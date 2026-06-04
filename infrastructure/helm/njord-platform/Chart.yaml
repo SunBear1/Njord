@@ -1,0 +1,19 @@
+apiVersion: v2
+name: njord-platform
+description: |
+  Cluster-wide cross-cutting resources for Njord: namespace declarations
+  with the required `app.kubernetes.io/part-of=njord` labels. Owned by
+  ArgoCD `app-platform` and applied before the service charts so that
+  CreateNamespace=true is never relied upon for the long-lived namespaces.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.30.0-0"
+keywords:
+  - njord
+  - platform
+home: https://github.com/SunBear1/Njord
+sources:
+  - https://github.com/SunBear1/Njord/tree/main/infrastructure/helm/njord-platform
+maintainers:
+  - name: SunBear1
