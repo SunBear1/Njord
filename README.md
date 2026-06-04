@@ -115,14 +115,32 @@ GOOGLE_CLIENT_SECRET=...
 ### Commands
 
 ```bash
-npm run dev          # dev server — frontend only (localhost:5173)
-npm run dev:full     # full stack: Vite + Pages Functions (localhost:8788)
-npm run build        # production build: tsc -b && vite build → dist/
-npm run lint         # ESLint (zero errors enforced)
-npm test             # Vitest — unit tests
-npm run test:e2e     # Playwright — E2E tests (requires preview server)
-npm run preview      # local preview of production build
+npm run dev               # dev server — frontend only (localhost:5173)
+npm run dev:full          # full stack: Vite + Pages Functions (localhost:8788)
+npm run build             # production build: tsc -b && vite build → dist/
+npm run lint              # ESLint (zero errors enforced)
+npm test                  # Vitest — unit tests
+npm run test:e2e          # Playwright — E2E against `npm run preview` (CF Pages mocks)
+npm run test:e2e:cluster  # Playwright — smoke against the live k3d cluster
+npm run preview           # local preview of production build
 ```
+
+### Running against the local k3d cluster (Epic 0)
+
+Bring up the self-hosted stack (k3d + Postgres + Go backend + frontend + ArgoCD)
+and run the cluster smoke suite end-to-end:
+
+```bash
+./infrastructure/local/bootstrap.sh        # creates `njord-dev-cluster` (k3d)
+./infrastructure/local/build-images.sh     # builds + imports njord-{backend,frontend}:<VERSION>
+./infrastructure/local/install-argocd.sh   # installs ArgoCD + bootstraps app-of-apps
+# Add `127.0.0.1 njord.localhost` to /etc/hosts on Linux if it doesn't resolve.
+npm run test:e2e:cluster                   # hits http://njord.localhost
+```
+
+The cluster suite lives in `e2e-cluster/` and is intentionally separate from
+the stub-driven `e2e/` suite — it exercises the real Go backend, Yahoo
+Finance, NBP, and JWT auth round-trip.
 
 ---
 

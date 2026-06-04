@@ -16,6 +16,7 @@
     "test:backtest:windows": "tsx frontend/scripts/backtest.ts --windows",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "test:e2e:cluster": "playwright test --config=playwright.cluster.config.ts",
     "generate:pairings": "tsx scripts/generate-pairings.ts",
     "test:contrast": "vitest run frontend/__tests__/design-system/",
     "test:colors": "vitest run frontend/__tests__/design-system/"
