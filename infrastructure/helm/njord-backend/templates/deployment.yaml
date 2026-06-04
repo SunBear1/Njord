@@ -58,6 +58,11 @@ spec:
                   key: POSTGRES_DB
             - name: DATABASE_URL
               value: "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@{{ .Values.backend.database.host }}:{{ .Values.backend.database.port }}/$(POSTGRES_DB)?sslmode={{ .Values.backend.database.sslMode }}"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ default .Values.backend.auth.jwtSecretName .Values.backend.auth.existingSecret }}
+                  key: JWT_SECRET
           livenessProbe:
             {{- toYaml .Values.backend.probes.liveness | nindent 12 }}
           readinessProbe:

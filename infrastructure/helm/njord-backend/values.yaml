@@ -49,6 +49,14 @@ backend:
     port: 5432
     sslMode: disable
 
+  # JWT signing secret for /api/v1/auth/*. The chart auto-generates a
+  # 256-bit random value on first install (via `lookup` + `randAlphaNum`)
+  # and reuses it on subsequent upgrades so existing sessions survive.
+  # Override `existingSecret` to bring your own (recommended in prod).
+  auth:
+    jwtSecretName: njord-auth-secret
+    existingSecret: ""
+
   # Version label exposed on /api/v1/health. Operators set this to the git
   # short SHA at deploy time (e.g. `--set backend.version=dev-abc1234`).
   version: "dev"
