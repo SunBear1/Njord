@@ -22,12 +22,20 @@ children:
     destinationNamespace: njord-data
     syncWave: "1"
     values: {}
-    # Postgres' StatefulSet drifts on cosmetic annotations because the
-    # checksum/secret value depends on `helm lookup`, which the ArgoCD
-    # repo server cannot reliably evaluate. The fields below are
-    # server-managed defaults (the StatefulSet controller fills them in)
-    # or pod-template churn that doesn't affect the running database.
+    # The postgres chart generates POSTGRES_PASSWORD via `helm lookup` so
+    # it stays stable across local `helm upgrade`. The ArgoCD repo server
+    # cannot evaluate `lookup`, so each render generates a fresh random
+    # password — perpetual drift unless we ignore it. The StatefulSet
+    # entries cover server-managed defaults and the pod-template
+    # checksum annotations whose values transitively depend on the
+    # same secret render.
     ignoreDifferences:
+      - kind: Secret
+        name: postgres-secret
+        jsonPointers:
+          - /data/POSTGRES_PASSWORD
+          - /data/POSTGRES_USER
+          - /data/POSTGRES_DB
       - group: apps
         kind: StatefulSet
         name: postgres
@@ -42,6 +50,24 @@ children:
     destinationNamespace: njord-app
     syncWave: "2"
     values: {}
+    # njord-auth-secret and the mirrored postgres-secret in njord-app
+    # both use `lookup` for stable values, same caveat as above.
+    ignoreDifferences:
+      - kind: Secret
+        name: njord-auth-secret
+        jsonPointers:
+          - /data/JWT_SECRET
+      - kind: Secret
+        name: postgres-secret
+        jsonPointers:
+          - /data/POSTGRES_PASSWORD
+          - /data/POSTGRES_USER
+          - /data/POSTGRES_DB
+      - group: apps
+        kind: Deployment
+        name: backend
+        jsonPointers:
+          - /spec/template/metadata/annotations/checksum~1secret
   - name: app-frontend
     chartPath: infrastructure/helm/njord-frontend
     destinationNamespace: njord-app
