@@ -62,19 +62,33 @@ backend:
   version: "dev"
 
   probes:
+    # Liveness: is the process alive? No dependency checks — restarting won't
+    # fix a DB outage. initialDelaySeconds=0 because startupProbe handles the
+    # slow-start window (migrations + seed can take up to 60 s on cold start).
     liveness:
       httpGet:
         path: /api/v1/health
         port: http
-      initialDelaySeconds: 5
+      initialDelaySeconds: 0
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+    # Readiness: can this pod serve traffic? Pings the DB; pod is removed from
+    # Service endpoints while the database is unreachable.
+    readiness:
+      httpGet:
+        path: /api/v1/readyz
+        port: http
+      initialDelaySeconds: 0
       periodSeconds: 5
       timeoutSeconds: 3
       failureThreshold: 3
-    readiness:
+    # Startup: guards the initialisation window (DB connect + migrations + seed).
+    # 12 × 5 s = 60 s budget before liveness kicks in.
+    startup:
       httpGet:
         path: /api/v1/health
         port: http
-      initialDelaySeconds: 2
       periodSeconds: 5
       timeoutSeconds: 3
-      failureThreshold: 3
+      failureThreshold: 12

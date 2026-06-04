@@ -41,3 +41,27 @@ func TestServerRoutesHealth(t *testing.T) {
 		t.Fatalf("expected 200 from /api/v1/health, got %d", rec.Code)
 	}
 }
+
+// TestReadyzHandlerNoPool verifies that /api/v1/readyz returns 200 when no
+// database pool is configured (DB-less mode — finance/auth endpoints disabled).
+func TestReadyzHandlerNoPool(t *testing.T) {
+	handler := readyzHandler(nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/readyz", nil)
+	rec := httptest.NewRecorder()
+	handler(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200 without pool, got %d", rec.Code)
+	}
+}
+
+// TestServerRoutesReadyz confirms /api/v1/readyz is registered and returns 200
+// when no pool is wired (nil pool → no DB check).
+func TestServerRoutesReadyz(t *testing.T) {
+	srv := newServer(":0", serverDeps{})
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/readyz", nil)
+	rec := httptest.NewRecorder()
+	srv.Handler.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200 from /api/v1/readyz (no pool), got %d", rec.Code)
+	}
+}

@@ -50,15 +50,23 @@ postgres:
     maxConnections: 50
     sharedBuffers: 128MB
 
-  # Liveness / readiness use pg_isready against the local socket.
+  # Probe design:
+  #   Startup:   pg_isready  — 10 × 5 s = 50 s budget for first start / WAL recovery
+  #   Liveness:  pg_isready  — is postgres accepting connections? (process alive)
+  #   Readiness: psql SELECT 1 — can postgres actually execute queries?
+  # initialDelaySeconds=0 on liveness/readiness because startup handles the window.
   probes:
+    startup:
+      periodSeconds: 5
+      timeoutSeconds: 5
+      failureThreshold: 10
     liveness:
-      initialDelaySeconds: 30
+      initialDelaySeconds: 0
       periodSeconds: 10
       timeoutSeconds: 5
-      failureThreshold: 6
+      failureThreshold: 3
     readiness:
-      initialDelaySeconds: 5
+      initialDelaySeconds: 0
       periodSeconds: 5
-      timeoutSeconds: 3
-      failureThreshold: 6
+      timeoutSeconds: 5
+      failureThreshold: 3

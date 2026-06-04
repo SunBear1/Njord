@@ -34,6 +34,24 @@ func healthHandler(w http.ResponseWriter, _ *http.Request) {
 	_ = json.NewEncoder(w).Encode(healthResponse{Status: "ok", Version: version})
 }
 
+// readyzHandler checks whether the backend can serve traffic. Unlike
+// healthHandler (liveness), it verifies DB connectivity so that the pod
+// is removed from Service endpoints while the database is unreachable,
+// rather than being restarted unnecessarily.
+func readyzHandler(pool *pgxpool.Pool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if pool != nil {
+			if err := pool.Ping(r.Context()); err != nil {
+				http.Error(w, "db unreachable", http.StatusServiceUnavailable)
+				return
+			}
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(healthResponse{Status: "ok", Version: version})
+	}
+}
+
 // serverDeps groups optional collaborators wired by main.
 type serverDeps struct {
 	cache     finance.Cacher
@@ -46,6 +64,7 @@ type serverDeps struct {
 func newServer(addr string, deps serverDeps) *http.Server {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/v1/health", healthHandler)
+	mux.HandleFunc("GET /api/v1/readyz", readyzHandler(deps.pool))
 
 	client := deps.client
 	if client == nil {
