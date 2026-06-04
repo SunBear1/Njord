@@ -44,12 +44,12 @@ development_status:
   0-10-release-please-github-actions-image-build-pipeline: done
   0-11-local-e2e-smoke-test-on-k3d-cluster: done
   epic-0-retrospective: optional
-  epic-1: backlog
+  epic-1: done
   1-1-manual-position-entry: done
   1-2-portfolio-overview-and-data-quality-score: done
   1-3-position-edit-and-delete: done
   1-4-incomplete-portfolio-handling: done
-  1-5-multi-source-consolidation-and-conflict-resolution: review
+  1-5-multi-source-consolidation-and-conflict-resolution: done
   epic-1-retrospective: optional
   epic-2: backlog
   2-1-financial-methodology-audit-and-honest-prediction-boundaries: backlog
