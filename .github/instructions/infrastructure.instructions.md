@@ -1,11 +1,13 @@
 ---
-description: Rules for Terraform and GitHub Actions configuration. Apply when modifying infrastructure or CI/CD workflows.
-applyTo: "infrastructure/**/*.tf,.github/workflows/**/*.yml"
+description: Rules for Terraform and GitHub Actions configuration. Apply when modifying CI/CD workflows or Terraform (Epic 99 only — no .tf files exist yet).
+applyTo: ".github/workflows/**/*.yml,infrastructure/**/*.tf"
 ---
 
 # Infrastructure & CI/CD
 
-## Terraform Rules
+> **Note:** No `.tf` files exist in the repo today. Terraform is deferred to Epic 99 (production OCI deployment). The Terraform section below applies only when those files are introduced. CI/CD rules in this file apply now.
+
+## Terraform Rules (Epic 99 onward)
 
 Before ANY change:
 ```bash

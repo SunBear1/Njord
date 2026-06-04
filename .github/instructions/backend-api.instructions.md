@@ -8,6 +8,8 @@ applyTo: "functions/**"
 
 # Backend — Cloudflare Pages Functions
 
+> **⚠️ DEPRECATION (Epic 0):** This entire layer is being replaced by a Go backend on k3s (Stories 0.5–0.8). Apply the rules below to existing `functions/**` files only; do **not** create new Functions endpoints. New backend logic goes into the Go service (see `plans/GO_BACKEND_PLAN.md`).
+
 ## 1. Data Source Strategy — `/api/market-data`
 
 **Primary:** Yahoo Finance (no API key required).

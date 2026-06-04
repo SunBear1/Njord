@@ -12,7 +12,7 @@ git status                 rtk git status
 git log -10                rtk git log -10
 cargo test                 rtk cargo test
 docker ps                  rtk docker ps
-kubectl get pods           rtk kubectl pods
+kubectl get pods           rtk kubectl get pods
 ```
 
 ## Meta commands (use directly)
@@ -37,12 +37,14 @@ Polish-language investment calculator SPA. Compares USD stock/ETF portfolios aga
 - **Runtime:** Node 22 LTS | **Package manager:** npm (never yarn/pnpm)
 - **Framework:** React 19 + Vite 6 | **Language:** TypeScript strict
 - **Styling:** Tailwind CSS v4 (utility classes only, semantic tokens via `@theme`)
-- **Deploy:** Cloudflare Pages — V8 isolates (NOT Node.js; no `fs`, `path`, `process`)
 - **Browser targets:** last 2 versions Chrome, Firefox, Safari
 - **CI:** GitHub Actions (Ubuntu latest)
-- **Shell:** fish (default shell on localhost machine)
+- **Deploy (current):** Cloudflare Pages — V8 isolates (NOT Node.js; no `fs`, `path`, `process`)
+- **Deploy (Epic 0, in progress):** self-hosted k3s/k3d cluster + Go backend + Postgres. See `_bmad-output/planning-artifacts/architecture.md`.
 
 ## Architecture
+
+> **Migration in progress (Epic 0):** moving from Cloudflare Pages + Functions to self-hosted k3s + Go backend. Both layouts coexist until Story 0.2 lands. Source of truth: `_bmad-output/planning-artifacts/architecture.md`.
 
 ```
 src/pages/         Page components (own their state, pass via props)
@@ -54,11 +56,25 @@ src/providers/     API adapters (Yahoo Finance, NBP)
 src/workers/       Web Worker for HMM Monte Carlo (browser, NOT CF Worker)
 src/types/         TypeScript interfaces
 
-functions/api/     CF Pages Functions (thin proxy/cache layer)
-infrastructure/    Terraform (CF Pages + D1)
+functions/api/     CF Pages Functions — DEPRECATED (replaced by Go backend in Story 0.5+)
+infrastructure/local/  k3d cluster bootstrap (Story 0.1)
+infrastructure/helm/   Helm charts (Stories 0.3-0.5)
+infrastructure/argocd/ ArgoCD Applications (Story 0.9)
+_bmad-output/      BMAD planning + sprint tracking
 ```
 
 No global state. Pages own state -> pass via props. `Layout.tsx` owns shared concerns only.
+
+## Workflow (BMAD)
+
+Project uses BMAD methodology. **Before starting any non-trivial work, read these:**
+
+- `_bmad-output/planning-artifacts/epics.md` — all epics and stories (single source of truth for what to build)
+- `_bmad-output/planning-artifacts/architecture.md` — binding architectural decisions (namespaces, naming, etc.)
+- `_bmad-output/implementation-artifacts/sprint-status.yaml` — current status of every story (backlog / ready-for-dev / in-progress / review / done)
+- `_bmad-output/implementation-artifacts/<epic>-<story>-*.md` — per-story dev context (BDD acceptance criteria, task breakdown)
+
+When picking up work: read sprint-status.yaml → find first `ready-for-dev` story → load its context file → implement → update status as you progress.
 
 ## Response Format
 
@@ -66,7 +82,6 @@ No global state. Pages own state -> pass via props. `Layout.tsx` owns shared con
 - One best answer — no alternatives unless asked.
 - No preamble, no restating the question, no summaries of what you did.
 - If the answer is one command, give one command.
-- Use plan mode for multi-file changes.
 
 ## Critical Invariants
 
@@ -77,7 +92,7 @@ No global state. Pages own state -> pass via props. `Layout.tsx` owns shared con
 5. **Pure financial functions** — no `fetch`, `localStorage`, or DOM in `src/utils/`.
 6. **UI in Polish, code in English** — no mixing.
 7. **Tailwind tokens only** — no hardcoded hex, no CSS modules, no `@apply`.
-8. **All checks pass before commit** — `npx tsc --noEmit && npm run lint && npm test && npm run build`.
+8. **All checks pass before commit** — see `## Validation` section below for the canonical command (single source of truth).
 9. **No secrets in code** — never commit `.dev.vars`, API keys, or tokens.
 
 ## Conventions
@@ -101,7 +116,7 @@ Always enforced across all code changes:
 
 ## Validation
 
-Critical validation before commiting changes:
+Critical validation before committing changes:
 
 ```bash
 npx tsc --noEmit --skipLibCheck -p functions/tsconfig.json && npm run lint && npm test && npm run build && npx playwright test
@@ -111,20 +126,21 @@ Important: `npx playwright test` runs against `npm run preview` on `dist/`, so r
 
 No exceptions. Fix failures before proceeding. Context-specific checks in `.github/instructions/` files per domain.
 
-## Delivering Work
-
-1. Feature branch: `<type>/<short-description>` (e.g. `feat/bond-calculator`).
-2. Conventional Commits message.
-3. Push + `gh pr create --base main`.
-4. Present PR URL as the final step.
-
-Never commit directly to `main`.
-
 ## Security
 
 - `.dev.vars` is `.gitignore`d — never stage it.
-- API keys live in CF Pages secrets, never in code or responses.
-- If a command is destructive (`rm -rf`, `DROP`, force push) — warn before executing.
+- API keys, DB passwords, JWT signing keys — never in code or chat responses. Today: CF Pages secrets. Post-Epic-0: Kubernetes Secrets / sealed-secrets.
+- If a command is destructive (`rm -rf`, `DROP`, force push, `kubectl delete namespace`) — warn before executing.
+
+## Delivering Work
+
+1. Feature branch: `<type>/<scope>` (general) or `<type>/epic-<E>-story-<E>-<S>-<slug>` (BMAD stories).
+2. Conventional Commits message, with `Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>` trailer.
+3. Push + `gh pr create --base main`.
+4. Wait for CI, merge (`gh pr merge <N> --squash --delete-branch`), sync local main.
+5. For BMAD stories: update `sprint-status.yaml` (ready-for-dev → review → done) in the same PR or a follow-up.
+
+Never commit directly to `main`.
 
 ## Dependencies
 
@@ -136,14 +152,4 @@ Before adding any npm package:
 
 ## Path-Specific Instructions
 
-Detailed rules for specific file types live in `.github/instructions/`:
-- `react-components.instructions.md` — Component design, Tailwind, accessibility
-- `hooks-state-providers.instructions.md` — State management, data fetching, providers
-- `financial-calculations.instructions.md` — Tax, bond math, prediction models
-- `testing.instructions.md` — Test patterns, Playwright, edge cases
-- `backend-api.instructions.md` — Cloudflare Pages Functions, caching, CORS
-- `styling-tokens.instructions.md` — Design tokens, theming, dark mode
-- `infrastructure.instructions.md` — Terraform, GitHub Actions
-- `bash.instructions.md` — Shell script conventions (set -euo, structure, quoting)
-- `helm.instructions.md` — Helm chart layout, labels, namespaces, probes, validation
-- `kubernetes.instructions.md` — Raw manifests, ArgoCD Applications, kubectl workflow rules
+Domain rules live in `.github/instructions/*.instructions.md` and load automatically when matching files are touched (path-scoped via `applyTo` frontmatter). Do not list them here — the system surfaces the active set per-request.
