@@ -22,6 +22,21 @@ children:
     destinationNamespace: njord-data
     syncWave: "1"
     values: {}
+    # Postgres' StatefulSet drifts on cosmetic annotations because the
+    # checksum/secret value depends on `helm lookup`, which the ArgoCD
+    # repo server cannot reliably evaluate. The fields below are
+    # server-managed defaults (the StatefulSet controller fills them in)
+    # or pod-template churn that doesn't affect the running database.
+    ignoreDifferences:
+      - group: apps
+        kind: StatefulSet
+        name: postgres
+        jsonPointers:
+          - /spec/podManagementPolicy
+          - /spec/revisionHistoryLimit
+          - /spec/persistentVolumeClaimRetentionPolicy
+          - /spec/template/metadata/annotations/checksum~1secret
+          - /spec/template/metadata/annotations/checksum~1config
   - name: app-backend
     chartPath: infrastructure/helm/njord-backend
     destinationNamespace: njord-app
