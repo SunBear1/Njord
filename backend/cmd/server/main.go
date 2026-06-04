@@ -11,6 +11,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/SunBear1/Njord/backend/internal/auth"
 	"github.com/SunBear1/Njord/backend/internal/cache"
 	"github.com/SunBear1/Njord/backend/internal/finance"
 	"github.com/SunBear1/Njord/backend/internal/seed"
@@ -35,10 +36,11 @@ func healthHandler(w http.ResponseWriter, _ *http.Request) {
 
 // serverDeps groups optional collaborators wired by main.
 type serverDeps struct {
-	cache  finance.Cacher
-	pool   *pgxpool.Pool
-	client *http.Client
-	nbp    *finance.NBPClient
+	cache     finance.Cacher
+	pool      *pgxpool.Pool
+	client    *http.Client
+	nbp       *finance.NBPClient
+	jwtSecret string
 }
 
 func newServer(addr string, deps serverDeps) *http.Server {
@@ -61,6 +63,9 @@ func newServer(addr string, deps serverDeps) *http.Server {
 			finance.InflationHandler(deps.pool, deps.cache, client))
 		mux.HandleFunc("GET /api/v1/finance/inflation/forecast",
 			finance.InflationForecastHandler(deps.pool))
+	}
+	if deps.pool != nil && deps.jwtSecret != "" {
+		auth.NewHandlers(deps.pool, deps.jwtSecret).Register(mux)
 	}
 	if deps.nbp != nil {
 		mux.HandleFunc("GET /api/v1/finance/currency",
@@ -112,11 +117,23 @@ func main() {
 			slog.Error("seed apply", "err", err)
 			os.Exit(1)
 		}
+		if err := auth.ApplySchema(ctx, pool); err != nil {
+			slog.Error("auth schema", "err", err)
+			os.Exit(1)
+		}
 		deps.cache = c
 		deps.pool = pool
 		slog.Info("postgres cache + seed ready")
-	} else {
-		slog.Warn("DATABASE_URL not set — finance endpoints disabled")
+	}
+
+	if secret := os.Getenv("JWT_SECRET"); secret != "" {
+		deps.jwtSecret = secret
+	} else if deps.pool != nil {
+		slog.Error("JWT_SECRET is required when DATABASE_URL is set")
+		os.Exit(1)
+	}
+	if deps.pool == nil {
+		slog.Warn("DATABASE_URL not set — finance + auth endpoints disabled")
 	}
 
 	srv := newServer(addr, deps)
