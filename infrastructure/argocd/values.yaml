@@ -9,6 +9,15 @@ global:
   targetRevision: main
   argocdNamespace: argocd
 
+# ArgoCD-server ingress. Lives here (not in the argo-cd helm chart) because
+# the chart's built-in ingress always points to the https service port,
+# which breaks against the --insecure server we run locally.
+argocd:
+  ingress:
+    enabled: true
+    className: traefik
+    host: argocd.localhost
+
 # Child Applications. Order matters only for the first sync: ArgoCD picks
 # up `sync-wave` annotations so platform → postgres → backend → frontend.
 children:

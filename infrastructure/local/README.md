@@ -72,3 +72,32 @@ agent node showing `memory: ~8Gi cpu: 2`.
 | Nodes not Ready in 90s | Slow image pull | Re-run; first run downloads the k3s image |
 | `docker update` warns | Cgroup v1 host or rootless docker | CPU limit is best-effort; cluster still works |
 | Port 80/443 already in use | Local web server | Stop conflicting service or change ports in `bootstrap.sh` |
+
+## ArgoCD
+
+After `bootstrap.sh`, install ArgoCD + bootstrap the app-of-apps:
+
+```bash
+./infrastructure/local/install-argocd.sh
+```
+
+The script is idempotent: it `helm upgrade --install`s the chart, seeds
+bootstrap secrets in `njord-data` / `njord-app` (the ArgoCD repo-server
+cannot evaluate Helm `lookup`, so these must pre-date the postgres /
+backend charts), and applies the app-of-apps.
+
+### Access the UI
+
+| Method               | URL / command                                                       |
+| -------------------- | ------------------------------------------------------------------- |
+| Ingress (preferred)  | <http://argocd.localhost> — requires `127.0.0.1 argocd.localhost` in `/etc/hosts` |
+| Port-forward fallback| `kubectl port-forward -n argocd svc/argocd-server 8080:443` → <http://localhost:8080> |
+
+Login: `admin` / `test` (local-only bcrypt hash inlined in the script;
+Cloudflare Access SSO is the production story — Epic 99).
+
+### CLI
+
+```bash
+argocd login argocd.localhost --username admin --password test --insecure --plaintext
+```

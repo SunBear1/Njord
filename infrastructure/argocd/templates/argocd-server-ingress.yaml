@@ -1,0 +1,34 @@
+{{- /*
+ArgoCD server Ingress. Hand-written instead of using the argo-cd chart's
+built-in `server.ingress.*` because that template hard-codes the backend
+service port to `443`, which Traefik treats as HTTPS. argocd-server runs
+with `--insecure` (plain HTTP on :8080, exposed as service port 80
+named `http`), so we route directly to the http port to avoid a TLS
+handshake against a plaintext upstream (502).
+
+Only rendered when `.Values.argocd.ingress.enabled` is true.
+*/ -}}
+{{- if .Values.argocd.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-server
+  namespace: {{ .Values.global.argocdNamespace }}
+  labels:
+    app.kubernetes.io/name: argocd-server
+    app.kubernetes.io/part-of: njord
+    app.kubernetes.io/managed-by: Helm
+spec:
+  ingressClassName: {{ .Values.argocd.ingress.className | quote }}
+  rules:
+    - host: {{ .Values.argocd.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  name: http
+{{- end }}
