@@ -1,0 +1,60 @@
+# Default values for njord-frontend.
+# Story 0.4 — React SPA served by nginx behind Traefik ingress.
+
+frontend:
+  image:
+    # Local dev: image is built with `docker build -t njord-frontend:dev-<sha>`
+    # and imported into k3d via `k3d image import`.
+    # Epic 99: switch to `ghcr.io/sunbear1/njord-frontend` once GHCR push lands.
+    repository: njord-frontend
+    tag: "latest"
+    # IfNotPresent keeps the locally-imported image; set to Never to be sure
+    # the cluster never tries to pull from a registry for dev-tagged images.
+    pullPolicy: IfNotPresent
+
+  replicaCount: 1
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  ingress:
+    enabled: true
+    className: traefik
+    host: njord.localhost
+    annotations: {}
+    # TLS disabled for local — Story 0.9 introduces cert-manager.
+    tls: []
+
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+  # Pin SPA to the app node (mirrors planned OCI A1.Flex topology).
+  nodeSelector:
+    role: app
+
+  tolerations: []
+  affinity: {}
+
+  probes:
+    liveness:
+      httpGet:
+        path: /healthz
+        port: http
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+    readiness:
+      httpGet:
+        path: /healthz
+        port: http
+      initialDelaySeconds: 2
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3
