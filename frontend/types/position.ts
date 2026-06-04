@@ -1,13 +1,16 @@
 export type PositionCurrency = 'USD' | 'EUR' | 'GBP' | 'PLN';
 export const POSITION_CURRENCIES: PositionCurrency[] = ['USD', 'EUR', 'GBP', 'PLN'];
 
+export const POSITION_SOURCES = ['manual', 'DEGIRO', 'mBank', 'ING', 'XTB', 'Bossa'] as const;
+export type PositionSource = typeof POSITION_SOURCES[number] | string;
+
 export interface Position {
   id: string;
   ticker: string;
   quantity: number;
   avgPrice: number;
   currency: PositionCurrency;
-  source: string;
+  source: PositionSource;
   addedAt: number;
 }
 
@@ -16,6 +19,7 @@ export interface PositionDraft {
   quantity: string;
   avgPrice: string;
   currency: PositionCurrency;
+  source: string;
 }
 
 export interface PositionValidationErrors {
@@ -51,7 +55,7 @@ export function draftToPosition(draft: PositionDraft, id: string): Position {
     quantity: parseFloat(draft.quantity),
     avgPrice: parseFloat(draft.avgPrice),
     currency: draft.currency,
-    source: 'manual',
+    source: draft.source.trim() || 'manual',
     addedAt: Date.now(),
   };
 }

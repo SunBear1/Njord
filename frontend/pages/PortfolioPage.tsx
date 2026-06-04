@@ -10,6 +10,8 @@ import { MergePrompt } from '../components/portfolio/MergePrompt';
 import { DeleteConfirmDialog } from '../components/portfolio/DeleteConfirmDialog';
 import { PortfolioReadinessPanel } from '../components/portfolio/PortfolioReadinessPanel';
 import { calcPortfolioQuality } from '../utils/portfolioQuality';
+import { calcConsolidatedPositions } from '../utils/portfolioConsolidation';
+import { ConsolidatedPositionView } from '../components/portfolio/ConsolidatedPositionView';
 import type { PositionDraft } from '../types/position';
 
 const PortfolioWizardLazy = lazy(() =>
@@ -24,6 +26,7 @@ export function PortfolioPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const quality = useMemo(() => calcPortfolioQuality(positions), [positions]);
+  const consolidated = useMemo(() => calcConsolidatedPositions(positions), [positions]);
 
   const editingPosition = editingId ? positions.find((p) => p.id === editingId) ?? null : null;
   const editDraft: PositionDraft | undefined = editingPosition
@@ -32,6 +35,7 @@ export function PortfolioPage() {
         quantity: String(editingPosition.quantity),
         avgPrice: String(editingPosition.avgPrice),
         currency: editingPosition.currency,
+        source: editingPosition.source,
       }
     : undefined;
 
@@ -104,6 +108,15 @@ export function PortfolioPage() {
             editingId={editingId}
             onEdit={handleEdit}
             onDeleteRequest={(id) => setPendingDeleteId(id)}
+          />
+
+          <ConsolidatedPositionView
+            consolidated={consolidated}
+            onResolve={(ticker) => {
+              // Scroll to / highlight the conflicting positions
+              const first = positions.find((p) => p.ticker === ticker);
+              if (first) handleEdit(first.id);
+            }}
           />
 
           <PortfolioReadinessPanel quality={quality} />

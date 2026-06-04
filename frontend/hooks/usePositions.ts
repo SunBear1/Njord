@@ -47,8 +47,9 @@ export function usePositions(): UsePositionsResult {
 
   const addPosition = useCallback((draft: PositionDraft): 'added' | 'duplicate' => {
     const ticker = draft.ticker.trim().toUpperCase();
+    const source = draft.source.trim() || 'manual';
     const isDuplicate = positions.some(
-      (p) => p.ticker === ticker && p.source === 'manual',
+      (p) => p.ticker === ticker && p.source === source,
     );
     if (isDuplicate) {
       setPendingMerge(draft);
@@ -60,9 +61,10 @@ export function usePositions(): UsePositionsResult {
 
   const confirmMerge = useCallback((draft: PositionDraft) => {
     const ticker = draft.ticker.trim().toUpperCase();
+    const source = draft.source.trim() || 'manual';
     setPositions((prev) =>
       prev.map((p) =>
-        p.ticker === ticker && p.source === 'manual'
+        p.ticker === ticker && p.source === source
           ? { ...draftToPosition(draft, p.id), addedAt: p.addedAt }
           : p,
       ),
