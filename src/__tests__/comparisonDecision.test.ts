@@ -69,7 +69,7 @@ describe('comparisonDecision', () => {
     expect(summary).not.toBeNull();
     expect(summary?.winnerLabel).toBe('ETF');
     expect(summary?.winnerVerb).toBe('wygrywa');
-    expect(summary?.actionTitle).toContain('sprzedać');
+    expect(summary?.actionTitle).toContain('wyższy wynik netto');
     expect(summary?.supportingScenarioCount).toBe(2);
     expect(summary?.conflictingScenarioCount).toBe(1);
   });
@@ -83,7 +83,7 @@ describe('comparisonDecision', () => {
 
     const summary = getDecisionSummary(results);
 
-    expect(summary?.actionTitle).toBe('Na ten moment lepiej sprzedać i przenieść środki na konto oszczędnościowe');
+    expect(summary?.actionTitle).toBe('Scenariusz bazowy: konto oszczędnościowe daje wyższy wynik netto');
     expect(summary?.actionSubtitle).toContain('konto oszczędnościowe');
   });
 
@@ -93,7 +93,7 @@ describe('comparisonDecision', () => {
 
   it('TestGetScenarioConsistencyText_WhenOneScenarioDiffers_ExpectsSupportingAndConflictingScenarioNames', () => {
     expect(getScenarioConsistencyText(['Base', 'Bull'], ['Bear'])).toBe(
-      'Werdykt wspierają scenariusze Base i Bull. Inny kierunek pokazuje scenariusz Bear.',
+      'Zgodny kierunek: scenariusze Base i Bull. Odmienny wynik: scenariusz Bear.',
     );
   });
 });

@@ -36,7 +36,7 @@ export function ComparisonDecisionSummary({
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <span className="inline-flex items-center gap-2 rounded-full border border-accent-primary/30 bg-accent-primary/5 px-3 py-1 text-xs font-semibold text-accent-primary">
           <ArrowRightLeft size={14} aria-hidden="true" />
-          Rekomendacja teraz
+          Wynik porównania
         </span>
         <span className="text-xs font-medium text-text-muted">
           {summary.supportingScenarioCount}/{results.length} scenariuszy wspiera ten kierunek
