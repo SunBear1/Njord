@@ -30,8 +30,7 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
-      - ServerSideApply=true
+{{ toYaml (default (list "CreateNamespace=true" "ServerSideApply=true") .syncOptions) | indent 6 }}
   {{- with .ignoreDifferences }}
   ignoreDifferences:
 {{ toYaml . | indent 4 }}

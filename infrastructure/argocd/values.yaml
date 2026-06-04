@@ -17,18 +17,26 @@ children:
     destinationNamespace: njord-system
     syncWave: "0"
     values: {}
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
   - name: app-postgres
     chartPath: infrastructure/helm/njord-postgres
     destinationNamespace: njord-data
     syncWave: "1"
     values: {}
+    # ServerSideApply is intentionally OFF for postgres: SSA leaves
+    # server-managed StatefulSet defaults (updateStrategy, dnsPolicy,
+    # terminationGracePeriodSeconds, volumeClaimTemplates.kind/apiVersion,
+    # etc.) in the live object that don't appear in `helm template`,
+    # producing permanent OOS noise. The pre-3-way-merge client-side
+    # apply path ignores server defaults via last-applied-configuration.
+    syncOptions:
+      - CreateNamespace=true
     # The postgres chart generates POSTGRES_PASSWORD via `helm lookup` so
     # it stays stable across local `helm upgrade`. The ArgoCD repo server
     # cannot evaluate `lookup`, so each render generates a fresh random
-    # password — perpetual drift unless we ignore it. The StatefulSet
-    # entries cover server-managed defaults and the pod-template
-    # checksum annotations whose values transitively depend on the
-    # same secret render.
+    # value — perpetual drift unless we ignore the secret data.
     ignoreDifferences:
       - kind: Secret
         name: postgres-secret
@@ -36,22 +44,15 @@ children:
           - /data/POSTGRES_PASSWORD
           - /data/POSTGRES_USER
           - /data/POSTGRES_DB
-      - group: apps
-        kind: StatefulSet
-        name: postgres
-        jsonPointers:
-          - /spec/podManagementPolicy
-          - /spec/revisionHistoryLimit
-          - /spec/persistentVolumeClaimRetentionPolicy
-          - /spec/template/metadata/annotations/checksum~1secret
-          - /spec/template/metadata/annotations/checksum~1config
   - name: app-backend
     chartPath: infrastructure/helm/njord-backend
     destinationNamespace: njord-app
     syncWave: "2"
     values: {}
-    # njord-auth-secret and the mirrored postgres-secret in njord-app
-    # both use `lookup` for stable values, same caveat as above.
+    syncOptions:
+      - CreateNamespace=true
+    # njord-auth-secret + mirrored postgres-secret both use `helm lookup`
+    # for stable values. Same caveat as app-postgres.
     ignoreDifferences:
       - kind: Secret
         name: njord-auth-secret
@@ -63,13 +64,10 @@ children:
           - /data/POSTGRES_PASSWORD
           - /data/POSTGRES_USER
           - /data/POSTGRES_DB
-      - group: apps
-        kind: Deployment
-        name: backend
-        jsonPointers:
-          - /spec/template/metadata/annotations/checksum~1secret
   - name: app-frontend
     chartPath: infrastructure/helm/njord-frontend
     destinationNamespace: njord-app
     syncWave: "2"
     values: {}
+    syncOptions:
+      - CreateNamespace=true
