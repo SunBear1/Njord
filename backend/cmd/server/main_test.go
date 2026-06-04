@@ -20,12 +20,15 @@ func TestHealthHandler(t *testing.T) {
 		t.Fatalf("expected Content-Type application/json, got %q", got)
 	}
 
-	var body map[string]string
+	var body healthResponse
 	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
 		t.Fatalf("decode body: %v", err)
 	}
-	if body["status"] != "ok" {
-		t.Fatalf("expected status=ok, got %q", body["status"])
+	if body.Status != "ok" {
+		t.Fatalf("expected status=ok, got %q", body.Status)
+	}
+	if body.Version == "" {
+		t.Fatalf("expected non-empty version field")
 	}
 }
 
