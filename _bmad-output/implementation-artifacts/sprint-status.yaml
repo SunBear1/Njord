@@ -41,8 +41,8 @@ development_status:
   0-7-port-remaining-finance-apis-bonds-currency-inflation: done
   0-8-port-auth-apis-jwt-oauth-to-go: done
   0-9-argocd-installation-app-of-apps: done
-  0-10-release-please-github-actions-image-build-pipeline: in-progress
-  0-11-local-e2e-smoke-test-on-k3d-cluster: backlog
+  0-10-release-please-github-actions-image-build-pipeline: done
+  0-11-local-e2e-smoke-test-on-k3d-cluster: in-progress
   epic-0-retrospective: optional
   epic-1: backlog
   1-1-manual-position-entry: backlog
