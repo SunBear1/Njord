@@ -144,3 +144,6 @@ Detailed rules for specific file types live in `.github/instructions/`:
 - `backend-api.instructions.md` — Cloudflare Pages Functions, caching, CORS
 - `styling-tokens.instructions.md` — Design tokens, theming, dark mode
 - `infrastructure.instructions.md` — Terraform, GitHub Actions
+- `bash.instructions.md` — Shell script conventions (set -euo, structure, quoting)
+- `helm.instructions.md` — Helm chart layout, labels, namespaces, probes, validation
+- `kubernetes.instructions.md` — Raw manifests, ArgoCD Applications, kubectl workflow rules
