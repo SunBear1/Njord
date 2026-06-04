@@ -157,14 +157,32 @@ From Architecture:
 ## Epic List
 
 ### Epic 0: Local-First Infrastructure & Backend Migration
-Buduje self-hosted infrastrukturę na lokalnym 2-node k3d klastrze symulującym docelowy OCI setup. Refactor `src/`→`frontend/`, scaffold Go backendu, port wszystkich API z Cloudflare Pages Functions, instalacja ArgoCD z GitOps deployment, Helm charts dla 4 serwisów (frontend, backend, postgres, ingress). Big bang cutover bez okresu deprekacji (zero klientów). Cel: w pełni działający Njord lokalnie z prawdziwymi danymi (Yahoo Finance free tier, NBP, Alior, ECB) zanim wydamy cent na chmurę.
+Buduje self-hosted infrastrukturę na lokalnym 2-node k3d klastrze symulującym docelowy OCI setup. Refactor `src/`→`frontend/`, scaffold Go backendu, port wszystkich finance API z Cloudflare Pages Functions, port JWT auth (OAuth deferred), instalacja ArgoCD z lokalnym admin/test, Helm charts dla 4 serwisów, lokalne wersjonowane obrazy ładowane do k3d. **W pełni offline — zero zależności od zewnętrznych providerów wymagających rejestracji (GHCR, OAuth providers, OCI, domena).**
 
 **FRs:** N/A (infrastructure foundation)
-**NFRs:** NFR1 (perf), NFR3 (deploy), NFR5 (observability), NFR6 (security)
-**Arch:** Go backend (kontynuacja `GO_BACKEND_PLAN.md`), Postgres single-replica StatefulSet, Helm charts w `infrastructure/charts/`, ArgoCD app-of-apps w `infrastructure/argocd/`, Traefik ingress (local) z planem zamiany na Cloudflare Tunnel (cloud phase)
+**NFRs:** NFR1 (perf), NFR3 (deploy), NFR5 (observability), NFR6 (security — local scope)
+**Arch:** Go backend (kontynuacja `GO_BACKEND_PLAN.md`), Postgres single-replica StatefulSet z local-path PVC, Helm charts w `infrastructure/charts/`, ArgoCD app-of-apps w `infrastructure/argocd/`, Traefik ingress, lokalne obrazy `njord-{frontend,backend}:<semver>` via `k3d image import`
 **Cleanup:** Usuń Twelve Data referencje (dead code), usuń `functions/` po pomyślnym porcie
-**Dependencies:** None (blocker dla wszystkich pozostałych epików)
-**Note:** Faza cloud (Terraform OCI, CF Tunnel, CF Access SSO, domena, big bang DNS) wydzielona do osobnego Epic 99 — uruchamiana DOPIERO po ukończeniu Epic 0 i potwierdzeniu działającego MVP.
+**Dependencies:** None (blocker dla Epic 1-5)
+**Out of scope (→ Epic 99):** GHCR/jakikolwiek zewnętrzny registry, OAuth (GitHub/Google), Cloudflare Tunnel/Access, domena, OCI provisioning, ArgoCD SSO, real DNS
+
+### Epic 99: Production Deployment (Cloud)
+Wszystkie elementy produkcyjnej hosted infrastructure, uruchamiane **DOPIERO po ukończeniu Epic 0-5** — tylko jeśli MVP zostanie uznane za wartościowe i godne wydatku na chmurę. Skeptical-by-default: jeśli po implementacji wszystkich epików produkt okaże się nieprzekonujący, Epic 99 może nigdy nie wystartować.
+
+**Zakres (high-level, stories TBD):**
+- Domena via Cloudflare Registrar (`.dev` lub `.app`)
+- Terraform OCI: 2× A1.Flex (4 OCPU + 24 GB total = Always Free Tier)
+- OCI Block Volume + `oci-csi` driver dla Postgres PVC
+- Cloudflare Tunnel zamiast Traefika (zero exposed ports)
+- Cloudflare Access OIDC dla ArgoCD UI (local admin disabled)
+- GitHub Actions OIDC trust do OCI (zero długoterminowych sekretów)
+- GHCR push pipeline: tag push → image build → ghcr.io public → ArgoCD reconcile via values.yaml bump
+- OAuth providers: GitHub OAuth App + Google OAuth App z callback URLs do real domeny
+- Big bang DNS cutover, retirement `njord.pages.dev`, deletion `functions/` legacy
+- Backupy Postgres → R2 (Cloudflare zero-egress)
+
+**Dependencies:** Epic 0-5 done + decyzja "yes, this product is worth hosting"
+**Trigger:** Manualny, świadomy. Nie zaczynamy bez ukończonego MVP.
 
 ### Epic 1: Portfolio Foundation
 User może stworzyć, edytować i utrzymywać skonsolidowany obraz portfela z widocznym statusem jakości danych, nawet w trybie manual-first bez integracji z brokerem.
@@ -357,25 +375,25 @@ So that all finance integrations are unified on the new platform.
 
 ---
 
-#### Story 0.8: Port Auth APIs (JWT + OAuth GitHub/Google) to Go
+#### Story 0.8: Port Auth APIs (JWT-only) to Go
 
 As a **self-directed investor**,
-I want authentication endpoints migrated to Go with Postgres-backed sessions,
+I want JWT authentication endpoints migrated to Go with Postgres-backed users,
 So that login/logout/me/register work on the new stack and `functions/` can be removed.
 
 **Acceptance Criteria:**
 
 **Given** finance APIs ported (Story 0.7)
 **When** auth endpoints implemented in Go
-**Then** `/api/v1/auth/{login,logout,register,me,change-password,delete-account,github/*,google/*}` exist with response parity
+**Then** `/api/v1/auth/{login,logout,register,me,change-password,delete-account}` exist with response parity to TS versions
 **And** JWT signing uses HS256 with secret from k8s Secret (env `JWT_SECRET`)
-**And** OAuth callbacks redirect correctly with `OAUTH_REDIRECT_BASE` env
 **And** users table migrated from D1 schema to Postgres (`infrastructure/charts/postgres/templates/migrations/001-init.sql` applied via initContainer or pgInit Job)
 **And** Playwright auth E2E tests pass against `http://njord.localhost`
 **And** `functions/` directory deleted in this PR
+**And** OAuth flows (GitHub, Google) explicitly OUT OF SCOPE — deferred to Epic 99 (require external provider app registration, not testable in local-only phase)
 **And** Cloudflare Pages config in `infrastructure/terraform/` marked deprecated (not yet deleted — kept until cloud cutover in Epic 99)
 
-*Covers: existing auth functionality, NFR6*
+*Covers: existing auth functionality (JWT subset), NFR6*
 
 ---
 
@@ -383,7 +401,7 @@ So that login/logout/me/register work on the new stack and `functions/` can be r
 
 As a **developer**,
 I want ArgoCD installed in the cluster managing all 4 service Helm charts via GitOps,
-So that pushing to `main` automatically reconciles the cluster to match git.
+So that committing to the local repo reconciles the cluster to match git (no manual `helm upgrade` needed during local development iteration).
 
 **Acceptance Criteria:**
 
@@ -392,7 +410,7 @@ So that pushing to `main` automatically reconciles the cluster to match git.
 **Then** root `Application` resource at `infrastructure/argocd/` syncs 4 child `Application` resources (one per chart) using app-of-apps pattern
 **And** each child Application has `syncPolicy.automated.{prune, selfHeal}: true` and `syncOptions: [CreateNamespace=true]`
 **And** ArgoCD UI accessible via port-forward (`kubectl port-forward svc/argocd-server -n argocd 8080:443`)
-**And** for local phase, ArgoCD uses default local admin (password retrieved via `kubectl get secret argocd-initial-admin-secret`); SSO via Cloudflare Access deferred to Epic 99
+**And** ArgoCD uses local admin user with password `test` (LOCAL DEVELOPMENT ONLY — explicitly insecure, acceptable because cluster is on developer machine; Cloudflare Access SSO deferred to Epic 99)
 **And** Helm chart structure for `infrastructure/argocd/` follows `inpost_task/argocd/` reference (Chart.yaml + templates with `application.*.yaml`)
 **And** manually deleting a Deployment triggers ArgoCD selfHeal within 3 minutes
 
@@ -400,25 +418,28 @@ So that pushing to `main` automatically reconciles the cluster to match git.
 
 ---
 
-#### Story 0.10: release-please + GitHub Actions Image Build Pipeline
+#### Story 0.10: Local Image Build & Versioning
 
 As a **developer**,
-I want pushes to `main` to trigger conventional-commit release PRs, and merged release tags to build/push images and bump Helm values,
-So that releases are versioned (semver), traceable, and deployed via GitOps without manual intervention.
+I want a script that builds Docker images for frontend and backend with semver tags and loads them directly into the k3d cluster,
+So that I have reproducible, versioned local artifacts that match the eventual cloud workflow shape — without needing any external registry.
 
 **Acceptance Criteria:**
 
-**Given** Stories 0.2–0.9 complete
-**When** developer pushes `feat: ...` commit to `main`
-**Then** release-please bot opens "chore: release vX.Y.Z" PR with CHANGELOG and Chart.yaml version bump
-**And** when release PR is merged, bot creates git tag `vX.Y.Z` and GitHub Release
-**And** tag-triggered workflow builds frontend and backend Docker images, tags as `X.Y.Z`, `X.Y`, `latest`, pushes to `ghcr.io/sunbear1/njord-frontend` and `ghcr.io/sunbear1/njord-backend` (public registry, no pull secret needed)
-**And** workflow commits image tag bump to `infrastructure/charts/{frontend,backend}/values.yaml` and pushes back to main
-**And** ArgoCD (local: polling; cloud: webhook) detects change and reconciles
-**And** images use multi-stage builds: backend distroless <20 MB, frontend nginx:alpine + dist <30 MB
-**And** workflow has `permissions: { contents: write, packages: write }` only — no other elevated rights
+**Given** Stories 0.2 (Dockerfiles exist), 0.4, and 0.5 complete
+**When** developer runs `./infrastructure/local/build-images.sh`
+**Then** script reads current version from `VERSION` file at repo root (single source of truth, e.g. `0.1.0`)
+**And** script builds two images: `njord-frontend:<VERSION>` and `njord-backend:<VERSION>`, plus aliases `:latest` and `:<MAJOR>.<MINOR>` (e.g. `0.1`)
+**And** images are loaded into k3d cluster via `k3d image import njord-frontend:<VERSION> njord-backend:<VERSION> -c njord`
+**And** Helm chart values reference `image.repository: njord-{frontend,backend}` and `image.tag` pulled from `VERSION` (templated via `--set image.tag=$(cat VERSION)` in a `helm-upgrade.sh` helper, OR via `values.yaml` updated by release-please)
+**And** images use multi-stage builds: backend distroless `<20 MB`, frontend `nginx:alpine` + dist `<30 MB` (verify via `docker image ls`)
+**And** `release-please` is configured in `.github/workflows/release-please.yml` to manage CHANGELOG and bump `VERSION` file on merged release PRs (commit-only — push to ghcr.io explicitly OUT OF SCOPE, deferred to Epic 99)
+**And** GitHub Actions workflow `local-image-validation.yml` runs `docker build` for both images on every PR to catch Dockerfile regressions (no push, just build)
+**And** script is idempotent and prints final summary: built images, sizes, k3d import result
 
 *Covers: NFR3*
+
+**Note:** Cloud-side image push pipeline (ghcr.io push, image tag bump in Helm values via bot, ArgoCD webhook reconciliation) deferred to Epic 99 Story 99.X. This story sets up the foundation (Dockerfile + versioning + release-please) so the Epic 99 work is purely "wire it up to GHCR".
 
 ---
 
@@ -434,8 +455,8 @@ So that I can verify the entire system (frontend → backend → Postgres → ex
 **When** developer runs `PLAYWRIGHT_BASE_URL=http://njord.localhost npx playwright test`
 **Then** existing test suite passes against the live cluster (not against `npm run preview`)
 **And** at least one new smoke test validates: open `/forecast`, fetch real Yahoo data for SPY, render forecast chart, no console errors
-**And** at least one new smoke test validates: register user, login, see authenticated state
-**And** README updated with local development workflow: `./infrastructure/local/bootstrap.sh && helm install ... && npx playwright test`
+**And** at least one new smoke test validates: register user (JWT only, no OAuth), login, see authenticated state
+**And** README updated with local development workflow: `./infrastructure/local/bootstrap.sh && ./infrastructure/local/build-images.sh && helm install ... && npx playwright test`
 **And** all stored memories in this session about validation chain (npx tsc, lint, test, build) still hold for `frontend/` directory
 
 *Covers: NFR1, NFR3, NFR5*
