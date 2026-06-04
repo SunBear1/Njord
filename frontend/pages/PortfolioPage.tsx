@@ -1,4 +1,4 @@
-import { Suspense, lazy, useState } from 'react';
+import { Suspense, lazy, useState, useMemo } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { Skeleton } from '../components/Skeleton';
 import { useBondPresets } from '../hooks/useBondPresets';
@@ -7,6 +7,7 @@ import { usePositions } from '../hooks/usePositions';
 import { PositionList } from '../components/portfolio/PositionList';
 import { PositionForm } from '../components/portfolio/PositionForm';
 import { MergePrompt } from '../components/portfolio/MergePrompt';
+import { calcPortfolioQuality } from '../utils/portfolioQuality';
 
 const PortfolioWizardLazy = lazy(() =>
   import('../components/portfolio/PortfolioWizard').then(m => ({ default: m.PortfolioWizard })),
@@ -17,6 +18,7 @@ export function PortfolioPage() {
   const [isDark] = useDarkMode();
   const { positions, addPosition, confirmMerge, removePosition, pendingMerge, cancelMerge } = usePositions();
   const [showForm, setShowForm] = useState(false);
+  const quality = useMemo(() => calcPortfolioQuality(positions), [positions]);
 
   return (
     <ErrorBoundary>
@@ -51,7 +53,7 @@ export function PortfolioPage() {
             </div>
           )}
 
-          <PositionList positions={positions} onRemove={removePosition} />
+          <PositionList positions={positions} quality={quality} onRemove={removePosition} />
         </section>
 
         {/* ── Investment planning wizard ── */}
