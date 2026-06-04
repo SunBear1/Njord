@@ -85,12 +85,4 @@ helm template app-of-apps "$(dirname "$0")/../argocd" \
   --set global.targetRevision="${TARGET_REVISION:-main}" \
   | kubectl apply -n "${NAMESPACE}" -f -
 
-cat <<EOF
-
-ArgoCD is installed.
-
-UI:  kubectl port-forward -n ${NAMESPACE} svc/argocd-server 8080:443
-     Then visit http://localhost:8080 (admin / test).
-
-CLI: argocd login localhost:8080 --username admin --password test --insecure
-EOF
+echo "==> Done. See infrastructure/local/README.md for ArgoCD UI / CLI access."
