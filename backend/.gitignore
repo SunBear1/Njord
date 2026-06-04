@@ -1,0 +1,8 @@
+# Compiled Go binaries (output of `go build ./...` from module root)
+/server
+/njord-backend
+
+# Test artifacts
+*.test
+*.out
+coverage.out
