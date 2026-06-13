@@ -53,3 +53,4 @@ date,coverage_pct,above_bull_pct,below_bear_pct,bias_ratio,base_mae_pp,stocks,ov
 2026-06-10,37.4,40.4,22.2,1.82,66.8,99,PASS,bull,internet,0
 2026-06-11,46.3,35.8,17.9,2,50.8,95,PASS,bull,pharma,0
 2026-06-12,44.3,33,22.7,1.45,49.3,97,PASS,bull,high-growth,0
+2026-06-13,37.1,39.2,23.7,1.65,51,97,PASS,bull,pharma,0
