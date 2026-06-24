@@ -64,3 +64,4 @@ date,coverage_pct,above_bull_pct,below_bear_pct,bias_ratio,base_mae_pp,stocks,ov
 2026-06-21,41.5,34,24.5,1.39,58.3,94,PASS,bull,semis,0
 2026-06-22,42.1,38.9,18.9,2.06,50.8,95,PASS,bull,networking,0
 2026-06-23,42.9,37.4,19.8,1.89,65,91,PASS,bull,etf,0
+2026-06-24,36.2,37.2,26.6,1.4,54.7,94,PASS,bull,pharma,0
