@@ -69,3 +69,4 @@ date,coverage_pct,above_bull_pct,below_bear_pct,bias_ratio,base_mae_pp,stocks,ov
 2026-06-26,39.4,33,27.7,1.19,52.6,94,PASS,bull,semis,16.7
 2026-06-27,41.8,31.9,26.4,1.21,45.6,91,PASS,bull,cloud-saas,12.5
 2026-06-28,41.3,37,21.7,1.7,56.9,92,PASS,bull,media,14.3
+2026-06-29,42.9,35.2,22,1.6,50.2,91,PASS,bull,fintech,0
