@@ -73,3 +73,4 @@ date,coverage_pct,above_bull_pct,below_bear_pct,bias_ratio,base_mae_pp,stocks,ov
 2026-06-30,43,36.6,20.4,1.79,47.2,93,PASS,bull,cybersecurity,0
 2026-07-01,37.9,37.9,24.2,1.57,56,95,PASS,bull,pharma,0
 2026-07-02,36.2,35.1,28.7,1.22,66,94,PASS,bull,media,0
+2026-07-03,40.6,30.2,29.2,1.04,52.7,96,PASS,bull,networking,0
