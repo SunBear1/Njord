@@ -82,3 +82,4 @@ date,coverage_pct,above_bull_pct,below_bear_pct,bias_ratio,base_mae_pp,stocks,ov
 2026-07-09,41.1,31.1,27.8,1.12,54.5,90,PASS,bull,pharma,0
 2026-07-10,47.9,29.2,22.9,1.27,45.7,96,PASS,bull,networking,0
 2026-07-11,41.1,37.8,21.1,1.79,57,90,PASS,bull,energy,0
+2026-07-12,48.4,31.2,20.4,1.53,47.7,93,PASS,bull,pharma,20
