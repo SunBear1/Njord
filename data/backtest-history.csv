@@ -90,3 +90,4 @@ date,coverage_pct,above_bull_pct,below_bear_pct,bias_ratio,base_mae_pp,stocks,ov
 2026-07-17,43,35.5,21.5,1.65,39.1,93,PASS,bull,cloud-saas,0
 2026-07-18,47.4,30.5,22.1,1.38,45.9,95,PASS,bull,networking,0
 2026-07-19,51.1,29.8,19.1,1.56,41.7,94,PASS,bull,energy,0
+2026-07-20,50,26.5,23.5,1.13,36.6,98,PASS,bull,energy,0
