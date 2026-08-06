@@ -107,3 +107,4 @@ date,coverage_pct,above_bull_pct,below_bear_pct,bias_ratio,base_mae_pp,stocks,ov
 2026-08-03,47.8,31.5,20.7,1.53,40.2,92,PASS,bull,cybersecurity,0
 2026-08-04,45.8,33.3,20.8,1.6,41.6,96,PASS,bull,cloud-saas,0
 2026-08-05,40,42.1,17.9,2.35,48.4,95,PASS,bull,energy,0
+2026-08-06,36.2,39.4,24.5,1.61,52.7,94,PASS,bull,cybersecurity,0
