@@ -39,12 +39,23 @@
   --color-danger: #991B1B;
   --color-warning: #B45309;
 
+  /* --- Financial (profit/loss/neutral CTA) --- */
+  --color-profit: #065F46;
+  --color-loss: #991B1B;
+  --color-neutral: #0369a1;
+
   /* --- Comparison chart --- */
   --color-chart-comparison-benchmark: #2563eb;
   --color-chart-comparison-bear: #991B1B;
   --color-chart-comparison-base: #0891B2;
   --color-chart-comparison-bull: #065F46;
   --color-chart-comparison-purchasing-power: #475569;
+
+  /* --- Portfolio allocation chart (validated via dataviz skill's
+     validate_palette.js — CVD-separated categorical triplet) --- */
+  --color-chart-stocks: #0369a1;
+  --color-chart-bonds: #06b6d4;
+  --color-chart-savings: #047857;
 
   /* --- Border --- */
   --color-border: #CBD5E1;
@@ -71,11 +82,22 @@ html.dark {
   --color-danger: #FCA5A5;
   --color-warning: #FCD34D;
 
+  --color-profit: #6EE7B7;
+  --color-loss: #FCA5A5;
+  /* Kept dark (not inverted like accent-primary) — used as a solid button
+     background paired with hardcoded white text; a light sky blue here
+     would fail contrast against white. */
+  --color-neutral: #0369a1;
+
   --color-chart-comparison-benchmark: #60a5fa;
   --color-chart-comparison-bear: #FCA5A5;
   --color-chart-comparison-base: #67E8F9;
   --color-chart-comparison-bull: #6EE7B7;
   --color-chart-comparison-purchasing-power: #A9B5BF;
+
+  --color-chart-stocks: #0a72a8;
+  --color-chart-bonds: #00a4c2;
+  --color-chart-savings: #059669;
 
   --color-border: #334155;
 }
