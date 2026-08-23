@@ -9,7 +9,7 @@ import { requireAuth } from '../_shared/auth';
 
 interface HoldingRow {
   id: string;
-  asset_class: 'bond' | 'savings' | 'stock';
+  asset_class: 'bond' | 'savings' | 'stock' | 'termDeposit';
   source: string | null;
   data: string;
   added_at: string;
@@ -29,9 +29,11 @@ function toHolding(row: HoldingRow) {
 
 interface BondPayload { bondPresetId: string; principal: number; purchaseDate: string }
 interface SavingsPayload { bankName: string; principal: number; interestRatePercent: number; asOfDate: string }
-interface StockPayload { ticker: string; quantity: number; avgPrice: number; currency: string }
+interface StockPayload { ticker: string; quantity: number; avgPrice: number; currency: string; instrumentType: string }
+interface TermDepositPayload { bankName: string; principal: number; interestRatePercent: number; openDate: string; maturityDate: string }
 
 const STOCK_CURRENCIES = new Set(['USD', 'EUR', 'GBP', 'PLN']);
+const STOCK_INSTRUMENT_TYPES = new Set(['stock', 'etf']);
 
 function validatePayload(assetClass: unknown, body: Record<string, unknown>): string | null {
   if (assetClass === 'bond') {
@@ -55,9 +57,19 @@ function validatePayload(assetClass: unknown, body: Record<string, unknown>): st
     if (typeof p.quantity !== 'number' || p.quantity <= 0) return 'quantity musi być liczbą dodatnią.';
     if (typeof p.avgPrice !== 'number' || p.avgPrice <= 0) return 'avgPrice musi być liczbą dodatnią.';
     if (typeof p.currency !== 'string' || !STOCK_CURRENCIES.has(p.currency)) return 'currency musi być jedną z: USD, EUR, GBP, PLN.';
+    if (typeof p.instrumentType !== 'string' || !STOCK_INSTRUMENT_TYPES.has(p.instrumentType)) return 'instrumentType musi być "stock" albo "etf".';
     return null;
   }
-  return 'assetClass musi być "stock", "bond" albo "savings".';
+  if (assetClass === 'termDeposit') {
+    const p = body as unknown as TermDepositPayload;
+    if (!p.bankName || typeof p.bankName !== 'string') return 'bankName jest wymagany.';
+    if (typeof p.principal !== 'number' || p.principal <= 0) return 'principal musi być liczbą dodatnią.';
+    if (typeof p.interestRatePercent !== 'number' || p.interestRatePercent < 0) return 'interestRatePercent musi być liczbą nieujemną.';
+    if (!p.openDate || typeof p.openDate !== 'string') return 'openDate jest wymagany.';
+    if (!p.maturityDate || typeof p.maturityDate !== 'string') return 'maturityDate jest wymagany.';
+    return null;
+  }
+  return 'assetClass musi być "stock", "bond", "savings" albo "termDeposit".';
 }
 
 export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => {
