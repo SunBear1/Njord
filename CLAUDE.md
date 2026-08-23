@@ -45,7 +45,7 @@ Polish-language investment calculator SPA. Compares USD stock/ETF portfolios aga
 - **Styling:** Tailwind CSS v4 (utility classes only, semantic tokens via `@theme`)
 - **Browser targets:** last 2 versions Chrome, Firefox, Safari
 - **CI:** GitHub Actions (Ubuntu latest)
-- **Deploy target:** self-hosted k3s/k3d cluster + Go backend + Postgres. See `_bmad-output/planning-artifacts/architecture.md`. (Under active reconsideration — see `decisions-architecture-njord` in ICM: reverting to Cloudflare Pages + Workers + D1.)
+- **Deploy target:** Cloudflare Pages + Pages Functions (Workers) + D1. Restored from git history after reversing the earlier k3s/k3d + Go + Postgres direction (Epic 0) — see ICM `decisions-architecture-njord`. `backend/` (Go) and `infrastructure/helm/` (k3d) remain in the repo but are not the active target.
 
 ## Architecture
 
@@ -59,10 +59,14 @@ frontend/providers/     API adapters (Yahoo Finance, NBP)
 frontend/workers/       Web Worker for HMM Monte Carlo
 frontend/types/         TypeScript interfaces
 
-backend/               Go backend (api server, served from k3s)
-infrastructure/local/  k3d cluster bootstrap (Story 0.1)
-infrastructure/helm/   Helm charts (Stories 0.3-0.5)
-infrastructure/argocd/ ArgoCD Applications (Story 0.9)
+functions/             Cloudflare Pages Functions (active backend) — see functions/CLAUDE.md
+infrastructure/*.tf    Terraform for Cloudflare Pages + D1
+migrations/            D1 schema migrations
+
+backend/               Go backend — legacy, not the deploy target (kept for now)
+infrastructure/local/  k3d cluster bootstrap — legacy, not the deploy target
+infrastructure/helm/   Helm charts — legacy, not the deploy target
+infrastructure/argocd/ ArgoCD Applications — legacy, not the deploy target
 _bmad-output/      BMAD planning + sprint tracking
 ```
 
@@ -162,5 +166,6 @@ Domain rules live in nested `CLAUDE.md` files and load automatically when workin
 - `frontend/utils/CLAUDE.md`, `frontend/workers/CLAUDE.md` — financial math, tax law, prediction models
 - `frontend/tokens/CLAUDE.md` — design token architecture
 - `frontend/__tests__/CLAUDE.md` — test patterns
-- `infrastructure/helm/CLAUDE.md` — Helm chart conventions
-- `infrastructure/CLAUDE.md` — Kubernetes/ArgoCD manifests, bash scripting rules
+- `functions/CLAUDE.md` — Cloudflare Pages Functions backend conventions
+- `infrastructure/helm/CLAUDE.md` — Helm chart conventions (legacy k3d target)
+- `infrastructure/CLAUDE.md` — Kubernetes/ArgoCD manifests, bash scripting rules (legacy k3d target)
