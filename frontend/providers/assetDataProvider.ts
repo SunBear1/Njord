@@ -59,6 +59,25 @@ async function fetchNbpFxHistory(signal?: AbortSignal): Promise<{ currentRate: n
   }
 }
 
+/**
+ * Resolve whether a ticker is a stock or an ETF, for portfolio categorization.
+ * Requests the smallest possible history window (`range=1d`) since only
+ * `_meta.type` is needed — avoids the full 2y payload `fetchAssetData` pulls.
+ * Falls back to 'stock' on any failure (unknown ticker, network error, timeout) —
+ * this is a display categorization, not critical data, so it must never block
+ * adding a position.
+ */
+export async function resolveInstrumentType(ticker: string, signal?: AbortSignal): Promise<'stock' | 'etf'> {
+  try {
+    const res = await fetchWithTimeout(`/api/v1/finance/stocks/${encodeURIComponent(ticker)}?range=1d&interval=1d`, signal);
+    if (!res.ok) return 'stock';
+    const body = await res.json() as StockBarsApiResponse;
+    return (body._meta.type ?? '').toLowerCase() === 'etf' ? 'etf' : 'stock';
+  } catch {
+    return 'stock';
+  }
+}
+
 export async function fetchAssetData(ticker: string, signal?: AbortSignal): Promise<ProxyResponse> {
   const [barsRes, fxResult] = await Promise.all([
     fetchWithTimeout(`/api/v1/finance/stocks/${encodeURIComponent(ticker)}?range=2y&interval=1d`, signal),

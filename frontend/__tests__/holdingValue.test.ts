@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { calcBondHoldingCurrentValue, calcSavingsHoldingCurrentValue } from '../utils/holdingValue';
-import type { BondHolding, SavingsHolding } from '../types/holding';
+import { calcBondHoldingCurrentValue, calcSavingsHoldingCurrentValue, calcTermDepositHoldingCurrentValue } from '../utils/holdingValue';
+import type { BondHolding, SavingsHolding, TermDepositHolding } from '../types/holding';
 import type { BondPreset } from '../types/scenario';
 
 const OTS_PRESET: BondPreset = {
@@ -31,6 +31,10 @@ const ROR_PRESET: BondPreset = {
 
 function daysAgoIso(days: number): string {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
+
+function daysFromNowIso(days: number): string {
+  return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
 
 describe('calcBondHoldingCurrentValue', () => {
@@ -87,5 +91,37 @@ describe('calcSavingsHoldingCurrentValue', () => {
       interestRatePercent: 0, asOfDate: daysAgoIso(365), source: 'manual', addedAt: '', updatedAt: '',
     };
     expect(calcSavingsHoldingCurrentValue(holding)).toBeCloseTo(5000, 0);
+  });
+});
+
+describe('calcTermDepositHoldingCurrentValue', () => {
+  it('TestCalcTermDepositHoldingCurrentValue_WhenZeroMonthsElapsed_ExpectsPrincipalUnchanged', () => {
+    const holding: TermDepositHolding = {
+      id: '1', assetClass: 'termDeposit', bankName: 'mBank', principal: 10000, interestRatePercent: 5,
+      openDate: daysAgoIso(0), maturityDate: daysFromNowIso(365), source: 'manual', addedAt: '', updatedAt: '',
+    };
+    const value = calcTermDepositHoldingCurrentValue(holding);
+    expect(value).toBeGreaterThanOrEqual(10000);
+    expect(value).toBeLessThan(10010);
+  });
+
+  it('TestCalcTermDepositHoldingCurrentValue_WhenMidTerm_ExpectsCompoundGrowth', () => {
+    const holding: TermDepositHolding = {
+      id: '1', assetClass: 'termDeposit', bankName: 'mBank', principal: 10000, interestRatePercent: 5,
+      openDate: daysAgoIso(180), maturityDate: daysFromNowIso(180), source: 'manual', addedAt: '', updatedAt: '',
+    };
+    expect(calcTermDepositHoldingCurrentValue(holding)).toBeGreaterThan(10000);
+  });
+
+  it('TestCalcTermDepositHoldingCurrentValue_WhenPastMaturity_ExpectsValueCappedAtMaturityDate', () => {
+    const openDate = daysAgoIso(400);
+    const maturityDate = daysAgoIso(35);
+    const holding: TermDepositHolding = {
+      id: '1', assetClass: 'termDeposit', bankName: 'mBank', principal: 10000, interestRatePercent: 5,
+      openDate, maturityDate, source: 'manual', addedAt: '', updatedAt: '',
+    };
+    const valueAtMaturity = calcTermDepositHoldingCurrentValue(holding, new Date(maturityDate).getTime());
+    const valueLongAfterMaturity = calcTermDepositHoldingCurrentValue(holding, Date.now());
+    expect(valueLongAfterMaturity).toBeCloseTo(valueAtMaturity, 6);
   });
 });

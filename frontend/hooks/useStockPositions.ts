@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import type { Holding, HoldingDraft, StockHolding, StockHoldingDraft } from '../types/holding';
 import type { Position, PositionDraft } from '../types/position';
 import { positionDraftToStockHoldingDraft, stockHoldingToPosition } from '../utils/stockHoldingAdapter';
+import { resolveInstrumentType } from '../providers/assetDataProvider';
 
 function isStockHolding(holding: Holding): holding is StockHolding {
   return holding.assetClass === 'stock';
@@ -37,6 +38,12 @@ export function findMatchingPosition(positions: Position[], draft: PositionDraft
   return positions.find((p) => p.ticker === ticker && p.source === source);
 }
 
+async function addStockDraft(api: StockPositionsApi, draft: PositionDraft): Promise<void> {
+  const instrumentType = await resolveInstrumentType(normalizeTicker(draft.ticker));
+  const stockDraft: StockHoldingDraft = positionDraftToStockHoldingDraft(draft, instrumentType);
+  await api.addHolding(stockDraft);
+}
+
 export function useStockPositions(holdings: Holding[], api: StockPositionsApi): UseStockPositionsResult {
   const [pendingMerge, setPendingMerge] = useState<PositionDraft | null>(null);
 
@@ -50,8 +57,7 @@ export function useStockPositions(holdings: Holding[], api: StockPositionsApi): 
       setPendingMerge(draft);
       return 'duplicate';
     }
-    const stockDraft: StockHoldingDraft = positionDraftToStockHoldingDraft(draft);
-    api.addHolding(stockDraft).catch(() => { /* error already surfaced via useHoldings' error */ });
+    addStockDraft(api, draft).catch(() => { /* error already surfaced via useHoldings' error */ });
     return 'added';
   }, [positions, api]);
 
@@ -59,7 +65,8 @@ export function useStockPositions(holdings: Holding[], api: StockPositionsApi): 
     const existing = findMatchingPosition(positions, draft);
     setPendingMerge(null);
     if (!existing) return;
-    api.updateHolding(existing.id, positionDraftToStockHoldingDraft(draft))
+    resolveInstrumentType(normalizeTicker(draft.ticker))
+      .then((instrumentType) => api.updateHolding(existing.id, positionDraftToStockHoldingDraft(draft, instrumentType)))
       .catch(() => { /* error already surfaced via useHoldings' error */ });
   }, [positions, api]);
 
@@ -68,9 +75,26 @@ export function useStockPositions(holdings: Holding[], api: StockPositionsApi): 
   }, []);
 
   const updatePosition = useCallback((id: string, draft: PositionDraft) => {
-    api.updateHolding(id, positionDraftToStockHoldingDraft(draft))
-      .catch(() => { /* error already surfaced via useHoldings' error */ });
-  }, [api]);
+    const existing = positions.find((p) => p.id === id);
+    const tickerChanged = existing && normalizeTicker(draft.ticker) !== existing.ticker;
+
+    const applyUpdate = (instrumentType?: 'stock' | 'etf') => {
+      const patch: Partial<StockHoldingDraft> = {
+        ticker: normalizeTicker(draft.ticker),
+        quantity: parseFloat(draft.quantity),
+        avgPrice: parseFloat(draft.avgPrice),
+        currency: draft.currency,
+        source: normalizeSource(draft.source),
+        ...(instrumentType ? { instrumentType } : {}),
+      };
+      return api.updateHolding(id, patch);
+    };
+
+    const update = tickerChanged
+      ? resolveInstrumentType(normalizeTicker(draft.ticker)).then(applyUpdate)
+      : applyUpdate();
+    update.catch(() => { /* error already surfaced via useHoldings' error */ });
+  }, [positions, api]);
 
   const removePosition = useCallback((id: string) => {
     api.removeHolding(id).catch(() => { /* error already surfaced via useHoldings' error */ });

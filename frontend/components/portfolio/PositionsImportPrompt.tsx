@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Position } from '../../types/position';
 import type { HoldingDraft } from '../../types/holding';
 import { positionToStockHoldingDraft } from '../../utils/stockHoldingAdapter';
+import { resolveInstrumentType } from '../../providers/assetDataProvider';
 
 interface PositionsImportPromptProps {
   legacyPositions: Position[];
@@ -23,7 +24,11 @@ export function PositionsImportPrompt({ legacyPositions, onImport, onClearLegacy
     setIsImporting(true);
     setError(null);
     const results = await Promise.allSettled(
-      remaining.map((position) => onImport(positionToStockHoldingDraft(position)).then(() => position.id)),
+      remaining.map(async (position) => {
+        const instrumentType = await resolveInstrumentType(position.ticker);
+        await onImport(positionToStockHoldingDraft(position, instrumentType));
+        return position.id;
+      }),
     );
 
     const newlyImported = new Set(importedIds);
