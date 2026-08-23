@@ -23,6 +23,10 @@
 #   - optional: Can be completed but not required
 #   - done: Retrospective has been completed
 
+# NOTE (2026-08-23): Epic 0's k3d/Go/Postgres deploy target has been reversed in favor
+# of restoring the Cloudflare Pages/Workers/D1 stack from git history. Story statuses
+# below are left as-is (the work was genuinely completed as scoped) — see the
+# decision note in planning-artifacts/epics.md § Epic 0 for what changed and why.
 generated: 2026-06-04T14:04:59+02:00
 last_updated: 2026-06-04T17:13:00+02:00
 project: Njord

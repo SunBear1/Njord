@@ -159,6 +159,8 @@ From Architecture:
 ### Epic 0: Local-First Infrastructure & Backend Migration
 Buduje self-hosted infrastrukturę na lokalnym 2-node k3d klastrze symulującym docelowy OCI setup. Refactor `src/`→`frontend/`, scaffold Go backendu, port wszystkich finance API z Cloudflare Pages Functions, port JWT auth (OAuth deferred), instalacja ArgoCD z lokalnym admin/test, Helm charts dla 4 serwisów, lokalne wersjonowane obrazy ładowane do k3d. **W pełni offline — zero zależności od zewnętrznych providerów wymagających rejestracji (GHCR, OAuth providers, OCI, domena).**
 
+> **⚠️ DECYZJA ODWRÓCONA (2026-08-23):** Projekt był nieaktywny ~2.5 miesiąca po ukończeniu Epic 0-1. Zamiast kontynuować w kierunku Epic 99 (OCI + Cloudflare Tunnel), podjęto decyzję o **powrocie do Cloudflare Pages + Workers Functions + D1** jako jedynego celu wdrożenia — bo nigdy nie było żadnego publicznego wdrożenia (ani na CF, ani na OCI/k8s) i pełny stack CF (finance API + auth) był 1:1 odzyskiwalny z historii gita (commity `a2eb3b4`..`0dc3586`/`0883630`), zamiast wymagać hostowania Go+Postgres gdzie indziej. `backend/` (Go) i `infrastructure/{helm,argocd,local}` (k3d) **zostają w repo, ale nie są już celem wdrożenia** — nie zostały usunięte, decyzja o ich losie jest odłożona. Zobacz ICM `decisions-architecture-njord` i commity `0e5e0bb`, `d21a25f`. Epic 99 poniżej jest w tej formie **nieaktualny** (patrz adnotacja).
+
 **FRs:** N/A (infrastructure foundation)
 **NFRs:** NFR1 (perf), NFR3 (deploy), NFR5 (observability), NFR6 (security — local scope)
 **Arch:** Go backend (kontynuacja `GO_BACKEND_PLAN.md`), Postgres single-replica StatefulSet z local-path PVC, Helm charts w `infrastructure/charts/`, ArgoCD app-of-apps w `infrastructure/argocd/`, Traefik ingress, lokalne obrazy `njord-{frontend,backend}:<semver>` via `k3d image import`
@@ -166,8 +168,10 @@ Buduje self-hosted infrastrukturę na lokalnym 2-node k3d klastrze symulującym 
 **Dependencies:** None (blocker dla Epic 1-5)
 **Out of scope (→ Epic 99):** GHCR/jakikolwiek zewnętrzny registry, OAuth (GitHub/Google), Cloudflare Tunnel/Access, domena, OCI provisioning, ArgoCD SSO, real DNS
 
-### Epic 99: Production Deployment (Cloud)
+### Epic 99: Production Deployment (Cloud) — NIEAKTUALNY, patrz adnotacja w Epic 0
 Wszystkie elementy produkcyjnej hosted infrastructure, uruchamiane **DOPIERO po ukończeniu Epic 0-5** — tylko jeśli MVP zostanie uznane za wartościowe i godne wydatku na chmurę. Skeptical-by-default: jeśli po implementacji wszystkich epików produkt okaże się nieprzekonujący, Epic 99 może nigdy nie wystartować.
+
+> Ten epic zakładał OCI + Cloudflare Tunnel jako hybrydę i "retirement njord.pages.dev". Od 2026-08-23 kierunek jest odwrotny: Cloudflare Pages/Workers/D1 to jedyny cel wdrożenia (patrz adnotacja w Epic 0), więc zakres poniżej wymaga przepisania, jeśli/gdy Epic 99 zostanie kiedyś odpalone. Zostawione jako historyczny zapis decyzji, nie jako aktualny plan.
 
 **Zakres (high-level, stories TBD):**
 - Domena via Cloudflare Registrar (`.dev` lub `.app`)
