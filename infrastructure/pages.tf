@@ -26,7 +26,7 @@ resource "cloudflare_pages_project" "njord" {
 
   deployment_configs = {
     production = {
-      compatibility_date = "2025-11-01"
+      compatibility_date = "2026-08-23"
       d1_databases = {
         AUTH_DB    = { id = cloudflare_d1_database.users_db.id },
         FINANCE_DB = { id = cloudflare_d1_database.finance_data.id }
@@ -36,7 +36,7 @@ resource "cloudflare_pages_project" "njord" {
       }
     }
     preview = {
-      compatibility_date = "2025-11-01"
+      compatibility_date = "2026-08-23"
       # Matches what's actually live today (drifted from production's AUTH_DB
       # rename at some point) — preview_deployment_setting = "none" above means
       # this block is inert anyway, so leave it alone rather than force a change.
