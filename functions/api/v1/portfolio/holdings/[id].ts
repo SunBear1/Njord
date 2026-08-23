@@ -11,7 +11,7 @@ import { requireAuth } from '../_shared/auth';
 
 interface HoldingRow {
   id: string;
-  asset_class: 'bond' | 'savings';
+  asset_class: 'bond' | 'savings' | 'stock';
   source: string | null;
   data: string;
 }

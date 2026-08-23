@@ -25,3 +25,23 @@ resource "null_resource" "finance_db_schema" {
     schema_hash = filesha256("${path.module}/schema.sql")
   }
 }
+
+resource "null_resource" "auth_db_schema" {
+  depends_on = [cloudflare_d1_database.users_db]
+
+  provisioner "local-exec" {
+    command = join(" && ", [
+      "wrangler d1 execute ${cloudflare_d1_database.users_db.name} --remote --file=../migrations/0001_create_users.sql",
+      "wrangler d1 execute ${cloudflare_d1_database.users_db.name} --remote --file=../migrations/0002_create_holdings.sql",
+      "wrangler d1 execute ${cloudflare_d1_database.users_db.name} --remote --file=../migrations/0003_add_stock_asset_class.sql",
+    ])
+  }
+
+  triggers = {
+    schema_hash = join("-", [
+      filesha256("${path.module}/../migrations/0001_create_users.sql"),
+      filesha256("${path.module}/../migrations/0002_create_holdings.sql"),
+      filesha256("${path.module}/../migrations/0003_add_stock_asset_class.sql"),
+    ])
+  }
+}

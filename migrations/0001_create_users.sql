@@ -1,5 +1,6 @@
 -- Migration 0001: Create authentication tables
--- Apply with: wrangler d1 migrations apply njord-auth
+-- Applied automatically by Terraform (infrastructure/db.tf, null_resource.auth_db_schema)
+-- on every `terraform apply`.
 
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,

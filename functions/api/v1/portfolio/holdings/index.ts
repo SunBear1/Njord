@@ -9,7 +9,7 @@ import { requireAuth } from '../_shared/auth';
 
 interface HoldingRow {
   id: string;
-  asset_class: 'bond' | 'savings';
+  asset_class: 'bond' | 'savings' | 'stock';
   source: string | null;
   data: string;
   added_at: string;
@@ -29,6 +29,9 @@ function toHolding(row: HoldingRow) {
 
 interface BondPayload { bondPresetId: string; principal: number; purchaseDate: string }
 interface SavingsPayload { bankName: string; principal: number; interestRatePercent: number; asOfDate: string }
+interface StockPayload { ticker: string; quantity: number; avgPrice: number; currency: string }
+
+const STOCK_CURRENCIES = new Set(['USD', 'EUR', 'GBP', 'PLN']);
 
 function validatePayload(assetClass: unknown, body: Record<string, unknown>): string | null {
   if (assetClass === 'bond') {
@@ -46,7 +49,15 @@ function validatePayload(assetClass: unknown, body: Record<string, unknown>): st
     if (!p.asOfDate || typeof p.asOfDate !== 'string') return 'asOfDate jest wymagany.';
     return null;
   }
-  return 'assetClass musi być "bond" albo "savings".';
+  if (assetClass === 'stock') {
+    const p = body as unknown as StockPayload;
+    if (!p.ticker || typeof p.ticker !== 'string') return 'ticker jest wymagany.';
+    if (typeof p.quantity !== 'number' || p.quantity <= 0) return 'quantity musi być liczbą dodatnią.';
+    if (typeof p.avgPrice !== 'number' || p.avgPrice <= 0) return 'avgPrice musi być liczbą dodatnią.';
+    if (typeof p.currency !== 'string' || !STOCK_CURRENCIES.has(p.currency)) return 'currency musi być jedną z: USD, EUR, GBP, PLN.';
+    return null;
+  }
+  return 'assetClass musi być "stock", "bond" albo "savings".';
 }
 
 export const onRequestGet: PagesFunction<AuthEnv> = async ({ request, env }) => {

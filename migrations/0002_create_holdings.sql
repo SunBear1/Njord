@@ -1,5 +1,6 @@
 -- Migration 0002: multi-asset holdings (bonds, savings accounts)
--- Apply with: wrangler d1 execute AUTH_DB --file=migrations/0002_create_holdings.sql
+-- Applied automatically by Terraform (infrastructure/db.tf, null_resource.auth_db_schema)
+-- on every `terraform apply`.
 
 CREATE TABLE IF NOT EXISTS holdings (
   id           TEXT PRIMARY KEY,
