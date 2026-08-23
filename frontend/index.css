@@ -51,11 +51,14 @@
   --color-chart-comparison-bull: #065F46;
   --color-chart-comparison-purchasing-power: #475569;
 
-  /* --- Portfolio allocation chart (validated via dataviz skill's
-     validate_palette.js — CVD-separated categorical triplet) --- */
-  --color-chart-stocks: #0369a1;
+  /* --- Portfolio allocation chart — paired by instrument family (sky = equities,
+     teal = bonds, emerald = cash), lighter shade = the "sub-type" (ETF, lokata).
+     Always paired with a legend/label in the UI — never color-only. --- */
+  --color-chart-stocks: #075985;
+  --color-chart-etf: #38bdf8;
   --color-chart-bonds: #06b6d4;
-  --color-chart-savings: #047857;
+  --color-chart-savings: #065f46;
+  --color-chart-term-deposit: #34d399;
 
   /* --- Border --- */
   --color-border: #CBD5E1;
@@ -96,8 +99,10 @@ html.dark {
   --color-chart-comparison-purchasing-power: #A9B5BF;
 
   --color-chart-stocks: #0a72a8;
+  --color-chart-etf: #7dd3fc;
   --color-chart-bonds: #00a4c2;
   --color-chart-savings: #059669;
+  --color-chart-term-deposit: #86efac;
 
   --color-border: #334155;
 }

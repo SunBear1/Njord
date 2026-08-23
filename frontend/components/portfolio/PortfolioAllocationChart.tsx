@@ -4,27 +4,33 @@ import { fmtTooltipPLN } from '../../utils/formatting';
 
 interface PortfolioAllocationChartProps {
   stockValuePLN: number;
+  etfValuePLN: number;
   bondValuePLN: number;
   savingsValuePLN: number;
+  termDepositValuePLN: number;
 }
 
 const chartColors = {
   stocks: 'var(--color-chart-stocks)',
+  etf: 'var(--color-chart-etf)',
   bonds: 'var(--color-chart-bonds)',
   savings: 'var(--color-chart-savings)',
+  termDeposit: 'var(--color-chart-term-deposit)',
   tooltipBackground: 'var(--color-bg-card)',
   tooltipBorder: 'var(--color-border)',
   tooltipText: 'var(--color-text-primary)',
 } as const;
 
-function PortfolioAllocationChart({ stockValuePLN, bondValuePLN, savingsValuePLN }: PortfolioAllocationChartProps) {
+function PortfolioAllocationChart({ stockValuePLN, etfValuePLN, bondValuePLN, savingsValuePLN, termDepositValuePLN }: PortfolioAllocationChartProps) {
   const data = useMemo(
     () => [
-      { name: 'Akcje i ETF', value: stockValuePLN, color: chartColors.stocks },
+      { name: 'Akcje', value: stockValuePLN, color: chartColors.stocks },
+      { name: 'ETF', value: etfValuePLN, color: chartColors.etf },
       { name: 'Obligacje', value: bondValuePLN, color: chartColors.bonds },
-      { name: 'Oszczędności', value: savingsValuePLN, color: chartColors.savings },
+      { name: 'Konta oszczędnościowe', value: savingsValuePLN, color: chartColors.savings },
+      { name: 'Lokaty', value: termDepositValuePLN, color: chartColors.termDeposit },
     ].filter((slice) => slice.value > 0),
-    [stockValuePLN, bondValuePLN, savingsValuePLN],
+    [stockValuePLN, etfValuePLN, bondValuePLN, savingsValuePLN, termDepositValuePLN],
   );
 
   if (data.length === 0) {
@@ -38,7 +44,7 @@ function PortfolioAllocationChart({ stockValuePLN, bondValuePLN, savingsValuePLN
   return (
     <div className="bg-bg-card rounded-xl border border-border shadow-sm p-5">
       <h3 className="text-base font-semibold text-text-primary mb-2">Alokacja portfela</h3>
-      <ResponsiveContainer width="100%" height={220} debounce={32}>
+      <ResponsiveContainer width="100%" height={240} debounce={32}>
         <PieChart>
           <Pie data={data} dataKey="value" nameKey="name" innerRadius={55} outerRadius={80} paddingAngle={2}>
             {data.map((slice) => (

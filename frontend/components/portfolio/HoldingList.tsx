@@ -1,13 +1,14 @@
-import type { BondHolding, SavingsHolding } from '../../types/holding';
+import type { BondHolding, SavingsHolding, TermDepositHolding } from '../../types/holding';
 import type { BondPreset } from '../../types/scenario';
-import { calcBondHoldingCurrentValue, calcSavingsHoldingCurrentValue } from '../../utils/holdingValue';
+import { calcBondHoldingCurrentValue, calcSavingsHoldingCurrentValue, calcTermDepositHoldingCurrentValue } from '../../utils/holdingValue';
 
-type ListableHolding = BondHolding | SavingsHolding;
+type ListableHolding = BondHolding | SavingsHolding | TermDepositHolding;
 
 interface HoldingListProps {
   holdings: ListableHolding[];
   bondPresets: BondPreset[];
   onDelete: (id: string) => void;
+  emptyMessage: string;
 }
 
 function formatPLN(value: number): string {
@@ -19,6 +20,7 @@ function currentValue(holding: ListableHolding, bondPresets: BondPreset[]): numb
     const preset = bondPresets.find((p) => p.id === holding.bondPresetId);
     return preset ? calcBondHoldingCurrentValue(holding, preset) : null;
   }
+  if (holding.assetClass === 'termDeposit') return calcTermDepositHoldingCurrentValue(holding);
   return calcSavingsHoldingCurrentValue(holding);
 }
 
@@ -29,9 +31,15 @@ function label(holding: ListableHolding, bondPresets: BondPreset[]): string {
   return holding.bankName;
 }
 
-export function HoldingList({ holdings, bondPresets, onDelete }: HoldingListProps) {
+function subtitle(holding: ListableHolding): string {
+  if (holding.assetClass === 'bond') return 'Obligacja skarbowa';
+  if (holding.assetClass === 'termDeposit') return `Lokata do ${holding.maturityDate}`;
+  return 'Konto oszczędnościowe';
+}
+
+export function HoldingList({ holdings, bondPresets, onDelete, emptyMessage }: HoldingListProps) {
   if (holdings.length === 0) {
-    return <p className="text-sm text-text-muted">Brak dodanych obligacji i kont oszczędnościowych.</p>;
+    return <p className="text-sm text-text-muted">{emptyMessage}</p>;
   }
 
   return (
@@ -46,7 +54,7 @@ export function HoldingList({ holdings, bondPresets, onDelete }: HoldingListProp
             <div>
               <p className="text-sm font-medium text-text-primary">{label(holding, bondPresets)}</p>
               <p className="text-xs text-text-muted">
-                {holding.assetClass === 'bond' ? 'Obligacja skarbowa' : 'Konto oszczędnościowe'}
+                {subtitle(holding)}
                 {holding.source ? ` · ${holding.source}` : ''}
               </p>
             </div>
