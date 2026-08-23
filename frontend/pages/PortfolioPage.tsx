@@ -4,11 +4,14 @@ import { Skeleton } from '../components/Skeleton';
 import { useBondPresets } from '../hooks/useBondPresets';
 import { useDarkMode } from '../hooks/useDarkMode';
 import { usePositions } from '../hooks/usePositions';
+import { useHoldings } from '../hooks/useHoldings';
 import { PositionList } from '../components/portfolio/PositionList';
 import { PositionForm } from '../components/portfolio/PositionForm';
 import { MergePrompt } from '../components/portfolio/MergePrompt';
 import { DeleteConfirmDialog } from '../components/portfolio/DeleteConfirmDialog';
 import { PortfolioReadinessPanel } from '../components/portfolio/PortfolioReadinessPanel';
+import { HoldingForm } from '../components/portfolio/HoldingForm';
+import { HoldingList } from '../components/portfolio/HoldingList';
 import { calcPortfolioQuality } from '../utils/portfolioQuality';
 import { calcConsolidatedPositions } from '../utils/portfolioConsolidation';
 import { ConsolidatedPositionView } from '../components/portfolio/ConsolidatedPositionView';
@@ -22,6 +25,8 @@ export function PortfolioPage() {
   const { presets: bondPresets } = useBondPresets();
   const [isDark] = useDarkMode();
   const { positions, addPosition, confirmMerge, updatePosition, removePosition, pendingMerge, cancelMerge } = usePositions();
+  const { holdings, addHolding, removeHolding, error: holdingsError } = useHoldings();
+  const [showAddHoldingForm, setShowAddHoldingForm] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -120,6 +125,43 @@ export function PortfolioPage() {
           />
 
           <PortfolioReadinessPanel quality={quality} />
+        </section>
+
+        {/* ── Bonds & savings accounts section ── */}
+        <section aria-labelledby="holdings-heading">
+          <div className="flex items-center justify-between mb-4">
+            <h2 id="holdings-heading" className="text-xl font-bold text-text-primary">
+              Obligacje i konta oszczędnościowe
+            </h2>
+            {!showAddHoldingForm && (
+              <button
+                type="button"
+                onClick={() => setShowAddHoldingForm(true)}
+                className="px-3 py-1.5 text-sm font-medium bg-neutral text-white rounded-lg hover:opacity-90 transition-opacity"
+              >
+                + Dodaj pozycję
+              </button>
+            )}
+          </div>
+
+          {holdingsError && <p className="text-sm text-loss mb-3">{holdingsError}</p>}
+
+          {showAddHoldingForm && (
+            <div className="bg-bg-card rounded-xl p-4 mb-4 border border-bg-muted">
+              <h3 className="text-sm font-semibold text-text-secondary mb-3">Nowa pozycja</h3>
+              <HoldingForm
+                bondPresets={bondPresets}
+                onSubmit={(draft) => {
+                  addHolding(draft)
+                    .then(() => setShowAddHoldingForm(false))
+                    .catch(() => { /* error already surfaced via holdingsError */ });
+                }}
+                onCancel={() => setShowAddHoldingForm(false)}
+              />
+            </div>
+          )}
+
+          <HoldingList holdings={holdings} bondPresets={bondPresets} onDelete={removeHolding} />
         </section>
 
         {/* ── Investment planning wizard ── */}

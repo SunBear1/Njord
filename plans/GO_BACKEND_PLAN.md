@@ -1,3 +1,9 @@
+> **SUPERSEDED (2026-08-23):** This plan (Go-on-Workers via `syumai/workers`) was never
+> the direction actually taken — the project went with a full Go+Postgres+k3s backend
+> instead (Epic 0), which has now itself been reversed back to Cloudflare Pages/Workers
+> (TS)/D1. See the decision note in `_bmad-output/planning-artifacts/epics.md` § Epic 0.
+> Kept for history only.
+
 # Njord — Go Backend Rewrite Agent Plan
 
 ## Overview

@@ -57,12 +57,20 @@ Cloudflare Pages
 │   ├── /portfolio       ← portfolio builder
 │   └── /rates           ← exchange rates & interest rates
 │
-└── Go backend (k3s)
-    ├── /api/v1/healthz       ← liveness
-    └── …                     ← market data, bonds, currency, inflation (Epic 1)
+└── Pages Functions (backend)
+    ├── /api/v1/healthz            ← liveness
+    ├── /api/v1/finance/stocks     ← Yahoo Finance; cached
+    ├── /api/v1/finance/bonds      ← Polish bond presets; 24h cache
+    ├── /api/v1/finance/currency   ← Alior Kantor + Walutomat + NBP Table A/C
+    ├── /api/v1/finance/inflation  ← ECB HICP; 24h cache
+    └── /api/v1/auth/*             ← JWT auth; Cloudflare D1
 ```
 
 All financial calculations (GBM, Bootstrap, Monte Carlo, Belka tax) run **client-side**.
+
+> `backend/` (Go) and `infrastructure/helm/` (k3d + Postgres) remain in this repo from
+> a since-reversed deployment direction (Epic 0). They are not the active deploy target —
+> Cloudflare Pages + Workers Functions + D1 is.
 
 ---
 
@@ -74,8 +82,8 @@ All financial calculations (GBM, Bootstrap, Monte Carlo, Belka tax) run **client
 | Styling | Tailwind CSS v4 (semantic tokens in `frontend/index.css`) |
 | Charts | Recharts 3 |
 | Icons | Lucide React |
-| Backend | Go (`backend/`), served from k3s |
-| Database | Postgres (`infrastructure/helm/njord-postgres`) |
+| Backend | Cloudflare Pages Functions (edge, TypeScript) |
+| Database | Cloudflare D1 (SQLite — auth + finance cache) |
 | Unit tests | Vitest (500+ tests) |
 | E2E tests | Playwright |
 
@@ -90,20 +98,36 @@ npm install
 npm run dev          # frontend only → http://localhost:5173/
 ```
 
+Full stack with Pages Functions (required for market data):
+
+```bash
+npm run dev:full     # Vite + Pages Functions → http://localhost:8788/
+```
+
+### Environment variables
+
+Create `.dev.vars` in the project root (for Wrangler — never commit this file):
+
+```ini
+JWT_SECRET=random_string                # required for auth
+```
+
 ### Commands
 
 ```bash
 npm run dev               # dev server — frontend only (localhost:5173)
+npm run dev:full          # full stack: Vite + Pages Functions (localhost:8788)
 npm run build             # production build: tsc -b && vite build → dist/
 npm run lint              # ESLint (zero errors enforced)
 npm test                  # Vitest — unit tests
-npm run test:e2e          # Playwright — E2E against `npm run preview` (stubbed APIs)
-npm run test:e2e:cluster  # Playwright — smoke against the live k3d cluster
+npm run test:e2e          # Playwright — E2E against `npm run preview` (CF Pages mocks)
+npm run test:e2e:cluster  # Playwright — smoke against the (legacy) live k3d cluster
 npm run preview           # local preview of production build
 ```
 
-### Running against the local k3d cluster (Epic 0)
+### Running against the local k3d cluster (Epic 0, legacy)
 
+Not the active deploy target — kept for the existing Go backend/Postgres code.
 Bring up the self-hosted stack (k3d + Postgres + Go backend + frontend + ArgoCD)
 and run the cluster smoke suite end-to-end:
 
@@ -118,6 +142,18 @@ npm run test:e2e:cluster                   # hits http://njord.localhost
 The cluster suite lives in `e2e-cluster/` and is intentionally separate from
 the stub-driven `e2e/` suite — it exercises the real Go backend, Yahoo
 Finance, NBP, and JWT auth round-trip.
+
+---
+
+## Deployment
+
+Push to `main` automatically builds and deploys via the Cloudflare Pages ↔ GitHub integration.
+
+**First-time setup (once in the CF dashboard):**
+1. Workers & Pages → Create application → Pages → Connect to Git
+2. Select the repository and branch `main`
+3. Build command: `npm run build` | Output directory: `dist`
+4. Environment variables → add all secrets (Encrypted)
 
 ---
 

@@ -75,7 +75,7 @@ function calcSavingsEndValue(inputs: CalcInputs): number {
 
 /** Year-by-year bond compounding with different first-year vs subsequent rates.
  *  Used for capitalized-at-maturity bonds: OTS, TOS, EDO, ROS, ROD. */
-function bondGrossValue(principal: number, firstYearRate: number, effectiveRate: number, months: number): number {
+export function bondGrossValue(principal: number, firstYearRate: number, effectiveRate: number, months: number): number {
   let value = principal;
   let remaining = months;
   let year = 1;
@@ -98,7 +98,7 @@ function bondGrossValue(principal: number, firstYearRate: number, effectiveRate:
  * Principal stays flat — coupons don't compound on bond principal.
  * Returns total end value = principal + sum of reinvested net coupons.
  */
-function bondCouponEndValue(
+export function bondCouponEndValue(
   principal: number,
   firstYearRate: number,
   effectiveRate: number,

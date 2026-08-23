@@ -1,3 +1,8 @@
+> **STATUS (2026-08-23):** After a detour through Go+Postgres+k3s (Epic 0), the
+> Cloudflare Pages + Workers + D1 stack this plan describes is the active deploy
+> target again. The SaaS/multi-asset-portfolio direction sketched below is relevant
+> context for the current product/business review — see the audit's PM assessment.
+
 # Njord — Plan Rozwoju Aplikacji
 
 > **Repozytorium:** `github.com/SunBear1/Njord`
