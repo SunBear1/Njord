@@ -1,8 +1,3 @@
----
-description: Test patterns, financial test requirements, and Playwright guidelines. Apply when writing or modifying tests.
-applyTo: "frontend/__tests__/**/*.ts"
----
-
 # Testing
 
 ## Test Naming Convention
@@ -52,10 +47,10 @@ import { test, expect } from '@playwright/test';
 test('ComparisonPage loads and calculates', async ({ page }) => {
   await page.goto('http://localhost:5173/comparison');
   await page.waitForLoadState('networkidle');
-  
+
   // Reconnaissance: inspect rendered state
   const button = page.locator('button:has-text("Oblicz")');
-  
+
   // Action: click and verify
   await button.click();
   await expect(page.locator('text=Wynik')).toBeVisible();

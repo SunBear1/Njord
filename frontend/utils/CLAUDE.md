@@ -1,8 +1,3 @@
----
-description: Financial mathematics, tax law, bond math, prediction models.
-applyTo: "frontend/utils/**/*.ts,frontend/workers/**/*.ts"
----
-
 # Financial Calculations
 
 ## Belka Tax — 19%
@@ -15,13 +10,13 @@ taxableGain = (endPriceUSD × nbpMidRate) − (costBasisUSD × nbpMidRateAtPurch
 ```
 NBP Table A mid rate only. Date: last business day BEFORE transaction (not transaction date).
 
-Savings: `net = principal + interest × (1 − 0.19)`  
-Capitalized bonds: `net = principal + max(0, gross − penalty) × (1 − 0.19)` — penalty before tax  
-Coupon bonds: each payout taxed at 19%; reinvestment gain also taxed (second layer on gain only)  
+Savings: `net = principal + interest × (1 − 0.19)`
+Capitalized bonds: `net = principal + max(0, gross − penalty) × (1 − 0.19)` — penalty before tax
+Coupon bonds: each payout taxed at 19%; reinvestment gain also taxed (second layer on gain only)
 Dividends: 15% US WHT + 4% Polish = 19% total: `net = gross × (1 − 0.19)`
 
-**PIT-38:** Group transactions by tax year. Losses from year N deductible in N+1 to N+5 (max 50% per year).  
-**Multi-currency:** USD, EUR, GBP, CHF, DKK, SEK, PLN. For PLN: NBP rate = 1.  
+**PIT-38:** Group transactions by tax year. Losses from year N deductible in N+1 to N+5 (max 50% per year).
+**Multi-currency:** USD, EUR, GBP, CHF, DKK, SEK, PLN. For PLN: NBP rate = 1.
 **RSU:** cost basis = 0; entire proceeds are profit.
 
 ## Bond Math — Full Invariants
@@ -37,7 +32,7 @@ Dividends: 15% US WHT + 4% Polish = 19% total: `net = gross × (1 − 0.19)`
 | ROS  | capitalize | 5.0% | CPI + 2.0% | 2.0% | at redemption |
 | ROD  | capitalize | 5.6% | CPI + 2.5% | 2.0% | at redemption |
 
-Monthly sub-compounding: `(1 + rate/12)^monthsThisYear`. Partial years: same (never linear).  
+Monthly sub-compounding: `(1 + rate/12)^monthsThisYear`. Partial years: same (never linear).
 CPI for inflation bonds = blended projected rate from `inflationProjection.ts` (not snapshot).
 
 ## FX Math
@@ -47,13 +42,13 @@ endValue = shares × priceUSD × fxRate
 % change: (1 + dStock) × (1 + dFx) − 1  [multiply, never add]
 ```
 
-Timeline interpolation (geometric): `(1 + delta)^(m/horizon) − 1`  
+Timeline interpolation (geometric): `(1 + delta)^(m/horizon) − 1`
 Breakeven heatmap: hyperbola boundary (not linear).
 
 ## Compound Interest
 
-Monthly: `amount × (1 + rate/12/100)^months`  
-Fisher (real return): `((1 + nom) / (1 + inflation) − 1) × 100`  
+Monthly: `amount × (1 + rate/12/100)^months`
+Fisher (real return): `((1 + nom) / (1 + inflation) − 1) × 100`
 Annualized: `(1 + total)^(1/years) − 1` [geometric mean]
 
 ## Dividends
@@ -68,15 +63,15 @@ Simplifications: no DRIP, uses `endFxRate` (not per-payout), uses `currentPriceU
 
 **Model selection:** ≤6mo → Bootstrap; >6mo → GBM
 
-**GBM:** `Δ = exp((μ − σ²/2)·T + σ·√T·z) − 1`  
-Drift shrinkage: `μ = w·μ_hist + (1−w)·8%`, where `w = min(1, years/10)`  
-Damped vol (T>2yr): `σ_eff = σ × max(0.75, 1 − 0.015·(T−2))`  
-Quantiles: Student-t(5): Bear p25, Base p50, Bull p75  
+**GBM:** `Δ = exp((μ − σ²/2)·T + σ·√T·z) − 1`
+Drift shrinkage: `μ = w·μ_hist + (1−w)·8%`, where `w = min(1, years/10)`
+Damped vol (T>2yr): `σ_eff = σ × max(0.75, 1 − 0.015·(T−2))`
+Quantiles: Student-t(5): Bear p25, Base p50, Bull p75
 Clamp: annual [-80%, +100%], total [-95%, +1000%]. Bear always < 0, Bull always > 0.
 
 **Bootstrap:** 21-day blocks, 1000 samples, P10/P50/P90. Min 252 days; fall back to GBM if less.
 
-**HMM:** Confidence capped 0.25, UI label "[Informacyjny]", never drive decisions.  
+**HMM:** Confidence capped 0.25, UI label "[Informacyjny]", never drive decisions.
 Monte Carlo: 10k paths in `frontend/workers/sellAnalysis.worker.ts`. Progress every 1000 paths, send summary stats only.
 
 ## Sanity Checks

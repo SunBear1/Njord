@@ -1,8 +1,3 @@
----
-description: Design token architecture for theming and dark mode preparation. Apply when working with colors, theming, or CSS custom properties.
-applyTo: "frontend/index.css,frontend/tokens/**/*.ts"
----
-
 # Design Tokens & Styling
 
 ## Three-Layer Token Structure

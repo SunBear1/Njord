@@ -1,8 +1,3 @@
----
-description: Component design, React patterns, Tailwind, accessibility, colors.
-applyTo: "frontend/components/**/*.tsx,frontend/pages/**/*.tsx"
----
-
 # React Components
 
 ## Component Architecture
@@ -13,7 +8,7 @@ File size limits: components <300 lines, pages <300 lines.
 
 ## Composition Over Boolean Props
 
-❌ Bad: `<Panel showHeader showFooter isCompact />`  
+❌ Bad: `<Panel showHeader showFooter isCompact />`
 ✅ Good: Extract sub-components or use compound pattern.
 
 Avoid boolean proliferation — each boolean doubles possible states.
@@ -22,9 +17,9 @@ Avoid boolean proliferation — each boolean doubles possible states.
 
 **Only:** Utility classes in `className`. No CSS modules, styled-components, `style={{}}` (except dynamic values).
 
-**Class order:** Layout → Sizing → Spacing → Typography → Colors → Effects → States → Responsive  
-**Responsive:** Mobile-first, `md:` and `lg:` only (test at 375px and 1280px)  
-**Spacing:** Standard scale only (1,2,3,4,5,6,8,10,12,16,20,24). No arbitrary (`gap-[13px]`)  
+**Class order:** Layout → Sizing → Spacing → Typography → Colors → Effects → States → Responsive
+**Responsive:** Mobile-first, `md:` and `lg:` only (test at 375px and 1280px)
+**Spacing:** Standard scale only (1,2,3,4,5,6,8,10,12,16,20,24). No arbitrary (`gap-[13px]`)
 **Animation:** `animate-spin`, `transition-colors`, `transition-opacity` only (duration-150/200 max). NO bounce/pulse/ping.
 
 ## Color Tokens (from frontend/index.css)

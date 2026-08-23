@@ -1,8 +1,3 @@
----
-description: Helm chart authoring conventions for Njord. Apply when editing any file under infrastructure/helm/.
-applyTo: "infrastructure/helm/**"
----
-
 # Helm chart rules
 
 Tags: **MUST** (enforced) · **SHOULD** (convention).

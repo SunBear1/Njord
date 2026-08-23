@@ -1,28 +1,35 @@
-# RTK — Token-Optimized CLI
+<!-- icm:start -->
+## Persistent memory (ICM) — MANDATORY
 
-**rtk** is a CLI proxy that filters and compresses command outputs, saving 60-90% tokens.
+This project uses [ICM](https://github.com/rtk-ai/icm) for persistent memory across sessions.
+You MUST use it actively. Not optional.
 
-## Rule
-
-Always prefix shell commands with `rtk`:
-
+### Recall (before starting work)
 ```bash
-# Instead of:              Use:
-git status                 rtk git status
-git log -10                rtk git log -10
-cargo test                 rtk cargo test
-docker ps                  rtk docker ps
-kubectl get pods           rtk kubectl get pods
+icm recall "query"                        # search memories
+icm recall "query" -t "topic-name"        # filter by topic
+icm recall-context "query" --limit 5      # formatted for prompt injection
 ```
 
-## Meta commands (use directly)
+### Store — MANDATORY triggers
+You MUST call `icm store` when ANY of the following happens:
+1. **Error resolved** → `icm store -t errors-resolved -c "description" -i high -k "keyword1,keyword2"`
+2. **Architecture/design decision** → `icm store -t decisions-{project} -c "description" -i high`
+3. **User preference discovered** → `icm store -t preferences -c "description" -i critical`
+4. **Significant task completed** → `icm store -t context-{project} -c "summary of work done" -i high`
+5. **Conversation exceeds ~20 tool calls without a store** → store a progress summary
 
+Do this BEFORE responding to the user. Not after. Not later. Immediately.
+
+Do NOT store: trivial details, info already in CLAUDE.md, ephemeral state (build logs, git status).
+
+### Other commands
 ```bash
-rtk gain              # Token savings dashboard
-rtk gain --history    # Per-command savings history
-rtk discover          # Find missed rtk opportunities
-rtk proxy <cmd>       # Run raw (no filtering) but track usage
+icm update <id> -c "updated content"     # edit memory in-place
+icm health                                # topic hygiene audit
+icm topics                                # list all topics
 ```
+<!-- icm:end -->
 
 # Njord
 
@@ -38,7 +45,7 @@ Polish-language investment calculator SPA. Compares USD stock/ETF portfolios aga
 - **Styling:** Tailwind CSS v4 (utility classes only, semantic tokens via `@theme`)
 - **Browser targets:** last 2 versions Chrome, Firefox, Safari
 - **CI:** GitHub Actions (Ubuntu latest)
-- **Deploy target:** self-hosted k3s/k3d cluster + Go backend + Postgres. See `_bmad-output/planning-artifacts/architecture.md`.
+- **Deploy target:** self-hosted k3s/k3d cluster + Go backend + Postgres. See `_bmad-output/planning-artifacts/architecture.md`. (Under active reconsideration — see `decisions-architecture-njord` in ICM: reverting to Cloudflare Pages + Workers + D1.)
 
 ## Architecture
 
@@ -120,7 +127,7 @@ npx tsc --noEmit --skipLibCheck -p functions/tsconfig.json && npm run lint && np
 
 Important: `npx playwright test` runs against `npm run preview` on `dist/`, so rebuild with `npm run build` after frontend changes before running Playwright.
 
-No exceptions. Fix failures before proceeding. Context-specific checks in `.github/instructions/` files per domain.
+No exceptions. Fix failures before proceeding. Context-specific checks in nested `CLAUDE.md` files per domain (see Path-Specific Instructions below).
 
 ## Security
 
@@ -131,7 +138,7 @@ No exceptions. Fix failures before proceeding. Context-specific checks in `.gith
 ## Delivering Work
 
 1. Feature branch: `<type>/<scope>` (general) or `<type>/epic-<E>-story-<E>-<S>-<slug>` (BMAD stories).
-2. Conventional Commits message, with `Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>` trailer.
+2. Conventional Commits message.
 3. Push + `gh pr create --base main`.
 4. Wait for CI, merge (`gh pr merge <N> --squash --delete-branch`), sync local main.
 5. For BMAD stories: update `sprint-status.yaml` (ready-for-dev → review → done) in the same PR or a follow-up.
@@ -148,4 +155,12 @@ Before adding any npm package:
 
 ## Path-Specific Instructions
 
-Domain rules live in `.github/instructions/*.instructions.md` and load automatically when matching files are touched (path-scoped via `applyTo` frontmatter). Do not list them here — the system surfaces the active set per-request.
+Domain rules live in nested `CLAUDE.md` files and load automatically when working in that directory tree:
+
+- `frontend/components/CLAUDE.md`, `frontend/pages/CLAUDE.md` — component/page conventions, Tailwind, accessibility
+- `frontend/hooks/CLAUDE.md`, `frontend/providers/CLAUDE.md` — state management, data fetching patterns
+- `frontend/utils/CLAUDE.md`, `frontend/workers/CLAUDE.md` — financial math, tax law, prediction models
+- `frontend/tokens/CLAUDE.md` — design token architecture
+- `frontend/__tests__/CLAUDE.md` — test patterns
+- `infrastructure/helm/CLAUDE.md` — Helm chart conventions
+- `infrastructure/CLAUDE.md` — Kubernetes/ArgoCD manifests, bash scripting rules

@@ -240,10 +240,10 @@ Kryteria: User Value (×3), Implementation Cost (×2), Risk Reduction (×2), Sol
 
 ### Istniejące konwencje (bez zmian)
 
-Pełne konwencje w README.md i `.github/instructions/`. Kluczowe:
+Pełne konwencje w README.md, `CLAUDE.md` i zagnieżdżonych `**/CLAUDE.md`. Kluczowe:
 - camelCase vars/functions, PascalCase components/types/interfaces
 - PascalCase.tsx components, camelCase.ts utils/hooks
-- Tests w `src/__tests__/*.test.ts`, E2E w `e2e/`
+- Tests w `frontend/__tests__/*.test.ts`, E2E w `e2e/`
 - Tailwind tokens only, no CSS modules
 - Conventional Commits, no global state
 - Components <300 LOC, utils <200, hooks <150

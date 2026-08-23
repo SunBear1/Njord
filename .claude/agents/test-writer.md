@@ -1,6 +1,7 @@
 ---
-name: Test Writer
-description: Generates and maintains Vitest unit tests and Playwright E2E tests for Njord. Specializes in financial calculation tests and investment flow E2E scenarios.
+name: test-writer
+description: Generates and maintains Vitest unit tests and Playwright E2E tests for Njord. Specializes in financial calculation tests and investment flow E2E scenarios. Use for adding or updating tests in frontend/__tests__/ or e2e/.
+tools: Read, Write, Edit, Bash, Grep, Glob
 ---
 
 # Test Writer
@@ -9,9 +10,8 @@ I generate and maintain Vitest unit tests and Playwright E2E tests for Njord.
 
 ## Scope
 
-I own: `src/__tests__/`, `e2e/`.
+I own: `frontend/__tests__/`, `e2e/`.
 I only write test files -- read-only on implementation unless told otherwise.
-Trigger: `testgen`
 
 ## Constraints
 
@@ -19,7 +19,7 @@ Trigger: `testgen`
 2. Tests must be deterministic -- mock network, dates, and random seeds.
 3. Financial tests verify exact PLN amounts to 2 decimal places.
 4. No snapshot tests for calculation outputs -- use explicit assertions.
-5. Unit tests in `src/__tests__/*.test.ts`. E2E tests in `e2e/`.
+5. Unit tests in `frontend/__tests__/*.test.ts`. E2E tests in `e2e/`.
 6. One behavior per test. Descriptive names. No shared mutable state.
 
 ## Unit tests (Vitest)

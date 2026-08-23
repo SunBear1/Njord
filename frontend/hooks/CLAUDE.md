@@ -1,8 +1,3 @@
----
-description: State management, React hooks, and data providers.
-applyTo: "frontend/hooks/**/*.ts,frontend/providers/**/*.ts"
----
-
 # Hooks & State
 
 ## Page-Level State Only
@@ -41,7 +36,7 @@ Never throw on storage failure. Browsers may deny access (quotaexceeded, incogni
 
 ## Debounce Network Inputs
 
-`useDebouncedValue(horizonMonths, 300)` — minimum 150ms delay for prediction models.  
+`useDebouncedValue(horizonMonths, 300)` — minimum 150ms delay for prediction models.
 Do NOT debounce lightweight display state.
 
 ## API Fallback Chains (Keep Intact)
@@ -63,7 +58,7 @@ Use primitive values (`number`, `string`, `boolean`). For arrays/objects, use de
 
 ## Providers (frontend/providers/)
 
-No React imports. Accept `AbortSignal`. Translate errors to Polish user messages.  
+No React imports. Accept `AbortSignal`. Translate errors to Polish user messages.
 Example: `assetDataProvider`, `nbpProvider` — thin fetch wrappers.
 
 ## Network Rules

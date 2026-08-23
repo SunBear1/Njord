@@ -59,11 +59,12 @@ Aurora Borealis Animation.jsx:Zone.Identifier
 # GitHub hooks (if using local hooks instead of repo-based hooks)
 .github/hooks/rtk-rewrite.js
 
-# Local documentation/reference (non-repo guidance)
+# Claude Code local/personal settings (agents + project CLAUDE.md are checked in)
+.claude/settings.local.json
+
+# BMAD local tool install (vendored skills, not project config) + local-only AGENTS.md
 AGENTS.md
-CLAUDE.md
 .agents/
-.claude/
 
 # BMAD user-scoped config
 _bmad/**/*.user.toml
