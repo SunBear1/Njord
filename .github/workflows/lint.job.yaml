@@ -17,5 +17,6 @@ jobs:
         run: npx tsc --noEmit --skipLibCheck -p functions/tsconfig.json
 
       - name: Security audit (high+ severity)
-        # warn-only for now; tighten to --audit-level=high once SheetJS CVE resolved
-        run: npm audit --omit=dev --audit-level=critical || true
+        # SheetJS CVE-2023-30533 resolved by pinning xlsx to the CDN-distributed
+        # 0.20.3 (see package.json comment); enforced for real, no more warn-only.
+        run: npm audit --omit=dev --audit-level=high

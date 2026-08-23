@@ -138,6 +138,8 @@ No exceptions. Fix failures before proceeding. Context-specific checks in nested
 - `.dev.vars` is `.gitignore`d — never stage it.
 - API keys, DB passwords, JWT signing keys — never in code or chat responses. Kubernetes Secrets / sealed-secrets.
 - If a command is destructive (`rm -rf`, `DROP`, force push, `kubectl delete namespace`) — warn before executing.
+- `package.json`'s `xlsx` dependency deliberately points at `cdn.sheetjs.com`, not the npm registry — this is the fix for CVE-2023-30533 (see commit `0fb9399`), not a supply-chain oversight. SheetJS stopped publishing patched versions past `0.18.5` (vulnerable) to npm; `0.20.3` is CDN-only. `package-lock.json` pins it with a SHA-512 integrity hash, so a tampered/changed file at that URL fails `npm ci`. Do not "fix" this by switching back to the npm-registry version — that reintroduces the CVE.
+- `npm audit --omit=dev --audit-level=high` runs unmasked in CI (`lint.job.yaml`) — keep it that way; don't reintroduce `|| true`.
 
 ## Delivering Work
 
