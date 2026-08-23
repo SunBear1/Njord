@@ -81,8 +81,12 @@ Two databases, both bound via `wrangler.toml` / `infrastructure/pages.tf`:
 ## Local development
 
 ```bash
-npm run dev:full   # Wrangler (CF runtime) + Vite together at localhost:8788
-npm run dev        # Frontend only at localhost:5173 (no Pages Functions)
+npm run dev:full         # Wrangler (CF runtime) + Vite together at localhost:8788
+npm run dev              # Frontend only at localhost:5173 (no Pages Functions)
+npm run db:migrate:local # Apply all migrations/*.sql to the local AUTH_DB — run this
+                          # once per fresh clone/reset and after adding a new migration,
+                          # or `/api/v1/portfolio/holdings` etc. 500 with a generic
+                          # "Wewnętrzny błąd serwera." (D1 schema out of date locally).
 ```
 
 `.dev.vars` (never commit — gitignored): `JWT_SECRET=...` required for auth once ported.

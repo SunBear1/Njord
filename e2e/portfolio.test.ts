@@ -33,6 +33,7 @@ const FIXTURE_HOLDINGS = [
     quantity: 25,
     avgPrice: 78.4,
     currency: 'PLN',
+    instrumentType: 'stock',
     source: 'manual',
     addedAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
@@ -54,6 +55,18 @@ const FIXTURE_HOLDINGS = [
     principal: 5000,
     interestRatePercent: 5.25,
     asOfDate: '2025-01-01',
+    source: 'manual',
+    addedAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'term-deposit-1',
+    assetClass: 'termDeposit',
+    bankName: 'mBank',
+    principal: 15000,
+    interestRatePercent: 5.5,
+    openDate: '2025-06-01',
+    maturityDate: '2026-06-01',
     source: 'manual',
     addedAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
@@ -97,10 +110,11 @@ test.describe('/portfolio — authenticated dashboard', () => {
 
     await expect(page.getByRole('heading', { name: 'Mój portfel' })).toBeVisible();
     await expect(page.getByText('CDR.WA')).toBeVisible();
-
-    await expect(page.getByRole('heading', { name: 'Obligacje i konta oszczędnościowe' })).toBeVisible();
-    await expect(page.getByText('Toyota Bank')).toBeVisible();
     await expect(page.getByText('EDO dziesięcioletnie')).toBeVisible();
+
+    await expect(page.getByRole('heading', { name: 'Oszczędności' })).toBeVisible();
+    await expect(page.getByText('Toyota Bank')).toBeVisible();
+    await expect(page.getByText('Lokata do 2026-06-01')).toBeVisible();
 
     await expect(page.getByText('Kreator portfela')).toHaveCount(0);
   });

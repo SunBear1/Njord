@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import type { HoldingDraft, HoldingAssetClass } from '../../types/holding';
-import type { BondPreset } from '../../types/scenario';
+import type { HoldingDraft } from '../../types/holding';
+
+type CashAssetClass = 'savings' | 'termDeposit';
 
 interface HoldingFormProps {
-  bondPresets: BondPreset[];
   onSubmit: (draft: HoldingDraft) => void;
   onCancel?: () => void;
   submitLabel?: string;
@@ -12,13 +12,16 @@ interface HoldingFormProps {
 const inputClass = 'w-full px-3 py-2 rounded-lg border border-bg-muted bg-bg-card text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-neutral/50';
 const labelClass = 'block text-sm font-medium text-text-secondary mb-1';
 
-export function HoldingForm({ bondPresets, onSubmit, onCancel, submitLabel = 'Dodaj' }: HoldingFormProps) {
-  const [assetClass, setAssetClass] = useState<HoldingAssetClass>('bond');
-  const [bondPresetId, setBondPresetId] = useState(bondPresets[0]?.id ?? '');
+const today = () => new Date().toISOString().slice(0, 10);
+
+export function HoldingForm({ onSubmit, onCancel, submitLabel = 'Dodaj' }: HoldingFormProps) {
+  const [assetClass, setAssetClass] = useState<CashAssetClass>('savings');
   const [bankName, setBankName] = useState('');
   const [principal, setPrincipal] = useState('');
   const [interestRatePercent, setInterestRatePercent] = useState('');
-  const [dateField, setDateField] = useState(new Date().toISOString().slice(0, 10));
+  const [asOfDate, setAsOfDate] = useState(today());
+  const [openDate, setOpenDate] = useState(today());
+  const [maturityDate, setMaturityDate] = useState(today());
   const [source, setSource] = useState('manual');
   const [error, setError] = useState<string | null>(null);
 
@@ -29,24 +32,24 @@ export function HoldingForm({ bondPresets, onSubmit, onCancel, submitLabel = 'Do
       setError('Kwota musi być liczbą dodatnią.');
       return;
     }
+    const rateNum = Number(interestRatePercent);
+    if (!Number.isFinite(rateNum) || rateNum < 0) {
+      setError('Stawka musi być liczbą nieujemną.');
+      return;
+    }
+    if (!bankName.trim()) {
+      setError('Podaj nazwę banku.');
+      return;
+    }
 
-    if (assetClass === 'bond') {
-      if (!bondPresetId) {
-        setError('Wybierz typ obligacji.');
-        return;
-      }
-      onSubmit({ assetClass: 'bond', bondPresetId, principal: principalNum, purchaseDate: dateField, source });
+    if (assetClass === 'savings') {
+      onSubmit({ assetClass: 'savings', bankName: bankName.trim(), principal: principalNum, interestRatePercent: rateNum, asOfDate, source });
     } else {
-      const rateNum = Number(interestRatePercent);
-      if (!Number.isFinite(rateNum) || rateNum < 0) {
-        setError('Stawka musi być liczbą nieujemną.');
+      if (maturityDate <= openDate) {
+        setError('Data zapadalności musi być późniejsza niż data otwarcia.');
         return;
       }
-      if (!bankName.trim()) {
-        setError('Podaj nazwę banku.');
-        return;
-      }
-      onSubmit({ assetClass: 'savings', bankName: bankName.trim(), principal: principalNum, interestRatePercent: rateNum, asOfDate: dateField, source });
+      onSubmit({ assetClass: 'termDeposit', bankName: bankName.trim(), principal: principalNum, interestRatePercent: rateNum, openDate, maturityDate, source });
     }
 
     setPrincipal('');
@@ -62,42 +65,26 @@ export function HoldingForm({ bondPresets, onSubmit, onCancel, submitLabel = 'Do
         <select
           id="holding-class"
           value={assetClass}
-          onChange={(e) => setAssetClass(e.target.value as HoldingAssetClass)}
+          onChange={(e) => setAssetClass(e.target.value as CashAssetClass)}
           className={inputClass}
         >
-          <option value="bond">Obligacja skarbowa</option>
           <option value="savings">Konto oszczędnościowe</option>
+          <option value="termDeposit">Lokata</option>
         </select>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {assetClass === 'bond' ? (
-          <div className="md:col-span-2">
-            <label htmlFor="holding-bond-preset" className={labelClass}>Typ obligacji</label>
-            <select
-              id="holding-bond-preset"
-              value={bondPresetId}
-              onChange={(e) => setBondPresetId(e.target.value)}
-              className={inputClass}
-            >
-              {bondPresets.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-          </div>
-        ) : (
-          <div className="md:col-span-2">
-            <label htmlFor="holding-bank" className={labelClass}>Bank</label>
-            <input
-              id="holding-bank"
-              type="text"
-              value={bankName}
-              onChange={(e) => setBankName(e.target.value)}
-              placeholder="np. Toyota Bank"
-              className={inputClass}
-            />
-          </div>
-        )}
+        <div className="md:col-span-2">
+          <label htmlFor="holding-bank" className={labelClass}>Bank</label>
+          <input
+            id="holding-bank"
+            type="text"
+            value={bankName}
+            onChange={(e) => setBankName(e.target.value)}
+            placeholder="np. Toyota Bank"
+            className={inputClass}
+          />
+        </div>
 
         <div>
           <label htmlFor="holding-principal" className={labelClass}>Kwota (PLN)</label>
@@ -113,34 +100,57 @@ export function HoldingForm({ bondPresets, onSubmit, onCancel, submitLabel = 'Do
           />
         </div>
 
-        {assetClass === 'savings' && (
-          <div>
-            <label htmlFor="holding-rate" className={labelClass}>Stawka (% rocznie)</label>
-            <input
-              id="holding-rate"
-              type="number"
-              min="0"
-              step="any"
-              value={interestRatePercent}
-              onChange={(e) => setInterestRatePercent(e.target.value)}
-              placeholder="0.00"
-              className={inputClass}
-            />
-          </div>
-        )}
-
         <div>
-          <label htmlFor="holding-date" className={labelClass}>
-            {assetClass === 'bond' ? 'Data zakupu' : 'Stan na dzień'}
+          <label htmlFor="holding-rate" className={labelClass}>
+            {assetClass === 'termDeposit' ? 'Oprocentowanie (stałe, % rocznie)' : 'Stawka (% rocznie)'}
           </label>
           <input
-            id="holding-date"
-            type="date"
-            value={dateField}
-            onChange={(e) => setDateField(e.target.value)}
+            id="holding-rate"
+            type="number"
+            min="0"
+            step="any"
+            value={interestRatePercent}
+            onChange={(e) => setInterestRatePercent(e.target.value)}
+            placeholder="0.00"
             className={inputClass}
           />
         </div>
+
+        {assetClass === 'savings' ? (
+          <div>
+            <label htmlFor="holding-date" className={labelClass}>Stan na dzień</label>
+            <input
+              id="holding-date"
+              type="date"
+              value={asOfDate}
+              onChange={(e) => setAsOfDate(e.target.value)}
+              className={inputClass}
+            />
+          </div>
+        ) : (
+          <>
+            <div>
+              <label htmlFor="holding-open-date" className={labelClass}>Data otwarcia</label>
+              <input
+                id="holding-open-date"
+                type="date"
+                value={openDate}
+                onChange={(e) => setOpenDate(e.target.value)}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label htmlFor="holding-maturity-date" className={labelClass}>Data zapadalności</label>
+              <input
+                id="holding-maturity-date"
+                type="date"
+                value={maturityDate}
+                onChange={(e) => setMaturityDate(e.target.value)}
+                className={inputClass}
+              />
+            </div>
+          </>
+        )}
 
         <div>
           <label htmlFor="holding-source" className={labelClass}>Źródło</label>
@@ -149,7 +159,7 @@ export function HoldingForm({ bondPresets, onSubmit, onCancel, submitLabel = 'Do
             type="text"
             value={source}
             onChange={(e) => setSource(e.target.value)}
-            placeholder="np. XTB, manual"
+            placeholder="np. mBank, manual"
             className={inputClass}
           />
         </div>

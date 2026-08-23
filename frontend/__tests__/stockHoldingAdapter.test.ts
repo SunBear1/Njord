@@ -61,19 +61,25 @@ describe('positionDraftToStockHoldingDraft', () => {
       source: '  XTB ',
     };
 
-    expect(positionDraftToStockHoldingDraft(draft)).toEqual({
+    expect(positionDraftToStockHoldingDraft(draft, 'stock')).toEqual({
       assetClass: 'stock',
       ticker: 'AAPL',
       quantity: 10,
       avgPrice: 150.25,
       currency: 'USD',
       source: 'XTB',
+      instrumentType: 'stock',
     });
   });
 
   it('TestPositionDraftToStockHoldingDraft_WhenSourceIsBlank_ExpectsManualFallback', () => {
     const draft: PositionDraft = { ticker: 'IWDA.L', quantity: '2', avgPrice: '90', currency: 'EUR', source: '   ' };
-    expect(positionDraftToStockHoldingDraft(draft).source).toBe('manual');
+    expect(positionDraftToStockHoldingDraft(draft, 'etf').source).toBe('manual');
+  });
+
+  it('TestPositionDraftToStockHoldingDraft_WhenInstrumentTypeIsEtf_ExpectsEtfInDraft', () => {
+    const draft: PositionDraft = { ticker: 'IWDA.L', quantity: '2', avgPrice: '90', currency: 'EUR', source: 'manual' };
+    expect(positionDraftToStockHoldingDraft(draft, 'etf').instrumentType).toBe('etf');
   });
 });
 
@@ -89,13 +95,14 @@ describe('positionToStockHoldingDraft', () => {
       addedAt: Date.now(),
     };
 
-    expect(positionToStockHoldingDraft(position)).toEqual({
+    expect(positionToStockHoldingDraft(position, 'stock')).toEqual({
       assetClass: 'stock',
       ticker: 'MSFT',
       quantity: 3,
       avgPrice: 420.5,
       currency: 'USD',
       source: 'DEGIRO',
+      instrumentType: 'stock',
     });
   });
 });

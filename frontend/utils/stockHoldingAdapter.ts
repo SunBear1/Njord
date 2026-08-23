@@ -1,4 +1,4 @@
-import type { StockHolding, StockHoldingDraft } from '../types/holding';
+import type { StockHolding, StockHoldingDraft, StockInstrumentType } from '../types/holding';
 import type { Position, PositionDraft } from '../types/position';
 
 export function stockHoldingToPosition(holding: StockHolding): Position {
@@ -13,7 +13,7 @@ export function stockHoldingToPosition(holding: StockHolding): Position {
   };
 }
 
-export function positionDraftToStockHoldingDraft(draft: PositionDraft): StockHoldingDraft {
+export function positionDraftToStockHoldingDraft(draft: PositionDraft, instrumentType: StockInstrumentType): StockHoldingDraft {
   return {
     assetClass: 'stock',
     ticker: draft.ticker.trim().toUpperCase(),
@@ -21,10 +21,11 @@ export function positionDraftToStockHoldingDraft(draft: PositionDraft): StockHol
     avgPrice: parseFloat(draft.avgPrice),
     currency: draft.currency,
     source: draft.source.trim() || 'manual',
+    instrumentType,
   };
 }
 
-export function positionToStockHoldingDraft(position: Position): StockHoldingDraft {
+export function positionToStockHoldingDraft(position: Position, instrumentType: StockInstrumentType): StockHoldingDraft {
   return {
     assetClass: 'stock',
     ticker: position.ticker,
@@ -32,5 +33,6 @@ export function positionToStockHoldingDraft(position: Position): StockHoldingDra
     avgPrice: position.avgPrice,
     currency: position.currency,
     source: position.source,
+    instrumentType,
   };
 }

@@ -26,22 +26,25 @@ resource "null_resource" "finance_db_schema" {
   }
 }
 
+locals {
+  # Every migration file, applied in filename order — add a new migrations/000N_*.sql
+  # file and it's picked up automatically, no edits needed here.
+  auth_migration_files = sort(fileset("${path.module}/../migrations", "*.sql"))
+}
+
 resource "null_resource" "auth_db_schema" {
   depends_on = [cloudflare_d1_database.users_db]
 
   provisioner "local-exec" {
     command = join(" && ", [
-      "wrangler d1 execute ${cloudflare_d1_database.users_db.name} --remote --file=../migrations/0001_create_users.sql",
-      "wrangler d1 execute ${cloudflare_d1_database.users_db.name} --remote --file=../migrations/0002_create_holdings.sql",
-      "wrangler d1 execute ${cloudflare_d1_database.users_db.name} --remote --file=../migrations/0003_add_stock_asset_class.sql",
+      for f in local.auth_migration_files :
+      "wrangler d1 execute ${cloudflare_d1_database.users_db.name} --remote --file=../migrations/${f}"
     ])
   }
 
   triggers = {
     schema_hash = join("-", [
-      filesha256("${path.module}/../migrations/0001_create_users.sql"),
-      filesha256("${path.module}/../migrations/0002_create_holdings.sql"),
-      filesha256("${path.module}/../migrations/0003_add_stock_asset_class.sql"),
+      for f in local.auth_migration_files : filesha256("${path.module}/../migrations/${f}")
     ])
   }
 }

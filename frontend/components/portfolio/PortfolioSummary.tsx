@@ -2,8 +2,10 @@ import { fmtPLN, fmtPercent } from '../../utils/formatting';
 
 interface PortfolioSummaryProps {
   stockValuePLN: number;
+  etfValuePLN: number;
   bondValuePLN: number;
   savingsValuePLN: number;
+  termDepositValuePLN: number;
   totalPLN: number;
   isConverting: boolean;
   conversionError: string | null;
@@ -17,16 +19,20 @@ interface StatTile {
 
 export function PortfolioSummary({
   stockValuePLN,
+  etfValuePLN,
   bondValuePLN,
   savingsValuePLN,
+  termDepositValuePLN,
   totalPLN,
   isConverting,
   conversionError,
 }: PortfolioSummaryProps) {
   const tiles: StatTile[] = [
-    { label: 'Akcje i ETF', value: stockValuePLN, dotClass: 'bg-chart-stocks' },
+    { label: 'Akcje', value: stockValuePLN, dotClass: 'bg-chart-stocks' },
+    { label: 'ETF', value: etfValuePLN, dotClass: 'bg-chart-etf' },
     { label: 'Obligacje', value: bondValuePLN, dotClass: 'bg-chart-bonds' },
-    { label: 'Oszczędności', value: savingsValuePLN, dotClass: 'bg-chart-savings' },
+    { label: 'Konta oszczędnościowe', value: savingsValuePLN, dotClass: 'bg-chart-savings' },
+    { label: 'Lokaty', value: termDepositValuePLN, dotClass: 'bg-chart-term-deposit' },
   ];
 
   return (
@@ -39,7 +45,7 @@ export function PortfolioSummary({
         </p>
         {conversionError && <p className="mt-1 text-xs text-loss">{conversionError}</p>}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {tiles.map((tile) => (
           <div key={tile.label} className="rounded-lg bg-bg-hover p-3">
             <div className="flex items-center gap-2">

@@ -1,6 +1,6 @@
 import { bondCouponEndValue, bondGrossValue } from './calculations';
 import type { BondPreset } from '../types/scenario';
-import type { BondHolding, SavingsHolding } from '../types/holding';
+import type { BondHolding, SavingsHolding, TermDepositHolding } from '../types/holding';
 
 function monthsBetween(fromIso: string, toMs: number): number {
   const from = new Date(fromIso).getTime();
@@ -29,5 +29,17 @@ export function calcBondHoldingCurrentValue(holding: BondHolding, preset: BondPr
 /** Current value of a savings holding: simple compound interest from `asOfDate`. */
 export function calcSavingsHoldingCurrentValue(holding: SavingsHolding, nowMs = Date.now()): number {
   const months = monthsBetween(holding.asOfDate, nowMs);
+  return holding.principal * Math.pow(1 + holding.interestRatePercent / 12 / 100, months);
+}
+
+/**
+ * Current value of a term deposit (lokata): fixed-rate compound interest from
+ * `openDate`, capped at `maturityDate` — funds are locked for the term, so unlike
+ * a savings account the value stops growing once the term ends (no auto-renewal).
+ */
+export function calcTermDepositHoldingCurrentValue(holding: TermDepositHolding, nowMs = Date.now()): number {
+  const maturityMs = new Date(holding.maturityDate).getTime();
+  const effectiveNowMs = Math.min(nowMs, maturityMs);
+  const months = monthsBetween(holding.openDate, effectiveNowMs);
   return holding.principal * Math.pow(1 + holding.interestRatePercent / 12 / 100, months);
 }
