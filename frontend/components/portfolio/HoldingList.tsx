@@ -1,9 +1,11 @@
-import type { Holding } from '../../types/holding';
+import type { BondHolding, SavingsHolding } from '../../types/holding';
 import type { BondPreset } from '../../types/scenario';
 import { calcBondHoldingCurrentValue, calcSavingsHoldingCurrentValue } from '../../utils/holdingValue';
 
+type ListableHolding = BondHolding | SavingsHolding;
+
 interface HoldingListProps {
-  holdings: Holding[];
+  holdings: ListableHolding[];
   bondPresets: BondPreset[];
   onDelete: (id: string) => void;
 }
@@ -12,7 +14,7 @@ function formatPLN(value: number): string {
   return `${value.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł`;
 }
 
-function currentValue(holding: Holding, bondPresets: BondPreset[]): number | null {
+function currentValue(holding: ListableHolding, bondPresets: BondPreset[]): number | null {
   if (holding.assetClass === 'bond') {
     const preset = bondPresets.find((p) => p.id === holding.bondPresetId);
     return preset ? calcBondHoldingCurrentValue(holding, preset) : null;
@@ -20,7 +22,7 @@ function currentValue(holding: Holding, bondPresets: BondPreset[]): number | nul
   return calcSavingsHoldingCurrentValue(holding);
 }
 
-function label(holding: Holding, bondPresets: BondPreset[]): string {
+function label(holding: ListableHolding, bondPresets: BondPreset[]): string {
   if (holding.assetClass === 'bond') {
     return bondPresets.find((p) => p.id === holding.bondPresetId)?.name ?? holding.bondPresetId;
   }
