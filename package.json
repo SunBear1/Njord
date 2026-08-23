@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:full": "vite build && wrangler pages dev",
+    "db:migrate:local": "for f in migrations/*.sql; do wrangler d1 execute AUTH_DB --local --file=\"$f\"; done",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",

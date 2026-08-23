@@ -17,8 +17,13 @@ const DEFAULT_DRAFT: PositionDraft = {
   source: 'manual',
 };
 
+function isKnownSource(source: string): source is typeof POSITION_SOURCES[number] {
+  return (POSITION_SOURCES as readonly string[]).includes(source);
+}
+
 export function PositionForm({ onSubmit, onCancel, initialDraft, submitLabel = 'Dodaj' }: PositionFormProps) {
   const [draft, setDraft] = useState<PositionDraft>({ ...DEFAULT_DRAFT, ...initialDraft });
+  const [isCustomSource, setIsCustomSource] = useState(() => !isKnownSource(draft.source));
   const [errors, setErrors] = useState<PositionValidationErrors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof PositionDraft, boolean>>>({});
 
@@ -46,6 +51,7 @@ export function PositionForm({ onSubmit, onCancel, initialDraft, submitLabel = '
     if (Object.keys(validationErrors).length > 0) return;
     onSubmit(draft);
     setDraft(DEFAULT_DRAFT);
+    setIsCustomSource(false);
     setErrors({});
     setTouched({});
   }
@@ -144,34 +150,47 @@ export function PositionForm({ onSubmit, onCancel, initialDraft, submitLabel = '
         </div>
 
         {/* Source */}
-        <div className="md:col-span-2">
-          <label htmlFor="pos-source" className="block text-sm font-medium text-text-secondary mb-1">
-            Źródło danych
-          </label>
-          <div className="flex gap-2">
+        <div className="md:col-span-2 space-y-3">
+          <div>
+            <label htmlFor="pos-source" className="block text-sm font-medium text-text-secondary mb-1">
+              Źródło danych
+            </label>
             <select
               id="pos-source"
-              value={POSITION_SOURCES.includes(draft.source as typeof POSITION_SOURCES[number]) ? draft.source : '__custom__'}
+              value={isCustomSource ? '__custom__' : draft.source}
               onChange={(e) => {
-                if (e.target.value !== '__custom__') handleChange('source', e.target.value);
+                if (e.target.value === '__custom__') {
+                  setIsCustomSource(true);
+                  handleChange('source', '');
+                } else {
+                  setIsCustomSource(false);
+                  handleChange('source', e.target.value);
+                }
               }}
-              className="px-3 py-2 rounded-lg border border-bg-muted bg-bg-card text-text-primary focus:outline-none focus:ring-2 focus:ring-neutral/50"
+              className="w-full px-3 py-2 rounded-lg border border-bg-muted bg-bg-card text-text-primary focus:outline-none focus:ring-2 focus:ring-neutral/50"
             >
               {POSITION_SOURCES.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
               <option value="__custom__">inne…</option>
             </select>
-            {!POSITION_SOURCES.includes(draft.source as typeof POSITION_SOURCES[number]) && (
+          </div>
+
+          {isCustomSource && (
+            <div>
+              <label htmlFor="pos-source-custom" className="block text-sm font-medium text-text-secondary mb-1">
+                Nazwa źródła
+              </label>
               <input
+                id="pos-source-custom"
                 type="text"
                 value={draft.source}
                 onChange={(e) => handleChange('source', e.target.value)}
-                placeholder="Nazwa źródła"
-                className="flex-1 px-3 py-2 rounded-lg border border-bg-muted bg-bg-card text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-neutral/50"
+                placeholder="np. Bossa, Freedom24"
+                className="w-full px-3 py-2 rounded-lg border border-bg-muted bg-bg-card text-text-primary placeholder-text-muted focus:outline-none focus:ring-2 focus:ring-neutral/50"
               />
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
