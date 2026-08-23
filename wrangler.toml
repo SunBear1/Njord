@@ -1,9 +1,7 @@
 # Required secrets (set via `wrangler pages secret put <NAME>`):
 #   JWT_SECRET             — signing key for auth tokens
-#   GITHUB_CLIENT_ID       — GitHub OAuth app client ID
-#   GITHUB_CLIENT_SECRET   — GitHub OAuth app client secret
-#   GOOGLE_CLIENT_ID       — Google OAuth client ID
-#   GOOGLE_CLIENT_SECRET   — Google OAuth client secret
+#
+# OAuth (GitHub/Google) is deferred to Epic 99 — no client id/secret needed yet.
 
 name = "njord"
 pages_build_output_dir = "dist"
