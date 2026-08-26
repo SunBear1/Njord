@@ -126,3 +126,4 @@ date,coverage_pct,above_bull_pct,below_bear_pct,bias_ratio,base_mae_pp,stocks,ov
 2026-08-23,49.5,33.3,17.2,1.94,51.6,93,PASS,bull,energy,0
 2026-08-24,49,36.5,14.6,2.5,50.6,96,PASS,bull,energy,0
 2026-08-25,50,35.9,14.1,2.54,47.1,92,PASS,bull,cybersecurity,0
+2026-08-26,48.4,34.1,17.6,1.94,46.2,91,PASS,bull,cybersecurity,0
