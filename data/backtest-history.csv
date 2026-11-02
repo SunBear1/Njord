@@ -194,3 +194,4 @@ date,coverage_pct,above_bull_pct,below_bear_pct,bias_ratio,base_mae_pp,stocks,ov
 2026-10-30,48.4,31.9,19.8,1.61,35.1,91,PASS,neutral,networking,0
 2026-10-31,50.5,29,20.4,1.42,44.8,93,PASS,neutral,cybersecurity,0
 2026-11-01,47.3,29,23.7,1.23,34.1,93,PASS,neutral,energy,0
+2026-11-02,51.1,27.2,21.7,1.25,40.4,92,PASS,neutral,energy,0
