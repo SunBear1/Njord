@@ -218,3 +218,4 @@ date,coverage_pct,above_bull_pct,below_bear_pct,bias_ratio,base_mae_pp,stocks,ov
 2026-11-23,52.1,29.8,18.1,1.65,38,94,PASS,neutral,biotech,22.2
 2026-11-24,59.3,24.2,16.5,1.47,28.2,91,PASS,neutral,cybersecurity,20
 2026-11-25,53.2,25.5,21.3,1.2,31.4,94,PASS,neutral,cybersecurity,0
+2026-11-27,54.3,28.7,17,1.69,32.5,94,PASS,neutral,networking,0
